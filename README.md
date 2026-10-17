@@ -29,7 +29,7 @@ When two networks can't link directly (strict routers, campus or office Wi-Fi, s
 | `CF_TURN_KEY_ID` | Cloudflare dashboard > Realtime > TURN Server > your key's **Turn Token ID** |
 | `CF_TURN_KEY_TOKEN` | The **API Token** shown once when you create that key |
 
-Without them, `/api/turn` returns STUN only and the MQTT relay covers blocked networks.
+Without them, `/api/turn` returns STUN only and the MQTT relay covers blocked networks. `node scripts/turn-check.js` confirms the credentials work by allocating (and releasing) a real relay slot.
 
 | | Move | Jump | Drop through a plank | Aim | Shoot | Block |
 |---|---|---|---|---|---|---|
@@ -64,6 +64,7 @@ src/counterpick.html   the game: one self-contained file (HTML, CSS, JS)
 vercel.json            serves the repo as a static site on Vercel (cuued.com)
 api/turn.js            Vercel function: optional Cloudflare TURN credentials for online play
 scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
+scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
 index.html             generated from src/ by scripts/build.js; adds the standalone page shell
 scripts/build.js       node scripts/build.js [--check]
 tests/                 headless test suite (plain Node, no dependencies)
