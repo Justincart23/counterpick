@@ -1,6 +1,6 @@
 # CUUED
 
-**Lose a round. Draft a counter.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
+**Queue up. Duel a friend.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
 
 The name is said like *queued*: pick a name, share a 4-letter code, and you're in a duel. No download, no account.
 
@@ -18,7 +18,7 @@ The first time you open it, you pick a name. It's remembered in your browser, an
 2. The other player opens the link, or picks **Play online → Join with a code** and types the code.
 3. The match starts as soon as they connect. Both players draft at the start, and each round's loser drafts on their own screen.
 
-Online play is peer-to-peer. The host's browser runs the match, and the guest sends its inputs and draws the host's snapshots. The free public [PeerJS](https://peerjs.com) broker only introduces the two browsers, so there is no game server to run.
+Online play is peer-to-peer. The host's browser runs the match, and the guest sends its inputs and draws the host's snapshots. The guest's own fighter is **predicted locally**, so it responds instantly, and it's corrected against the host's acknowledged state without visible jumps. The free public [PeerJS](https://peerjs.com) broker only introduces the two browsers, so there is no game server to run.
 
 When two networks can't link directly (strict routers, campus or office Wi-Fi, some phone carriers), the game **falls back to a relay automatically**. Messages go through free public MQTT brokers ([EMQX](https://www.emqx.com/en/mqtt/public-mqtt5-broker), then [Mosquitto](https://test.mosquitto.org)) over secure WebSockets, with no account needed. The host listens on every broker, and the guest uses the first one that answers. A relayed match adds about 40–80 ms each way, shows `ONLINE (RELAY)` at the top of the screen, and sends snapshots at 20 Hz instead of 30. These are free test brokers with no uptime guarantee, which suits a game played with friends. `node scripts/relay-smoke.js` checks them live.
 
@@ -83,6 +83,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`audit.js`** plays CPU vs CPU and fails if a bullet spawns past a wall, a bullet tunnels through one, a body ends a frame inside a wall, a point stalls, or the game throws.
 - **`ceiling.js`** fires shots upward on every arena and fails if any bullet gets above the ceiling.
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
+- **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
 - **`card-art.js`** renders all 34 card animations for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.

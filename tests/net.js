@@ -134,18 +134,28 @@ const DT = 1 / 60;
     A.mouse.x = me.x + Math.cos(ang) * 220; A.mouse.y = me.y + Math.sin(ang) * 220; A.mouse.down = f % 50 < 30;
     const dist = Math.abs(opp.x - me.x), toward = opp.x > me.x ? 'KeyD' : 'KeyA', away = toward === 'KeyD' ? 'KeyA' : 'KeyD';
     A.keys.add(dist > 300 ? toward : Math.floor(f / 45) % 2 ? toward : away);
-    if (f % 55 === 0) A.edges.add('KeyW');
-    if (f % 55 < 16) A.keys.add('KeyW');   // hold for a full-height jump (a tap gives a short hop)
+    if (f % 55 === 0 || f % 55 === 18) A.edges.add('KeyW');   // jump, then double-jump near the top (clears tall walls)
+    if (f % 55 < 16 || (f % 55 >= 18 && f % 55 < 34)) A.keys.add('KeyW');   // hold for full height (a tap gives a short hop)
     if (f % 233 === 0) A.mouse.rEdge = true;
   };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
+  // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
+  // and corrections from the host should never make it visibly jump
+  let probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
     if (G.pickFor && G.pickMode === 'remote' && !G.pickLock) { G.netChoose(1); guestDrafts++ }
     drive(H, H.players[0], H.players[1], frames);
-    drive(G, G.players[1], G.players[0], frames + 31);
+    const me = G.players[1];
+    if (probe === 0 && frames > 300 && H.game.state === 'play' && me.alive && me.grounded) { probe = 1; probeT = 0 }
+    if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
+    if (probe === 1 && ++probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; G.keys.add('KeyD') }
+    else if (probe === 2) { G.keys.add('KeyD'); if (++probeT >= 3) { responsive = me.x - gx0; hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete('KeyD') } }
     frame();
+    const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
+    if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
+    lastVis = vis; lastMap = G.game.mapIdx;
     const hp = H.players[1];
     if (H.game.state === 'play' && hp.alive) { if (lastX.v != null) guestMoved += Math.abs(hp.x - lastX.v); lastX.v = hp.x } else lastX.v = null;
     hostTrail.push([H.players[0].x, H.players[0].y]); if (hostTrail.length > 12) hostTrail.shift();
@@ -166,6 +176,9 @@ const DT = 1 / 60;
   check(guestMoved > 800, `the guest's inputs should move its fighter on the host (moved ${guestMoved.toFixed(0)}px)`);
   check(sawGuestBullet, "the guest's shots should be fired on the host");
   check(meanSync < 20, `the guest's view should track the host's simulation within one network trip (mean error ${meanSync.toFixed(1)}px)`);
+  check(responsive != null && responsive > 3, `the guest's fighter should move on its own screen within 2 frames of a key press (moved ${responsive && responsive.toFixed(1)}px)`);
+  check(hostStill != null && hostStill < 1, `...before the host has even received that input (host moved ${hostStill && hostStill.toFixed(1)}px), proving the response is local`);
+  check(visJumps <= 1, `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
   check(G.game.wins.join() === H.game.wins.join(), `final score should match (${H.game.wins} vs ${G.game.wins})`);
 
   // --- rematch requested by the guest
@@ -207,7 +220,7 @@ const DT = 1 / 60;
 
   check(errors === 0, `no exceptions (${errors})`);
 
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

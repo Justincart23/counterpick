@@ -6,6 +6,7 @@ const path = require('path');
 const run = (file, ...args) => ({ name: [file, ...args].join(' '), args: [path.join(__dirname, file), ...args.map(String)] });
 const suite = [
   run('card-art.js'),
+  run('movement.js'),
   run('audio.js'),
   run('ceiling.js'),
   run('net.js'),
