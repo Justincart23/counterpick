@@ -33,9 +33,8 @@ Without them, `/api/turn` returns STUN only and the MQTT relay covers blocked ne
 | | Move | Jump | Drop through a plank | Aim | Shoot | Block |
 |---|---|---|---|---|---|---|
 | **Orange** | `A` `D` | `W` / `Space` | `S` | mouse | click | right-click / `Shift` |
-| **Blue** (local versus) | `←` `→` | `↑` | `↓` | assisted | `.` | `/` |
 
-A gamepad works for Blue: left stick, A, RT, LB, and the right stick to aim. Press `Esc` to pause and `M` to mute. In the menus, use `↑` `↓` to choose, `Enter` to select, `←` `→` to change a setting and `Esc` to go back.
+Press `Esc` to pause and `M` to mute. In the menus, use `↑` `↓` to choose, `Enter` to select, `←` `→` to change a setting and `Esc` to go back.
 
 ## How a match works
 
@@ -53,7 +52,8 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 - **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
-- **Synthesized sound effects** built with the Web Audio API, with a volume setting. No audio files.
+- **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, and effects with a room reverb so impacts boom. Music and volume settings; no audio files.
+- **The sky tells the score:** each match starts at night and moves toward dawn as the leader nears the winning score. The last round is announced as FINAL ROUND.
 - Reduced-motion support: screen shake and flashes are toned down when the OS asks for less motion.
 
 ## Project layout

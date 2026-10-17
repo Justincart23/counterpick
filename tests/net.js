@@ -141,7 +141,7 @@ const DT = 1 / 60;
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
-  let probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  let mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
@@ -155,6 +155,7 @@ const DT = 1 / 60;
     if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; G.keys.add('KeyD') }
     else if (probe === 2) { G.keys.add('KeyD'); if (++probeT >= 3) { responsive = me.x - gx0; hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete('KeyD') } }
     frame();
+    if (H.game.state === 'play' && G.game.state === 'play' && G.game.map && G.game.map.name !== H.game.map.name) mapMismatch++;
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
     if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
     lastVis = vis; lastMap = G.game.mapIdx;
@@ -180,6 +181,7 @@ const DT = 1 / 60;
   check(meanSync < 20, `the guest's view should track the host's simulation within one network trip (mean error ${meanSync.toFixed(1)}px)`);
   check(responsive != null && responsive > 3, `the guest's fighter should move on its own screen within 2 frames of a key press (moved ${responsive && responsive.toFixed(1)}px)`);
   check(hostStill != null && hostStill < 1, `...before the host has even received that input (host moved ${hostStill && hostStill.toFixed(1)}px), proving the response is local`);
+  check(mapMismatch < 10, `the guest should always be on the host's arena (${mapMismatch} frames on a different one)`);
   check(visJumps <= 1, `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
   check(G.game.wins.join() === H.game.wins.join(), `final score should match (${H.game.wins} vs ${G.game.wins})`);
 

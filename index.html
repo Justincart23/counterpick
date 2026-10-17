@@ -218,9 +218,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="online" data-hint="Play a friend online. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="cpu" data-hint="Warm up against the computer. Pick its skill in Settings." style="--i:1">Practice vs CPU</button>
-        <button type="button" data-act="2p" data-hint="Two players on one keyboard: WASD + mouse against the arrow keys." style="--i:2">Same keyboard</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win and sound." style="--i:4">Settings</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:2">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:3">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
     </div>
@@ -251,7 +250,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <button type="button" data-opt="len" style="--i:2">Rounds to win <span class="val">5</span></button>
       <button type="button" data-opt="sound" style="--i:3">Sound <span class="val">On</span></button>
       <button type="button" data-opt="vol" style="--i:4">Volume <span class="val">75%</span></button>
-      <button type="button" data-act="back" style="--i:5">Back</button>
+      <button type="button" data-opt="music" style="--i:5">Music <span class="val">On</span></button>
+      <button type="button" data-act="back" style="--i:6">Back</button>
     </nav>
     <div class="help" data-sub="help" hidden>
       <div class="info">
@@ -268,8 +268,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
         <div>
           <div class="lbl">Controls</div>
           <div class="keys">
-            <b class="p1">YOU</b><span><kbd>A</kbd><kbd>D</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd> jump · <kbd>S</kbd> drop · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
-            <b class="p2">P2</b><span><kbd>←</kbd><kbd>→</kbd> move · <kbd>↑</kbd> jump · <kbd>↓</kbd> drop · <kbd>.</kbd> shoots · <kbd>/</kbd> blocks · aim assists. Gamepad works too.</span>
+            <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd> jump · <kbd>S</kbd> drop · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
             <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. Jump off walls. Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
@@ -309,7 +308,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <button type="button" data-opt="diff" style="--i:0">CPU skill <span class="val">Normal</span></button>
       <button type="button" data-opt="sound" style="--i:1">Sound <span class="val">On</span></button>
       <button type="button" data-opt="vol" style="--i:2">Volume <span class="val">75%</span></button>
-      <button type="button" data-act="back" style="--i:3">Back</button>
+      <button type="button" data-opt="music" style="--i:3">Music <span class="val">On</span></button>
+      <button type="button" data-act="back" style="--i:4">Back</button>
     </nav>
   </div>
 </div>
@@ -518,14 +518,23 @@ function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fill
   const n=Math.max(2,Math.round((w*h)/9000));for(let i=0;i<n;i++){g.fillStyle=Math.random()<.5?hi:lo;g.globalAlpha=rand(.25,.55);g.beginPath();
     const cx=x+Math.random()*w,cy=y+Math.random()*h,s=Math.max(w,h)*rand(.4,.9);g.moveTo(cx,cy);g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.fill()}
   g.restore()}
-function buildBg(map){const g=bgx;const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1a1029');gr.addColorStop(.55,'#35204a');gr.addColorStop(1,'#5b3352');g.fillStyle=gr;g.fillRect(0,0,W,H);
+/* how far the match has come, 0 at the start to 1 at match point: the sky moves from night to dawn with it */
+function matchProgress(){if(game.bg||!game.target||game.target>=99)return 0;
+  const lead=Math.max(game.wins[0]+game.points[0]/2,game.wins[1]+game.points[1]/2);return clamp(lead/(game.target-.5),0,1)}
+function mixHex(a,b,t){const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),m=sh=>Math.round(((pa>>sh)&255)+(((pb>>sh)&255)-((pa>>sh)&255))*t);return`rgb(${m(16)},${m(8)},${m(0)})`}
+function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGradient(0,0,0,H);
+  gr.addColorStop(0,mixHex('#1a1029','#34477f',dawn));gr.addColorStop(.55,mixHex('#35204a','#a8577a',dawn));gr.addColorStop(1,mixHex('#5b3352','#ffa765',dawn));g.fillStyle=gr;g.fillRect(0,0,W,H);
   // dusk sky: a low moon with halo, faint stars, two layers of distant hills
-  const mx=rand(200,1400),my=rand(110,200),mh=g.createRadialGradient(mx,my,0,mx,my,260);mh.addColorStop(0,'rgba(255,214,190,.28)');mh.addColorStop(1,'rgba(255,214,190,0)');
-  g.fillStyle=mh;g.fillRect(0,0,W,H);g.fillStyle='#ffe3cf';g.beginPath();g.arc(mx,my,46,0,TAU);g.fill();g.fillStyle='rgba(53,32,74,.35)';g.beginPath();g.arc(mx+16,my-8,40,0,TAU);g.fill();
-  for(let i=0;i<70;i++){g.fillStyle=`rgba(255,240,255,${rand(.15,.5)})`;g.fillRect(rand(0,W),rand(0,H*.5),rand(1,2.2),rand(1,2.2))}
-  for(const[base,amp,col]of[[H*.72,70,'rgba(40,22,58,.55)'],[H*.82,50,'rgba(28,15,42,.7)']]){g.fillStyle=col;g.beginPath();g.moveTo(0,H);
+  // the moon sinks and fades as dawn comes; the sun rises over the horizon
+  const mx=rand(200,1400),my=rand(110,200)+dawn*260,mh=g.createRadialGradient(mx,my,0,mx,my,260);mh.addColorStop(0,`rgba(255,214,190,${.28*(1-dawn)})`);mh.addColorStop(1,'rgba(255,214,190,0)');
+  g.fillStyle=mh;g.fillRect(0,0,W,H);g.globalAlpha=1-dawn*.85;g.fillStyle='#ffe3cf';g.beginPath();g.arc(mx,my,46,0,TAU);g.fill();g.fillStyle=mixHex('#35204a','#a8577a',dawn);g.globalAlpha*=.45;g.beginPath();g.arc(mx+16,my-8,40,0,TAU);g.fill();g.globalAlpha=1;
+  for(let i=0;i<70;i++){g.fillStyle=`rgba(255,240,255,${rand(.15,.5)*(1-dawn)})`;g.fillRect(rand(0,W),rand(0,H*.5),rand(1,2.2),rand(1,2.2))}
+  let sunX=W*.5,sunY=H;if(dawn>.05){sunX=W*.5+(mx<W/2?1:-1)*W*.22;sunY=H*1.02-dawn*H*.5;
+    const sg=g.createRadialGradient(sunX,sunY,0,sunX,sunY,520);sg.addColorStop(0,`rgba(255,214,140,${.55*dawn})`);sg.addColorStop(.35,`rgba(255,160,110,${.25*dawn})`);sg.addColorStop(1,'rgba(255,140,100,0)');
+    g.fillStyle=sg;g.fillRect(0,0,W,H);g.fillStyle=mixHex('#ff9d5c','#ffe39a',dawn);g.beginPath();g.arc(sunX,sunY,58+dawn*12,0,TAU);g.fill()}
+  for(const[base,amp,col]of[[H*.72,70,dawn?`rgba(${Math.round(40+60*dawn)},${Math.round(22+20*dawn)},${Math.round(58+10*dawn)},.6)`:'rgba(40,22,58,.55)'],[H*.82,50,dawn?`rgba(${Math.round(28+40*dawn)},${Math.round(15+12*dawn)},${Math.round(42+6*dawn)},.75)`:'rgba(28,15,42,.7)']]){g.fillStyle=col;g.beginPath();g.moveTo(0,H);
     const ph=rand(0,TAU);for(let x=0;x<=W;x+=40)g.lineTo(x,base-Math.sin(x/230+ph)*amp-Math.sin(x/97+ph*2)*amp*.35);g.lineTo(W,H);g.fill()}
-  g.save();g.globalCompositeOperation='lighter';const sx=mx;
+  g.save();g.globalCompositeOperation='lighter';const sx=dawn>.3?sunX:mx;
   for(let i=0;i<4;i++){const a=rand(-.5,.5),w0=rand(30,90),w1=rand(220,420);g.fillStyle=`rgba(255,190,170,${rand(.014,.026)})`;g.beginPath();
     g.moveTo(sx-w0,-10);g.lineTo(sx+w0,-10);g.lineTo(sx+w0+Math.sin(a)*H*1.2+w1,H+10);g.lineTo(sx-w0+Math.sin(a)*H*1.2-w1,H+10);g.fill()}
   g.restore();
@@ -540,12 +549,17 @@ function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec
   for(let i=0;i<n;i++){const a=Math.random()*TAU,d=Math.random()*spread,r=rand(.4,1)*size;dec.globalAlpha=rand(.35,.75);dec.beginPath();dec.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,r,0,TAU);dec.fill()}dec.restore()}
 
 /* ---------- audio: original synthesized effects, no samples. Short, punchy, cartoon-physical ---------- */
-let actx=null,muted=false,noiseBuf=null,master=null,crunch=null;
+let actx=null,muted=false,noiseBuf=null,master=null,crunch=null,room=null,musicGain=null;
 function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();
   const comp=actx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.attack.value=.002;comp.release.value=.12;
   master=actx.createGain();master.gain.value=settings.vol;master.connect(comp).connect(actx.destination);
   noiseBuf=actx.createBuffer(1,actx.sampleRate*.6,actx.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-  crunch=actx.createWaveShaper();const n=256,cu=new Float32Array(n);for(let i=0;i<n;i++)cu[i]=Math.tanh(((i/(n-1))*2-1)*3);crunch.curve=cu;crunch.connect(master)}catch(e){actx=null}}
+  crunch=actx.createWaveShaper();const n=256,cu=new Float32Array(n);for(let i=0;i<n;i++)cu[i]=Math.tanh(((i/(n-1))*2-1)*3);crunch.curve=cu;
+  // a small room: impacts go through a reverb send so they boom and tail off instead of stopping dead
+  const ir=actx.createBuffer(1,Math.floor(actx.sampleRate*1.4),actx.sampleRate),irD=ir.getChannelData(0);for(let i=0;i<irD.length;i++)irD[i]=(Math.random()*2-1)*Math.pow(1-i/irD.length,3);
+  const rev=actx.createConvolver();rev.buffer=ir;const revOut=actx.createGain();revOut.gain.value=.32;rev.connect(revOut).connect(master);
+  room=actx.createGain();room.connect(master);room.connect(rev);crunch.connect(room);
+  musicGain=actx.createGain();musicGain.gain.value=0;musicGain.connect(master);startMusic()}catch(e){actx=null}}
 // one oscillator with a pitch sweep and a fast-attack exponential decay
 function tone(type,f0,f1,t0,dur,peak,dest=master){const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);
   if(f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
@@ -554,19 +568,40 @@ function tone(type,f0,f1,t0,dur,peak,dest=master){const o=actx.createOscillator(
 function noise(t0,dur,peak,type,f0,f1=f0,q=1,dest=master){const sr=actx.createBufferSource(),f=actx.createBiquadFilter(),g=actx.createGain();sr.buffer=noiseBuf;f.type=type;f.Q.value=q;
   f.frequency.setValueAtTime(f0,t0);if(f1!==f0)f.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
   g.gain.exponentialRampToValueAtTime(.0001,t0+dur);sr.connect(f).connect(g).connect(dest);sr.start(t0,Math.random()*.25);sr.stop(t0+dur+.03)}
+
+/* ---------- music: an original looping groove, generated live. A minor, four chords, bass, soft pad, light drums, 112 BPM ---------- */
+const MUSIC={bpm:112,chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],bass:[45,41,36,43]};   // Am, F, C, G (MIDI notes)
+let musicTimer=0,musicStep=0,musicAt=0;
+const midiHz=m=>440*Math.pow(2,(m-69)/12);
+function musicLevel(){return(!muted&&settings.music)?(game.state==='pick'?.11:.2):0}
+function startMusic(){if(!actx||musicTimer)return;musicAt=actx.currentTime+.1;musicStep=0;
+  musicTimer=setInterval(()=>{if(!actx)return;try{musicGain.gain.setTargetAtTime(musicLevel(),actx.currentTime,.4)}catch(e){}
+    const sixteenth=60/MUSIC.bpm/4;
+    while(musicAt<actx.currentTime+.25){const st=musicStep%64,bar=Math.floor(st/16),beat=st%16,t=musicAt;
+      if(musicLevel()>0){
+        if(beat===0){for(const n of MUSIC.chords[bar])pad(midiHz(n),t,sixteenth*16)}
+        if(beat===0||beat===10)tone('triangle',midiHz(MUSIC.bass[bar]),midiHz(MUSIC.bass[bar]),t,sixteenth*5,.22,musicGain);
+        if(beat===6)tone('triangle',midiHz(MUSIC.bass[bar]+12),midiHz(MUSIC.bass[bar]+12),t,sixteenth*2,.12,musicGain);
+        if(beat%8===0)tone('sine',110,42,t,.16,.38,musicGain);                       // kick
+        if(beat%8===4)noise(t,.12,.12,'bandpass',1800,1400,.8,musicGain);            // snare-ish
+        if(beat%2===0)noise(t,.03,beat%4===2?.06:.035,'highpass',7500,7500,1,musicGain)}   // hats
+      musicAt+=sixteenth;musicStep++}},90)}
+function pad(f,t,dur){for(const d of[-6,6]){const o=actx.createOscillator(),lp=actx.createBiquadFilter(),g=actx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f,t);o.detune.setValueAtTime(d,t);
+  lp.type='lowpass';lp.frequency.setValueAtTime(900,t);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.045,t+.4);g.gain.linearRampToValueAtTime(.0001,t+dur);
+  o.connect(lp).connect(g).connect(musicGain);o.start(t);o.stop(t+dur+.05)}}
 let sfxWin=0,sfxN=0;
 function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg&&!ui))return;const now=actx.currentTime;if(now-sfxWin>.05){sfxWin=now;sfxN=0}if(++sfxN>7&&k!=='die')return;
   const t=now+.005,v=rand(.92,1.08);   // ±8% pitch so rapid fire never sounds identical
   try{switch(k){
-  case'shoot':tone('square',900*v,150,t,.07,.09);tone('sine',170*v,55,t,.06,.22);noise(t,.035,.12,'bandpass',2600,1400,1.2);break;          // pop + body + snap
-  case'hit':noise(t,.14,.35,'lowpass',2200,300,.8,crunch);tone('sine',240*v,50,t,.16,.45);tone('square',120*v,60,t,.05,.12,crunch);break;    // meaty crunch
-  case'block':tone('sine',1180*v,1150,t,.32,.16);tone('sine',1770*v,1740,t,.24,.1);tone('triangle',590*v,560,t,.18,.1);noise(t,.03,.12,'highpass',4000);break; // metallic ring
+  case'shoot':tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;          // pop + body + snap
+  case'hit':noise(t,.28,.34,'lowpass',1800,180,.8,crunch);tone('sine',190*v,40,t,.34,.5,room);tone('square',110*v,55,t,.07,.12,crunch);break;    // meaty crunch
+  case'block':tone('sine',1180*v,1150,t,.5,.15,room);tone('sine',1770*v,1740,t,.36,.09,room);tone('triangle',590*v,560,t,.3,.1,room);noise(t,.03,.12,'highpass',4000);break; // metallic ring
   case'tink':tone('sine',2300*v,2200,t,.09,.09);noise(t,.02,.06,'highpass',5000);break;                                                     // bullet stopped by a block
   case'bounce':tone('sine',1700*v,1400,t,.04,.05);break;
-  case'die':tone('sine',150,32,t,.55,.6);noise(t,.6,.45,'lowpass',1600,160,.7,crunch);tone('square',420,90,t,.18,.1);break;
-  case'boom':tone('sine',110,30,t,.42,.55);noise(t,.45,.4,'lowpass',1100,140,.7,crunch);break;
+  case'die':tone('sine',140,28,t,.9,.65,room);noise(t,.9,.45,'lowpass',1400,120,.7,crunch);tone('square',400,80,t,.22,.1,room);break;
+  case'boom':tone('sine',105,26,t,.8,.6,room);noise(t,.75,.42,'lowpass',1000,110,.7,crunch);break;
   case'jump':tone('sine',260*v,430*v,t,.08,.06);break;
-  case'land':tone('sine',130,60,t,.09,.18);noise(t,.06,.06,'lowpass',500);break;
+  case'land':tone('sine',120,50,t,.16,.2,room);noise(t,.08,.06,'lowpass',450);break;
   case'reload':noise(t,.018,.12,'bandpass',3200,3000,3);noise(t+.07,.022,.14,'bandpass',2400,2200,3);break;                                // two-part click
   case'empty':noise(t,.014,.08,'bandpass',4200,4000,4);break;
   case'ready':tone('sine',1320,1320,t,.12,.05);tone('sine',1980,1980,t+.03,.12,.035);break;
@@ -655,7 +690,8 @@ function newPoint(fresh){
   let i;do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);
   players.forEach((p,k)=>resetPlayer(p,game.map.sp[k]));
-  game.banner=game.map.name.toUpperCase();game.bannerT=1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
+  game.banner=finalRound?'FINAL ROUND':game.map.name.toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -1341,6 +1377,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
+const BUILD='2026-10-17-dawn';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1489,13 +1526,15 @@ function attachConn(conn){net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:1})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:BUILD})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 function onNet(m){
   if(m.t==='hello'){net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');
+    if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     if(net.role==='host')startMatch('online-host');else{startMatch('online-guest')}return}
+  if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
   if(net.role==='host'){
@@ -1522,15 +1561,17 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.c
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
-function snapshot(){return{t:'s',st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
+function snapshot(){return{t:'s',mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0),r2(b.grav)]),
   sw:swings.map(w=>r2(w.ang)),fx:net.fx.splice(0)}}
 function applySnap(s){net.snap=s;net.snapAt=performance.now();
-  if(s.m>=0&&s.m!==game.mapIdx){loadMap(s.m);players.forEach(p=>p.tx=null);net.bmap.clear()}
   Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,dropOff:s.dO});
+  // arenas travel by name, so a reordered arena list can never show the guest a different map
+  const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
+  if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>p.tx=null);net.bmap.clear()}
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
   if(s.rt)net.rtt=s.rt;
   s.p.forEach((a,k)=>{const p=players[k];if(!p)return;
@@ -1601,10 +1642,10 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75};
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true};
 try{Object.assign(settings,JSON.parse(localStorage.getItem('counterpick.settings')||'{}'))}catch(e){}
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'}};
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;saveSettings();refreshOpts();sfx('tick',true)}

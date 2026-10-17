@@ -45,7 +45,13 @@ const check = (ok, msg) => { if (!ok) fail.push(msg) };
   setup(); A.die(A.players[P1]); A.update(1 / 60); A.update(1 / 60); A.die(A.players[P0]);
   check(A.game.lastWinner === -1, 'a second death a couple of frames later should still be a trade');
 
-  console.log(JSON.stringify({ cases: 4, failures: fail.length }));
+  // the sky's dawn tracks match progress: night at the start, nearly dawn at match point
+  setup(); A.game.target = 5; A.game.wins = [0, 0]; A.game.points = [0, 0];
+  const p0 = A.matchProgress(); A.game.wins = [2, 1]; const pMid = A.matchProgress(); A.game.wins = [4, 3]; A.game.points = [1, 0]; const pEnd = A.matchProgress();
+  check(p0 === 0 && pMid > 0.3 && pMid < 0.6 && pEnd >= 0.95, `dawn should run 0 -> ~0.4 -> ~1 across a match (got ${p0}, ${pMid.toFixed(2)}, ${pEnd.toFixed(2)})`);
+  A.game.wins = [4, 0]; A.game.points = [0, 0]; A.newPoint(true);
+  check(A.game.banner === 'FINAL ROUND', `the last round should be announced (banner "${A.game.banner}")`);
+  console.log(JSON.stringify({ cases: 6, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
 })();
