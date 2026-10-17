@@ -28,6 +28,10 @@ const { load, noop } = require('./env');
   const snd = (o) => A.shotSound({ ...A.BASE, ...o });
   const sounds = [snd({}), snd({ dmg: 90 }), snd({ fireDelay: .12 }), snd({ bulletSpeed: 2700 }), snd({ projectiles: 3 }), snd({ bulletGravity: 2.5 })];
   if (new Set(sounds).size !== 6) { failures++; console.error('shot sounds should differ by build: ' + sounds) }
+  // Long Haul: damage climbs with distance flown, capped at x4; bullet size never changes
+  { const lh = A.CARDS.find((c) => c.n === 'Long Haul'); const o = { s: { ...A.BASE }, cards: [lh] }; lh.a(o.s);
+    const fake = { dmg: 55, dist: 0, r: 5 }; const m0 = 1, m500 = Math.min(4, 1 + 500 * .0018), m5000 = Math.min(4, 1 + 5000 * .0018);
+    if (!(o.s.grow && Math.abs(o.s.reload - (A.BASE.reload + .25)) < 1e-9 && Math.abs(m500 - 1.9) < 1e-9 && m5000 === 4 && m0 === 1)) { failures++; console.error('Long Haul stats or scaling are off') } }
   console.log(JSON.stringify({ handsWithRare: +(rareShare * 100).toFixed(0) + '%', longestDryStreak: worstDry, cards: A.CARDS.length, uniqueAnimations: A.CARDS.length - missing.length, icons: A.CARDS.length - noIcon.length, missing, noIcon, failures }));
   process.exit(failures || missing.length || noIcon.length ? 1 : 0);
 })();
