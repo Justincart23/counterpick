@@ -19,11 +19,11 @@ const { load, noop } = require('./env');
   A.players[0].cards = [A.CARDS[0], A.CARDS[5], A.CARDS[9]]; A.players[1].cards = [A.CARDS[20]];
   const hit0 = A.chipAt(1600 - 24 - 17 - 40, 24 - 2), hit1 = A.chipAt(1600 - 24 - 17, 24 + 24 - 2 + 14), miss = A.chipAt(800, 450);
   if (!(hit0 && hit0.c === A.CARDS[5] && hit0.p === A.players[0] && hit1 && hit1.c === A.CARDS[20] && hit1.p === A.players[1] && miss === null)) { failures++; console.error('chip hover hit-test picked the wrong card') }
-  // rarity: rares should turn up often enough to be seen, and nobody goes three drafts in a row without one
+  // rarity: about a third of hands carry a rare, and nobody goes four drafts in a row without one
   const drafter = { cards: [] }; let withRare = 0, dry = 0, worstDry = 0;
   for (let i = 0; i < 3000; i++) { const h = A.dealHand(drafter); if (h.some((c) => c.r === 2)) { withRare++; dry = 0 } else worstDry = Math.max(worstDry, ++dry) }
   const rareShare = withRare / 3000;
-  if (rareShare < 0.6 || worstDry > 2) { failures++; console.error(`rarity: ${(rareShare * 100).toFixed(0)}% of hands had a rare, longest dry streak ${worstDry}`) }
+  if (rareShare < 0.25 || rareShare > 0.45 || worstDry > 3) { failures++; console.error(`rarity: ${(rareShare * 100).toFixed(0)}% of hands had a rare, longest dry streak ${worstDry}`) }
   // each gun build gets its own shot sound
   const snd = (o) => A.shotSound({ ...A.BASE, ...o });
   const sounds = [snd({}), snd({ dmg: 90 }), snd({ fireDelay: .12 }), snd({ bulletSpeed: 2700 }), snd({ projectiles: 3 }), snd({ bulletGravity: 2.5 })];

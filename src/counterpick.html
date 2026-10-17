@@ -344,7 +344,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1350,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,accel:false,spite:0,
-  split:0,grapple:false,well:0,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,bouncy:false};
+  split:0,thunder:false,well:0,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,bouncy:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
@@ -383,7 +383,7 @@ const CARDS=[
  {n:'Spite',k:'body',r:1,d:'Getting hit throws shrapnel back out.',st:[['+4','Shrapnel',1]],a:s=>{s.spite+=4}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into three shards when they hit a wall.',st:[['+3','Shards',1],['-15%','Damage',0]],a:s=>{s.split+=3;s.dmg*=.85}},
- {n:'Grapple Shot',k:'gun',r:2,d:'When your shot hits a wall, it yanks you toward the impact.',st:[['On','Grapple',1],['+0.2s','Fire delay',0]],a:s=>{s.grapple=true;s.fireDelay+=.2},u:1},
+ {n:'Thunderclap',k:'gun',r:2,d:'Every third shot is a charged round that hits twice as hard.',st:[['x2','Every 3rd shot',1],['-10%','Damage',0]],a:s=>{s.thunder=true;s.dmg*=.9},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls, then blow up a moment later.',st:[['0.8s','Fuse',1],['+70px','Blast',1],['-20%','Damage',0]],a:s=>{s.mines=true;s.explode+=70;s.dmg*=.8},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes a second off your block cooldown.',st:[['-1s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1}},
@@ -449,7 +449,7 @@ const ICONS={
  'Spite':g=>{IC.circle(g,.5,.5,.14);for(let i=0;i<6;i++){const a=i/6*TAU,tx=.5+Math.cos(a)*.45,ty=.5+Math.sin(a)*.45;
    IC.line(g,tx,ty,.5+Math.cos(a-.2)*.28,.5+Math.sin(a-.2)*.28,.5+Math.cos(a+.2)*.28,.5+Math.sin(a+.2)*.28,tx,ty)}},
  'Splinter Rounds':g=>{IC.line(g,.8,.1,.8,.9);IC.bullet(g,.08,.5,.5,.18);IC.line(g,.7,.42,.52,.2);IC.line(g,.7,.5,.5,.5);IC.line(g,.7,.58,.52,.8)},
- 'Grapple Shot':g=>{IC.dashed(g,[.05,.05],()=>IC.line(g,.12,.88,.56,.44));IC.line(g,.56,.44,.72,.28);IC.arc(g,.62,.24,.14,-Math.PI*.15,Math.PI*.95);IC.line(g,.72,.28,.86,.2)},
+ 'Thunderclap':g=>{IC.bolt(g,.56,.42,.34);for(const x of[.14,.26,.38])IC.circle(g,x,.86,.045,x===.38)},
  'Gravity Well':g=>{g.beginPath();for(let t=0;t<=4*Math.PI;t+=.2){const r=.04+.36*t/(4*Math.PI);g.lineTo(.5+Math.cos(t)*r,.5+Math.sin(t)*r)}g.stroke()},
  'Limpet Mines':g=>{IC.circle(g,.5,.62,.2);for(let i=0;i<6;i++){const a=i/6*TAU;IC.line(g,.5+Math.cos(a)*.2,.62+Math.sin(a)*.2,.5+Math.cos(a)*.3,.62+Math.sin(a)*.3)}IC.line(g,.5,.42,.58,.2);IC.plus(g,.66,.12,.06)},
  'Reflex Guard':g=>{IC.shield(g,.5,.5,.62,.8);IC.arc(g,.5,.48,.15,.5,TAU-.3);IC.line(g,.6,.33,.66,.44,.54,.46)},
@@ -619,7 +619,6 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'zap':noise(t,.16,.2,'bandpass',3200,1600,3,room);tone('square',240*v,90,t,.14,.08,room);tone('sawtooth',1200*v,400,t,.08,.04);break;   // energy border
   case'spring':tone('sine',180,640,t,.18,.16);tone('triangle',360,1200,t,.12,.06);break;                                                     // bounce pad
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // bouncy landing
-  case'grapple':noise(t,.15,.12,'bandpass',800,3200,2);tone('square',300,900,t,.1,.05);break;                                             // grapple zip
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
   }}catch(e){}}
@@ -723,10 +722,10 @@ function showEnd(w){game.state='over';
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
-/* each card in a hand rolls 50% common, 32% uncommon, 18% rare; anyone who has gone two drafts without seeing a rare gets one */
+/* each card in a hand rolls 60% common, 34% uncommon, 6% rare (about a third of hands show a rare); three drafts without one guarantees one */
 function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),out=[];let guard=0;
-  while(out.length<5&&guard++<500){const roll=Math.random(),r=roll<.5?0:roll<.82?1:2;const pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(pool.length)out.push(pick(pool))}
-  if(!out.some(c=>c.r===2)&&(p.sinceRare||0)>=2){const rares=CARDS.filter(c=>c.r===2&&!owned.has(c.id)&&!out.includes(c));if(rares.length)out[Math.floor(Math.random()*out.length)]=pick(rares)}
+  while(out.length<5&&guard++<500){const roll=Math.random(),r=roll<.6?0:roll<.94?1:2;const pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(pool.length)out.push(pick(pool))}
+  if(!out.some(c=>c.r===2)&&(p.sinceRare||0)>=3){const rares=CARDS.filter(c=>c.r===2&&!owned.has(c.id)&&!out.includes(c));if(rares.length)out[Math.floor(Math.random()*out.length)]=pick(rares)}
   p.sinceRare=out.some(c=>c.r===2)?0:(p.sinceRare||0)+1;
   return out}
 let pickMode='local';   // local: this screen picks · remote: this guest picks, host applies · watch: someone else is picking
@@ -874,11 +873,9 @@ const ART={
  'Splinter Rounds':(g,t)=>{const k=t*.8%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(118,-100,10,200);
    if(k<.4){const x=-170+k/.4*282;AH.trail(g,x,0,0,70,7);AH.bullet(g,x,0,0,.9)}else{const q=(k-.4)/.6;g.fillStyle='#fff';for(let i=-1;i<=1;i++){const a=Math.PI+i*.5,d=q*190;
      g.globalAlpha=1-q;g.save();g.translate(112+Math.cos(a)*d,Math.sin(a)*d+q*q*60);g.rotate(a+q*8);g.beginPath();g.moveTo(9,0);g.lineTo(-6,5);g.lineTo(-6,-5);g.fill();g.restore()}g.globalAlpha=1}},
- 'Grapple Shot':(g,t)=>{const k=t*.6%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(124,-100,10,200);let bx=-130;
-   if(k<.3){const x=-110+k/.3*228;AH.trail(g,x,-10,0,60,6);AH.bullet(g,x,-10,0,.8)}
-   else{const q=Math.min(1,(k-.3)/.35);bx=-130+q*q*220;g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=3;g.setLineDash([8,6]);g.beginPath();g.moveTo(bx+20,0);g.lineTo(118,-10);g.stroke();g.setLineDash([]);
-     AH.ring(g,118,-10,8+q*10,3,1-q)}
-   AH.blob(g,bx,10,26,{look:1})},
+ 'Thunderclap':(g,t)=>{const k=t*1.2%3,shot=Math.floor(k),q=k-shot;for(let i=0;i<3;i++){g.fillStyle=i<shot||(i===shot&&q>.2)?'#fff':'rgba(255,255,255,.25)';g.beginPath();g.arc(-40+i*40,82,i===2?9:6,0,TAU);g.fill()}
+   const charged=shot===2,x=-170+q*360;if(charged){g.strokeStyle='#fff6a8';g.lineWidth=3;g.lineJoin='round';AH.bolt(g,x-50,-30,x+10,-6,Math.floor(t*14));AH.bolt(g,x-40,22,x+10,4,Math.floor(t*14)+3)}
+   AH.trail(g,x,-6,0,charged?130:60,charged?14:7);AH.bullet(g,x,-6,0,charged?1.9:.8)},
  'Gravity Well':(g,t)=>{const k=t*.5%1,x=-180+k*360,y=-40;for(let i=0;i<3;i++){const ph=(t*1.2+i/3)%1;AH.ring(g,x,y,40-ph*34,2,ph*.8)}
    AH.trail(g,x,y,0,60,6);AH.bullet(g,x,y,0,.8);const pull=Math.max(0,1-Math.abs(x)/160);AH.blob(g,0,70-pull*55,24,{look:Math.sign(x),ouch:pull>.6})},
  'Limpet Mines':(g,t)=>{const k=t*.6%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(122,-100,10,200);
@@ -985,12 +982,13 @@ function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1
 
 /* ---------- shooting & blocking ---------- */
 function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(p.s.berserk&&p.hp<p.s.maxHp*.4?.62:1);p.burstLeft=p.s.burst;p.burstT=0}
-function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.min(.5,Math.hypot(p.vx,p.vy)/1100*.5):1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
+function spawnShot(p){const s=p.s;p.shotCount=(p.shotCount||0)+1;const charged=s.thunder&&p.shotCount%3===0;
+  const mult=(p.staticReady?2:1)*(charged?2:1)*(s.momentum?1+Math.min(.5,Math.hypot(p.vx,p.vy)/1100*.5):1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,br,s.phase);
     if(i===0){fx=m.x;fy=m.y}
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
     spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1})}
-  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))}
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,charged?80:46,charged?.12:.07,charged?'#fff6a8':p.glow);sfx(charged?'shotHeavy':shotSound(s));if(charged){addShake(4);burst(fx,fy,'#fff6a8',10,380,3,.25,0,true)}}
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.8?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
 function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
@@ -998,7 +996,7 @@ function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.spe
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase,phaseLeft:1,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
-   split:plain?0:s.split,grapple:!plain&&s.grapple,well:plain?0:s.well,mines:!plain&&s.mines,stuck:false,fuse:0})}
+   split:plain?0:s.split,well:plain?0:s.well,mines:!plain&&s.mines,stuck:false,fuse:0})}
 function doBlock(p){if(p.blockCd>0||!p.alive)return;const s=p.s;p.blockT=.3;p.blockCd=s.blockCd;sfx('block');
   if(s.quickdraw&&p.ammo<s.ammo){p.ammo=s.ammo;p.sinceShot=99;burst(p.x,p.y,p.glow,8,220,3,.35,0,true)}
   if(s.blockHeal){p.hp=Math.min(s.maxHp,p.hp+s.blockHeal);burst(p.x,p.y,C.hp,10,200,4,.6,-200,true)}
@@ -1035,8 +1033,7 @@ function killBullet(b,impact,wall,n){
   if(wall){const o=b.owner;
     if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny,rx=b.vx-2*d*n.nx,ry=b.vy-2*d*n.ny,base=Math.atan2(ry,rx);
       for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*.45+rand(-.08,.08),{plain:true,dmg:b.dmg*.4,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
-    if(b.grapple&&o&&o.alive){const a=Math.atan2(b.y-o.y,b.x-o.x);o.vx=Math.cos(a)*1150;o.vy=Math.sin(a)*1150-120;o.ground=null;o.grounded=false;
-      burst(o.x,o.y,o.glow,8,260,3,.3,0,true);sfx('grapple')}}burst(b.x,b.y,b.glow,7,300,3,.3,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
+  }burst(b.x,b.y,b.glow,7,300,3,.3,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 function hitPlayer(p,b){const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
   if(p.aegis>0){p.aegis--;b.dead=true;ring(p.x,p.y,'#dff4ff',70);burst(p.x,p.y,'#dff4ff',16,420,4,.4,0,true);sfx('pop');return}
   const o=b.owner;if(o&&o!==p&&o.s.reflexGuard)o.blockCd=Math.max(0,o.blockCd-o.s.reflexGuard);
@@ -1456,7 +1453,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-dawn';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-thunderclap';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
