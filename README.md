@@ -4,7 +4,6 @@
 
 The name is said like *queued*: pick a name, share a 4-letter code, and you're in a duel. No download, no account.
 
-It's a fan tribute to the mechanics of [ROUNDS](https://store.steampowered.com/app/1557740/ROUNDS/) by Landfall. All the characters, cards, arenas, art, sounds and code here are original. No Landfall assets are used.
 
 ## Play
 
