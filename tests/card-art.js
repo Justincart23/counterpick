@@ -15,6 +15,10 @@ const { load, noop } = require('./env');
       for (let t = 0; t < 12; t += 0.037) { A.drawCardArt(canvas, c, t, false); A.drawCardArt(canvas, c, t, true) }
     } catch (e) { failures++; console.error(`${c.n}: ${e.message}`) }
   }
+  // hovering a HUD chip finds the right card for the right player
+  A.players[0].cards = [A.CARDS[0], A.CARDS[5], A.CARDS[9]]; A.players[1].cards = [A.CARDS[20]];
+  const hit0 = A.chipAt(1600 - 24 - 17 - 40, 24 - 2), hit1 = A.chipAt(1600 - 24 - 17, 24 + 24 - 2 + 14), miss = A.chipAt(800, 450);
+  if (!(hit0 && hit0.c === A.CARDS[5] && hit0.p === A.players[0] && hit1 && hit1.c === A.CARDS[20] && hit1.p === A.players[1] && miss === null)) { failures++; console.error('chip hover hit-test picked the wrong card') }
   console.log(JSON.stringify({ cards: A.CARDS.length, uniqueAnimations: A.CARDS.length - missing.length, icons: A.CARDS.length - noIcon.length, missing, noIcon, failures }));
   process.exit(failures || missing.length || noIcon.length ? 1 : 0);
 })();

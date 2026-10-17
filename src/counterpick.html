@@ -1308,6 +1308,40 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   for(let i=0;i<n;i++){ctx.fillStyle=i<p.ammo?p.glow:'rgba(255,255,255,.15)';ctx.fillRect(x0+i*(pw+2),by+7,pw,3)}
   if(p.ammo<n){ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillRect(-bw/2,by+12,bw*clamp(p.sinceShot/p.s.reload,0,1),2)}
   ctx.restore()}
+
+/* ---------- card chips: hover one to see what that power-up does ---------- */
+let hoverChip=null;
+// the chip under a point in arena coordinates (same layout drawHUD uses), or null
+function chipAt(mx,my){for(const p of players){const list=p.cards.slice(-12),cy=24+p.id*24-2+p.id*14;
+  for(let i=0;i<list.length;i++){const cx=W-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i],cx,cy}}}return null}
+function wrapLines(text,maxW){const out=[];let line='';for(const w of text.split(' ')){const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){out.push(line);line=w}else line=t}if(line)out.push(line);return out}
+function drawCardTip(){hoverChip=null;
+  if(!$('#pick').hidden||!$('#pause').hidden||!$('#end').hidden||!$('#menu').hidden)return;
+  const hit=chipAt(mouse.x,mouse.y);if(!hit)return;hoverChip=hit;const{p,c,cx,cy}=hit,col=CAT[c.k],TW=300,pad=16;
+  ctx.save();ctx.font='700 15px Nunito, sans-serif';const desc=wrapLines(c.d,TW-pad*2);
+  const TH=pad+34+18+desc.length*20+8+c.st.length*20+14+18+pad,x=Math.min(cx+17,W-14)-TW,y=cy+26,cut=14;
+  // panel: cut corners, type-colored top stripe, like the cards themselves
+  ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+TW-cut,y);ctx.lineTo(x+TW,y+cut);ctx.lineTo(x+TW,y+TH);ctx.lineTo(x+cut,y+TH);ctx.lineTo(x,y+TH-cut);ctx.closePath();
+  const bg=ctx.createLinearGradient(x,y,x,y+TH);bg.addColorStop(0,c.r===2?'#33233a':'#261b38');bg.addColorStop(1,'#140d1f');ctx.fillStyle=bg;ctx.fill();
+  ctx.shadowColor='transparent';ctx.fillStyle=col;ctx.fillRect(x,y,TW-cut,4);ctx.strokeStyle=c.r===2?'rgba(255,171,26,.4)':'rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.stroke();
+  // pointer up to the chip
+  ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(cx-7,y);ctx.lineTo(cx,y-8);ctx.lineTo(cx+7,y);ctx.fill();
+  // icon medallion + name
+  let ty=y+pad;ctx.beginPath();ctx.arc(x+pad+17,ty+17,17,0,TAU);ctx.fillStyle='#140d1f';ctx.fill();ctx.strokeStyle=c.r===2?C.hot:col;ctx.lineWidth=2;ctx.stroke();
+  drawIcon(ctx,c.n,x+pad+17,ty+17,22,'#ffffff',2);
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle=C.text;ctx.font='22px "Lilita One", sans-serif';ctx.fillText(c.n.toUpperCase(),x+pad+44,ty+12);
+  ctx.font='700 11px "JetBrains Mono", monospace';ctx.fillStyle=col;ctx.fillText(CATNAME[c.k].toUpperCase(),x+pad+44,ty+31);
+  const cw=ctx.measureText(CATNAME[c.k].toUpperCase()+'  ').width;ctx.fillStyle=c.r===2?C.hot:c.r===1?'#7fc4ff':'#a495bd';ctx.fillText('· '+RAR[c.r].toUpperCase(),x+pad+44+cw,ty+31);
+  // description
+  ty+=34+18;ctx.font='700 15px Nunito, sans-serif';ctx.fillStyle=C.text;for(const l of desc){ctx.fillText(l,x+pad,ty);ty+=20}
+  // stats with up/down markers
+  ty+=8;ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(x+pad,ty-12,TW-pad*2,1);ty+=4;
+  for(const[v,l,good]of c.st){ctx.fillStyle=good?'#9be15d':'#ff5a4f';ctx.beginPath();if(good){ctx.moveTo(x+pad,ty+4);ctx.lineTo(x+pad+5,ty-4);ctx.lineTo(x+pad+10,ty+4)}else{ctx.moveTo(x+pad,ty-4);ctx.lineTo(x+pad+5,ty+4);ctx.lineTo(x+pad+10,ty-4)}ctx.fill();
+    ctx.font='700 14px "JetBrains Mono", monospace';ctx.fillText(v,x+pad+18,ty);const vw=ctx.measureText(v+' ').width;ctx.font='800 14px Nunito, sans-serif';ctx.fillStyle=C.text;ctx.fillText(l,x+pad+18+vw,ty);ty+=20}
+  // whose card
+  ty+=10;ctx.font='700 11px "JetBrains Mono", monospace';ctx.fillStyle=p.color;ctx.fillText(`${p.name.toUpperCase()}'S CARD`,x+pad,ty);
+  ctx.restore()}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
   for(const p of players){const y=24+p.id*24;
@@ -1315,7 +1349,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
     list.forEach((c,i)=>{const x=W-24-17-(list.length-1-i)*40;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,y-2+p.id*14-15,34,34);
-      ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);drawIcon(ctx,c.n,x,y-2+p.id*14+2,24,p.glow,2)});
+      const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);drawIcon(ctx,c.n,x,y-2+p.id*14+2,24,hov?'#ffffff':p.glow,2)});
     ctx.textAlign='left'}
   ctx.textAlign='center';
   if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
@@ -1356,6 +1390,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   const vg=ctx.createRadialGradient(W/2,H/2,H*.45,W/2,H/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
   ctx.restore();drawHUD();
+  drawCardTip();
   if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden)drawCrosshair()}
 function drawFrame(){ctx.save();const[base,hi,lo]=KIND[1];ctx.fillStyle=lo;ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);
   ctx.fillStyle=EDGE[1];ctx.globalAlpha=.8;ctx.fillRect(FRAME,FRAME-2,W-FRAME*2,2);ctx.fillRect(FRAME-2,FRAME,2,H);ctx.fillRect(W-FRAME,FRAME,2,H);ctx.restore()}
