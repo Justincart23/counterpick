@@ -191,7 +191,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
   <div class="menu-wrap">
     <div>
       <h1 class="logo" aria-label="CUUED"><span class="a">CU</span><span class="b">UED</span></h1>
-      <p class="tagline">Get queued.</p>
+      <p class="tagline">Lose a round. Draft a counter.</p>
     </div>
     <p class="playing-as">Playing as <button type="button" class="linkish" data-act="name"><span data-myname>—</span> ✎</button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
@@ -258,7 +258,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 
 <div id="nameScreen" class="overlay pause-screen" hidden>
   <form class="center-wrap name-form" id="nameForm" autocomplete="off">
-    <h2 class="screen-title">Who's getting queued?</h2>
+    <h2 class="screen-title">Who's stepping up?</h2>
     <label class="lbl" for="nameInput">Your name</label>
     <input id="nameInput" class="text-in" maxlength="16" placeholder="Your name" spellcheck="false" style="text-align:center">
     <p class="form-err" id="nameErr" hidden>Type at least one letter or number.</p>
@@ -1148,7 +1148,23 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
-  out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0};
+  out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null};
+/* relay settings: /api/turn hands out short-lived Cloudflare TURN credentials, so players on networks that can't link
+   directly (strict routers, campus or office Wi-Fi, phone carriers) still connect through a relay */
+const STUN_ONLY=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
+function fetchIce(){if(typeof fetch!=='function'){net.iceTried=true;return}
+  const url=/(^|\.)cuued\.com$/.test(location.hostname||'')?'/api/turn':'https://www.cuued.com/api/turn';
+  const ctl=typeof AbortController==='function'?new AbortController():null,tm=setTimeout(()=>{try{ctl&&ctl.abort()}catch(e){}},4000);
+  net.icePromise=fetch(url,{cache:'no-store',signal:ctl?ctl.signal:undefined}).then(r=>r.ok?r.json():null)
+    .then(j=>{if(j&&Array.isArray(j.iceServers)&&j.iceServers.length){net.ice=j.iceServers;net.relay=!!j.relay;net.iceAt=Date.now()}})
+    .catch(()=>{}).finally(()=>{clearTimeout(tm);net.iceTried=true})}
+// run go() once relay settings are known (fresh within 3 hours), without stalling if the endpoint is unreachable
+function withIce(go){if(net.iceAt&&Date.now()-net.iceAt>3*3600e3){net.iceAt=0;net.ice=null;net.iceTried=false;fetchIce()}
+  if(!net.iceTried&&net.icePromise){net.icePromise.then(go,go);return}go()}
+const peerOpts=()=>({debug:0,config:{iceServers:net.ice||STUN_ONLY}});
+const linkFailMsg=code=>net.relay
+  ?`Couldn't connect to room ${code}. Make sure the host is still on the hosting screen, then try again.`
+  :`Couldn't connect to room ${code}: your two networks wouldn't link directly, and no relay is available yet. Try again, or have one player switch networks (a phone hotspot usually works).`;
 let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
 function fxRec(n,a){if(net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
@@ -1167,7 +1183,8 @@ const setText=(id,t)=>{const el=$(id);if(el)el.textContent=t};
 function hostGame(){leaveOnline(true);
   if(!peerReady()){setText('#hostMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
   net.role='host';net.code=makeCode();setText('#hostCode','····');setText('#hostMsg','Opening a room…');$('#hostLink').value='';
-  const peer=new Peer(ROOM_PREFIX+net.code,{debug:0});net.peer=peer;
+  const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
+function openRoom(){const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
   peer.on('open',()=>{if(net.peer!==peer)return;setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
     setText('#hostMsg','Waiting for a challenger. Share the code, or send them the link.')});
   peer.on('error',err=>{if(net.peer!==peer)return;if(err.type==='unavailable-id'){hostGame();return}setText('#hostMsg',netErr(err));leaveOnline(true)});
@@ -1180,11 +1197,16 @@ function joinGame(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-
   leaveOnline(true);
   if(!peerReady()){setText('#joinMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
   net.role='guest';net.code=code;setText('#joinMsg',`Looking for room ${code}…`);
-  const peer=new Peer({debug:0});net.peer=peer;
-  peer.on('open',()=>{if(net.peer!==peer)return;attachConn(peer.connect(ROOM_PREFIX+code,{serialization:'json',reliable:true}));
-    net.joinTimer=setTimeout(()=>{if(net.peer===peer&&!net.connected){setText('#joinMsg',`Couldn't connect to room ${code}. The host may have left, or this network blocks peer-to-peer (common on school or work Wi-Fi). Try again, or try another network.`);leaveOnline(true)}},12000)});
+  const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='guest')openJoin(code)})}
+function openJoin(code){const peer=new Peer(peerOpts());net.peer=peer;
+  peer.on('open',()=>{if(net.peer!==peer)return;setText('#joinMsg',`Found the matchmaker. Connecting to room ${code}…`);
+    attachConn(peer.connect(ROOM_PREFIX+code,{serialization:'json',reliable:true}));
+    net.joinTimer=setTimeout(()=>{if(net.peer===peer&&!net.connected){setText('#joinMsg',linkFailMsg(code));leaveOnline(true)}},net.relay?20000:15000)});
   peer.on('error',err=>{if(net.peer!==peer)return;setText('#joinMsg',netErr(err,code));leaveOnline(true)})}
 function attachConn(conn){net.conn=conn;
+  conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
+    if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
+    else{clearTimeout(net.joinTimer);setText('#joinMsg',linkFailMsg(net.code));leaveOnline(true)}});
   conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:1})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object')onNet(m)});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
@@ -1210,7 +1232,7 @@ function onNet(m){
 function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
   else if(net.role==='host'){startMatch('online-host');netSend({t:'restart'})}else startMatch(game.mode)}
-function leaveOnline(silent){clearTimeout(net.joinTimer);const c=net.conn,pe=net.peer;
+function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
   if(c&&net.connected)try{c.send({t:'bye'})}catch(e){}
   Object.assign(net,{role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[]});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
@@ -1325,7 +1347,7 @@ function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').
 function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
-const boot=()=>{if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
+const boot=()=>{fetchIce();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);

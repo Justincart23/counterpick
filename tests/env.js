@@ -70,6 +70,7 @@ async function load({ seed, file = SOURCE, virtualTime = false } = {}) {
     innerWidth: 1600, innerHeight: 900, devicePixelRatio: 1,
     requestAnimationFrame: () => 0, cancelAnimationFrame() {},
     setTimeout: schedule, clearTimeout() {},
+    fetch: () => Promise.reject(new Error('offline in tests')),   // /api/turn unreachable: the game falls back to STUN
     location: { origin: 'https://cuued.com', pathname: '/', search: '', hash: '', hostname: 'cuued.com' },
     history: { replaceState() {} },
   });

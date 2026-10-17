@@ -29,6 +29,12 @@ class MockPeer extends Emitter {
     schedule(() => {
       const host = registry.get(id);
       if (!host) return this.emit('error', { type: 'peer-unavailable' });
+      if (globalThis.__blockNextLink) { // the two networks can't link: both sides see ICE fail and the link never opens
+        globalThis.__blockNextLink = false; const theirs = new MockConn(); mine.other = theirs; theirs.other = mine;
+        host.emit('connection', theirs);
+        schedule(() => { theirs.emit('iceStateChanged', 'failed'); mine.emit('iceStateChanged', 'failed') }, 300);
+        return;
+      }
       const theirs = new MockConn(); mine.other = theirs; theirs.other = mine; mine.open = theirs.open = true;
       host.emit('connection', theirs); theirs.emit('open'); mine.emit('open');
     }, 80);
@@ -60,6 +66,11 @@ const DT = 1 / 60;
   H.hostGame(); frame(10);
   const code = H.net.code;
   check(/^[A-Z2-9]{4}$/.test(code), `host should get a 4-character room code (got "${code}")`);
+
+  // --- a join whose network path is blocked fails fast, and the host keeps waiting for someone else
+  globalThis.__blockNextLink = true; X.joinGame(code); frame(40);
+  check(X.net.role === null, 'a blocked link should end the join attempt within a second, not hang');
+  check(H.net.role === 'host' && H.net.conn === null && H.game.mode !== 'online-host', 'after a blocked attempt the host should still be waiting in its room');
   G.joinGame(code.toLowerCase()); frame(30);
   check(H.game.mode === 'online-host' && G.game.mode === 'online-guest', `both sides should enter the match (host=${H.game.mode}, guest=${G.game.mode})`);
   check(H.players[1].name === 'Guesty' && G.players[0].name === 'Hosty', 'names should cross over');
