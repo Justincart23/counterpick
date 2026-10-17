@@ -1045,7 +1045,8 @@ function update(dt){pollPads();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
   if(net.role==='host'&&net.connected&&game.mode==='online-host'){net.sendT-=dt;net.pingT-=dt;
-    if(net.sendT<=0){net.sendT=1/30;netSend(snapshot())}if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}
+    if(net.sendT<=0){net.sendT=net.relayed?1/20:1/30;netSend(snapshot())}
+    if(performance.now()-net.lastRecv>15000)netLost(`Lost the connection to ${net.remoteName||'your opponent'}.`);if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}
   edges.clear();mouse.rEdge=false}
 
 /* ---------- render ---------- */
@@ -1098,7 +1099,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
       ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);ctx.fillStyle=p.glow;ctx.fillText(c.ab,x,y-2+p.id*14+2)});
     ctx.textAlign='left'}
   ctx.textAlign='center';
-  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
+  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=C.text;ctx.fillText(t,W/2,H/2-40)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
@@ -1148,7 +1149,8 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
-  out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null};
+  out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
+  relayClients:[],relayed:false,relayTrying:false,relayReady:false,lastRecv:0,sendParity:0};
 /* relay settings: /api/turn hands out short-lived Cloudflare TURN credentials, so players on networks that can't link
    directly (strict routers, campus or office Wi-Fi, phone carriers) still connect through a relay */
 const STUN_ONLY=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
@@ -1162,9 +1164,7 @@ function fetchIce(){if(typeof fetch!=='function'){net.iceTried=true;return}
 function withIce(go){if(net.iceAt&&Date.now()-net.iceAt>3*3600e3){net.iceAt=0;net.ice=null;net.iceTried=false;fetchIce()}
   if(!net.iceTried&&net.icePromise){net.icePromise.then(go,go);return}go()}
 const peerOpts=()=>({debug:0,config:{iceServers:net.ice||STUN_ONLY}});
-const linkFailMsg=code=>net.relay
-  ?`Couldn't connect to room ${code}. Make sure the host is still on the hosting screen, then try again.`
-  :`Couldn't connect to room ${code}: your two networks wouldn't link directly, and no relay is available yet. Try again, or have one player switch networks (a phone hotspot usually works).`;
+const linkFailMsg=code=>`Couldn't connect to room ${code}: your networks wouldn't link directly and no relay was reachable. Try again, or have one player switch networks (a phone hotspot usually works).`;
 let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
 function fxRec(n,a){if(net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
@@ -1180,14 +1180,93 @@ function netErr(err,code){const t=err&&err.type;
   return`Connection problem (${t||'unknown'}). Try again.`}
 const peerReady=()=>typeof window.Peer==='function';
 const setText=(id,t)=>{const el=$(id);if(el)el.textContent=t};
+
+/* ---------- relay fallback: when a direct browser-to-browser link fails, messages go through free public MQTT
+   brokers over secure WebSockets (no account needed). The host listens on every broker; the guest uses the first that works. ---------- */
+const RELAY_BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081'];   // fastest first (EMQX ~40 ms, Mosquitto ~80 ms one way)
+const relayTopic=(code,leaf)=>`cuued/v1/${code}/${leaf}`;
+// A minimal MQTT 3.1.1 client (QoS 0): connect, subscribe, publish, keepalive. Enough to pass game messages along.
+class MiniMqtt{
+  constructor(url){this.url=url;this.subs=new Map();this.buf=new Uint8Array(0);this.pid=1;this.closed=false;this.onclose=null;this.enc=new TextEncoder();this.dec=new TextDecoder()}
+  connect(timeout=6000){return new Promise((res,rej)=>{let done=false;
+    const fin=(ok,err)=>{if(done)return;done=true;clearTimeout(timer);if(ok)res(this);else{this.close();rej(err)}};
+    const timer=setTimeout(()=>fin(false,new Error('relay timeout')),timeout);
+    let ws;try{ws=new WebSocket(this.url,['mqtt'])}catch(e){fin(false,e);return}
+    this.ws=ws;ws.binaryType='arraybuffer';this.fin=fin;
+    ws.onopen=()=>{const id='cuued-'+Math.random().toString(36).slice(2,12);   // CONNECT: protocol MQTT v4, clean session, 60 s keepalive
+      ws.send(this.packet(0x10,[...this.str('MQTT'),4,2,0,60,...this.str(id)]))};
+    ws.onmessage=ev=>this.feed(new Uint8Array(ev.data));
+    ws.onerror=()=>fin(false,new Error('relay socket error'));
+    ws.onclose=()=>{fin(false,new Error('relay closed'));if(!this.closed){this.closed=true;clearInterval(this.keep);this.onclose&&this.onclose()}};
+    this.keep=setInterval(()=>{try{ws.readyState===1&&ws.send(new Uint8Array([0xC0,0]))}catch(e){}},30000)})}
+  str(v){const b=this.enc.encode(v);return[b.length>>8,b.length&255,...b]}
+  packet(head,body){const len=[];let n=body.length;do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;len.push(d)}while(n>0);
+    const out=new Uint8Array(1+len.length+body.length);out[0]=head;out.set(len,1);out.set(body,1+len.length);return out}
+  feed(chunk){const b=new Uint8Array(this.buf.length+chunk.length);b.set(this.buf);b.set(chunk,this.buf.length);this.buf=b;
+    for(;;){if(this.buf.length<2)return;let mul=1,len=0,i=1,d;
+      do{if(i>=this.buf.length)return;d=this.buf[i++];len+=(d&127)*mul;mul*=128}while(d&128);
+      if(this.buf.length<i+len)return;
+      const head=this.buf[0],type=head>>4,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0)this.fin(true);else this.fin(false,new Error('relay refused '+body[1]))}
+      else if(type===3){const tl=(body[0]<<8)|body[1],topic=this.dec.decode(body.subarray(2,2+tl)),qos=(head>>1)&3,
+        cb=this.subs.get(topic);if(cb)try{cb(this.dec.decode(body.subarray(2+tl+(qos?2:0))))}catch(e){}}}}
+  subscribe(topic,cb){this.subs.set(topic,cb);const id=this.pid++;this.ws.send(this.packet(0x82,[id>>8,id&255,...this.str(topic),0]))}
+  publish(topic,text){if(!this.ws||this.ws.readyState!==1)return;const p=this.enc.encode(text),t=this.str(topic),body=new Uint8Array(t.length+p.length);
+    body.set(t);body.set(p,t.length);this.ws.send(this.packet(0x30,body))}
+  close(){if(this.closed)return;this.closed=true;clearInterval(this.keep);try{if(this.ws&&this.ws.readyState===1){this.ws.send(new Uint8Array([0xE0,0]));this.ws.close()}}catch(e){}}}
+// Looks like a PeerJS DataConnection to the rest of the netcode: on/send/close, plus 'open' and 'data' events.
+class RelayConn{
+  constructor(client,outTopic,from){this.h={};this.client=client;this.out=outTopic;this.from=from||null;this.isOpen=false;this.done=false}
+  on(e,f){(this.h[e]=this.h[e]||[]).push(f);return this}
+  emit(e,...a){for(const f of this.h[e]||[])f(...a)}
+  open(){if(!this.isOpen){this.isOpen=true;this.emit('open')}}
+  receive(m){if(m&&typeof m==='object')this.emit('data',m)}
+  send(m){this.client.publish(this.out,JSON.stringify(this.from?{from:this.from,d:m}:m))}
+  close(){if(this.done)return;this.done=true;this.emit('close')}}
+const relayAvailable=()=>typeof WebSocket==='function';
+// host: listen for relayed joins on every broker
+function openRelayInbox(code){if(!relayAvailable())return;const tk=net.seq;
+  for(const url of RELAY_BROKERS){const c=new MiniMqtt(url);net.relayClients.push(c);
+    c.connect().then(()=>{if(tk!==net.seq||net.role!=='host'){c.close();return}
+      c.subscribe(relayTopic(code,'h'),raw=>onRelayToHost(c,code,raw));
+      if(!net.relayReady){net.relayReady=true;showRoom()}}).catch(()=>{})}}
+function onRelayToHost(c,code,raw){let m;try{m=JSON.parse(raw)}catch(e){return}if(!m||typeof m.from!=='string'||m.from.length>24)return;
+  const reply=d=>c.publish(relayTopic(code,'g/'+m.from),JSON.stringify(d)),cur=net.conn;
+  if(cur&&cur.relayFrom===m.from){if(m.t==='rhello')reply({t:'ack'});else cur.receive(m.d);return}
+  if(m.t!=='rhello')return;
+  if(cur){reply({t:'full'});return}
+  const rc=new RelayConn(c,relayTopic(code,'g/'+m.from));rc.relayFrom=m.from;net.relayed=true;
+  attachConn(rc);reply({t:'ack'});rc.open();setText('#hostMsg','A challenger is connecting through a relay…')}
+// guest: the direct link failed, so try each broker in turn until the host answers
+function joinViaRelay(code){
+  if(!relayAvailable()){setText('#joinMsg',linkFailMsg(code));leaveOnline(true);return}
+  const tk=net.seq,gid=Math.random().toString(36).slice(2,12);let i=0;
+  setText('#joinMsg','A direct link was blocked by one of your networks. Connecting through a relay…');
+  const next=()=>{if(tk!==net.seq)return;
+    if(i>=RELAY_BROKERS.length){setText('#joinMsg',`Couldn't connect to room ${code}, directly or through a relay. The host may have closed the room. Try again in a moment.`);leaveOnline(true);return}
+    // the first broker was already warmed up while the direct link was being tried
+    let pending;if(i===0&&net.warm){pending=net.warm;net.warm=null}else{const fresh=new MiniMqtt(RELAY_BROKERS[i]);net.relayClients.push(fresh);pending=fresh.connect().then(()=>fresh,()=>null)}
+    i++;
+    pending.then(c=>{if(!c){next();return}if(tk!==net.seq){c.close();return}
+      const rc=new RelayConn(c,relayTopic(code,'h'),gid);let acked=false,iv=0,to=0;
+      c.subscribe(relayTopic(code,'g/'+gid),raw=>{let m;try{m=JSON.parse(raw)}catch(e){return}
+        if(!acked){acked=true;clearInterval(iv);clearTimeout(to);net.relayed=true;attachConn(rc);rc.open()}
+        if(m.t!=='ack')rc.receive(m)});
+      const hello=()=>c.publish(relayTopic(code,'h'),JSON.stringify({from:gid,t:'rhello'}));
+      hello();iv=setInterval(hello,1000);
+      to=setTimeout(()=>{if(!acked){clearInterval(iv);c.close();next()}},6000)})};
+  next()}
 function hostGame(){leaveOnline(true);
   if(!peerReady()){setText('#hostMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
   net.role='host';net.code=makeCode();setText('#hostCode','····');setText('#hostMsg','Opening a room…');$('#hostLink').value='';
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
-function openRoom(){const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
-  peer.on('open',()=>{if(net.peer!==peer)return;setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
-    setText('#hostMsg','Waiting for a challenger. Share the code, or send them the link.')});
-  peer.on('error',err=>{if(net.peer!==peer)return;if(err.type==='unavailable-id'){hostGame();return}setText('#hostMsg',netErr(err));leaveOnline(true)});
+function showRoom(){if(net.role!=='host')return;setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
+  setText('#hostMsg','Waiting for a challenger. Share the code, or send them the link.')}
+function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
+  peer.on('open',()=>{if(net.peer===peer)showRoom()});
+  peer.on('error',err=>{if(net.peer!==peer)return;if(err.type==='unavailable-id'){hostGame();return}
+    if(net.relayReady)return;   // the matchmaker is unreachable, but relayed joins still work
+    setTimeout(()=>{if(net.peer===peer&&!net.relayReady&&!net.connected){setText('#hostMsg',netErr(err));leaveOnline(true)}},6500)});
   peer.on('disconnected',()=>{if(net.peer===peer&&!net.connected)try{peer.reconnect()}catch(e){}});
   peer.on('connection',conn=>{if(net.peer!==peer)return;
     if(net.conn){conn.on('open',()=>{conn.send({t:'full'});setTimeout(()=>{try{conn.close()}catch(e){}},300)});return}
@@ -1198,17 +1277,25 @@ function joinGame(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-
   if(!peerReady()){setText('#joinMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
   net.role='guest';net.code=code;setText('#joinMsg',`Looking for room ${code}…`);
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='guest')openJoin(code)})}
-function openJoin(code){const peer=new Peer(peerOpts());net.peer=peer;
+function openJoin(code){
+  // warm up a relay connection in parallel (its secure handshake takes a few seconds) so a fallback is instant
+  if(relayAvailable()){const w=new MiniMqtt(RELAY_BROKERS[0]);net.relayClients.push(w);net.warm=w.connect().then(()=>w,()=>null)}
+  const peer=new Peer(peerOpts());net.peer=peer;
   peer.on('open',()=>{if(net.peer!==peer)return;setText('#joinMsg',`Found the matchmaker. Connecting to room ${code}…`);
     attachConn(peer.connect(ROOM_PREFIX+code,{serialization:'json',reliable:true}));
-    net.joinTimer=setTimeout(()=>{if(net.peer===peer&&!net.connected){setText('#joinMsg',linkFailMsg(code));leaveOnline(true)}},net.relay?20000:15000)});
-  peer.on('error',err=>{if(net.peer!==peer)return;setText('#joinMsg',netErr(err,code));leaveOnline(true)})}
+    net.joinTimer=setTimeout(()=>{if(net.peer===peer&&!net.connected)directFailed(code)},net.relay?15000:8000)});
+  peer.on('error',err=>{if(net.peer!==peer)return;
+    if(err.type==='peer-unavailable'){setText('#joinMsg',netErr(err,code));leaveOnline(true);return}
+    directFailed(code)})}   // matchmaker unreachable and the like: the relay can still get through
+function directFailed(code){if(net.role!=='guest'||net.connected||net.relayTrying)return;net.relayTrying=true;clearTimeout(net.joinTimer);
+  const pe=net.peer,c=net.conn;net.peer=null;net.conn=null;setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},50);
+  joinViaRelay(code)}
 function attachConn(conn){net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
-    else{clearTimeout(net.joinTimer);setText('#joinMsg',linkFailMsg(net.code));leaveOnline(true)}});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:1})});
-  conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object')onNet(m)});
+    else directFailed(net.code)});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:1})});
+  conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 function onNet(m){
@@ -1234,7 +1321,8 @@ function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText(
   else if(net.role==='host'){startMatch('online-host');netSend({t:'restart'})}else startMatch(game.mode)}
 function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
   if(c&&net.connected)try{c.send({t:'bye'})}catch(e){}
-  Object.assign(net,{role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[]});net.bmap.clear();
+  for(const rc of net.relayClients)rc.close();
+  Object.assign(net,{role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
@@ -1265,7 +1353,8 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
   (s.sw||[]).forEach((ang,i)=>{const w=swings[i];if(w){w.px=w.x;w.py=w.y;w.ang=ang;placeSwing(w)}});
   for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
 // guest frame: smooth toward the latest snapshot (dead-reckoned by its age), animate effects, send inputs
-function guestTick(dt){game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
+function guestTick(dt){if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
+  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
     for(const p of players){if(p.tx==null)continue;const px=p.tx+p.vx*age,py=p.ty+p.vy*age;
@@ -1280,6 +1369,7 @@ function guestSend(){const me=players[1];if(!me||!net.connected)return;
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
   if(!busy){if(edges.has('KeyW')||edges.has('Space'))net.out.jc++;if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE'))net.out.bc++}
   if(me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-me.y,mouse.x-me.x);
+  if(net.relayed&&(net.sendParity^=1))return;   // relayed: 30 input packets a second instead of 60 (press counters keep every press)
   netSend({t:'i',m:busy?0:(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space'))?1:0,jc:net.out.jc,
     f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0)})}
 

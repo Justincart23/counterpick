@@ -8,7 +8,7 @@ const SOURCE = path.join(__dirname, '..', 'src', 'counterpick.html');
 
 const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, spawnBullet, updateBullets,
   drawCardArt, sfx, initAudio, aimSolution, bulletG, keys, edges, mouse, settings,
-  net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch,
+  net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch, MiniMqtt, RelayConn, RELAY_BROKERS,
   get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
   get hand() { return hand }, get pickFor() { return pickFor }, get pickMode() { return pickMode }, get pickLock() { return pickLock }`;
 
@@ -33,7 +33,12 @@ function element() {
 
 // One virtual clock and timer queue for every loaded copy, so message latency and game timers stay in step.
 const clock = { t: 0, timers: [] };
-function schedule(f, ms) { clock.timers.push({ at: clock.t + (ms || 0), f }); return clock.timers.length }
+let timerSeq = 0;
+function schedule(f, ms) { const id = ++timerSeq; clock.timers.push({ id, at: clock.t + (ms || 0), f }); return id }
+function cancel(id) { clock.timers = clock.timers.filter((x) => x.id !== id) }
+function every(f, ms) { const box = { id: 0 }; const tick = () => { box.id = schedule(() => { tick(); f() }, ms) }; tick(); const handle = ++timerSeq; intervals.set(handle, box); return handle }
+const intervals = new Map();
+function stopEvery(handle) { const box = intervals.get(handle); if (box) { cancel(box.id); intervals.delete(handle) } }
 /** Advance virtual time and run every timer that comes due, in order. */
 function advance(ms) {
   clock.t += ms;
@@ -47,8 +52,10 @@ function advance(ms) {
 /** Run every pending timer immediately, regardless of its delay. */
 function flushTimers() { while (clock.timers.length) { const q = clock.timers; clock.timers = []; q.forEach((x) => x.f()) } }
 
-/** Load the game. Options: seed makes Math.random deterministic; virtualTime makes performance.now follow the shared clock. */
-async function load({ seed, file = SOURCE, virtualTime = false } = {}) {
+const NATIVE_WEBSOCKET = globalThis.WebSocket;
+/** Load the game. Options: seed makes Math.random deterministic; virtualTime makes performance.now follow the shared clock;
+ *  realTime keeps Node's real timers and WebSocket (for live network checks); WebSocket supplies a mock socket class. */
+async function load({ seed, file = SOURCE, virtualTime = false, realTime = false, WebSocket } = {}) {
   const html = fs.readFileSync(file, 'utf8');
   let js = html.match(/<script>([\s\S]*)<\/script>/)[1];
   js = js.replace(/\}\)\(\);\s*$/, `;globalThis.__API={${EXPOSE}};})();`);
@@ -69,12 +76,14 @@ async function load({ seed, file = SOURCE, virtualTime = false } = {}) {
     addEventListener() {},
     innerWidth: 1600, innerHeight: 900, devicePixelRatio: 1,
     requestAnimationFrame: () => 0, cancelAnimationFrame() {},
-    setTimeout: schedule, clearTimeout() {},
+    ...(realTime ? {} : { setTimeout: schedule, clearTimeout: cancel, setInterval: every, clearInterval: stopEvery }),
     fetch: () => Promise.reject(new Error('offline in tests')),   // /api/turn unreachable: the game falls back to STUN
     location: { origin: 'https://cuued.com', pathname: '/', search: '', hash: '', hostname: 'cuued.com' },
     history: { replaceState() {} },
   });
   Object.defineProperty(globalThis, 'navigator', { value: {}, configurable: true, writable: true });
+  // no relay sockets in tests unless a mock is supplied (or realTime asks for the real thing)
+  Object.defineProperty(globalThis, 'WebSocket', { value: realTime ? NATIVE_WEBSOCKET : WebSocket, configurable: true, writable: true });
 
   (0, eval)(js);
   await new Promise((r) => setImmediate(r)); // the game boots after a font-loading promise settles

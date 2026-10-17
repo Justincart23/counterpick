@@ -20,14 +20,16 @@ The first time you open it, you pick a name. It's remembered in your browser, an
 
 Online play is peer-to-peer. The host's browser runs the match, and the guest sends its inputs and draws the host's snapshots. The free public [PeerJS](https://peerjs.com) broker only introduces the two browsers, so there is no game server to run.
 
-When two networks can't link directly (strict routers, campus or office Wi-Fi, some phone carriers), the connection goes through a **TURN relay** instead. `api/turn.js` is a Vercel function that hands each browser short-lived relay credentials from [Cloudflare Realtime TURN](https://developers.cloudflare.com/realtime/turn/), which is free for the first 1 TB a month. To enable it, set two environment variables on the Vercel project and redeploy:
+When two networks can't link directly (strict routers, campus or office Wi-Fi, some phone carriers), the game **falls back to a relay automatically**. Messages go through free public MQTT brokers ([EMQX](https://www.emqx.com/en/mqtt/public-mqtt5-broker), then [Mosquitto](https://test.mosquitto.org)) over secure WebSockets, with no account needed. The host listens on every broker, and the guest uses the first one that answers. A relayed match adds about 40–80 ms each way, shows `ONLINE (RELAY)` at the top of the screen, and sends snapshots at 20 Hz instead of 30. These are free test brokers with no uptime guarantee, which suits a game played with friends. `node scripts/relay-smoke.js` checks them live.
+
+**Optional upgrade: Cloudflare TURN.** `api/turn.js` is a Vercel function that can hand out short-lived [Cloudflare Realtime TURN](https://developers.cloudflare.com/realtime/turn/) credentials (free for the first 1 TB a month). That keeps even blocked networks on a fast WebRTC path, so the MQTT fallback is rarely needed. To enable it, set two environment variables on the Vercel project and redeploy:
 
 | Variable | Where to find it |
 |---|---|
 | `CF_TURN_KEY_ID` | Cloudflare dashboard > Realtime > TURN Server > your key's **Turn Token ID** |
 | `CF_TURN_KEY_TOKEN` | The **API Token** shown once when you create that key |
 
-Without them, `/api/turn` returns STUN only. Players on friendly networks still connect directly, and the others get a clear message.
+Without them, `/api/turn` returns STUN only and the MQTT relay covers blocked networks.
 
 | | Move | Jump | Drop through a plank | Aim | Shoot | Block |
 |---|---|---|---|---|---|---|
@@ -60,7 +62,8 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 ```
 src/counterpick.html   the game: one self-contained file (HTML, CSS, JS)
 vercel.json            serves the repo as a static site on Vercel (cuued.com)
-api/turn.js            Vercel function: short-lived TURN relay credentials for online play
+api/turn.js            Vercel function: optional Cloudflare TURN credentials for online play
+scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 index.html             generated from src/ by scripts/build.js; adds the standalone page shell
 scripts/build.js       node scripts/build.js [--check]
 tests/                 headless test suite (plain Node, no dependencies)
@@ -78,7 +81,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 
 - **`audit.js`** plays CPU vs CPU and fails if a bullet spawns past a wall, a bullet tunnels through one, a body ends a frame inside a wall, a point stalls, or the game throws.
 - **`ceiling.js`** fires shots upward on every arena and fails if any bullet gets above the ceiling.
-- **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects.
+- **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`card-art.js`** renders all 34 card animations for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.

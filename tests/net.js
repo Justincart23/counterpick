@@ -45,17 +45,52 @@ class MockPeer extends Emitter {
 }
 globalThis.Peer = MockPeer;
 
+
+// A mock MQTT broker reached through a mock WebSocket. It parses the real binary packets the game's MiniMqtt client
+// sends (CONNECT, SUBSCRIBE, PUBLISH, PINGREQ, DISCONNECT), so the relay code is exercised byte for byte.
+const brokers = new Map(); // url -> { up, subs: Map<topic, Set<ws>> }
+const brokerFor = (url) => { if (!brokers.has(url)) brokers.set(url, { up: true, subs: new Map(), published: 0 }); return brokers.get(url) };
+function splitPackets(b) {
+  const out = []; let o = 0;
+  while (o < b.length) { let mul = 1, len = 0, i = o + 1, d; do { d = b[i++]; len += (d & 127) * mul; mul *= 128 } while (d & 128); out.push({ head: b[o], body: b.subarray(i, i + len), raw: b.subarray(o, i + len) }); o = i + len }
+  return out;
+}
+class MockWebSocket {
+  constructor(url) {
+    this.url = url; this.readyState = 0; const br = brokerFor(url);
+    schedule(() => { if (!br.up) { this.readyState = 3; this.onerror && this.onerror({}); this.onclose && this.onclose({}); return } this.readyState = 1; this.onopen && this.onopen({}) }, 120);
+  }
+  deliver(bytes) { const copy = bytes.slice().buffer; schedule(() => { if (this.readyState === 1 && this.onmessage) this.onmessage({ data: copy }) }, LATENCY / 2) }
+  send(data) {
+    if (this.readyState !== 1) return; const br = brokerFor(this.url), bytes = new Uint8Array(data);
+    schedule(() => { for (const p of splitPackets(bytes)) {
+      const type = p.head >> 4;
+      if (type === 1) this.deliver(new Uint8Array([0x20, 2, 0, 0]));
+      else if (type === 8) { const tl = (p.body[2] << 8) | p.body[3], topic = new TextDecoder().decode(p.body.subarray(4, 4 + tl));
+        if (!br.subs.has(topic)) br.subs.set(topic, new Set()); br.subs.get(topic).add(this); this.deliver(new Uint8Array([0x90, 3, p.body[0], p.body[1], 0])) }
+      else if (type === 3) { const tl = (p.body[0] << 8) | p.body[1], topic = new TextDecoder().decode(p.body.subarray(2, 2 + tl)); br.published++;
+        for (const ws of br.subs.get(topic) || []) ws.deliver(p.raw) }
+      else if (type === 12) this.deliver(new Uint8Array([0xD0, 0]));
+      else if (type === 14) this.close();
+    } }, LATENCY / 2);
+  }
+  close() { if (this.readyState === 3) return; this.readyState = 3; for (const set of brokerFor(this.url).subs.values()) set.delete(this); schedule(() => this.onclose && this.onclose({}), 1) }
+}
+
 const fail = [];
 const check = (ok, msg) => { if (!ok) fail.push(msg) };
 const DT = 1 / 60;
 
 (async () => {
-  const H = (await load({ seed: 11, virtualTime: true })).api;
-  const G = (await load({ seed: 22, virtualTime: true })).api;
+  const H = (await load({ seed: 11, virtualTime: true, WebSocket: MockWebSocket })).api;
+  const G = (await load({ seed: 22, virtualTime: true, WebSocket: MockWebSocket })).api;
   H.setName('Hosty'); G.setName('Guesty'); H.settings.len = 3;
 
   let errors = 0;
-  const frame = (n = 1) => { for (let i = 0; i < n; i++) { for (const A of [H, G]) { try { A.update(DT) } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };
+  const actors = [H, G];   // every loaded copy gets a frame, like separate browser tabs
+  // like a browser, let pending promise callbacks run between frames (the relay client is promise-based)
+  const frameA = async (n = 1) => { for (let i = 0; i < n; i++) { frame(); await new Promise((r) => setImmediate(r)) } };
+  const frame = (n = 1) => { for (let i = 0; i < n; i++) { for (const A of actors) { try { A.update(DT) } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };
 
   // --- a wrong code fails cleanly
   const X = (await load({ seed: 33, virtualTime: true })).api; X.setName('Lost');
@@ -69,7 +104,7 @@ const DT = 1 / 60;
 
   // --- a join whose network path is blocked fails fast, and the host keeps waiting for someone else
   globalThis.__blockNextLink = true; X.joinGame(code); frame(40);
-  check(X.net.role === null, 'a blocked link should end the join attempt within a second, not hang');
+  check(X.net.role === null, 'with no relay reachable, a blocked link should end the join attempt quickly, not hang');
   check(H.net.role === 'host' && H.net.conn === null && H.game.mode !== 'online-host', 'after a blocked attempt the host should still be waiting in its room');
   G.joinGame(code.toLowerCase()); frame(30);
   check(H.game.mode === 'online-host' && G.game.mode === 'online-guest', `both sides should enter the match (host=${H.game.mode}, guest=${G.game.mode})`);
@@ -141,9 +176,38 @@ const DT = 1 / 60;
   // --- the guest leaves
   G.leaveOnline(false); frame(40);
   check(H.net.role === null && H.game.mode === 'demo', `the host should return to the menu when the guest leaves (role=${H.net.role}, mode=${H.game.mode})`);
+  // --- relay fallback: the direct link is blocked AND the first relay broker is down; the guest falls through to the second
+  brokerFor(H.RELAY_BROKERS[0]).up = false;
+  globalThis.WebSocket = MockWebSocket;   // copies share one global; an earlier copy was loaded without sockets
+  H.hostGame(); await frameA(20);
+  const rcode = H.net.code;
+  const R = (await load({ seed: 55, virtualTime: true, WebSocket: MockWebSocket })).api; R.setName('Relayed'); actors.push(R);
+  globalThis.__blockNextLink = true; R.joinGame(rcode); await frameA(60 * 12);
+  check(H.game.mode === 'online-host' && R.game.mode === 'online-guest', `a blocked direct link should fall back to a relay and start the match (host=${H.game.mode}, guest=${R.game.mode})`);
+  check(H.net.relayed && R.net.relayed, 'both sides should know the match is relayed');
+  let relayMoved = 0, relaySync = 0, relayN = 0, lastRX = null; const trail2 = [];
+  for (let f = 0; f < 60 * 40; f++) {
+    if (H.pickFor && H.pickMode === 'local' && !H.pickLock) H.choose(H.hand[0], 0);
+    if (R.pickFor && R.pickMode === 'remote' && !R.pickLock) R.netChoose(0);
+    drive(H, H.players[0], H.players[1], f); drive(R, R.players[1], R.players[0], f + 17); await frameA();
+    const hp = H.players[1];
+    if (H.game.state === 'play' && hp.alive) { if (lastRX != null) relayMoved += Math.abs(hp.x - lastRX); lastRX = hp.x } else lastRX = null;
+    trail2.push([H.players[0].x, H.players[0].y]); if (trail2.length > 16) trail2.shift();
+    if (H.game.state === 'play' && R.game.state === 'play' && H.players[0].alive && R.players[0].alive && Number.isFinite(R.players[0].x) && trail2.length === 16) {
+      relaySync += Math.min(...trail2.map(([x, y]) => Math.hypot(R.players[0].x - x, R.players[0].y - y))); relayN++;
+    }
+  }
+  const relayMean = relayN ? relaySync / relayN : Infinity;
+  check(brokerFor(H.RELAY_BROKERS[1]).published > 500, 'match traffic should flow through the second broker');
+  check(relayMoved > 500, `relayed inputs should move the guest's fighter on the host (moved ${relayMoved.toFixed(0)}px)`);
+  check(relayMean < 25, `the relayed guest's view should track the host (mean error ${relayMean.toFixed(1)}px)`);
+  R.leaveOnline(false); await frameA(60);
+  check(H.net.role === null && H.game.mode === 'demo', 'the host should return to the menu when the relayed guest leaves');
+  brokerFor(H.RELAY_BROKERS[0]).up = true;
+
   check(errors === 0, `no exceptions (${errors})`);
 
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
