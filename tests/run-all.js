@@ -12,6 +12,7 @@ const suite = [
   run('audio.js'),
   run('ceiling.js'),
   run('net.js'),
+  run('net.js', 90, 45),   // a laggy, jittery cross-country link
   run('turn.js'),
   // 4 seeds x 5 game-minutes of CPU vs CPU
   ...[1, 5150, 9001, 2026].map((seed) => run('audit.js', 300, seed)),

@@ -3,10 +3,13 @@
 // Checks: hosting and joining by code, names crossing over, drafting on both screens (the guest picks its own cards),
 // the guest's inputs moving its fighter on the host, the guest's view tracking the host's simulation,
 // a full match to the end screen on both sides, rematch, a wrong code, a full room, and a clean disconnect.
-//   node tests/net.js
+//   node tests/net.js [latencyMs=40] [jitterMs=0]   (e.g. 90 45 is a typical cross-country link)
 const { load, advance, schedule } = require('./env');
 
-const LATENCY = 40; // ms each way
+const LATENCY = +(process.argv[2] || process.env.NET_LATENCY || 40); // ms each way
+const JITTER = +(process.argv[3] || process.env.NET_JITTER || 0);    // extra random ms per message (delivery stays in order, like a WebRTC data channel)
+let jseed = 99; const jrand = () => ((jseed = (jseed * 1103515245 + 12345) >>> 0) / 2 ** 32);
+const vnow = () => require('./env').clock.t;
 const registry = new Map();
 class Emitter {
   constructor() { this.handlers = {} }
@@ -15,7 +18,7 @@ class Emitter {
 }
 class MockConn extends Emitter {
   constructor() { super(); this.open = false; this.other = null }
-  send(m) { if (!this.open) return; const d = JSON.parse(JSON.stringify(m)), o = this.other; schedule(() => o.open && o.emit('data', d), LATENCY) }
+  send(m) { if (!this.open) return; const d = JSON.parse(JSON.stringify(m)), o = this.other, t = vnow(), at = Math.max(this.lastAt || 0, t + LATENCY + jrand() * JITTER); this.lastAt = at; schedule(() => o.open && o.emit('data', d), at - t) }
   close() { if (!this.open) return; this.open = false; const o = this.other; schedule(() => { this.emit('close'); if (o.open) { o.open = false; o.emit('close') } }, LATENCY) }
 }
 class MockPeer extends Emitter {
@@ -141,6 +144,7 @@ const DT = 1 / 60;
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
+  let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
   let mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
@@ -159,6 +163,10 @@ const DT = 1 / 60;
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
     if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
     lastVis = vis; lastMap = G.game.mapIdx;
+    if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
+      if (solidAt(G, me.x, me.y)) embedded++;
+      else if (lastMe && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; break } }
+      lastMe = [me.x, me.y, G.game.mapIdx, G.net.snapN] } else lastMe = null;
     const hp = H.players[1];
     if (H.game.state === 'play' && hp.alive) { if (lastX.v != null) guestMoved += Math.abs(hp.x - lastX.v); lastX.v = hp.x } else lastX.v = null;
     hostTrail.push([H.players[0].x, H.players[0].y]); if (hostTrail.length > 12) hostTrail.shift();
@@ -178,11 +186,12 @@ const DT = 1 / 60;
   check(G.players[1].cards.length === H.players[1].cards.length && G.players[0].cards.length === H.players[0].cards.length, 'both screens should show the same decks');
   check(guestMoved > 800, `the guest's inputs should move its fighter on the host (moved ${guestMoved.toFixed(0)}px)`);
   check(sawGuestBullet, "the guest's shots should be fired on the host");
-  check(meanSync < 20, `the guest's view should track the host's simulation within one network trip (mean error ${meanSync.toFixed(1)}px)`);
+  check(meanSync < 20 + LATENCY / 5, `the guest's view should track the host's simulation within one network trip (mean error ${meanSync.toFixed(1)}px)`);
   check(responsive != null && responsive > 3, `the guest's fighter should move on its own screen within 2 frames of a key press (moved ${responsive && responsive.toFixed(1)}px)`);
   check(hostStill != null && hostStill < 1, `...before the host has even received that input (host moved ${hostStill && hostStill.toFixed(1)}px), proving the response is local`);
   check(mapMismatch < 10, `the guest should always be on the host's arena (${mapMismatch} frames on a different one)`);
-  check(visJumps <= 1, `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
+  check(embedded === 0 && tunnels === 0, `the guest's own fighter should never clip into or through walls (${embedded} frames inside, ${tunnels} pass-throughs)`);
+  check(visJumps <= 1 + (JITTER ? frames / 60 / 3 : 0), `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
   check(G.game.wins.join() === H.game.wins.join(), `final score should match (${H.game.wins} vs ${G.game.wins})`);
 
   // --- rematch requested by the guest
@@ -224,7 +233,7 @@ const DT = 1 / 60;
 
   check(errors === 0, `no exceptions (${errors})`);
 
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

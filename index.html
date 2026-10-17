@@ -366,7 +366,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1350,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,accel:false,spite:0,
-  split:0,grow:false,well:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,bouncy:false};
+  split:0,grow:false,well:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,slam:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
@@ -416,7 +416,7 @@ const CARDS=[
  {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-15%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.85;s.moveSpeed*=.9}},
  {n:'Momentum',k:'body',r:1,d:'Move faster, and the faster you move, the harder you hit.',st:[['+15%','Speed',1],['Up to +60%','Damage at speed',1]],a:s=>{s.momentum=true;s.moveSpeed*=1.15},u:1},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
- {n:'Bounce Back',k:'body',r:0,d:'Hard landings bounce you back up and blast out a shockwave.',st:[['On','Bouncy landings',1],['18','Shockwave damage',1]],a:s=>{s.bouncy=true},u:1},
+ {n:'Ground Pound',k:'body',r:0,d:'In the air, hold down to slam into the ground. The landing blasts anyone nearby.',st:[['Hold S','Slam',1],['24','Blast damage',1],['170px','Blast radius',1]],a:s=>{s.slam=true},u:1},
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -486,7 +486,7 @@ const ICONS={
  'Momentum':g=>{IC.bullet(g,.42,.5,.5,.18);IC.line(g,.08,.36,.32,.36);IC.line(g,.14,.5,.36,.5);IC.line(g,.08,.64,.32,.64)},
  'Berserk':g=>{g.beginPath();g.moveTo(.5,.08);g.quadraticCurveTo(.86,.44,.72,.74);g.quadraticCurveTo(.62,.92,.5,.92);g.quadraticCurveTo(.38,.92,.28,.74);g.quadraticCurveTo(.14,.44,.5,.08);g.closePath();g.stroke();
    g.beginPath();g.moveTo(.5,.46);g.quadraticCurveTo(.64,.62,.58,.76);g.quadraticCurveTo(.5,.84,.42,.76);g.quadraticCurveTo(.36,.62,.5,.46);g.stroke()},
- 'Bounce Back':g=>{IC.line(g,.08,.9,.92,.9);IC.dashed(g,[.04,.05],()=>{g.beginPath();g.moveTo(.12,.3);g.quadraticCurveTo(.3,1.25,.62,.36);g.stroke()});IC.circle(g,.72,.28,.1)},
+ 'Ground Pound':g=>{IC.line(g,.08,.88,.92,.88);IC.line(g,.5,.08,.5,.56);IC.line(g,.36,.42,.5,.56,.64,.42);IC.line(g,.22,.74,.12,.64);IC.line(g,.78,.74,.88,.64);IC.line(g,.34,.78,.3,.7);IC.line(g,.66,.78,.7,.7)},
  'Sprinter':g=>{IC.chevron(g,.74,.5,.24);IC.line(g,.08,.36,.46,.36);IC.line(g,.16,.5,.54,.5);IC.line(g,.08,.64,.46,.64)},
 };
 function drawIcon(g,name,x,y,size,color,lw=2){const f=ICONS[name];if(!f)return;g.save();g.translate(x-size/2,y-size/2);g.scale(size,size);
@@ -630,6 +630,8 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'tink':tone('sine',2300*v,2200,t,.09,.09);noise(t,.02,.06,'highpass',5000);break;                                                     // bullet stopped by a block
   case'bounce':tone('sine',1700*v,1400,t,.04,.05);break;
   case'die':tone('sine',140,28,t,.9,.65,room);noise(t,.9,.45,'lowpass',1400,120,.7,crunch);tone('square',400,80,t,.22,.1,room);break;
+  case'slamGo':noise(t,.18,.12,'bandpass',600,2400,1.2);break;   // diving
+  case'slam':tone('sine',90,30,t,.5,.55,room);noise(t,.4,.35,'lowpass',1600,120,.7,crunch);break;   // ground pound
   case'boom':tone('sine',105,26,t,.8,.6,room);noise(t,.75,.42,'lowpass',1000,110,.7,crunch);break;
   case'jump':tone('sine',260*v,430*v,t,.08,.06);break;
   case'land':tone('sine',120,50,t,.16,.2,room);noise(t,.08,.06,'lowpass',450);break;
@@ -647,7 +649,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'freeze':noise(t,.22,.16,'highpass',5000,5000,1,room);tone('sine',2400*v,1800,t,.25,.07,room);tone('triangle',1600*v,1200,t,.18,.06);break;   // frozen solid
   case'zap':noise(t,.16,.2,'bandpass',3200,1600,3,room);tone('square',240*v,90,t,.14,.08,room);tone('sawtooth',1200*v,400,t,.08,.04);break;   // energy border
   case'spring':tone('sine',180,640,t,.18,.16);tone('triangle',360,1200,t,.12,.06);break;                                                     // bounce pad
-  case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // bouncy landing
+  case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
   }}catch(e){}}
@@ -930,8 +932,10 @@ const ART={
    const k=t*1.1%1;const bx=x+30+k*180,sz=.6+k*.9;AH.trail(g,bx,-40,0,30+k*90,6+k*6);AH.bullet(g,bx,-40,0,sz)},
  'Berserk':(g,t)=>{AH.blob(g,-110,20,26,{look:1,ouch:true});const lo=.3;g.fillStyle='rgba(255,255,255,.25)';g.fillRect(-150,-28,80,8);g.fillStyle=(t*4|0)%2?'#ff5a4f':'#ff9a8f';g.fillRect(-150,-28,80*lo,8);
    for(let i=0;i<7;i++){const x=-70+((t*700+i*60)%320);AH.trail(g,x,20,0,30,4);AH.bullet(g,x,20,0,.5)}},
- 'Bounce Back':(g,t)=>{g.fillStyle='rgba(255,255,255,.5)';g.fillRect(-180,84,360,5);const ph=t*1.1%1,h=Math.abs(Math.sin(ph*Math.PI*2))*(1-ph*.5)*130,x=-120+ph*240;
-   const sq=h<10?1.25:1;g.save();g.translate(x,84-26-h);g.scale(sq,1/sq);AH.blob(g,0,0,26);g.restore();if(h<8)AH.ring(g,x,84,10+Math.random()*4,3,.6)},
+ 'Ground Pound':(g,t)=>{g.fillStyle='rgba(255,255,255,.5)';g.fillRect(-180,84,360,5);const ph=t*.8%1;
+   if(ph<.35){const y=-40-Math.sin(ph/.35*Math.PI)*40;AH.blob(g,-10,y,26)}else if(ph<.5){const k=(ph-.35)/.15,y=-60+k*118;g.fillStyle='rgba(255,255,255,.35)';g.fillRect(-14,y-70,8,60);g.fillRect(4,y-60,6,50);AH.blob(g,0,y,26)}
+   else{const k=(ph-.5)/.5;g.save();g.translate(0,58);g.scale(1+.3*(1-k),1-.3*(1-k));AH.blob(g,0,0,26);g.restore();AH.ring(g,0,84,20+k*170,8*(1-k),1-k);
+     g.fillStyle='#fff';for(let i=0;i<8;i++){const a=Math.PI+(i+.5)/8*Math.PI;g.globalAlpha=1-k;g.fillRect(Math.cos(a)*(30+k*120)-3,84+Math.sin(a)*(30+k*90)-3,6,6)}g.globalAlpha=1}},
  'Sprinter':(g,t)=>{const bob=Math.abs(Math.sin(t*9))*10;g.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<6;i++){const x=180-((t*700+i*70)%420);g.fillRect(x,-40+i*16,50,3)}
    for(let i=0;i<4;i++){const k=(t*2+i/4)%1;AH.ring(g,-30-k*120,46,6+k*12,3,1-k)}AH.blob(g,0,10-bob,32,{look:1})},
 };
@@ -975,6 +979,7 @@ function drawBigFace(p,mood){const fc=$('#face'),g=fc.getContext('2d'),S=560,R=2
 const boxHit=(x,y,hw,hh,r)=>x+hw>r.x&&x-hw<r.x+r.w&&y+hh>r.y&&y-hh<r.y+r.h;
 const solidBox=(x,y,hw,hh)=>solids.some(r=>boxHit(x,y,hw,hh,r));
 const solidBoxP=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&boxHit(x,y,hw,hh,r));   // walls a body cannot pass
+function sweepClear(x0,y0,x1,y1,R){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/(R*.4)));for(let i=1;i<=n;i++)if(solidBoxP(x0+(x1-x0)*i/n,y0+(y1-y0)*i/n,R-1,R-1))return false;return true}
 const pointSolid=(x,y)=>solids.some(r=>!r.bound&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
 function circleRect(x,y,rad,r){const cx=clamp(x,r.x,r.x+r.w),cy=clamp(y,r.y,r.y+r.h),dx=x-cx,dy=y-cy;return dx*dx+dy*dy<rad*rad}
 /* fraction of the segment travelled before a circle of radius rad touches a solid (1 = clear) */
@@ -1130,10 +1135,10 @@ function updateBullets(dt){
 
 function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps;
   if(r.kind===3){p.vy=-1480;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad
-  if(p.s.bouncy&&!wasG&&vyIn>520){p.vy=-vyIn*.55;p.grounded=false;p.ground=null;p.squash=.7;moveFx(p,()=>sfx('boing'));
-    if(game.mode!=='online-guest'){ring(p.x,p.y+p.r,p.glow,150);addShake(5);const e=other(p);
-      if(e&&e.alive&&Math.hypot(e.x-p.x,e.y-p.y)<150&&losClear(p.x,p.y,e.x,e.y)){const a=Math.atan2(e.y-p.y,e.x-p.x);e.vx+=Math.cos(a)*650;e.vy+=Math.sin(a)*500-200;e.ground=null;damage(e,18,p)}}
-    return}
+  if(p.slamming){p.slamming=false;if(!wasG&&vyIn>900){p.squash=.55;   // Ground Pound landing: the host deals the blast
+    if(game.mode!=='online-guest'){ring(p.x,p.y+p.r,p.glow,170);ring(p.x,p.y+p.r,'#ffffff',110);burst(p.x,p.y+p.r,p.glow,22,520,5,.45,500,true);addShake(10);sfx('slam');
+      for(const e of players){if(e===p||!e.alive)continue;const d=Math.hypot(e.x-p.x,e.y-p.y);
+        if(d<170+e.r&&losClear(p.x,p.y,e.x,e.y)){const f=1-d/(170+e.r)*.4;e.vx+=Math.sign(e.x-p.x||1)*520*f;e.vy=Math.min(e.vy,-760*f);e.ground=null;e.grounded=false;damage(e,24*f,p)}}}}}
   if(!wasG){if(r.swing)pushSwing(r,p.vx*.25+vyIn*.05*Math.sign(p.x-(r.x+r.w/2)));if(vyIn>700){p.squash=.72;moveFx(p,()=>{sfx('land');burst(p.x,p.y+p.r,'#cfd8e3',6,200,3,.3,0)})}}}
 function pushOut(p,r){const R=p.r,l=p.x+R-r.x,rr=r.x+r.w-(p.x-R),t=p.y+R-r.y,bt=r.y+r.h-(p.y-R),m=Math.min(l,rr,t,bt);
   if(m===t){p.y=r.y-R;if(p.vy>0)p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps}else if(m===bt){p.y=r.y+r.h+R;if(p.vy<0)p.vy=0}
@@ -1152,6 +1157,8 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1);p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.grounded?16:6.5)*dt);
   let g=PG;if(p.vy<0&&!inp.jumpH)g*=1.9;if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1800,p.vy+g*dt);
+  if(p.vy<-1)p.slamming=false;   // Ground Pound: hold down in the air to dive
+  else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
   if(p.wallDir&&!p.grounded&&p.vy>0&&inp.move===p.wallDir)p.vy=Math.min(p.vy,220);
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
@@ -1246,10 +1253,24 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
       const rx=pad.axes[2]||0,ry=pad.axes[3]||0;if(Math.hypot(rx,ry)>.35)aim=Math.atan2(ry,rx)}
     inp.move=mv;const e=other(p);inp.aim=aim??(e.alive?aimSolution(p,e):p.aim)}
   else if(p.ctrl==='net'){const r=net.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
-    inp.move=clamp(r.m|0,-1,1);inp.jumpH=!!r.jh;inp.down=!!r.d;inp.fire=!!r.f;if(Number.isFinite(r.a))inp.aim=r.a;
+    inp.fire=!!r.f;if(Number.isFinite(r.a))inp.aim=r.a;
+    // movement replays the guest's own physics steps one for one, so the host moves the guest exactly as the guest's
+    // screen predicted, however bunched up the packets arrive. A small buffer soaks up jitter; a backlog is skipped.
+    // When the buffer runs dry the host stands in with the last input and counts it (lagSteps); those stand-in steps are
+    // paid back by skipping the same number of real ones later, so both sides stay on the same step count.
+    const Q=net.inQ;let q=null;
+    // A backlog (hitstop pauses the host but not the guest) drains only through steps where the fighter stands still on
+    // fixed ground with no input: skipping one of those changes nothing. Between points it's simply cleared.
+    const same=(x,y)=>x&&y&&x[1]===y[1]&&x[2]===y[2]&&x[3]===y[3]&&x[4]===y[4]&&x[5]===y[5];
+    const idle=x=>x[1]===0&&!x[2]&&!x[3]&&x[4]===p.netJc&&x[5]===p.netBc&&p.grounded&&!(p.ground&&p.ground.swing)&&Math.abs(p.vx)<1;
+    if(game.state==='ready'||Q.length>90){if(Q.length>1)Q.splice(0,Q.length-1);net.lagSteps=0}
+    while(Q.length>2&&((net.lagSteps>0&&same(Q[0],net.heldIn))||(Q.length>4&&idle(Q[0])))){if(net.lagSteps>0&&same(Q[0],net.heldIn))net.lagSteps--;Q.shift()}
+    if(Q.length){q=Q.shift();net.heldIn=q}else if(net.heldIn){q=net.heldIn;net.lagSteps=Math.min(30,net.lagSteps+1)}
+    if(q){inp.move=clamp(q[1]|0,-1,1);inp.jumpH=!!q[2];inp.down=!!q[3];p.ackSeq=q[0]+net.lagSteps}
+    else{inp.move=clamp(r.m|0,-1,1);inp.jumpH=!!r.jh;inp.down=!!r.d}
     // presses arrive as running counters, so a press is never lost between frames
-    p.ackSeq=r.s|0;
-    if(p.netJc==null){p.netJc=r.jc;p.netBc=r.bc}if(r.jc>p.netJc){inp.jumpP=true;p.netJc=r.jc}if(r.bc>p.netBc){inp.blockP=true;p.netBc=r.bc}}}
+    const jc=q?q[4]:r.jc,bc=q?q[5]:r.bc;
+    if(p.netJc==null){p.netJc=jc;p.netBc=bc}if(jc>p.netJc){inp.jumpP=true;p.netJc=jc}if(bc>p.netBc){inp.blockP=true;p.netBc=bc}}}
 
 /* ---------- control: CPU ---------- */
 function groundAhead(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<p.y+p.r+300;y+=18)if(pointSolid(x,y))return true;return false}
@@ -1304,6 +1325,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
     if(ai.gapT>0){dir=ai.gapDir;if(!p.grounded&&p.vy>120&&!groundBelow(p)&&p.airJumps>0)jump=true}
     if(dir&&p.wallDir===dir)jump=true}
   else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
+  if(p.s.slam&&!p.grounded&&e.alive&&Math.abs(e.x-p.x)<110&&e.y>p.y+60&&losClear(p.x,p.y,e.x,e.y))down=true;
   inp.down=down;
   const bit=1<<p.id;
   for(const b of bullets){if(b.owner===p&&!b.bounced)continue;if(b.seen&bit)continue;
@@ -1514,12 +1536,12 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-cardaudit';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-netsteps2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
   relayClients:[],relayed:false,relayTrying:false,relayReady:false,lastRecv:0,sendParity:0,
-  inSeq:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false};
+  inSeq:0,steps:[],inQ:[],lastQ:-1,heldIn:null,lagSteps:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false};
 /* relay settings: /api/turn hands out short-lived Cloudflare TURN credentials, so players on networks that can't link
    directly (strict routers, campus or office Wi-Fi, phone carriers) still connect through a relay */
 const STUN_ONLY=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
@@ -1668,14 +1690,15 @@ function attachConn(conn){net.conn=conn;
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 function onNet(m){
-  if(m.t==='hello'){net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');
+  if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     if(net.role==='host')startMatch('online-host');else{startMatch('online-guest')}return}
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
   if(net.role==='host'){
-    if(m.t==='i')net.remote=m;
+    if(m.t==='i'){net.remote=m;
+      if(Array.isArray(m.st))for(const q of m.st)if(q[0]>net.lastQ){net.inQ.push(q);net.lastQ=q[0]}}
     else if(m.t==='choose'){if(pickFor&&pickFor.ctrl==='net'&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
     else if(m.t==='rematch'){if(game.state==='over'&&game.mode==='online-host'){startMatch('online-host');netSend({t:'restart'})}}
     else if(m.t==='pong'&&Number.isFinite(m.at))net.rtt=performance.now()-m.at;
@@ -1728,20 +1751,25 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
   for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
 // guest's own fighter: compare the host's state for the newest input it has applied with what this screen predicted
 // for that same input; shift the prediction by the difference and fade the visual jump out over ~0.1 s
-function initPhys(p,x,y,vx,vy){Object.assign(p,{x,y,vx,vy,tx:x,ty:y,phys:true,grounded:false,ground:null,wallDir:0,dropT:0,jumpBuf:0,coyote:0,
+function initPhys(p,x,y,vx,vy){net.snapN=(net.snapN||0)+1;Object.assign(p,{x,y,vx,vy,tx:x,ty:y,phys:true,grounded:false,ground:null,wallDir:0,dropT:0,jumpBuf:0,coyote:0,
   airJumps:p.s.airJumps,squash:1,walk:p.walk||0,input:p.input||{move:0}});net.hist=[];net.offX=0;net.offY=0}
 function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   if(snapTo||!p.phys){initPhys(p,a[0],a[1],a[2],a[3]);return}
   const ack=a[18]|0,i=net.hist.findIndex(e=>e.s===ack);if(i<0)return;
   const e=net.hist[i],ex=a[0]-e.x,ey=a[1]-e.y,evx=a[2]-e.vx,evy=a[3]-e.vy;
   if(Math.hypot(ex,ey)>220){initPhys(p,a[0],a[1],a[2],a[3]);return}   // too far apart to blend: trust the host
+  // a correction must never carry the body into or through a wall: if the path isn't clear, take the host's spot outright
+  if(!sweepClear(p.x,p.y,p.x+ex,p.y+ey,p.r)){if(!solidBoxP(a[0],a[1],p.r-1,p.r-1))initPhys(p,a[0],a[1],a[2],a[3]);return}
   p.x+=ex;p.y+=ey;p.vx+=evx;p.vy+=evy;net.offX=clamp(net.offX-ex,-80,80);net.offY=clamp(net.offY-ey,-80,80);
   net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=ex;h.y+=ey;h.vx+=evx;h.vy+=evy}}
-function guestStep(h,busy){const me=players[1],live=game.state==='play'||game.state==='pointEnd';
-  if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input,on=live&&!busy&&!me.frozen;
-    inp.move=on?(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0):0;inp.jumpH=on&&(keys.has('KeyW')||keys.has('Space'));
-    inp.jumpP=on&&net.pendJump;inp.down=on&&keys.has('KeyS');net.pendJump=false;
-    me.localBlockT=(me.localBlockT||0)-h;moveIntent(me,h);moveCollide(me,h)}
+function guestStep(h,busy){const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);
+  const mv=on?(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')),dn=on&&keys.has('KeyS');
+  const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc]);if(net.steps.length>40)net.steps.shift();
+  if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
+    inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
+    me.localBlockT=(me.localBlockT||0)-h;moveIntent(me,h);moveCollide(me,h);
+    net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy});if(net.hist.length>360)net.hist.shift()}
+  net.pendJump=false;
   for(const w of swings){w.dx=0;w.dy=0}}   // a swing's movement is applied once per snapshot
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
 function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
@@ -1764,8 +1792,7 @@ function guestSend(){const me=players[1];if(!me||!net.connected)return;
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
   if(me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));
   if(net.relayed&&(net.sendParity^=1))return;   // relayed: 30 input packets a second instead of 60 (press counters keep every press)
-  net.inSeq++;if(me.phys)net.hist.push({s:net.inSeq,x:me.x,y:me.y,vx:me.vx,vy:me.vy});if(net.hist.length>240)net.hist.shift();
-  netSend({t:'i',s:net.inSeq,m:busy?0:(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space'))?1:0,jc:net.out.jc,
+  netSend({t:'i',s:net.inSeq,st:net.steps.slice(-24),m:busy?0:(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space'))?1:0,jc:net.out.jc,
     f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0)})}
 
 /* ---------- names ---------- */

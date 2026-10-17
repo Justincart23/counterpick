@@ -9,7 +9,7 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
 
 (async () => {
   const { api: A } = await load({ seed: 7 });
-  const step = (n = 1) => { for (let i = 0; i < n; i++) { A.update(1 / 60); flushTimers() } };
+  const step = (n = 1) => { for (let i = 0; i < n; i++) { A.update(1 / 60); flushTimers() } };   // 1/60 s per call
   const setup = (cards0 = [], cards1 = [], map = 0) => {
     A.startMatch('cpu'); flushTimers();
     A.loadMap(map); A.game.state = 'play'; A.game.dropT = 0; A.game.points = [0, 0]; A.game.wins = [0, 0];
@@ -64,9 +64,20 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(!(Q.blockT > 0), 'a third block should wait for the cooldown');
   }
 
+  // Ground Pound: hold down in the air to dive; the landing blasts a rival standing nearby
+  {
+    const [P, E] = setup(['Ground Pound']); const hp = E.hp; E.x = P.x + 90; E.y = P.y;
+    P.y -= 220; P.vy = 0; P.grounded = false; P.ground = null; P.input.down = true; let maxVy = 0, launch = 0;
+    for (let i = 0; i < 40; i++) { step(); maxVy = Math.max(maxVy, P.vy); launch = Math.min(launch, E.vy) }
+    P.input.down = false;
+    check(maxVy >= 1500, `holding down in the air should dive fast (max vy ${maxVy | 0})`);
+    check(E.hp < hp && launch < -400, `the slam should hurt and launch a nearby rival (hp ${hp}->${E.hp | 0}, launch vy ${launch | 0})`);
+    check(P.hp === P.s.maxHp, 'your own slam should not hurt you');
+  }
+
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
-  console.log(JSON.stringify({ cases: 6, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 7, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();
