@@ -7,12 +7,14 @@ const { load, noop } = require('./env');
   const { api: A } = await load();
   let failures = 0;
   const missing = A.CARDS.filter((c) => !A.ART[c.n]).map((c) => c.n);
+  const noIcon = A.CARDS.filter((c) => !A.ICONS[c.n]).map((c) => c.n);
+  for (const c of A.CARDS) { try { for (const sz of [24, 56]) A.drawIcon(noop, c.n, 50, 50, sz, '#fff', 2) } catch (e) { failures++; console.error(`${c.n} icon: ${e.message}`) } }
   for (const c of A.CARDS) {
     const canvas = { width: 360, height: 236, getContext: () => noop };
     try {
       for (let t = 0; t < 12; t += 0.037) { A.drawCardArt(canvas, c, t, false); A.drawCardArt(canvas, c, t, true) }
     } catch (e) { failures++; console.error(`${c.n}: ${e.message}`) }
   }
-  console.log(JSON.stringify({ cards: A.CARDS.length, uniqueAnimations: A.CARDS.length - missing.length, missing, failures }));
-  process.exit(failures || missing.length ? 1 : 0);
+  console.log(JSON.stringify({ cards: A.CARDS.length, uniqueAnimations: A.CARDS.length - missing.length, icons: A.CARDS.length - noIcon.length, missing, noIcon, failures }));
+  process.exit(failures || missing.length || noIcon.length ? 1 : 0);
 })();

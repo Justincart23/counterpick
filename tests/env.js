@@ -7,7 +7,7 @@ const path = require('path');
 const SOURCE = path.join(__dirname, '..', 'src', 'counterpick.html');
 
 const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, spawnBullet, updateBullets,
-  drawCardArt, sfx, initAudio, aimSolution, bulletG, keys, edges, mouse, settings,
+  drawCardArt, drawIcon, ICONS, sfx, initAudio, aimSolution, bulletG, keys, edges, mouse, settings,
   loadMap, resetPlayer, recompute, die, damage,
   net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch, MiniMqtt, RelayConn, RELAY_BROKERS,
   get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
