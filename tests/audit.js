@@ -34,6 +34,7 @@ const DT = 1 / 60;
 
     for (const b of A.bullets) {
       if (b.phase || b.reflected) continue; // Ghost Rounds phase by design; reflected bullets change owner mid-frame
+      if (b.shard && !prevBullet.has(b)) { seen.add(b); continue } // Splinter shards are born at the wall they hit, by design
       if (!seen.has(b)) {
         seen.add(b);
         if (prevBullet.has(b)) continue;

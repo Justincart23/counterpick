@@ -148,9 +148,11 @@ const DT = 1 / 60;
     if (G.pickFor && G.pickMode === 'remote' && !G.pickLock) { G.netChoose(1); guestDrafts++ }
     drive(H, H.players[0], H.players[1], frames);
     const me = G.players[1];
+    const still = (f) => f.grounded && !(f.ground && f.ground.swing) && Math.abs(f.vx) < 5;   // on fixed ground: moving platforms carry you
     if (probe === 0 && frames > 300 && H.game.state === 'play' && me.alive && me.grounded) { probe = 1; probeT = 0 }
     if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
-    if (probe === 1 && ++probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; G.keys.add('KeyD') }
+    if (probe === 1 && ++probeT >= 20 && !still(H.players[1])) probeT = 0;   // wait until the host's copy is standing still
+    if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; G.keys.add('KeyD') }
     else if (probe === 2) { G.keys.add('KeyD'); if (++probeT >= 3) { responsive = me.x - gx0; hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete('KeyD') } }
     frame();
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
