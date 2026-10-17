@@ -8,6 +8,7 @@ const suite = [
   run('card-art.js'),
   run('movement.js'),
   run('points.js'),
+  run('combos.js'),
   run('audio.js'),
   run('ceiling.js'),
   run('net.js'),
