@@ -56,6 +56,25 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(trailOnWall === 0, `a stuck mine should not keep its bullet trail (${trailOnWall} frames)`);
   }
 
+  // Limpet Mines hurt their owner too
+  {
+    const [P] = setup(['Limpet Mines']); const hp = P.hp;
+    A.spawnBullet(P, P.x, P.y, Math.PI / 2); step(60);
+    check(P.hp < hp, `your own mine should hurt you when you stand on it (hp ${hp}->${P.hp | 0})`);
+  }
+
+  // Bulwark: blocking raises a wall that stops the rival's bullets, not your own
+  {
+    const [P, E] = setup(['Bulwark']); const flat = (o, x, ang) => { A.spawnBullet(o, x, P.y, ang, { plain: true, dmg: 30, speed: 1400 }); A.bullets[A.bullets.length - 1].grav = 0 }; P.aim = 0; E.x = P.x + 400; E.y = P.y; const hp = P.hp;
+    A.doBlock(P); step(); A.render();   // the wall draws without errors
+    flat(E, E.x - 30, Math.PI); step(30);
+    check(P.hp === hp, `the shield wall should stop the rival's bullet (hp ${hp}->${P.hp | 0})`);
+    flat(P, P.x + 25, 0); const hpE = E.hp; step(30);
+    check(E.hp < hpE, 'your own bullets should pass through your shield wall');
+    step(150); flat(E, E.x - 30, Math.PI); step(30);
+    check(P.hp < hp, 'the shield wall should be gone after 2 seconds');
+  }
+
   // Cluster Guard: three bombs that blow up on impact and hurt a rival close by
   {
     const [P, E] = setup(['Cluster Guard']); E.x = P.x + 70; E.y = P.y; const hp = E.hp;
@@ -97,9 +116,19 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(P.vy > 0, `jumping against a wall should not climb it (vy ${P.vy | 0})`);
   }
 
+  // the arena's side edges can't be climbed: holding into one while spamming jump never gets higher than a jump plus a
+  // double jump, and every touch hurts
+  {
+    const [P] = setup(); P.ctrl = 'mouse'; P.x = 40; step(20); const y0 = P.y, hp = P.hp; let top = P.y;
+    for (let f = 0; f < 180 && P.alive; f++) { A.keys.add('KeyA'); if (f % 8 === 0) A.edges.add('KeyW'); if (f % 8 < 4) A.keys.add('KeyW'); else A.keys.delete('KeyW'); step(); top = Math.min(top, P.y) }
+    A.keys.delete('KeyA'); A.keys.delete('KeyW');
+    check(y0 - top < 420, `spamming jump into the edge should not climb it (rose ${(y0 - top) | 0}px)`);
+    check(P.hp < hp, 'touching the edge should hurt');
+  }
+
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
-  console.log(JSON.stringify({ cases: 9, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 12, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();

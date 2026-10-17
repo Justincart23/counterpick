@@ -365,7 +365,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
 const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1350,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
-  phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,accel:false,spite:0,
+  phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
   split:0,grow:false,well:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,slam:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
@@ -403,14 +403,14 @@ const CARDS=[
  {n:'Haymaker',k:'shot',r:0,d:'Hits send your rival flying. Deadly near pits and edges.',st:[['+150%','Knockback',1],['+25%','Damage',1]],a:s=>{s.knock*=2.5;s.dmg*=1.25}},
  {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets slip through up to two walls and pass straight through blocks.',st:[['2 walls','Phasing',1],['Unblockable','Shots',1],['+10%','Damage',1]],a:s=>{s.phase=true;s.dmg*=1.1},u:1},
  {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+120%','Damage',1],['-40%','Health',0]],a:s=>{s.dmg*=2.2;s.maxHp*=.6}},
- {n:'Bulwark',k:'body',r:1,d:'Plant your feet and take the hits.',st:[['+15%','Health',1],['-10%','Block cooldown',1],['-12%','Speed',0]],a:s=>{s.maxHp*=1.15;s.blockCd*=.9;s.moveSpeed*=.88}},
+ {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
  {n:'Accelerator',k:'shot',r:1,d:'Bullets speed up and hit harder the longer they fly.',st:[['Up to x3.5','Speed & damage',1]],a:s=>{s.accel=true},u:1},
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets hit harder the farther they fly. Long shots land with a shockwave.',st:[['+25%','Damage per 100px',1],['Up to x4','At long range',1],['+0.25s','Reload',0]],a:s=>{s.grow=true;s.reload+=.25},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
- {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
+ {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
  {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-15%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.85;s.moveSpeed*=.9}},
@@ -472,7 +472,7 @@ const ICONS={
  'Haymaker':g=>{g.strokeRect(.48,.26,.26,.48);IC.line(g,.06,.5,.38,.5);IC.line(g,.28,.4,.38,.5,.28,.6);IC.line(g,.82,.36,.95,.36);IC.line(g,.84,.5,.97,.5);IC.line(g,.82,.64,.95,.64)},
  'Ghost Rounds':g=>{g.strokeRect(.44,.12,.12,.76);IC.dashed(g,[.06,.05],()=>IC.bullet(g,.08,.5,.84,.2))},
  'Glass Cannon':g=>{IC.line(g,.5,.08,.88,.5,.5,.92,.12,.5,.5,.08);IC.line(g,.5,.08,.44,.36,.58,.5,.46,.72)},
- 'Bulwark':g=>{g.strokeRect(.12,.2,.76,.6);IC.line(g,.12,.4,.88,.4);IC.line(g,.12,.6,.88,.6);IC.line(g,.5,.2,.5,.4);IC.line(g,.3,.4,.3,.6);IC.line(g,.7,.4,.7,.6);IC.line(g,.5,.6,.5,.8)},
+ 'Bulwark':g=>{IC.circle(g,.26,.5,.13);IC.line(g,.56,.14,.56,.86);IC.line(g,.64,.14,.64,.86);IC.line(g,.94,.34,.76,.34);IC.line(g,.94,.66,.76,.66);IC.line(g,.72,.28,.72,.4);IC.line(g,.72,.6,.72,.72)},
  'Accelerator':g=>{IC.chevron(g,.2,.5,.1);IC.chevron(g,.42,.5,.17);IC.chevron(g,.7,.5,.27)},
  'Spite':g=>{IC.circle(g,.5,.5,.14);for(let i=0;i<6;i++){const a=i/6*TAU,tx=.5+Math.cos(a)*.45,ty=.5+Math.sin(a)*.45;
    IC.line(g,tx,ty,.5+Math.cos(a-.2)*.28,.5+Math.sin(a-.2)*.28,.5+Math.cos(a+.2)*.28,.5+Math.sin(a+.2)*.28,tx,ty)}},
@@ -685,7 +685,7 @@ const DIFF={easy:{block:.06,dodge:.12,err:.2,react:.28,hes:.7,lag:.4,turn:2.6,le
   hard:{block:.5,dodge:.45,err:.05,react:.09,hes:.18,lag:.13,turn:8,lead:.9}};
 const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,map:null,mapIdx:-1,stT:0,endT:0,banner:'',bannerT:0,
   slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
-let players=[],bullets=[],parts=[];
+let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
 
 function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
@@ -706,7 +706,7 @@ function startMatch(mode){
   const ctrls={demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
   const names={demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
-  players.forEach(recompute);bullets=[];parts=[];net.bmap.clear();
+  players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;
   if(mode==='online-guest'){game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
@@ -721,7 +721,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
-  buildBg(game.map);bullets=[];parts=[]}
+  buildBg(game.map);bullets=[];parts=[];shields=[]}
 function newPoint(fresh){
   let i;do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);
@@ -900,9 +900,8 @@ const ART={
    g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=2;g.beginPath();g.moveTo(20,-24);g.lineTo(40,0);g.lineTo(28,24);g.moveTo(40,0);g.lineTo(70,-10);g.lineTo(90,-24);g.moveTo(70,-10);g.lineTo(80,24);g.stroke();g.restore();
    if(ph<.5){const k=ph/.5,x=10+k*200,y=-14-k*70;AH.trail(g,x,y,-.35,90,22);g.fillStyle='#fff';g.beginPath();g.arc(x,y,20,0,TAU);g.fill()}
    g.fillStyle='#fff';for(let i=0;i<5;i++){g.globalAlpha=.5+.5*Math.sin(t*6+i);g.fillRect(-120+i*30,-60+Math.sin(i)*20,3,3)}g.globalAlpha=1},
- 'Bulwark':(g,t)=>{AH.blob(g,0,-40+Math.sin(t*2)*4,30,{look:Math.sin(t*.8)});g.fillStyle='rgba(255,255,255,.92)';
-   for(let r=0;r<3;r++)for(let c=-3;c<3;c++){const off=r%2?25:0;g.fillRect(c*50+off-24+2,-6+r*34,46,30)}const k=t*.9%1;
-   if(k<.5){const x=180-k/.5*170;AH.bullet(g,x,20,Math.PI,.7,'#ffd9c4')}else AH.ring(g,10,20,(k-.5)*80,4,1-(k-.5)*2)},
+ 'Bulwark':(g,t)=>{AH.blob(g,-110,10,30,{look:1});const k=t*.7%1,up=Math.min(1,k/.12);g.save();g.globalAlpha=.25;g.fillStyle='#fff';g.fillRect(-30,10-80*up,24,160*up);g.globalAlpha=1;g.fillRect(-22,10-75*up,8,150*up);g.restore();
+   for(let i=0;i<3;i++){const ph=(k*1.6+i/3)%1,x=170-ph*190,y=-50+i*50;if(x>-6){AH.trail(g,x,y,Math.PI,40,6);AH.bullet(g,x,y,Math.PI,.7)}else AH.ring(g,-10,y,8+(-6-x)*.4,4,Math.max(0,1+(x+6)/60))}},
  'Accelerator':(g,t)=>{const k=t*.55%1,x=-200+k*k*440;AH.trail(g,x,0,0,20+k*k*260,8+k*6);AH.bullet(g,x,0,0,.8+k*.5);
    g.fillStyle='rgba(255,255,255,.4)';for(let i=0;i<5;i++)g.fillRect(-170+i*80,64,40,4);g.fillStyle='#fff';g.fillRect(-170,80,340*k,6)},
  'Spite':(g,t)=>{const ph=t*.75%1,hit=ph>.2&&ph<.3;AH.blob(g,0,0,34,{ouch:hit});if(ph<.2){const x=-170+ph/.2*136;AH.bullet(g,x,0,0,.7)}
@@ -1044,6 +1043,8 @@ function doBlock(p){if(!p.alive)return;const s=p.s;
   p.blockT=.3;sfx('block');
   if(s.blockBombs){const n=s.blockBombs;for(let i=0;i<n;i++){const a=-Math.PI/2+(i-(n-1)/2)*(2.2/Math.max(1,n-1))+rand(-.1,.1),m=safeSpawn(p,a,p.r+10,7,false);if(m.smothered)continue;
     spawnBullet(p,m.x,m.y,a,{plain:true,dmg:55,r:7,life:2.6,speed:rand(340,440)});const b=bullets[bullets.length-1];b.explode=75;b.grav=1.6;b.bomb=true;b.plainRing=true}sfx('arm')}
+  if(s.wallBlock){const a=p.aim,cx=p.x+Math.cos(a)*(p.r+40),cy=p.y+Math.sin(a)*(p.r+40),nx=-Math.sin(a),ny=Math.cos(a),L=70;
+    shields=shields.filter(w=>w.owner!==p);shields.push({x1:cx+nx*L,y1:cy+ny*L,x2:cx-nx*L,y2:cy-ny*L,t:2,owner:p});burst(cx,cy,p.glow,12,260,4,.35,0,true)}
   if(s.blockFreeze){ring(p.x,p.y,'#d8f4ff',240);burst(p.x,p.y,'#e6f8ff',22,420,4,.5,0,true);const e=other(p);
     if(e&&e.alive&&Math.hypot(e.x-p.x,e.y-p.y)<240+e.r&&losClear(p.x,p.y,e.x,e.y)){e.frozenT=.9;e.vx*=.2;e.vy=Math.min(e.vy,0)*.2;ring(e.x,e.y,'#d8f4ff',60);sfx('freeze')}
     for(const b of bullets)if(b.owner!==p&&Math.hypot(b.x-p.x,b.y-p.y)<240){b.vx*=.25;b.vy*=.25}}
@@ -1074,7 +1075,7 @@ function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive)continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
-    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if(p!==b.owner&&p!==exclude){damage(p,b.dmg*.55*f,b.owner)}}}
+    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if((p!==b.owner||b.mines)&&p!==exclude){damage(p,b.dmg*.55*f,b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
 const MINE_FUSE=.5;   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
@@ -1107,7 +1108,9 @@ function blocked(p,b){burst(b.x,b.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');
     b.vx=Math.cos(a)*sp*1.1;b.vy=Math.sin(a)*sp*1.1;b.owner=p;b.reflected=true;b.dmg*=1.5;b.color=p.color;b.glow=p.glow;b.bounced=false;b.age=0;b.life=Math.max(b.life,1.5)}else b.dead=true}
 
 /* ---------- updates ---------- */
+const segDist=(x,y,w)=>{const dx=w.x2-w.x1,dy=w.y2-w.y1,u=clamp(((x-w.x1)*dx+(y-w.y1)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(x-w.x1-dx*u,y-w.y1-dy*u)};
 function updateBullets(dt){
+  for(const w of shields)w.t-=dt;shields=shields.filter(w=>w.t>0&&w.owner.alive);
   for(const b of bullets){if(b.dead)continue;
     if(b.well){const t=other(b.owner);if(t&&t.alive){const dx=b.x-t.x,dy=b.y-t.y,d=Math.hypot(dx,dy);if(d<200&&d>1){const f=(1-d/200)*1500*b.well*dt;t.vx+=dx/d*f;t.vy+=dy/d*f*.7}}}
     if(b.stuck){const f0=b.fuse;b.fuse-=dt;if(Math.floor(f0*12)!==Math.floor(b.fuse*12)&&b.fuse>.05&&b.fuse<.42)sfx('tick');
@@ -1130,6 +1133,8 @@ function updateBullets(dt){
         if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
         else{killBullet(b,true,r,n);if(r.swing&&!b.stuck)sfx('thud')}break}
       if(b.phase&&!ghostIn)b.phasing=false;
+      if(b.dead)break;
+      for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner)continue;
         if(Math.hypot(p.x-b.x,p.y-b.y)<p.r+b.r+(p.blockT>0?10:0)){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
@@ -1503,6 +1508,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(s.x+8,s.y+10,s.w,s.h);ctx.drawImage(s.art,s.x,s.y)}
   for(const q of parts)if(q.blob){ctx.globalAlpha=clamp(q.life/q.max,0,1)*.7;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(1.3-.3*q.life/q.max),0,TAU);ctx.fill()}
   ctx.globalAlpha=1;
+  for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
+    ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
+    ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
   for(const p of players)drawPlayer(p);
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
   for(const b of bullets){const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0,tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;if(t.length>=4){ctx.strokeStyle=tc;ctx.globalAlpha=.35*ga;ctx.lineWidth=b.r*1.4;ctx.beginPath();ctx.moveTo(t[0],t[1]);for(let i=2;i<t.length;i+=2)ctx.lineTo(t[i],t[i+1]);ctx.stroke()}
@@ -1542,7 +1550,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-mines';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-bulwark';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1728,7 +1736,7 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.c
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
 function snapshot(){return{t:'s',mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
-  bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
+  sw:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0),r2(b.grav),b.grow?r1(rangeMult(b)):1]),
@@ -1738,6 +1746,7 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>p.tx=null);net.bmap.clear()}
+  shields=(s.sw||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
   if(s.rt)net.rtt=s.rt;
   s.p.forEach((a,k)=>{const p=players[k];if(!p)return;
