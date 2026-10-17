@@ -810,13 +810,17 @@ function doBlock(p){if(p.blockCd>0||!p.alive)return;const s=p.s;p.blockT=.3;p.bl
 /* ---------- damage ---------- */
 // overtime escalates: +50% damage for every 10s past the overtime horn, so long stalemates always end
 const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
-function damage(p,amt,src){if(!p.alive||amt<=0)return;amt*=otMult();p.hp-=amt;p.hurtT=.12;
+/* the first death decides the point. Only a second death within TRADE_WINDOW (crossing bullets, a shared explosion) is a trade;
+   after that the survivor can't be hurt and can't die from a fall while the point wraps up */
+const POINT_END=1.7,TRADE_WINDOW=.12;
+const pointDecided=()=>game.state==='pointEnd'&&POINT_END-game.endT>TRADE_WINDOW;
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();p.hp-=amt;p.hurtT=.12;
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.5;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
 function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
-  if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=1.7;game.slowT=.7;game.lastWinner=other(p).id}
-  else if(game.state==='pointEnd'&&!other(p).alive)game.lastWinner=-1}
+  if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
+  else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive)continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
@@ -931,7 +935,7 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
   moveCollide(p,dt);
-  if(p.y>H+160){burst(p.x,H-10,p.color,30,900,9,1);die(p)}}
+  if(p.y>H+160&&!pointDecided()){burst(p.x,H-10,p.color,30,900,9,1);die(p)}}
 
 /* ---------- control: humans ---------- */
 function ballistic(sx,sy,tx,ty,v,g){const dx=tx-sx,dy=sy-ty;if(g<1)return Math.atan2(ty-sy,tx-sx);

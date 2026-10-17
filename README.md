@@ -84,6 +84,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`ceiling.js`** fires shots upward on every arena and fails if any bullet gets above the ceiling.
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
+- **`points.js`** checks scoring: the first death decides the point, and only near-simultaneous deaths are trades.
 - **`card-art.js`** renders all 34 card animations for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.
