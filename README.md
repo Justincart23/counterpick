@@ -64,6 +64,10 @@ vercel.json            serves the repo as a static site on Vercel (cuued.com)
 api/turn.js            Vercel function: optional Cloudflare TURN credentials for online play
 scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
+scripts/balance.js     CPU-vs-CPU win rate of every card on its own (not in CI)
+scripts/stress.js      long CPU matches with big random card stacks: crashes, NaN, runaway bullets, stalls (not in CI)
+scripts/browser-perf.js headless Chrome frame times at 1x and 2x pixel density, up to hundreds of bullets (not in CI)
+scripts/browser-flow.js headless Chrome walkthrough: name, menu, draft, pause, settings, and a real online match on the live site (not in CI)
 index.html             generated from src/ by scripts/build.js; adds the standalone page shell
 scripts/build.js       node scripts/build.js [--check]
 tests/                 headless test suite (plain Node, no dependencies)

@@ -364,14 +364,14 @@ const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
  {n:'Overpressure',k:'gun',r:0,d:'Pack every round with extra powder.',st:[['+70%','Damage',1],['+0.4s','Reload',0]],a:s=>{s.dmg*=1.7;s.reload+=.4}},
- {n:'Hair Trigger',k:'gun',r:0,d:'Fire as fast as you can click.',st:[['+100%','Fire rate',1],['+1','Ammo',1],['-10%','Damage',0]],a:s=>{s.fireDelay*=.5;s.ammo+=1;s.dmg*=.9}},
+ {n:'Hair Trigger',k:'gun',r:0,d:'Fire as fast as you can click.',st:[['+100%','Fire rate',1],['+2','Ammo',1],['-25%','Reload',1]],a:s=>{s.fireDelay*=.5;s.ammo+=2;s.reload*=.75}},
  {n:'Deep Magazine',k:'gun',r:0,d:'Three more rounds before you reload.',st:[['+3','Ammo',1]],a:s=>{s.ammo+=3}},
  {n:'Speed Loader',k:'gun',r:0,d:'Refill your magazine in a blink.',st:[['-50%','Reload',1]],a:s=>{s.reload*=.5}},
  {n:'Ricochet',k:'shot',r:0,d:'Bullets bounce off walls twice and hit 20% harder after every bounce.',st:[['+2','Bounces',1],['+20%','Damage per bounce',1]],a:s=>{s.bounces+=2;s.bounceDmg+=.2}},
  {n:'Scattergun',k:'gun',r:1,d:'Every trigger pull fires a fan of pellets.',st:[['+2','Bullets',1],['-35%','Damage',0]],a:s=>{s.projectiles+=2;s.spread+=.16;s.dmg*=.65}},
  {n:'Triple Tap',k:'gun',r:1,d:'Each shot becomes a three-round burst.',st:[['+2','Burst',1],['+2','Ammo',1],['-25%','Damage',0]],a:s=>{s.burst+=2;s.ammo+=2;s.dmg*=.75}},
  {n:'Vampire Rounds',k:'body',r:1,d:'Heal for most of the damage you deal.',st:[['+70%','Life steal',1]],a:s=>{s.lifesteal+=.7}},
- {n:'Thick Skin',k:'body',r:0,d:'Bigger, sturdier, slightly slower.',st:[['+30%','Health',1],['+20%','Size',0],['-5%','Speed',0]],a:s=>{s.maxHp*=1.3;s.size*=1.2;s.moveSpeed*=.95}},
+ {n:'Thick Skin',k:'body',r:0,d:'Bigger, sturdier, slightly slower.',st:[['+25%','Health',1],['+25%','Size',0],['-8%','Speed',0]],a:s=>{s.maxHp*=1.25;s.size*=1.25;s.moveSpeed*=.92}},
  {n:'Pipsqueak',k:'body',r:1,d:'Small and quick. Harder to hit, easier to drop.',st:[['-25%','Size',1],['+20%','Speed',1],['-25%','Health',0]],a:s=>{s.size*=.75;s.moveSpeed*=1.2;s.maxHp*=.75}},
  {n:'Spring Heels',k:'body',r:0,d:'One more jump in the air.',st:[['+1','Air jump',1],['+10%','Jump height',1]],a:s=>{s.airJumps+=1;s.jumpPower*=1.1}},
  {n:'Venom Tips',k:'shot',r:1,d:'Hits poison instead of striking at once, for far more damage in total.',st:[['+50%','Total damage',1],['2s','Over time',0]],a:s=>{s.poison=true},u:1},
@@ -395,7 +395,7 @@ const CARDS=[
  {n:'Fat Rounds',k:'shot',r:0,d:'Bigger bullets are easier to land.',st:[['+80%','Bullet size',1],['+15%','Damage',1],['-10%','Bullet speed',0]],a:s=>{s.bulletSize*=1.8;s.dmg*=1.15;s.bulletSpeed*=.9}},
  {n:'Haymaker',k:'shot',r:0,d:'Hits send your rival flying. Deadly near pits and edges.',st:[['+150%','Knockback',1],['+25%','Damage',1]],a:s=>{s.knock*=2.5;s.dmg*=1.25}},
  {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets slip through up to two walls and pass straight through blocks.',st:[['2 walls','Phasing',1],['Unblockable','Shots',1],['+10%','Damage',1]],a:s=>{s.phase=true;s.dmg*=1.1},u:1},
- {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+120%','Damage',1],['-40%','Health',0]],a:s=>{s.dmg*=2.2;s.maxHp*=.6}},
+ {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+90%','Damage',1],['-45%','Health',0]],a:s=>{s.dmg*=1.9;s.maxHp*=.55}},
  {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
  {n:'Accelerator',k:'shot',r:1,d:'Bullets speed up and hit harder the longer they fly.',st:[['Up to x3.5','Speed & damage',1]],a:s=>{s.accel=true},u:1},
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
@@ -1543,7 +1543,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-bulwark';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-audit';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
