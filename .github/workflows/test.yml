@@ -1,0 +1,18 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: index.html is built from src
+        run: node scripts/build.js --check
+      - name: Card art, audio, ceiling and CPU-vs-CPU gameplay audits
+        run: node tests/run-all.js
