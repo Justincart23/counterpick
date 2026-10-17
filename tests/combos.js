@@ -42,6 +42,20 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(shards >= 4, `stacking Splinter on Limpet should still throw shards (${shards})`);
   }
 
+  // Limpet Mines: a mine sticks with no trail, then always blows about half a second later, rival near or not
+  {
+    const [P, E] = setup(['Limpet Mines']); E.x = 1500;
+    A.spawnBullet(P, P.x, P.y, Math.PI / 2); let stuckAt = -1, boomAt = -1, trailOnWall = 0;
+    for (let i = 0; i < 120 && boomAt < 0; i++) {
+      step(); const m = A.bullets.find((b) => b.mines);
+      if (m && m.stuck) { if (stuckAt < 0) stuckAt = i; if (m.trail.length) trailOnWall++; A.render() }   // the mine's fuse ring draws without errors
+      if (stuckAt >= 0 && !m) boomAt = i;
+    }
+    const fuse = (boomAt - stuckAt) / 60;
+    check(stuckAt >= 0 && boomAt > 0 && fuse > 0.4 && fuse < 0.62, `a mine should blow ~0.5 s after sticking (took ${fuse.toFixed(2)} s)`);
+    check(trailOnWall === 0, `a stuck mine should not keep its bullet trail (${trailOnWall} frames)`);
+  }
+
   // Cluster Guard: three bombs that blow up on impact and hurt a rival close by
   {
     const [P, E] = setup(['Cluster Guard']); E.x = P.x + 70; E.y = P.y; const hp = E.hp;
@@ -86,6 +100,6 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
-  console.log(JSON.stringify({ cases: 8, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 9, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();
