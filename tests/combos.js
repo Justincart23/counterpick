@@ -75,9 +75,17 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(P.hp === P.s.maxHp, 'your own slam should not hurt you');
   }
 
+  // no wall jumps: pressing jump against a wall in mid-air with no double jump left does nothing
+  {
+    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
+    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 620; P.vy = 100; P.grounded = false; P.ground = null; P.airJumps = 0; P.coyote = 0;
+    A.keys.add('KeyD'); A.edges.add('KeyW'); A.keys.add('KeyW'); step(); A.keys.delete('KeyD'); A.keys.delete('KeyW');
+    check(P.vy > 0, `jumping against a wall should not climb it (vy ${P.vy | 0})`);
+  }
+
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
-  console.log(JSON.stringify({ cases: 7, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 8, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();

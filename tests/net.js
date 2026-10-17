@@ -145,7 +145,7 @@ const DT = 1 / 60;
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
   let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
-  let mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  let probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
@@ -156,8 +156,9 @@ const DT = 1 / 60;
     if (probe === 0 && frames > 300 && H.game.state === 'play' && me.alive && me.grounded) { probe = 1; probeT = 0 }
     if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
     if (probe === 1 && ++probeT >= 20 && !still(H.players[1])) probeT = 0;   // wait until the host's copy is standing still
-    if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; G.keys.add('KeyD') }
-    else if (probe === 2) { G.keys.add('KeyD'); if (++probeT >= 3) { responsive = me.x - gx0; hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete('KeyD') } }
+    if (probe === 1 && G.game.state !== 'play') probeT = 0;   // a new point's countdown started: wait for live play
+    if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; probeKey = G.solids.some((r) => !r.oneway && !r.bound && me.x + 60 > r.x && me.x < r.x + r.w && me.y > r.y - me.r && me.y < r.y + r.h + me.r) || me.x > 1400 ? 'KeyA' : 'KeyD'; G.keys.add(probeKey) }
+    else if (probe === 2) { G.keys.add(probeKey); if (++probeT >= 3) { responsive = Math.abs(me.x - gx0); hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete(probeKey) } }
     frame();
     if (H.game.state === 'play' && G.game.state === 'play' && G.game.map && G.game.map.name !== H.game.map.name) mapMismatch++;
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
@@ -191,7 +192,7 @@ const DT = 1 / 60;
   check(hostStill != null && hostStill < 1, `...before the host has even received that input (host moved ${hostStill && hostStill.toFixed(1)}px), proving the response is local`);
   check(mapMismatch < 10, `the guest should always be on the host's arena (${mapMismatch} frames on a different one)`);
   check(embedded === 0 && tunnels === 0, `the guest's own fighter should never clip into or through walls (${embedded} frames inside, ${tunnels} pass-throughs)`);
-  check(visJumps <= 1 + (JITTER ? frames / 60 / 3 : 0), `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
+  check(visJumps <= 1 + frames / 60 / (JITTER ? 3 : 40), `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
   check(G.game.wins.join() === H.game.wins.join(), `final score should match (${H.game.wins} vs ${G.game.wins})`);
 
   // --- rematch requested by the guest

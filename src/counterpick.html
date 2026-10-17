@@ -1,11 +1,11 @@
 <title>CUUED</title>
-<meta name="description" content="Queue up. Duel a friend. A fast 1v1 browser shooter: shoot, block, wall-jump, and stack wild power-up cards.">
+<meta name="description" content="Queue up. Duel a friend. A fast 1v1 browser shooter: shoot, block, double-jump, and stack wild power-up cards.">
 <meta name="theme-color" content="#1a1226">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CUUED">
 <meta property="og:url" content="https://www.cuued.com/">
 <meta property="og:title" content="CUUED: Queue up. Duel a friend.">
-<meta property="og:description" content="A fast 1v1 browser shooter. Shoot, block, wall-jump, and stack wild power-up cards. Free, no download.">
+<meta property="og:description" content="A fast 1v1 browser shooter. Shoot, block, double-jump, and stack wild power-up cards. Free, no download.">
 <meta property="og:image" content="https://www.cuued.com/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -217,7 +217,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
-<div id="hudbtns"><button id="bPause" type="button">Pause · Esc</button><button id="bMute" type="button">Sound on · M</button></div>
+<div id="hudbtns"><button id="bPause" type="button">Pause · Esc</button><button id="bMute" type="button">Sound on · M</button><button id="bFull" type="button">Full screen · F</button></div>
 
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
@@ -492,7 +492,7 @@ const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,560,260,30],[1040,560,260,30],[670,380,260,30]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,470,40,230,1],[1040,470,40,230,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
  {name:'Archipelago',rects:[[120,640,360,40],[620,520,360,40],[1120,640,360,40],[370,330,220,30],[1010,330,220,30]],sp:[[300,600],[1300,600]]},
- {name:'Divider',rects:[[0,760,1600,140],[770,430,60,330,1],[180,560,240,30],[1180,560,240,30],[600,250,400,30]],sp:[[200,720],[1400,720]]},
+ {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,560,240,30],[1180,560,240,30],[600,250,400,30]],sp:[[200,720],[1400,720]]},
  {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,560,400,30]],sp:[[225,610],[1375,610]]},
  {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,24],[560,330,180,24],[860,330,180,24]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,520,220,26],[1180,520,220,26]],sp:[[200,750],[1400,750]]},
@@ -656,6 +656,7 @@ addEventListener('keydown',e=>{initAudio();
   if(!keys.has(e.code))edges.add(e.code);keys.add(e.code);
   if(e.code==='Escape'&&!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause();
   if(e.code==='KeyM')toggleMute();
+  if(e.code==='KeyF'&&game.state!=='pick')toggleFull();
   if(game.state==='pick')pickKey(e)});
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();mouse.down=false});
@@ -1152,13 +1153,12 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   let g=PG;if(p.vy<0&&!inp.jumpH)g*=1.9;if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1800,p.vy+g*dt);
   if(p.vy<-1)p.slamming=false;   // Ground Pound: hold down in the air to dive
   else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
-  if(p.wallDir&&!p.grounded&&p.vy>0&&inp.move===p.wallDir)p.vy=Math.min(p.vy,220);
+  // no wall jumps or wall slides: walls are walls, and the only way up is your own jumps
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
   if(p.jumpBuf>0){const jv=1050*s.jumpPower;
     if(p.grounded||p.coyote>0){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;
       p.squash=1.25;moveFx(p,()=>{burst(p.x,p.y+p.r,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(p.wallDir){p.vy=-jv*.92;p.vx=-p.wallDir*580;p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
     else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.88;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
 }
 // move by velocity and resolve against the arena
@@ -1306,7 +1306,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,p.r+30,5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
-    if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>0&&p.airJumps>0)jump=true}
+    if(wallAhead(p,dir)){if(p.grounded)jump=true;else if(p.vy>-180&&p.vy<120&&p.airJumps>0)jump=true}   // no wall jumps: double-jump near the top of the first
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
   if(ai.mode!=='recover'){
@@ -1316,8 +1316,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
       else if(p.ground&&p.ground.swing&&Math.random()<dt*1.2)jump=true;
       else{dir=-dir;ai.strafe=dir;if(!groundAhead(p,dir))dir=0}}
     if(ai.gapT>0){dir=ai.gapDir;if(!p.grounded&&p.vy>120&&!groundBelow(p)&&p.airJumps>0)jump=true}
-    if(dir&&p.wallDir===dir)jump=true}
-  else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
+    if(dir&&p.wallDir===dir&&p.vy>-180&&p.vy<120&&p.airJumps>0)jump=true}
+  else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&p.airJumps>0)jump=true}
   if(p.s.slam&&!p.grounded&&e.alive&&Math.abs(e.x-p.x)<110&&e.y>p.y+60&&losClear(p.x,p.y,e.x,e.y))down=true;
   inp.down=down;
   const bit=1<<p.id;
@@ -1330,7 +1330,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
   if(ai.blockAt>=0){ai.blockAt-=dt;if(ai.blockAt<0)inp.blockP=true}
   if((p.s.blockWave||p.s.blockBombs||p.s.blockFreeze)&&p.blockCd<=0&&dist<220&&Math.random()<dt*2)inp.blockP=true;
   if(p.vy>300&&p.y>H-p.r-60&&(p.blockCd<=0||p.blockStock>0)&&p.blockT<=0&&Math.random()<.6)inp.blockP=true;
-  if(jump){inp.jumpP=true;ai.jumpHold=.28}
+  if(jump){inp.jumpP=true;ai.jumpHold=.5}
   ai.jumpHold-=dt;inp.jumpH=ai.jumpHold>0;inp.move=dir}
 
 /* ---------- main loop ---------- */
@@ -1482,6 +1482,8 @@ function render(){const saved=[];
   else{const a=game.alpha||0;for(const o of[...players,...bullets])if(o.lx!=null&&Number.isFinite(o.x)){saved.push([o,o.x,o.y]);o.x=o.lx+(o.x-o.lx)*a;o.y=o.ly+(o.y-o.ly)*a}}
   try{renderNow()}finally{for(const[o,x,y]of saved){o.x=x;o.y=y}}}
 function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.fillRect(0,0,cv.width,cv.height);
+  if(view.ox>1||view.oy>1){const k=Math.max(cv.width/W,cv.height/H);   // screen wider or taller than the arena: extend its sky to the edges
+    ctx.drawImage(bgC,(cv.width-W*k)/2,(cv.height-H*k)/2,W*k,H*k);ctx.fillStyle='rgba(12,7,19,.22)';ctx.fillRect(0,0,cv.width,cv.height)}
   const sh=game.shake,sx=(Math.random()-.5)*sh,sy=(Math.random()-.5)*sh;
   ctx.setTransform(view.s,0,0,view.s,view.ox+sx*view.s,view.oy+sy*view.s);
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
@@ -1529,7 +1531,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-netsteps2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-nowalljump';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1853,6 +1855,11 @@ function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').
 function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
+// full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
+function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
+  else{const el=d.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el)}}catch(e){}}
+{const b=$('#bFull'),d=document,ok=!!(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen);if(!ok)b.hidden=true;b.onclick=()=>{b.blur();toggleFull()};
+  const sync=()=>{b.textContent=(d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen')+' · F'};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
 const boot=()=>{fetchIce();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};

@@ -1,6 +1,6 @@
 # CUUED
 
-**Queue up. Duel a friend.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
+**Queue up. Duel a friend.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and double-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
 
 The name is said like *queued*: pick a name, share a 4-letter code, and you're in a duel. No download, no account.
 
@@ -84,7 +84,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It runs twice: at 40 ms, and on a laggy, jittery link (90 ms ± 45 ms, like a cross-country connection), and fails if the guest's own fighter ever ends up inside or passes through a wall. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
 - **`points.js`** checks scoring (the first death decides the point; only near-simultaneous deaths are trades) and the arena edges (damage and knock-back, a small pop off the bottom, no clinging to edges).
-- **`combos.js`** checks that stacked cards keep both effects (Limpet Mines with Splinter Rounds, double Ricochet), that the block cards work (Cluster Guard bombs, Frost Guard freeze, Double Guard's second charge), and that blocking into the bottom edge saves you and launches you high.
+- **`combos.js`** checks that there are no wall jumps, that stacked cards keep both effects (Limpet Mines with Splinter Rounds, double Ricochet), that the block cards work (Cluster Guard bombs, Frost Guard freeze, Double Guard's second charge), and that blocking into the bottom edge saves you and launches you high.
 - **`card-art.js`** renders all 44 card animations and icons for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.
