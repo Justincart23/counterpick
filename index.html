@@ -269,7 +269,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
           <div class="lbl">Controls</div>
           <div class="keys">
             <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd> jump · <kbd>S</kbd> drop · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
-            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. Jump off walls. Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
+            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Jump off walls. Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
       </div>
@@ -613,6 +613,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'go':tone('square',440,880,t,.16,.06);break;
   case'horn':tone('sawtooth',220,215,t,.6,.08);tone('sawtooth',277,272,t,.6,.06);break;
   case'tick':tone('square',1500,1300,t,.025,.03);break;
+  case'zap':noise(t,.16,.2,'bandpass',3200,1600,3,room);tone('square',240*v,90,t,.14,.08,room);tone('sawtooth',1200*v,400,t,.08,.04);break;   // energy border
   case'spring':tone('sine',180,640,t,.18,.16);tone('triangle',360,1200,t,.12,.06);break;                                                     // bounce pad
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // bouncy landing
   case'grapple':noise(t,.15,.12,'bandpass',800,3200,2);tone('square',300,900,t,.1,.05);break;                                             // grapple zip
@@ -934,7 +935,7 @@ function drawBigFace(p,mood){const fc=$('#face'),g=fc.getContext('2d'),S=560,R=2
 /* ---------- physics helpers ---------- */
 const boxHit=(x,y,hw,hh,r)=>x+hw>r.x&&x-hw<r.x+r.w&&y+hh>r.y&&y-hh<r.y+r.h;
 const solidBox=(x,y,hw,hh)=>solids.some(r=>boxHit(x,y,hw,hh,r));
-const solidBoxP=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&boxHit(x,y,hw,hh,r));   // walls a body cannot pass
+const solidBoxP=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&boxHit(x,y,hw,hh,r));   // walls a body cannot pass
 const pointSolid=(x,y)=>solids.some(r=>!r.bound&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
 function circleRect(x,y,rad,r){const cx=clamp(x,r.x,r.x+r.w),cy=clamp(y,r.y,r.y+r.h),dx=x-cx,dy=y-cy;return dx*dx+dy*dy<rad*rad}
 /* fraction of the segment travelled before a circle of radius rad touches a solid (1 = clear) */
@@ -1101,19 +1102,29 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
     else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.88;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
 }
 // move by velocity and resolve against the arena
+/* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
+   off the bottom with a small nudge, and the host deals the damage. You can't stand on, cling to or wall-jump off an edge. */
+const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=760;
+function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
+  if(p.x<lo){p.x=lo;p.vx=Math.max(Math.abs(p.vx)*.5,460);hit='left'}
+  else if(p.x>W-lo){p.x=W-lo;p.vx=-Math.max(Math.abs(p.vx)*.5,460);hit='right'}
+  if(p.y<lo){p.y=lo;p.vy=Math.max(Math.abs(p.vy)*.4,320);hit='top'}
+  else if(p.y>H-R){p.y=H-R;p.vy=-EDGE_FLOOR_POP;p.airJumps=p.s.airJumps;p.grounded=false;p.ground=null;hit='bottom'}
+  if(hit){p.grounded=hit==='bottom'?false:p.grounded}
+  return hit}
 function moveCollide(p,dt){
   // sub-step by speed so a huge knockback can never carry a body through a wall (each move ≤ half its radius)
   const R=p.r,nSub=Math.min(12,Math.max(1,Math.ceil(Math.max(Math.abs(p.vx),Math.abs(p.vy))*dt/(R*.5)))),mdt=dt/nSub;
   for(let ms=0;ms<nSub;ms++){
   // horizontal: one-way planks never block sideways; small ledges (≤12px) are stepped up instead of snagging
   p.x+=p.vx*mdt;
-  for(const r of solids){if(r.oneway||!boxHit(p.x,p.y,R,R,r))continue;
+  for(const r of solids){if(r.oneway||r.bound||!boxHit(p.x,p.y,R,R,r))continue;
     const step=p.y+R-r.y;
     if(step>0&&step<=12&&p.vy>=-1&&!r.swing&&!solidBoxP(p.x,r.y-R-.5,R,R)){p.y=r.y-R-.5;continue}
     if(p.vx>0&&p.x<r.x)p.x=r.x-R;else if(p.vx<0&&p.x>r.x+r.w)p.x=r.x+r.w+R;else{pushOut(p,r);continue}p.vx=0}
   // vertical: land on planks only from above; clipping a ceiling corner by ≤10px slides you past it
   const wasG=p.grounded,vyIn=p.vy,prevBottom=p.y+R;p.grounded=false;p.y+=p.vy*mdt;
-  for(const r of solids){if(!boxHit(p.x,p.y,R,R,r))continue;
+  for(const r of solids){if(r.bound||!boxHit(p.x,p.y,R,R,r))continue;
     if(r.oneway){if(p.vy>=0&&p.dropT<=0&&prevBottom<=r.y+1)land(p,r,wasG,vyIn);continue}
     if(p.vy>0)land(p,r,wasG,vyIn);
     else if(p.vy<0){const ol=p.x+R-r.x,or=r.x+r.w-(p.x-R);
@@ -1124,6 +1135,7 @@ function moveCollide(p,dt){
   }
   // safety net: never end a step with the body's centre inside a wall
   for(const r of solids)if(!r.oneway&&!r.bound&&p.x>r.x&&p.x<r.x+r.w&&p.y>r.y&&p.y<r.y+r.h){if(r.swing)swingPush(p,r);else pushOut(p,r)}
+  p.edgeHit=edgeBounce(p);
   if(!p.grounded)p.ground=null;
   p.wallDir=0;if(!p.grounded){if(solidBoxP(p.x+3,p.y,R,R*.6))p.wallDir=1;else if(solidBoxP(p.x-3,p.y,R,R*.6))p.wallDir=-1}
   p.squash+=(1-p.squash)*Math.min(1,dt*12);p.walk+=Math.abs(p.vx)*dt*.045;
@@ -1144,7 +1156,12 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
   moveCollide(p,dt);
-  if(p.y>H+160&&!pointDecided()){burst(p.x,H-10,p.color,30,900,9,1);die(p)}}
+  p.edgeT=(p.edgeT||0)-dt;
+  if(p.edgeHit&&p.edgeT<=0){p.edgeT=.3;const fl=p.edgeHit==='bottom';
+    const ex=p.edgeHit==='left'?FRAME:p.edgeHit==='right'?W-FRAME:p.x,ey=p.edgeHit==='top'?FRAME:fl?H:p.y;
+    burst(ex,ey,'#ff7aa8',14,420,4,.35,0,true);burst(ex,ey,'#ffffff',6,300,3,.25,0,true);addShake(fl?8:5);sfx('zap');game.edgeFlash=.3;fxRec('E',[]);
+    damage(p,fl?EDGE_FLOOR_DMG:EDGE_DMG,null)}
+  if(p.y>H+400&&!pointDecided())die(p)}   // failsafe only: the bottom edge bounces you long before this
 
 /* ---------- control: humans ---------- */
 function ballistic(sx,sy,tx,ty,v,g){const dx=tx-sx,dy=sy-ty;if(g<1)return Math.atan2(ty-sy,tx-sx);
@@ -1263,7 +1280,7 @@ function update(dt){pollPads();
   if(game.paused){edges.clear();mouse.rEdge=false;return}
   if(game.hitstop>0){game.hitstop-=dt;return}
   if(game.slowT>0){game.slowT-=dt;dt*=.35}
-  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
+  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);
   while(game.acc>=FIXED){game.acc-=FIXED;snapPrev();if(!simTick(FIXED)){game.acc=0;edges.clear();mouse.rEdge=false;break}}
@@ -1399,8 +1416,13 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.restore();drawHUD();
   drawCardTip();
   if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden)drawCrosshair()}
-function drawFrame(){ctx.save();const[base,hi,lo]=KIND[1];ctx.fillStyle=lo;ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);
-  ctx.fillStyle=EDGE[1];ctx.globalAlpha=.8;ctx.fillRect(FRAME,FRAME-2,W-FRAME*2,2);ctx.fillRect(FRAME-2,FRAME,2,H);ctx.fillRect(W-FRAME,FRAME,2,H);ctx.restore()}
+// the hazard border: a glowing energy line around the arena that flares when someone hits it
+function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Math.sin(performance.now()/260)+fl*.45;ctx.save();
+  ctx.fillStyle='rgba(14,8,22,.55)';ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);ctx.fillRect(0,H-4,W,4);
+  ctx.globalCompositeOperation='lighter';
+  for(const[w,a]of[[10,.12],[4,.35],[1.6,1]]){ctx.strokeStyle=`rgba(255,${Math.round(96+80*fl)},${Math.round(150+60*fl)},${a*pulse})`;ctx.lineWidth=w;
+    ctx.strokeRect(FRAME-1,FRAME-1,W-FRAME*2+2,H-FRAME*2+2)}
+  ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.globalAlpha=.9;
   ctx.beginPath();ctx.arc(x,y,9,0,TAU);ctx.stroke();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){ctx.beginPath();ctx.moveTo(x+a*13,y+b*13);ctx.lineTo(x+a*19,y+b*19);ctx.stroke()}
   const p=players.find(q=>q.ctrl==='mouse');if(p&&p.alive&&p.ammo<p.s.ammo){ctx.strokeStyle=p.glow;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,24,-Math.PI/2,-Math.PI/2+TAU*clamp(p.sinceShot/p.s.reload,0,1));ctx.stroke()}
@@ -1436,7 +1458,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={b:burst,r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={E:()=>{game.edgeFlash=.3},b:burst,r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 function netSend(m){if(net.conn&&net.connected)try{net.conn.send(m)}catch(e){}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
@@ -1642,7 +1664,7 @@ function guestStep(h,busy){const me=players[1],live=game.state==='play'||game.st
     moveIntent(me,h);moveCollide(me,h)}
   for(const w of swings){w.dx=0;w.dy=0}}   // a swing's movement is applied once per snapshot
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
-function guestTick(dt){if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
+function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;

@@ -51,7 +51,18 @@ const check = (ok, msg) => { if (!ok) fail.push(msg) };
   check(p0 === 0 && pMid > 0.3 && pMid < 0.6 && pEnd >= 0.95, `dawn should run 0 -> ~0.4 -> ~1 across a match (got ${p0}, ${pMid.toFixed(2)}, ${pEnd.toFixed(2)})`);
   A.game.wins = [4, 0]; A.game.points = [0, 0]; A.newPoint(true);
   check(A.game.banner === 'FINAL ROUND', `the last round should be announced (banner "${A.game.banner}")`);
-  console.log(JSON.stringify({ cases: 6, failures: fail.length }));
+  // arena edges: a damaging bounce, not a wall
+  setup(); { const p = A.players[P0], hp0 = p.hp; p.x = 12; p.vx = -400; A.update(1 / 60);
+    check(p.hp < hp0 && p.vx > 0 && p.x > 10 + p.r - 1, `touching the left edge should hurt and knock you back inside (hp ${hp0}->${p.hp}, vx ${p.vx | 0}, x ${p.x | 0})`); }
+  setup(); { const p = A.players[P0], hp0 = p.hp; p.y = 895; p.vy = 600; A.update(1 / 60);
+    check(p.alive && p.hp < hp0 && p.vy < 0, `the bottom should pop you up with damage, not kill you outright (hp ${hp0}->${p.hp | 0}, vy ${p.vy | 0})`);
+    check(-p.vy < 1050, 'the bottom pop should be smaller than a jump'); }
+  setup(); { const p = A.players[P0]; p.hp = 30; p.y = 895; p.vy = 600; let t = 0;
+    while (p.alive && t < 4) { if (p.vy > 0 && p.y > 860) p.x = 700; A.update(1 / 60); t += 1 / 60 }
+    check(!p.alive && A.game.lastWinner === P1, `repeated bottom hits at low health should finish you and score for the other player (alive=${p.alive}, winner=${A.game.lastWinner})`); }
+  setup(); { const p = A.players[P0]; p.x = 10 + p.r + 1; p.y = 400; p.vy = 0; p.grounded = false; A.keys.add('KeyA'); A.update(1 / 60); A.keys.delete('KeyA');
+    check(p.wallDir === 0, 'you should not be able to cling to or wall-jump off the arena edge'); }
+  console.log(JSON.stringify({ cases: 10, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
 })();

@@ -49,7 +49,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 
 - **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, lobbed bullets with gravity, and a 4-second block.
 - **44 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Many change how you move or fight, not just your numbers: Grapple Shot pulls you to where your bullet lands, Limpet Mines stick to walls, Gravity Well bullets drag your rival, Aegis soaks a hit, Bounce Back turns hard landings into jumps.
-- **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads.
+- **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back, and falling to the bottom pops you up with damage instead of killing you outright.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
 - **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, and effects with a room reverb so impacts boom. Music and volume settings; no audio files.
@@ -83,7 +83,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`ceiling.js`** fires shots upward on every arena and fails if any bullet gets above the ceiling.
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
-- **`points.js`** checks scoring: the first death decides the point, and only near-simultaneous deaths are trades.
+- **`points.js`** checks scoring (the first death decides the point; only near-simultaneous deaths are trades) and the arena edges (damage and knock-back, a small pop off the bottom, no clinging to edges).
 - **`card-art.js`** renders all 44 card animations and icons for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.
