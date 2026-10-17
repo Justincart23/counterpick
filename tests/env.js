@@ -1,13 +1,16 @@
 // Loads the game's script headlessly. Stubs just enough DOM, canvas and timers for the simulation to run,
 // and exposes internals through globalThis.__API so tests can drive and inspect the game.
+// Several copies can be loaded into one process (each gets its own closure); they share one virtual clock.
 const fs = require('fs');
 const path = require('path');
 
 const SOURCE = path.join(__dirname, '..', 'src', 'counterpick.html');
 
 const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, spawnBullet, updateBullets,
-  drawCardArt, sfx, initAudio,
-  get players() { return players }, get bullets() { return bullets }, get solids() { return solids }`;
+  drawCardArt, sfx, initAudio, aimSolution, bulletG, keys, edges, mouse, settings,
+  net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch,
+  get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
+  get hand() { return hand }, get pickFor() { return pickFor }, get pickMode() { return pickMode }, get pickLock() { return pickLock }`;
 
 // A function-shaped proxy that absorbs any property access or call (stands in for canvas contexts, DOM nodes, gradients).
 const noop = new Proxy(function () {}, {
@@ -21,15 +24,31 @@ function element() {
   const base = {
     style: { setProperty() {} },
     classList: { toggle() {}, add() {}, contains() { return false } },
-    children: [], hidden: true,
-    getContext: () => noop, appendChild() {}, addEventListener() {}, focus() {},
+    children: [], hidden: true, value: '', textContent: '',
+    getContext: () => noop, appendChild() {}, addEventListener() {}, focus() {}, select() {},
     querySelector: () => element(), querySelectorAll: () => [],
   };
   return new Proxy(base, { get: (t, k) => (k in t ? t[k] : noop), set: (t, k, v) => { t[k] = v; return true } });
 }
 
-/** Load the game. Options: seed (number) makes Math.random deterministic; file overrides the source path. */
-async function load({ seed, file = SOURCE } = {}) {
+// One virtual clock and timer queue for every loaded copy, so message latency and game timers stay in step.
+const clock = { t: 0, timers: [] };
+function schedule(f, ms) { clock.timers.push({ at: clock.t + (ms || 0), f }); return clock.timers.length }
+/** Advance virtual time and run every timer that comes due, in order. */
+function advance(ms) {
+  clock.t += ms;
+  for (;;) {
+    const due = clock.timers.filter((x) => x.at <= clock.t).sort((a, b) => a.at - b.at);
+    if (!due.length) break;
+    clock.timers = clock.timers.filter((x) => x.at > clock.t);
+    for (const x of due) x.f();
+  }
+}
+/** Run every pending timer immediately, regardless of its delay. */
+function flushTimers() { while (clock.timers.length) { const q = clock.timers; clock.timers = []; q.forEach((x) => x.f()) } }
+
+/** Load the game. Options: seed makes Math.random deterministic; virtualTime makes performance.now follow the shared clock. */
+async function load({ seed, file = SOURCE, virtualTime = false } = {}) {
   const html = fs.readFileSync(file, 'utf8');
   let js = html.match(/<script>([\s\S]*)<\/script>/)[1];
   js = js.replace(/\}\)\(\);\s*$/, `;globalThis.__API={${EXPOSE}};})();`);
@@ -38,8 +57,8 @@ async function load({ seed, file = SOURCE } = {}) {
     let s = seed >>> 0;
     Math.random = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296 };
   }
+  if (virtualTime) Object.defineProperty(performance, 'now', { value: () => clock.t, configurable: true, writable: true });
 
-  const timers = [];
   Object.assign(globalThis, {
     window: globalThis,
     document: {
@@ -50,13 +69,15 @@ async function load({ seed, file = SOURCE } = {}) {
     addEventListener() {},
     innerWidth: 1600, innerHeight: 900, devicePixelRatio: 1,
     requestAnimationFrame: () => 0, cancelAnimationFrame() {},
-    setTimeout: (f) => { timers.push(f); return 0 },
+    setTimeout: schedule, clearTimeout() {},
+    location: { origin: 'https://cuued.com', pathname: '/', search: '', hash: '', hostname: 'cuued.com' },
+    history: { replaceState() {} },
   });
   Object.defineProperty(globalThis, 'navigator', { value: {}, configurable: true, writable: true });
 
   (0, eval)(js);
   await new Promise((r) => setImmediate(r)); // the game boots after a font-loading promise settles
-  return { api: globalThis.__API, flushTimers() { while (timers.length) timers.shift()() } };
+  return { api: globalThis.__API, flushTimers, advance };
 }
 
-module.exports = { load, noop, SOURCE };
+module.exports = { load, noop, SOURCE, clock, advance, flushTimers, schedule };

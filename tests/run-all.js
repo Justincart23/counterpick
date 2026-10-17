@@ -8,6 +8,7 @@ const suite = [
   run('card-art.js'),
   run('audio.js'),
   run('ceiling.js'),
+  run('net.js'),
   // 4 seeds x 5 game-minutes of CPU vs CPU
   ...[1, 5150, 9001, 2026].map((seed) => run('audit.js', 300, seed)),
 ];

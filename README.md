@@ -1,12 +1,24 @@
-# Counterpick
+# CUUED
 
-A one-on-one arena shooter that runs in the browser. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
+**Get queued.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
+
+The name is said like *queued*: pick a name, share a 4-letter code, and you're queued into a duel. No download, no account.
 
 It's a fan tribute to the mechanics of [ROUNDS](https://store.steampowered.com/app/1557740/ROUNDS/) by Landfall. All the characters, cards, arenas, art, sounds and code here are original. No Landfall assets are used.
 
 ## Play
 
-Open `index.html` in a browser. There's no build step, server or dependencies to install. Once GitHub Pages is enabled for this repo, it's also playable at the Pages URL.
+Go to [cuued.com](https://cuued.com), or open `index.html` in a browser. There's no build step, server or dependencies to install. A copy also runs on [GitHub Pages](https://justincart23.github.io/counterpick/).
+
+The first time you open it, you pick a name. It's remembered in your browser, and you can change it from the title screen or Settings.
+
+### Online play
+
+1. One player picks **Play online → Host a game** and gets a 4-letter room code and an invite link.
+2. The other player opens the link, or picks **Play online → Join with a code** and types the code.
+3. The match starts as soon as they connect. Both players draft at the start, and each round's loser drafts on their own screen.
+
+Online play is peer-to-peer. The host's browser runs the match, and the guest sends its inputs and draws the host's snapshots. The free public [PeerJS](https://peerjs.com) broker only introduces the two browsers, so there is no game server to run. Some locked-down networks, like school or office Wi-Fi, block direct connections between browsers. Home Wi-Fi and phone hotspots work.
 
 | | Move | Jump | Drop through a plank | Aim | Shoot | Block |
 |---|---|---|---|---|---|---|
@@ -29,6 +41,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 - **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, lobbed bullets with gravity, and a 4-second block.
 - **34 cards** across gun, bullet, block and body upgrades, each with its own animated art. Examples: Ricochet, Seeker, Blast Cap, Mirror Guard, Ghost Rounds and Second Wind.
 - **12 arenas** with one-way planks, solid walls, pits and hanging blocks that swing when you shoot or land on them.
+- **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
 - **Synthesized sound effects** built with the Web Audio API, with a volume setting. No audio files.
 - Reduced-motion support: screen shake and flashes are toned down when the OS asks for less motion.
@@ -37,6 +50,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 
 ```
 src/counterpick.html   the game: one self-contained file (HTML, CSS, JS)
+vercel.json            serves the repo as a static site on Vercel (cuued.com)
 index.html             generated from src/ by scripts/build.js; adds the standalone page shell
 scripts/build.js       node scripts/build.js [--check]
 tests/                 headless test suite (plain Node, no dependencies)
@@ -54,6 +68,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 
 - **`audit.js`** plays CPU vs CPU and fails if a bullet spawns past a wall, a bullet tunnels through one, a body ends a frame inside a wall, a point stalls, or the game throws.
 - **`ceiling.js`** fires shots upward on every arena and fails if any bullet gets above the ceiling.
+- **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects.
 - **`card-art.js`** renders all 34 card animations for 12 seconds each.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.
 
@@ -65,4 +80,4 @@ Game design inspired by ROUNDS (Landfall, 2021). ROUNDS is a trademark of Landfa
 
 ## License
 
-Counterpick is free software under the [GNU General Public License v3.0](LICENSE). You can use, study, share and modify it. Anything you distribute that's based on it must also be released under GPL-3.0, with its source code.
+CUUED is free software under the [GNU General Public License v3.0](LICENSE). You can use, study, share and modify it. Anything you distribute that's based on it must also be released under GPL-3.0, with its source code.
