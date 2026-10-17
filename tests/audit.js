@@ -1,7 +1,7 @@
 // Gameplay audit: plays CPU vs CPU (the menu's background match) headlessly and checks physics invariants.
 //   node tests/audit.js [seconds=300] [seed=1]
 // Fails if a bullet spawns on the far side of a wall, tunnels through one, a body ends a frame inside a wall,
-// a point stalls for over 60 game-seconds, or the game throws.
+// a point lasts over 90 game-seconds, or the game throws.
 const { load } = require('./env');
 
 const SECS = +(process.argv[2] || 300);
@@ -23,7 +23,7 @@ const DT = 1 / 60;
 
   const stats = { seconds: SECS, seed: SEED, points: 0, rounds: 0, shots: 0, spawnThroughWall: 0, tunnels: 0, embedded: 0, stalls: 0, errors: 0 };
   const seen = new WeakSet();
-  let t = 0, lastPointAt = 0, lastScore = '';
+  let t = 0, lastPointAt = 0, lastScore = '', lastState = '';
 
   while (t < SECS) {
     const prevBullet = new Map(A.bullets.map((b) => [b, [b.x, b.y]]));
@@ -52,7 +52,11 @@ const DT = 1 / 60;
 
     const g = A.game, score = `${g.wins}|${g.points}`;
     if (score !== lastScore) { if (lastScore && g.wins.join() !== lastScore.split('|')[0]) stats.rounds++; stats.points++; lastScore = score; lastPointAt = t }
-    if (g.state === 'play' && t - lastPointAt > 60) { stats.stalls++; console.error(`stall on ${g.map.name}`); lastPointAt = t }
+    // time each point from its own start (a trade starts a new point without changing the score)
+    if (g.state === 'ready' && lastState !== 'ready') lastPointAt = t;
+    lastState = g.state;
+    // overtime starts at 45 s and escalates damage, so a long camping duel ends by ~70 s; 90 s means something is stuck
+    if (g.state === 'play' && t - lastPointAt > 90) { stats.stalls++; console.error(`stall on ${g.map.name}`); lastPointAt = t }
   }
 
   const bad = stats.spawnThroughWall + stats.tunnels + stats.embedded + stats.stalls + stats.errors;
