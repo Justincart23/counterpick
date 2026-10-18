@@ -288,7 +288,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <button type="button" data-opt="sound" style="--i:3">Sound <span class="val">On</span></button>
       <button type="button" data-opt="vol" style="--i:4">Volume <span class="val">75%</span></button>
       <button type="button" data-opt="music" style="--i:5">Music <span class="val">On</span></button>
-      <button type="button" data-act="back" style="--i:6">Back</button>
+      <button type="button" data-opt="aim" style="--i:6">Aim guide <span class="val">On</span></button>
+      <button type="button" data-act="back" style="--i:7">Back</button>
     </nav>
     <div class="help" data-sub="help" hidden>
       <div class="info">
@@ -368,7 +369,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <button type="button" data-opt="sound" style="--i:1">Sound <span class="val">On</span></button>
       <button type="button" data-opt="vol" style="--i:2">Volume <span class="val">75%</span></button>
       <button type="button" data-opt="music" style="--i:3">Music <span class="val">On</span></button>
-      <button type="button" data-act="back" style="--i:4">Back</button>
+      <button type="button" data-opt="aim" style="--i:4">Aim guide <span class="val">On</span></button>
+      <button type="button" data-act="back" style="--i:5">Back</button>
     </nav>
   </div>
 </div>
@@ -395,14 +397,14 @@ const css=getComputedStyle(document.documentElement);
 const tok=n=>css.getPropertyValue(n).trim();
 const C={night:tok('--night'),night2:tok('--night-2'),text:tok('--text'),orange:tok('--orange'),blue:tok('--blue'),plank:tok('--plank'),hot:tok('--hot'),hp:tok('--hp'),
   oGlow:'#ffc06b',bGlow:'#8fcbff',poison:'#b6e33a',white:'#ffffff',dark:'#121820'};
-const W=1600,H=900,PG=2600,BGRAV=1150,TAU=Math.PI*2,BASE_R=18;
+const W=1600,H=900,PG=3400,BGRAV=1650,TAU=Math.PI*2,BASE_R=18;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
-const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1350,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
+const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1150,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
   split:0,grow:false,well:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,slam:false};
@@ -425,7 +427,7 @@ const CARDS=[
  {n:'Seeker',k:'shot',r:2,d:'Bullets curve hard toward your rival.',st:[['Strong','Homing',1],['-10%','Bullet speed',0]],a:s=>{s.homing+=1.15;s.bulletSpeed*=.9}},
  {n:'Blast Cap',k:'shot',r:1,d:'Bullets explode on impact.',st:[['+100px','Explosion',1]],a:s=>{s.explode+=100}},
  {n:'Rail Slug',k:'gun',r:2,d:'A fast, flat, devastating shot.',st:[['+100%','Bullet speed',1],['+70%','Damage',1],['+0.15s','Fire delay',0]],a:s=>{s.bulletSpeed*=2;s.bulletGravity*=.3;s.dmg*=1.7;s.fireDelay+=.15}},
- {n:'Lob Shell',k:'shot',r:1,d:'Heavy arcing shells that pop on landing.',st:[['+40%','Damage',1],['+60px','Explosion',1],['x2.5','Drop',0]],a:s=>{s.bulletGravity*=2.5;s.bulletSpeed*=.85;s.dmg*=1.4;s.explode+=60}},
+ {n:'Lob Shell',k:'shot',r:1,d:'Heavy arcing shells that pop on landing.',st:[['+40%','Damage',1],['+85px','Explosion',1],['x1.35','Drop',0]],a:s=>{s.bulletGravity*=1.35;s.bulletSpeed*=.92;s.dmg*=1.4;s.explode+=85}},
  {n:'Quick Guard',k:'guard',r:0,d:'Your block comes back sooner.',st:[['-40%','Block cooldown',1]],a:s=>{s.blockCd*=.6}},
  {n:'Shockwave Guard',k:'guard',r:1,d:'Blocking blasts nearby bullets and shoves your rival.',st:[['On','Shockwave',1],['+0.25s','Block cooldown',0]],a:s=>{s.blockWave=true;s.blockCd+=.25},u:1},
  {n:'Cluster Guard',k:'guard',r:1,d:'Blocking tosses three bombs around you that blow up on impact.',st:[['+3','Bombs',1],['30','Blast damage',1]],a:s=>{s.blockBombs+=3},u:1},
@@ -536,7 +538,7 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 const chimeLens=[620,560,500,440,380,320,320,380,440,500,560,620];
 const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,560,260,30],[1040,560,260,30],[670,380,260,30]],sp:[[220,720],[1380,720]]},
- {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,470,40,230,1],[1040,470,40,230,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
+ {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
  {name:'Archipelago',rects:[[120,640,360,40],[620,520,360,40],[1120,640,360,40],[370,330,220,30],[1010,330,220,30]],sp:[[300,600],[1300,600]]},
  {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,560,240,30],[1180,560,240,30],[600,250,400,30]],sp:[[200,720],[1400,720]]},
  {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,560,400,30]],sp:[[225,610],[1375,610]]},
@@ -547,11 +549,11 @@ const MAPS=[
  {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,450,320,28],[1180,450,320,28],[100,640,320,28],[1180,640,320,28],[560,300,480,28],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,615],[1340,615]]},
  {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:540,w:220,h:30},{ax:1000,len:540,w:220,h:30},{ax:800,len:300,w:160,h:30}],sp:[[200,770],[1400,770]]},
- {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,360,360,28]],movers:[{x:440,y:640,w:180,h:26,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
- {name:'Elevator',rects:[[0,780,1600,120],[640,260,320,28],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:26,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:26,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
+ {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,480,360,28]],movers:[{x:440,y:640,w:180,h:26,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
+ {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,28],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:26,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:26,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,30],[740,404,120,16,3],[180,300,240,28],[1180,300,240,28]],sp:[[400,740],[1200,740]]},
  {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,430,480,30],[150,560,220,28],[1230,560,220,28],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
- {name:'Catwalk',rects:[[100,520,500,26],[1000,520,500,26],[300,780,240,40],[1060,780,240,40]],movers:[{x:620,y:380,w:160,h:24,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
+ {name:'Catwalk',rects:[[100,520,500,26],[1000,520,500,26],[300,730,240,40],[1060,730,240,40]],movers:[{x:620,y:380,w:160,h:24,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
  {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,300,400,28],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
 ];
@@ -1109,6 +1111,9 @@ function updateSwings(dt){
 /* ---------- particles ---------- */
 function burst(x,y,color,n,sp,size,life,grav=900,glow=false){fxRec('b',[x,y,color,n,sp,size,life,grav,glow]);for(let i=0;i<n&&parts.length<800;i++){const a=Math.random()*TAU,v=rand(.25,1)*sp;
   parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.5,1)*life,max:life,size:rand(.5,1)*size,color,grav,glow})}}
+/* impact sparks: thin streaks flung out from where a bullet hits, drawn along their motion */
+function sparks(x,y,color,n,sp,ang,fan){fxRec('z',[x,y,color,n,sp,ang,fan]);for(let i=0;i<n&&parts.length<800;i++){const a=ang+rand(-fan,fan),v=rand(.35,1)*sp,l=rand(.12,.24);
+  parts.push({spark:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,grav:500,life:l,max:l,color})}}
 function ring(x,y,color,rad){fxRec('r',[x,y,color,rad]);parts.push({ring:true,x,y,rad,life:.35,max:.35,color})}
 function cloud(x,y,color,n,spread){fxRec('c',[x,y,color,n,spread]);for(let i=0;i<n;i++)parts.push({x:x+rand(-spread,spread),y:y+rand(-spread,spread),vx:rand(-20,20),vy:rand(-40,-5),life:rand(1,1.8),max:1.8,size:rand(14,30),color,grav:0,blob:true})}
 function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push({flash:true,x,y,rad,life,max:life,color})}
@@ -1123,7 +1128,7 @@ function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.mi
     spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1})}
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))}
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
-function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.8?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
+function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.3?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
 function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
 function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed);
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
@@ -1134,7 +1139,7 @@ function doBlock(p){if(!p.alive)return;const s=p.s;
   if(p.blockCd>0){if(!(p.blockStock>0)||p.blockT>0)return;p.blockStock--}else{p.blockCd=s.blockCd;p.blockStock=s.blockStock}
   p.blockT=.3;sfx('block');
   if(s.blockBombs){const n=s.blockBombs;for(let i=0;i<n;i++){const a=-Math.PI/2+(i-(n-1)/2)*(2.2/Math.max(1,n-1))+rand(-.1,.1),m=safeSpawn(p,a,p.r+10,7,false);if(m.smothered)continue;
-    spawnBullet(p,m.x,m.y,a,{plain:true,dmg:55,r:7,life:2.6,speed:rand(340,440)});const b=bullets[bullets.length-1];b.explode=75;b.grav=1.6;b.bomb=true;b.plainRing=true}sfx('arm')}
+    spawnBullet(p,m.x,m.y,a,{plain:true,dmg:55,r:7,life:2.6,speed:rand(340,440)});const b=bullets[bullets.length-1];b.explode=75;b.grav=1.15;b.bomb=true;b.plainRing=true}sfx('arm')}
   if(s.wallBlock){const a=p.aim,cx=p.x+Math.cos(a)*(p.r+40),cy=p.y+Math.sin(a)*(p.r+40),nx=-Math.sin(a),ny=Math.cos(a),L=70;
     shields=shields.filter(w=>w.owner!==p);shields.push({x1:cx+nx*L,y1:cy+ny*L,x2:cx-nx*L,y2:cy-ny*L,t:2,owner:p});burst(cx,cy,p.glow,12,260,4,.35,0,true)}
   if(s.blockFreeze){ring(p.x,p.y,'#d8f4ff',240);burst(p.x,p.y,'#e6f8ff',22,420,4,.5,0,true);const e=other(p);
@@ -1179,13 +1184,15 @@ function killBullet(b,impact,wall,n){
   b.dead=true;if(!impact)return;
   if(wall){const o=b.owner;
     if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45)}
-  }burst(b.x,b.y,b.glow,7,300,3,.3,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
+  }{const sp=Math.hypot(b.vx,b.vy)||1;let ang=Math.atan2(-b.vy,-b.vx);if(n){const d=b.vx*n.nx+b.vy*n.ny;ang=Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx)}
+    sparks(b.x,b.y,'#fff6e8',6,420+sp*.15,ang,1.05);sparks(b.x,b.y,b.glow,4,300,ang,1.4)}
+  burst(b.x,b.y,b.glow,4,240,3,.25,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 /* Long Haul: +25% damage per 100 px flown, up to x4; hits past x2 land with a shockwave that shoves everyone nearby */
 const rangeMult=b=>Math.min(4,1+b.dist*.0025);
 function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);sfx('boom');
   for(const o of players){if(!o.alive)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<R){const a=Math.atan2(o.y-b.y,o.x-b.x),f=(1-d/R)*(o===p?.4:1);o.vx+=Math.cos(a)*700*f;o.vy+=Math.sin(a)*600*f-220*f;o.ground=null}}}
-function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}if(b.grow)longShock(b,p);const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
+function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x,b.y,'#ffffff',7,620,Math.atan2(b.vy,b.vx),.75);if(b.grow)longShock(b,p);const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
   if(p.aegis>0){p.aegis--;b.dead=true;ring(p.x,p.y,'#dff4ff',70);burst(p.x,p.y,'#dff4ff',16,420,4,.4,0,true);sfx('pop');return}
   const o=b.owner;if(o&&o!==p&&o.s.reflexGuard)o.blockCd=Math.max(0,o.blockCd-o.s.reflexGuard);
   p.vx+=b.vx/sp*380*kf;p.vy+=b.vy/sp*300*kf-120*kf;p.ground=null;
@@ -1232,11 +1239,11 @@ function updateBullets(dt){
       if(b.dead)break;if(b.y>H+120){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner)continue;
         if(Math.hypot(p.x-b.x,p.y-b.y)<p.r+b.r+(p.blockT>0?10:0)){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
-    if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>16)b.trail.splice(0,2)}}
+    if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
 function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps;
-  if(r.kind===3){p.vy=-1480;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad
+  if(r.kind===3){p.vy=-1750;p.padT=.6;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad
   if(p.slamming){p.slamming=false;if(!wasG&&vyIn>900){p.squash=.55;   // Ground Pound landing: the host deals the blast
     if(game.mode!=='online-guest'){ring(p.x,p.y+p.r,p.glow,170);ring(p.x,p.y+p.r,'#ffffff',110);burst(p.x,p.y+p.r,p.glow,22,520,5,.45,500,true);addShake(10);sfx('slam');
       for(const e of players){if(e===p||!e.alive)continue;const d=Math.hypot(e.x-p.x,e.y-p.y);
@@ -1258,23 +1265,24 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   // drop through a one-way plank
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1);p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.grounded?16:6.5)*dt);
-  let g=PG;if(p.vy<0&&!inp.jumpH)g*=1.9;if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1800,p.vy+g*dt);
+  p.padT=(p.padT||0)-dt;let g=PG;if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
+  if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1900,p.vy+g*dt);
   if(p.vy<-1)p.slamming=false;   // Ground Pound: hold down in the air to dive
   else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
   // wall slide + wall jump off the arena's blocks (never the outer edges: those aren't walls, they hurt)
   if(p.wallDir&&!p.grounded&&p.vy>0&&inp.move===p.wallDir)p.vy=Math.min(p.vy,220);
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
-  if(p.jumpBuf>0){const jv=1050*s.jumpPower;
+  if(p.jumpBuf>0){const jv=1010*s.jumpPower;
     if(p.grounded||p.coyote>0){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;
       p.squash=1.25;moveFx(p,()=>{burst(p.x,p.y+p.r,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(p.wallDir){p.vy=-jv*.92;p.vx=-p.wallDir*580;p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.88;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
+    else if(p.wallDir){p.vy=-jv*.95;p.vx=-p.wallDir*580;p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
+    else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.72;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
 }
 // move by velocity and resolve against the arena
 /* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
    off the bottom with a small nudge, and the host deals the damage. You can't stand on, cling to or wall-jump off an edge. */
-const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=760,EDGE_BLOCK_POP=1250;
+const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1400;
 function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
   if(p.x<lo){p.x=lo;p.vx=Math.max(Math.abs(p.vx)*.5,460);hit='left'}
   else if(p.x>W-lo){p.x=W-lo;p.vx=-Math.max(Math.abs(p.vx)*.5,460);hit='right'}
@@ -1385,7 +1393,7 @@ function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=5*s.bul
   for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(circleRect(x,y,br,r)){hit=r;break}
     if(hit){if(phaseLeft>0&&!hit.bound||inW&&!hit.bound){if(!inW){phaseLeft--;inW=true}}else return s.bounces>0&&Math.random()<.3}else inW=false;
     if(Math.hypot(x-e.x,y-e.y)<e.r+br+10)return true;if(y>H+40)return false}return false}
-function landingSpot(p,dir){const up=170+(p.airJumps>0?160:0);for(let dx=70;dx<=360;dx+=24){const x=p.x+dir*dx;for(let dy=-up;dy<=280;dy+=14){const y=p.y+p.r+dy;if(pointSolid(x,y)&&!pointSolid(x,y-p.r*2))return true}}return false}
+function landingSpot(p,dir){const up=140+(p.airJumps>0?75:0);for(let dx=70;dx<=360;dx+=24){const x=p.x+dir*dx;for(let dy=-up;dy<=280;dy+=14){const y=p.y+p.r+dy;if(pointSolid(x,y)&&!pointSolid(x,y-p.r*2))return true}}return false}
 function dropSafe(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<H;y+=16)if(pointSolid(x,y))return true;return false}
 const wallAhead=(p,dir)=>solidBoxP(p.x+dir*(p.r+14),p.y,6,p.r*.8);
 const onewayAbove=p=>solids.some(r=>r.oneway&&p.x>r.x&&p.x<r.x+r.w&&r.y<p.y-p.r&&r.y>p.y-p.r-230);
@@ -1614,17 +1622,25 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
   for(const p of players)drawPlayer(p);
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
-  for(const b of bullets){const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0,tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;if(t.length>=4){ctx.strokeStyle=tc;ctx.globalAlpha=.35*ga;ctx.lineWidth=b.r*1.4;ctx.beginPath();ctx.moveTo(t[0],t[1]);for(let i=2;i<t.length;i+=2)ctx.lineTo(t[i],t[i+1]);ctx.stroke()}
-    ctx.globalAlpha=.35*ga;ctx.fillStyle=tc;ctx.beginPath();ctx.arc(b.x,b.y,b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:2.4+heat*2.2),0,TAU);ctx.fill();
+  for(const b of bullets){const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0,tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
+    // tracer: a long thin trail that tapers to nothing, brightest at the head (ROUNDS-style)
+    const n=t.length>>1;if(n>=3){ctx.strokeStyle=tc;
+      for(let k=0;k<3;k++){const i0=Math.floor((n-1)*k/3),i1=Math.floor((n-1)*(k+1)/3);if(i1<=i0)continue;
+        ctx.globalAlpha=(.14+.24*k)*ga;ctx.lineWidth=b.r*(.45+.42*k);ctx.beginPath();ctx.moveTo(t[i0*2],t[i0*2+1]);for(let i=i0+1;i<=i1;i++)ctx.lineTo(t[i*2],t[i*2+1]);if(k===2)ctx.lineTo(b.x,b.y);ctx.stroke()}}
+    ctx.globalAlpha=.3*ga;ctx.fillStyle=tc;ctx.beginPath();ctx.arc(b.x,b.y,b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2),0,TAU);ctx.fill();
     if(b.stuck){const k=clamp((performance.now()-(b.stuckAt||performance.now()))/(MINE_FUSE*1000),0,1),on=Math.sin(k*k*44)>0;
       ctx.globalAlpha=1;ctx.strokeStyle=on?'#ff5a4f':'#ffd0c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(b.x,b.y,b.r+5+ (1-k)*8,-Math.PI/2,-Math.PI/2+TAU*(1-k));ctx.stroke()}
-    ctx.globalAlpha=ga;ctx.fillStyle=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8';ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}
+    // head: a bright streak stretched along the bullet's motion
+    {const col=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8',sp=Math.hypot(b.vx,b.vy);ctx.globalAlpha=ga;
+      if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke()}
+      else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   for(const q of parts){if(q.blob)continue;const a=clamp(q.life/q.max,0,1);
+    if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
-  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
+  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
     ctx.fillStyle=q.color;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
@@ -1632,13 +1648,19 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
   ctx.restore();drawHUD();
   drawCardTip();
-  if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden)drawCrosshair()}
+  if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden){if(settings.aim)drawAimGuide();drawCrosshair()}}
 // the hazard border: a glowing energy line around the arena that flares when someone hits it
 function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Math.sin(performance.now()/260)+fl*.45;ctx.save();
   ctx.fillStyle='rgba(14,8,22,.55)';ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);ctx.fillRect(0,H-4,W,4);
   ctx.globalCompositeOperation='lighter';
   for(const[w,a]of[[10,.12],[4,.35],[1.6,1]]){ctx.strokeStyle=`rgba(255,${Math.round(96+80*fl)},${Math.round(150+60*fl)},${a*pulse})`;ctx.lineWidth=w;
     ctx.strokeRect(FRAME-1,FRAME-1,W-FRAME*2+2,H-FRAME*2+2)}
+  ctx.restore()}
+/* aim guide: the first stretch of your shot's real arc (same speed and drop as the bullet), so you learn how far to aim above */
+function drawAimGuide(){const p=players.find(q=>q.ctrl==='mouse');if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
+  const s=p.s,a=p.aim,g=bulletG(s),c=Math.cos(a),sn=Math.sin(a);let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*s.bulletSpeed,vy=sn*s.bulletSpeed;
+  if(pointSolid(x,y))return;ctx.save();ctx.fillStyle=p.glow;const st=.022,N=15;
+  for(let i=1;i<=N;i++){vy+=g*st;x+=vx*st;y+=vy*st;if(pointSolid(x,y)||x<0||x>W||y<0||y>H)break;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.globalAlpha=.9;
   ctx.beginPath();ctx.arc(x,y,9,0,TAU);ctx.stroke();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){ctx.beginPath();ctx.moveTo(x+a*13,y+b*13);ctx.lineTo(x+a*19,y+b*19);ctx.stroke()}
@@ -1651,7 +1673,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-sandbox';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-physics';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1675,7 +1697,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={E:()=>{game.edgeFlash=.3},b:burst,r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 function netSend(m){if(net.conn&&net.connected)try{net.conn.send(m)}catch(e){}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
@@ -1901,7 +1923,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     for(const p of players){if(p.tx==null||p.phys)continue;const px=p.tx+p.vx*age,py=p.ty+p.vy*age;
       if(Math.hypot(px-p.x,py-p.y)>160){p.x=px;p.y=py}else{p.x+=(px-p.x)*k;p.y+=(py-p.y)*k}
       p.walk=(p.walk||0)+Math.abs(p.vx)*dt*.045}
-    for(const b of bullets){if(b.stuck){b.x=b.sx;b.y=b.sy;b.trail.length=0;if(!b.stuckAt)b.stuckAt=performance.now();continue}b.x=b.sx+b.vx*age;b.y=b.sy+b.vy*age+.5*BGRAV*b.g*age*age;b.trail.push(b.x,b.y);if(b.trail.length>16)b.trail.splice(0,2)}}
+    for(const b of bullets){if(b.stuck){b.x=b.sx;b.y=b.sy;b.trail.length=0;if(!b.stuckAt)b.stuckAt=performance.now();continue}b.x=b.sx+b.vx*age;b.y=b.sy+b.vy*age+.5*BGRAV*b.g*age*age;b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}}
   guestSend();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
@@ -1924,10 +1946,10 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true};
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:true};
 try{Object.assign(settings,JSON.parse(localStorage.getItem('counterpick.settings')||'{}'))}catch(e){}
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'}};
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;saveSettings();refreshOpts();sfx('tick',true)}

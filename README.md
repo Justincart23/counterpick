@@ -47,7 +47,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 
 ## What's in it
 
-- **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, lobbed bullets with gravity, and a 4-second block. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
+- **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, and a 4-second block. Movement and bullets are tuned from frame-by-frame measurements of ROUNDS gameplay: low, snappy jumps (about four body-heights, plus a small double jump and wall jumps), and slower bullets that drop hard, so long shots are lobbed. Bullets fly as glowing tracers and throw sparks where they hit. An optional aim guide (Settings) shows the first stretch of your shot's arc. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
 - **47 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Ground Pound slams you into the ground with a shockwave, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
 - **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
 - **Sandbox:** hand yourself or the CPU any cards you like, as many copies as you want, and try them out with no drafting. Press Tab mid-fight to change cards; the CPU can fight back, dodge without shooting, or stand still as a target, and you can lock the arena.
@@ -66,6 +66,7 @@ api/turn.js            Vercel function: optional Cloudflare TURN credentials for
 scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
 scripts/balance.js     CPU-vs-CPU win rate of every card on its own (not in CI)
+scripts/reach.js       drives a fighter over every arena and lists any platform the jumps can't reach (not in CI)
 scripts/stress.js      long CPU matches with big random card stacks: crashes, NaN, runaway bullets, stalls (not in CI)
 scripts/browser-perf.js headless Chrome frame times at 1x and 2x pixel density, up to hundreds of bullets (not in CI)
 scripts/browser-flow.js headless Chrome walkthrough: name, menu, draft, pause, settings, and a real online match on the live site (not in CI)
