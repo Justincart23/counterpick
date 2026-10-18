@@ -1,11 +1,11 @@
 <title>CUUED</title>
-<meta name="description" content="Queue up. Duel a friend. A fast 1v1 browser shooter: shoot, block, double-jump, and stack wild power-up cards.">
+<meta name="description" content="Queue up. Duel a friend. A fast 1v1 browser shooter: shoot, block, wall-jump, and stack wild power-up cards.">
 <meta name="theme-color" content="#1a1226">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CUUED">
 <meta property="og:url" content="https://www.cuued.com/">
 <meta property="og:title" content="CUUED: Queue up. Duel a friend.">
-<meta property="og:description" content="A fast 1v1 browser shooter. Shoot, block, double-jump, and stack wild power-up cards. Free, no download.">
+<meta property="og:description" content="A fast 1v1 browser shooter. Shoot, block, wall-jump, and stack wild power-up cards. Free, no download.">
 <meta property="og:image" content="https://www.cuued.com/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -152,6 +152,29 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .who-o{color:var(--orange)} .who-b{color:var(--blue)}
 .small-panel{width:min(520px,100%)}
 #hudbtns{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));right:calc(12px + env(safe-area-inset-right,0px));display:flex;gap:8px;z-index:1}
+.sb-panel{width:min(1120px,100%);gap:14px}
+.sb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.sb-tabs,.sb-filter,.sb-foot{display:flex;flex-wrap:wrap;gap:8px}
+.sb-tabs button,.sb-filter button{font-family:var(--mono);font-size:13px;font-weight:700;border:2px solid var(--line);border-radius:4px;background:var(--night);color:var(--muted);padding:7px 12px;cursor:pointer}
+.sb-tabs button.on{background:var(--night-2);border-color:currentColor}.sb-tabs button.on.who-o{color:var(--orange)}.sb-tabs button.on.who-b{color:var(--blue)}
+#sandbox{z-index:2}
+.sb-filter button.on{color:var(--text);border-color:var(--text)}
+.sb-deck{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;align-items:center}
+.sb-deck .empty{color:var(--muted);font-size:14px}
+.sb-deck button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--pc);border-radius:3px;padding:4px 8px;background:var(--night);color:var(--text);cursor:pointer}
+.sb-deck button:hover{border-color:var(--bad);color:var(--bad)}
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;max-height:min(46vh,430px);overflow:auto;padding:2px 4px 2px 2px}
+.sb-card{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 6px 7px;border:2px solid var(--line);border-top:4px solid var(--cat);border-radius:5px;background:var(--night);color:var(--text);cursor:pointer;font-family:var(--body);text-align:center}
+.sb-card:hover,.sb-card:focus-visible{border-color:var(--hot);border-top-color:var(--cat);outline:none;background:var(--night-2)}
+.sb-card canvas{width:40px;height:40px}
+.sb-card .nm{font-weight:800;font-size:13px;line-height:1.15}
+.sb-card .rar{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sb-card.r1 .rar{color:#8fcbff}.sb-card.r2 .rar{color:var(--hot)}
+.sb-card .ct{position:absolute;top:4px;right:5px;font-family:var(--mono);font-size:12px;font-weight:700;min-width:20px;padding:1px 5px;border-radius:10px;background:var(--pc);color:#140b1e}
+.sb-card.has{border-color:var(--pc);border-top-color:var(--cat)}
+.sb-info{margin:0;min-height:2.6em;color:var(--muted);font-size:14px;line-height:1.35}
+.sb-info b{color:var(--text)}
+.sb-foot .btn{font-size:16px;padding:9px 16px}.sb-foot .primary{margin-left:auto}
 #hudbtns button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:4px;background:rgba(18,29,42,.8);color:var(--muted);padding:5px 9px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
@@ -217,7 +240,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
-<div id="hudbtns"><button id="bPause" type="button">Pause · Esc</button><button id="bMute" type="button">Sound on · M</button><button id="bFull" type="button">Full screen · F</button></div>
+<div id="hudbtns"><button id="bCards" type="button" hidden>Cards · Tab</button><button id="bPause" type="button">Pause · Esc</button><button id="bMute" type="button">Sound on · M</button><button id="bFull" type="button">Full screen · F</button></div>
 
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
@@ -231,8 +254,9 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="online" data-hint="Play a friend online. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="cpu" data-hint="Warm up against the computer. Pick its skill in Settings." style="--i:1">Practice vs CPU</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:2">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:3">Settings</button>
+        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:2">Sandbox</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
     </div>
@@ -308,11 +332,33 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
   <div id="fan"></div>
 </div>
 
+<div id="sandbox" class="overlay" hidden>
+  <div class="panel sb-panel" role="dialog" aria-labelledby="sbTitle">
+    <div class="sb-head">
+      <h2 class="screen-title" id="sbTitle">Sandbox</h2>
+      <div class="sb-tabs" role="tablist" aria-label="Whose cards">
+        <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button>
+      </div>
+    </div>
+    <div class="sb-deck" id="sbDeck" aria-live="polite"></div>
+    <div class="sb-filter" role="group" aria-label="Card type"><button type="button" data-sbf="all">All</button><button type="button" data-sbf="gun">Gun</button><button type="button" data-sbf="shot">Bullets</button><button type="button" data-sbf="guard">Block</button><button type="button" data-sbf="body">Body</button></div>
+    <div class="sb-grid" id="sbGrid"></div>
+    <p class="sb-info" id="sbInfo">Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.</p>
+    <div class="sb-foot">
+      <button type="button" class="btn" data-sbact="clear">Clear these cards</button>
+      <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
+      <button type="button" class="btn" data-sbact="arena" id="sbArena">Arena: Random</button>
+      <button type="button" class="btn primary" data-sbact="go" id="sbGo">Play · Tab</button>
+    </div>
+  </div>
+</div>
+
 <div id="pause" class="overlay pause-screen" hidden>
   <div class="center-wrap">
     <h2 class="screen-title" id="pauseTitle">Paused</h2>
     <nav class="mlist centered" data-sub="main" aria-label="Pause menu">
       <button type="button" data-act="resume" style="--i:0">Resume</button>
+      <button type="button" data-act="loadout" id="pLoadout" style="--i:1" hidden>Change cards</button>
       <button type="button" data-act="settings" style="--i:1">Settings</button>
       <button type="button" data-act="restart" id="pRestart" style="--i:2">Restart match</button>
       <button type="button" data-act="menu" id="pMenu" style="--i:3">Main menu</button>
@@ -653,6 +699,8 @@ const keys=new Set(),edges=new Set();
 const mouse={x:W/2,y:H/2,down:false,rEdge:false};
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
+  if(sbOpen()){if(e.code==='Escape'||e.code==='Tab'){e.preventDefault();closeSandbox()}else if(e.code==='KeyM')toggleMute();return}
+  if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
   if(menuKey(e))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Slash','Period'].includes(e.code))e.preventDefault();
   if(!keys.has(e.code))edges.add(e.code);keys.add(e.code);
   if(e.code==='Escape'&&!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause();
@@ -693,17 +741,19 @@ const playerLabel=p=>p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function startMatch(mode){
   game.token++;game.mode=mode;game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.target=game.bg?99:settings.len;
+  game.target=game.bg||mode==='sandbox'?99:settings.len;
   game.diff=settings.diff;
   const you=myName||'You';
-  const ctrls={demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
-  const names={demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
+  const ctrls={sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
+  const names={sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
   players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
-  $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;
+  $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
   if(mode==='online-guest'){game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
   newPoint(true);
+  if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
+    if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -716,7 +766,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[]}
 function newPoint(fresh){
-  let i;do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
+  let i;if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);
   players.forEach((p,k)=>resetPlayer(p,game.map.sp[k]));
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -725,6 +775,7 @@ function newPoint(fresh){
 }
 function resolvePoint(){
   const w=game.lastWinner;
+  if(game.mode==='sandbox'){if(w>=0)game.wins[w]++;newPoint();return}   // sandbox: just a running tally, no drafts, no end
   if(w<0){newPoint();return}
   game.points[w]++;sfx(game.points[w]>=2?'round':'point');
   if(game.points[w]>=2){
@@ -744,6 +795,54 @@ function showEnd(w){game.state='over';
   [0,1].forEach(k=>{$('#deckName'+k).textContent=players[k].name+"'s deck";const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
   $('#end').hidden=false;showSub($('#end'),'main');
 }
+
+/* ---------- sandbox: give yourself or the CPU any cards and try them out. No drafts and no score to reach ---------- */
+const sandbox={decks:[[],[]],tab:0,cpu:'fight',arena:-1,filter:'all',seen:false};
+const SB_CPU={fight:'Fights back',dodge:'Moves, never shoots',still:'Stands still'},SB_MAX=9;
+const sbOpen=()=>!$('#sandbox').hidden;
+function openSandbox(){if(game.mode!=='sandbox')return;game.paused=true;keys.clear();mouse.down=false;$('#pause').hidden=true;$('#sandbox').hidden=false;cv.style.cursor='default';
+  renderSandbox(true);const b=$('#sbGo');b&&b.focus({preventScroll:true})}
+function closeSandbox(){if(!sbOpen())return;$('#sandbox').hidden=true;applySandbox();game.paused=false;cv.style.cursor='none';cv.focus()}
+// new loadouts take effect on a fresh point, so health, ammo and block charges start from the new stats
+function applySandbox(){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p)});const c=players[1];c.ctrl=sandbox.cpu==='still'?'idle':'cpu';
+  Object.assign(c.input,{move:0,fire:false,jumpH:false,jumpP:false,blockP:false,down:false});newPoint()}
+const sbCount=(k,c)=>sandbox.decks[k].reduce((n,x)=>n+(x===c),0);
+function sbAdd(c){const k=sandbox.tab,n=sbCount(k,c);
+  if(n>=(c.u?1:SB_MAX)){setSbInfo(c,c.u?`Only one copy of <b>${c.n}</b> does anything.`:`That's the most copies of <b>${c.n}</b>.`);sfx('empty',true);return}
+  sandbox.decks[k].push(c);sfx('pick',true);renderSandbox()}
+function sbRemove(c){const d=sandbox.decks[sandbox.tab],i=d.lastIndexOf(c);if(i<0)return;d.splice(i,1);sfx('tick',true);renderSandbox()}
+function setSbInfo(c,extra){const el=$('#sbInfo');if(!el)return;
+  el.innerHTML=c?`<b>${c.n}</b> · ${CATNAME[c.k]} · ${RAR[c.r]}. ${c.d} <span style="font-family:var(--mono);font-size:12px">${c.st.map(([v,l])=>v+' '+l).join(' · ')}</span>${extra?'<br>'+extra:''}`
+    :'Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.'}
+function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color:C.orange,root=$('#sandbox');
+  root.style.setProperty('--pc',col);
+  root.querySelectorAll('[data-sbtab]').forEach(b=>{const on=+b.dataset.sbtab===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  root.querySelectorAll('[data-sbf]').forEach(b=>b.classList.toggle('on',b.dataset.sbf===sandbox.filter));
+  const deck=$('#sbDeck'),groups=[];for(const c of sandbox.decks[k]){const g=groups.find(x=>x.c===c);if(g)g.n++;else groups.push({c,n:1})}
+  deck.innerHTML=groups.length?groups.map(g=>`<button type="button" data-sbchip="${g.c.id}" title="Take one off">${g.c.n}${g.n>1?' ×'+g.n:''} ✕</button>`).join('')
+    :`<span class="empty">${k?'The CPU':'You'} ${k?'has':'have'} no cards yet: plain gun, plain body.</span>`;
+  const grid=$('#sbGrid');
+  if(full||!grid.children.length){grid.innerHTML='';
+    for(const c of CARDS){if(sandbox.filter!=='all'&&c.k!==sandbox.filter)continue;const b=document.createElement('button');b.type='button';b.className='sb-card r'+c.r;b.dataset.sbcard=c.id;
+      b.style.setProperty('--cat',CAT[c.k]);b.innerHTML=`<canvas width="80" height="80" aria-hidden="true"></canvas><span class="nm">${c.n}</span><span class="rar">${RAR[c.r]}</span><span class="ct" hidden></span>`;
+      const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,40,40,48,'#ffffff',4);grid.appendChild(b)}}
+  for(const b of grid.children){const c=CARDS.find(x=>x.id==b.dataset.sbcard),n=c?sbCount(k,c):0,ct=b.querySelector('.ct');b.classList.toggle('has',n>0);if(ct){ct.hidden=!n;ct.textContent='×'+n}}
+  $('#sbCpu').textContent='CPU: '+SB_CPU[sandbox.cpu];$('#sbArena').textContent='Arena: '+(sandbox.arena<0?'Random':MAPS[sandbox.arena].name)}
+{const root=$('#sandbox'),card=t=>{const b=t.closest&&t.closest('[data-sbcard]');return b?CARDS.find(x=>x.id==b.dataset.sbcard):null};
+  root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
+    const c=card(t);if(c){sbAdd(c);setSbInfo(c);return}
+    if((b=t.closest('[data-sbchip]'))){const x=CARDS.find(q=>q.id==b.dataset.sbchip);x&&sbRemove(x);return}
+    if((b=t.closest('[data-sbtab]'))){sandbox.tab=+b.dataset.sbtab;sfx('tick',true);renderSandbox();return}
+    if((b=t.closest('[data-sbf]'))){sandbox.filter=b.dataset.sbf;sfx('tick',true);renderSandbox(true);return}
+    if((b=t.closest('[data-sbact]'))){const a=b.dataset.sbact;
+      if(a==='go'){sfx('pick',true);closeSandbox();return}
+      if(a==='clear')sandbox.decks[sandbox.tab]=[];
+      if(a==='cpu'){const o=Object.keys(SB_CPU);sandbox.cpu=o[(o.indexOf(sandbox.cpu)+1)%o.length]}
+      if(a==='arena')sandbox.arena=sandbox.arena+1>=MAPS.length?-1:sandbox.arena+1;
+      sfx('tick',true);renderSandbox()}});
+  root.addEventListener('contextmenu',e=>{const c=card(e.target);if(c){e.preventDefault();sbRemove(c);setSbInfo(c)}});
+  root.addEventListener('mouseover',e=>{const c=card(e.target);if(c)setSbInfo(c)});
+  root.addEventListener('focusin',e=>{const c=card(e.target);if(c)setSbInfo(c)})}
 
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
@@ -1065,10 +1164,12 @@ function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
+// your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (Cluster Guard's bombs never do)
+const SELF_BLAST=.4;
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive)continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
-    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if((p!==b.owner||b.mines)&&p!==exclude){damage(p,b.dmg*.55*f,b.owner)}}}
+    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,b.dmg*.55*f*(p===b.owner&&!b.mines?SELF_BLAST:1),b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
 const MINE_FUSE=.5;   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
@@ -1160,12 +1261,14 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   let g=PG;if(p.vy<0&&!inp.jumpH)g*=1.9;if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1800,p.vy+g*dt);
   if(p.vy<-1)p.slamming=false;   // Ground Pound: hold down in the air to dive
   else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
-  // no wall jumps or wall slides: walls are walls, and the only way up is your own jumps
+  // wall slide + wall jump off the arena's blocks (never the outer edges: those aren't walls, they hurt)
+  if(p.wallDir&&!p.grounded&&p.vy>0&&inp.move===p.wallDir)p.vy=Math.min(p.vy,220);
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
   if(p.jumpBuf>0){const jv=1050*s.jumpPower;
     if(p.grounded||p.coyote>0){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;
       p.squash=1.25;moveFx(p,()=>{burst(p.x,p.y+p.r,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
+    else if(p.wallDir){p.vy=-jv*.92;p.vx=-p.wallDir*580;p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
     else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.88;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
 }
 // move by velocity and resolve against the arena
@@ -1223,14 +1326,15 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   if(inp.fire){if(p.ammo<=0&&p.burstLeft<=0&&p.ctrl!=='cpu'&&p.emptyT<=0){personal(p,'empty');p.emptyT=.25}tryFire(p)}
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
-  moveCollide(p,dt);
   p.edgeT=(p.edgeT||0)-dt;
+  moveCollide(p,dt);edgeHurt(p);
+  if(p.y>H+400&&!pointDecided())die(p)}   // failsafe only: the bottom edge bounces you long before this
+function edgeHurt(p){
   if(p.edgeHit&&p.edgeT<=0){p.edgeT=.3;const fl=p.edgeHit==='bottom';
     const ex=p.edgeHit==='left'?FRAME:p.edgeHit==='right'?W-FRAME:p.x,ey=p.edgeHit==='top'?FRAME:fl?H:p.y;
     if(p.blockT>0){ring(ex,ey,'#ffffff',90);burst(ex,ey,p.glow,16,460,4,.4,0,true);addShake(4);sfx('block')}   // blocked into the edge: a clean save
     else{burst(ex,ey,'#ff7aa8',14,420,4,.35,0,true);burst(ex,ey,'#ffffff',6,300,3,.25,0,true);addShake(fl?8:5);sfx('zap');game.edgeFlash=.3;fxRec('E',[]);
-    damage(p,fl?EDGE_FLOOR_DMG:EDGE_DMG,null)}}
-  if(p.y>H+400&&!pointDecided())die(p)}   // failsafe only: the bottom edge bounces you long before this
+    damage(p,fl?EDGE_FLOOR_DMG:EDGE_DMG,null)}}}
 
 /* ---------- control: humans ---------- */
 function ballistic(sx,sy,tx,ty,v,g){const dx=tx-sx,dy=sy-ty;if(g<1)return Math.atan2(ty-sy,tx-sx);
@@ -1313,7 +1417,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,p.r+30,5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
-    if(wallAhead(p,dir)){if(p.grounded)jump=true;else if(p.vy>-180&&p.vy<120&&p.airJumps>0)jump=true}   // no wall jumps: double-jump near the top of the first
+    if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>0&&p.airJumps>0)jump=true}
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
   if(ai.mode!=='recover'){
@@ -1323,8 +1427,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
       else if(p.ground&&p.ground.swing&&Math.random()<dt*1.2)jump=true;
       else{dir=-dir;ai.strafe=dir;if(!groundAhead(p,dir))dir=0}}
     if(ai.gapT>0){dir=ai.gapDir;if(!p.grounded&&p.vy>120&&!groundBelow(p)&&p.airJumps>0)jump=true}
-    if(dir&&p.wallDir===dir&&p.vy>-180&&p.vy<120&&p.airJumps>0)jump=true}
-  else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&p.airJumps>0)jump=true}
+    if(dir&&p.wallDir===dir)jump=true}
+  else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
   if(p.s.slam&&!p.grounded&&e.alive&&Math.abs(e.x-p.x)<110&&e.y>p.y+60&&losClear(p.x,p.y,e.x,e.y))down=true;
   inp.down=down;
   const bit=1<<p.id;
@@ -1345,6 +1449,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
 const FIXED=1/120;
 function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p)}
+  if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players)updatePlayer(p,h);separate();updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
@@ -1470,9 +1575,12 @@ function drawCardTip(){hoverChip=null;
   ctx.restore()}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
+  const sb=game.mode==='sandbox';
+  if(sb){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
+    ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
   for(const p of players){const y=24+p.id*24;
-    for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
-    for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
+    if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
+    if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
     list.forEach((c,i)=>{const x=W-24-17-(list.length-1-i)*40;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,y-2+p.id*14-15,34,34);
       const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);drawIcon(ctx,c.n,x,y-2+p.id*14+2,24,hov?'#ffffff':p.glow,2)});
@@ -1543,7 +1651,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-17-audit';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-17-sandbox';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1767,7 +1875,9 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   const e=net.hist[i],ex=a[0]-e.x,ey=a[1]-e.y,evx=a[2]-e.vx,evy=a[3]-e.vy;
   if(Math.hypot(ex,ey)>220){initPhys(p,a[0],a[1],a[2],a[3]);return}   // too far apart to blend: trust the host
   // a correction must never carry the body into or through a wall: if the path isn't clear, take the host's spot outright
-  if(!sweepClear(p.x,p.y,p.x+ex,p.y+ey,p.r)){if(!solidBoxP(a[0],a[1],p.r-1,p.r-1))initPhys(p,a[0],a[1],a[2],a[3]);return}
+  // (the drawn body still glides there over a few frames instead of teleporting)
+  if(!sweepClear(p.x,p.y,p.x+ex,p.y+ey,p.r)){const ox=p.x,oy=p.y;if(!solidBoxP(a[0],a[1],p.r-1,p.r-1)){initPhys(p,a[0],a[1],a[2],a[3]);
+    net.offX=clamp(net.offX+ox-p.x,-80,80);net.offY=clamp(net.offY+oy-p.y,-80,80)}return}
   p.x+=ex;p.y+=ey;p.vx+=evx;p.vy+=evy;net.offX=clamp(net.offX-ex,-80,80);net.offY=clamp(net.offY-ey,-80,80);
   net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=ex;h.y+=ey;h.vx+=evx;h.vy+=evy}}
 function guestStep(h,busy){const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);
@@ -1837,7 +1947,8 @@ document.addEventListener('mouseover',e=>{const b=e.target.closest('.mlist butto
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-opt]');if(!b)return;initAudio();
   if(b.dataset.opt){cycleOpt(b.dataset.opt,1);return}
   const a=b.dataset.act,ov=b.closest('.overlay');sfx('pick',true);showMenuMsg('');
-  if(a==='cpu'||a==='2p'||a==='watch')startMatch(a);
+  if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox')startMatch(a);
+  else if(a==='loadout')openSandbox();
   else if(a==='online')showSub(ov,'online');
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
@@ -1861,13 +1972,14 @@ $('#joinForm').addEventListener('submit',e=>{e.preventDefault();joinGame($('#joi
 $('#joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4)});
 function togglePause(){
   if(net.role&&net.connected){const show=$('#pause').hidden;$('#pause').hidden=!show;   // online: the match keeps running
-    if(show){refreshOpts();$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
-  $('#pRestart').hidden=false;$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
+    if(show){refreshOpts();$('#pLoadout').hidden=true;$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
+  $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').textContent=(muted?'Sound off':'Sound on')+' · M';if(!fromSetting){saveSettings();refreshOpts()}}
-function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
+function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
+$('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
 function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
   else{const el=d.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el)}}catch(e){}}

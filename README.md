@@ -1,6 +1,6 @@
 # CUUED
 
-**Queue up. Duel a friend.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and double-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
+**Queue up. Duel a friend.** A one-on-one arena shooter that runs in the browser at **[cuued.com](https://cuued.com)**. Shoot, block and wall-jump to win points. The loser of each round drafts one card from a hand of five, so every loss lets you build a counter to your rival.
 
 The name is said like *queued*: pick a name, share a 4-letter code, and you're in a duel. No download, no account.
 
@@ -47,9 +47,10 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 
 ## What's in it
 
-- **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, lobbed bullets with gravity, and a 4-second block.
+- **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, lobbed bullets with gravity, and a 4-second block. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
 - **47 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Ground Pound slams you into the ground with a shockwave, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
-- **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back, and falling to the bottom pops you up with damage instead of killing you outright.
+- **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
+- **Sandbox:** hand yourself or the CPU any cards you like, as many copies as you want, and try them out with no drafting. Press Tab mid-fight to change cards; the CPU can fight back, dodge without shooting, or stand still as a target, and you can lock the arena.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
 - **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, and effects with a room reverb so impacts boom. Music and volume settings; no audio files.
@@ -88,7 +89,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It runs twice: at 40 ms, and on a laggy, jittery link (90 ms ± 45 ms, like a cross-country connection), and fails if the guest's own fighter ever ends up inside or passes through a wall. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
 - **`points.js`** checks scoring (the first death decides the point; only near-simultaneous deaths are trades) and the arena edges (damage and knock-back, a small pop off the bottom, no clinging to edges).
-- **`combos.js`** checks that there are no wall jumps, that stacked cards keep both effects (Limpet Mines with Splinter Rounds, double Ricochet), that the block cards work (Cluster Guard bombs, Frost Guard freeze, Double Guard's second charge), and that blocking into the bottom edge saves you and launches you high.
+- **`combos.js`** checks that you and the CPU can wall-jump up the arena's blocks but never climb its edges, that your own explosions hurt you a little, that Sandbox loadouts apply with no drafting, that stacked cards keep both effects (Limpet Mines with Splinter Rounds, double Ricochet), that the block cards work (Cluster Guard bombs, Frost Guard freeze, Double Guard's second charge), and that blocking into the bottom edge saves you and launches you high.
 - **`card-art.js`** renders all 44 card animations and icons for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.

@@ -108,12 +108,35 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(P.hp === P.s.maxHp, 'your own slam should not hurt you');
   }
 
-  // no wall jumps: pressing jump against a wall in mid-air with no double jump left does nothing
+  // wall jumps work off the arena's blocks: jumping against one in mid-air with no double jump left kicks you up and away
   {
     const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
     P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 620; P.vy = 100; P.grounded = false; P.ground = null; P.airJumps = 0; P.coyote = 0;
     A.keys.add('KeyD'); A.edges.add('KeyW'); A.keys.add('KeyW'); step(); A.keys.delete('KeyD'); A.keys.delete('KeyW');
-    check(P.vy > 0, `jumping against a wall should not climb it (vy ${P.vy | 0})`);
+    check(P.vy < -500 && P.vx < -200, `jumping off a block should wall-jump up and away (vy ${P.vy | 0}, vx ${P.vx | 0})`);
+    // and you can climb it: hug the wall and keep jumping until you're on top of it
+    const [Q] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); Q.ctrl = 'mouse'; Q.x = 700; Q.s.airJumps = 0; Q.airJumps = 0; let top = Q.y;   // no double jump: only wall jumps can get you up there
+    for (let f = 0; f < 400; f++) { A.keys.add('KeyD'); if (f % 14 === 0) A.edges.add('KeyW'); if (f % 14 < 9) A.keys.add('KeyW'); else A.keys.delete('KeyW'); step(); top = Math.min(top, Q.y) }
+    A.keys.delete('KeyD'); A.keys.delete('KeyW');
+    check(top < wall.y - Q.r + 5, `wall-jumping should get you to the top of a tall block (top ${top | 0}, wall top ${wall.y})`);
+  }
+
+  // the CPU climbs blocks too: on Divider it gets over the centre wall to reach you
+  {
+    const [P, E] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); E.ctrl = 'cpu'; let crossed = false;
+    for (let f = 0; f < 60 * 12 && !crossed; f++) { step(); P.hp = P.s.maxHp; E.hp = E.s.maxHp; if (E.x < 760) crossed = true }
+    check(crossed, `the CPU should get over Divider's centre wall (x ${E.x | 0})`);
+  }
+
+  // explosive rounds hurt their shooter a little when the blast is close; a rival takes the full blast
+  {
+    const [P] = setup(['Blast Cap']); const hp = P.hp;
+    A.spawnBullet(P, P.x, P.y, Math.PI / 2); step(30);
+    const lost = hp - P.hp;
+    check(lost > 3 && lost < 20, `your own Blast Cap blast should hurt you a little (lost ${lost.toFixed(1)})`);
+    const [Q, E] = setup(['Blast Cap']); E.x = Q.x + 40; E.y = Q.y + 10; const hpE = E.hp;
+    A.spawnBullet(Q, E.x, E.y - 30, Math.PI / 2); step(30);
+    check(hpE - E.hp > lost * 1.8, `a rival should take far more from the blast (${(hpE - E.hp).toFixed(1)} vs ${lost.toFixed(1)})`);
   }
 
   // the arena's side edges can't be climbed: holding into one while spamming jump never gets higher than a jump plus a
@@ -129,6 +152,22 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
-  console.log(JSON.stringify({ cases: 12, failures: fail.length, fail }));
+  // Sandbox: pick any cards for either side, no drafting, points just keep coming, the CPU can be set to stand still
+  {
+    const S = A.sandbox; S.seen = true; S.decks = [[card(A, 'Blast Cap'), card(A, 'Ricochet'), card(A, 'Ricochet')], [card(A, 'Thick Skin')]];
+    A.startMatch('sandbox'); flushTimers();
+    const [P, E] = A.players;
+    check(A.game.state === 'ready', `sandbox should skip the opening draft (state ${A.game.state})`);
+    check(P.s.bounces === 4 && P.s.explode > 0 && E.s.maxHp > 100, 'sandbox loadouts should apply to both fighters and stack');
+    A.game.state = 'play'; A.die(E); step(200);
+    check(A.game.state !== 'pick' && A.game.wins[0] === 1, `a sandbox point should just tally and carry on (state ${A.game.state}, tally ${A.game.wins})`);
+    S.cpu = 'still'; S.arena = 3; S.decks[1] = []; A.applySandbox();
+    check(A.players[1].ctrl === 'idle' && A.game.map.name === 'Divider' && A.players[1].cards.length === 0, 'changing the sandbox setup should take effect on the next point');
+    for (let i = 0; i < 400; i++) step(); 
+    check(!A.bullets.some((b) => b.owner === A.players[1]), 'a CPU set to stand still should never shoot');
+    S.cpu = 'fight'; S.arena = -1; S.decks = [[], []];
+  }
+
+  console.log(JSON.stringify({ cases: 16, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();
