@@ -306,8 +306,8 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
         <div>
           <div class="lbl">Controls</div>
           <div class="keys">
-            <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> drop · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
-            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Jump off walls. Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
+            <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> duck, drop through planks, fall fast · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
+            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
       </div>
@@ -407,7 +407,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1150,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
-  split:0,grow:false,well:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,slam:false};
+  split:0,grow:false,well:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,slam:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
@@ -435,6 +435,8 @@ const CARDS=[
  {n:'Double Guard',k:'guard',r:1,d:'Hold a second block in reserve. Both come back together.',st:[['+1','Block charge',1]],a:s=>{s.blockStock+=1},u:1},
  {n:'Counterfire',k:'guard',r:1,d:'Blocking sprays a ring of six bullets.',st:[['+6','Ring bullets',1]],a:s=>{s.blockVolley+=6}},
  {n:'Mending Guard',k:'guard',r:0,d:'Each block patches you up.',st:[['+22','Heal on block',1]],a:s=>{s.blockHeal+=22}},
+ {n:'Echo Guard',k:'guard',r:1,d:'Every block fires a second free block a beat later. Stacks.',st:[['+1','Echo block',1],['+0.5s','Block cooldown',0]],a:s=>{s.echo+=1;s.blockCd+=.5}},
+ {n:'Shield Charge',k:'guard',r:1,d:'Blocking launches you along your aim. Ram your rival to hurt and fling them.',st:[['On','Dash',1],['28','Ram damage',1],['+0.25s','Block cooldown',0]],a:s=>{s.charge+=1;s.blockCd+=.25}},
  {n:'Blink Guard',k:'guard',r:2,d:'Blocking teleports you toward your aim, and your block recharges faster.',st:[['On','Teleport',1],['-1s','Block cooldown',1]],a:s=>{s.blink=true;s.blockCd-=1},u:1},
  {n:'Mirror Guard',k:'guard',r:2,d:'Blocked bullets fly back at the shooter, 50% harder.',st:[['On','Reflect',1],['+50%','Reflected damage',1],['+0.5s','Block cooldown',0]],a:s=>{s.reflect=true;s.blockCd+=.5},u:1},
  {n:'Static Guard',k:'guard',r:1,d:'Your next shot after a block hits twice as hard.',st:[['x2','Next shot',1],['-0.5s','Block cooldown',1]],a:s=>{s.staticGuard=true;s.blockCd-=.5},u:1},
@@ -449,7 +451,7 @@ const CARDS=[
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
- {n:'Long Haul',k:'shot',r:2,d:'Bullets hit harder the farther they fly. Long shots land with a shockwave.',st:[['+25%','Damage per 100px',1],['Up to x4','At long range',1],['+0.25s','Reload',0]],a:s=>{s.grow=true;s.reload+=.25},u:1},
+ {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave.',st:[['+25%','Damage per 100px',1],['Up to x4','At long range',1],['Up to x2.4','Size',1],['+0.25s','Reload',0]],a:s=>{s.grow=true;s.reload+=.25},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
@@ -502,6 +504,8 @@ const ICONS={
  'Double Guard':g=>{IC.shield(g,.4,.54,.5,.66);IC.shield(g,.6,.46,.5,.66)},
  'Counterfire':g=>{IC.circle(g,.5,.5,.13);for(let i=0;i<6;i++){const a=i/6*TAU+.26;IC.line(g,.5+Math.cos(a)*.24,.5+Math.sin(a)*.24,.5+Math.cos(a)*.42,.5+Math.sin(a)*.42)}},
  'Mending Guard':g=>{IC.shield(g,.5,.5,.62,.8);IC.plus(g,.5,.47,.14)},
+ 'Echo Guard':g=>{IC.shield(g,.4,.52,.42,.62);IC.dashed(g,[.05,.05],()=>IC.shield(g,.64,.48,.42,.62))},
+ 'Shield Charge':g=>{IC.shield(g,.62,.5,.4,.6);IC.line(g,.08,.36,.3,.36);IC.line(g,.04,.5,.32,.5);IC.line(g,.08,.64,.3,.64)},
  'Blink Guard':g=>{IC.dashed(g,[.07,.06],()=>IC.circle(g,.26,.64,.14));IC.circle(g,.74,.36,.14);IC.dashed(g,[.02,.07],()=>IC.line(g,.39,.56,.61,.44))},
  'Mirror Guard':g=>{IC.line(g,.8,.1,.8,.9);IC.line(g,.12,.28,.72,.5,.12,.72);IC.line(g,.24,.63,.12,.72,.25,.8)},
  'Static Guard':g=>{IC.shield(g,.5,.5,.62,.8);IC.bolt(g,.5,.48,.2)},
@@ -668,6 +672,8 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'shotLob':tone('sine',220*v,110,t,.14,.3,room);noise(t,.06,.1,'bandpass',900,500,1.2);break;
   case'hit':noise(t,.28,.34,'lowpass',1800,180,.8,crunch);tone('sine',190*v,40,t,.34,.5,room);tone('square',110*v,55,t,.07,.12,crunch);break;    // meaty crunch
   case'block':tone('sine',1180*v,1150,t,.5,.15,room);tone('sine',1770*v,1740,t,.36,.09,room);tone('triangle',590*v,560,t,.3,.1,room);noise(t,.03,.12,'highpass',4000);break; // metallic ring
+  case'parry':tone('triangle',1500*v,3000,t,.16,.16,room);tone('sine',3000*v,2600,t,.3,.08,room);noise(t,.05,.16,'highpass',6000);break;   // perfect parry: a bright rising zing
+  case'crush':noise(t,.22,.4,'lowpass',900,140,.8,crunch);tone('square',70*v,40,t,.18,.22,crunch);break;   // hanging block smashes into you
   case'tink':tone('sine',2300*v,2200,t,.09,.09);noise(t,.02,.06,'highpass',5000);break;                                                     // bullet stopped by a block
   case'bounce':tone('sine',1700*v,1400,t,.04,.05);break;
   case'die':tone('sine',140,28,t,.9,.65,room);noise(t,.9,.45,'lowpass',1400,120,.7,crunch);tone('square',400,80,t,.22,.1,room);break;
@@ -976,6 +982,9 @@ const ART={
  'Double Guard':(g,t)=>{const k=t*.8%1;AH.blob(g,0,0,26);AH.shield(g,44,k<.5?1:.35);AH.shield(g,64,k>=.5&&k<.6?1:k<.5?.6:.3);for(let i=0;i<2;i++){g.fillStyle=(k<.5||i===0)?'#fff':'rgba(255,255,255,.3)';g.fillRect(-26+i*32,92,20,8)}},
  'Counterfire':(g,t)=>{const k=t*.9%1;AH.shield(g,34);for(let i=0;i<5;i++){const a=i/5*TAU-Math.PI/2+t*.3,d=36+k*150;AH.trail(g,Math.cos(a)*d,Math.sin(a)*d,a,30*k+4,5);AH.bullet(g,Math.cos(a)*d,Math.sin(a)*d,a,.6)}},
  'Mending Guard':(g,t)=>{AH.shield(g,64);for(let i=0;i<5;i++){const k=(t*.5+i/5)%1;AH.plus(g,Math.sin(i*2.4)*70,60-k*170,14+i%2*6,1-k)}},
+ 'Echo Guard':(g,t)=>{const k=t*.9%1;AH.blob(g,0,10,32);for(const[d,a]of[[0,1],[.33,.55]]){const u=(k-d+1)%1;if(u<.45)AH.ring(g,0,10,44+u*110,5*(1-u/.45),a*(1-u/.45))}},
+ 'Shield Charge':(g,t)=>{const k=t*.8%1,x=-150+Math.min(1,k/.6)*240;g.fillStyle='rgba(255,255,255,.35)';for(let i=1;i<6;i++)g.fillRect(x-30-i*26,-14+i%2*10,18,4);
+   AH.blob(g,x,0,30,{look:1});g.strokeStyle='#fff';g.lineWidth=5;g.beginPath();g.arc(x+12,0,42,-1,1);g.stroke();if(k>.6){const u=(k-.6)/.4;AH.ring(g,x+48,0,20+u*70,4*(1-u),1-u)}AH.blob(g,140+(k>.6?(k-.6)*200:0),0,26,{a:1,look:-1})},
  'Blink Guard':(g,t)=>{const ph=t*.7%1,left=ph<.5,k=left?ph/.5:(ph-.5)/.5,fade=k<.75?1:1-(k-.75)/.25;
    g.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<9;i++)g.fillRect(-90+i*20,-2,10,4);AH.blob(g,left?-120:120,0,30,{a:fade,look:left?1:-1});AH.ring(g,left?120:-120,0,30+k*20,3,(1-k)*.6)},
  'Mirror Guard':(g,t)=>{g.fillStyle='#fff';g.fillRect(84,-90,8,180);g.globalAlpha=.25;g.fillRect(92,-90,14,180);g.globalAlpha=1;const k=t*.8%1,out=k<.5,
@@ -1121,6 +1130,7 @@ function burst(x,y,color,n,sp,size,life,grav=900,glow=false){fxRec('b',[x,y,colo
 /* impact sparks: thin streaks flung out from where a bullet hits, drawn along their motion */
 function sparks(x,y,color,n,sp,ang,fan){fxRec('z',[x,y,color,n,sp,ang,fan]);for(let i=0;i<n&&parts.length<800;i++){const a=ang+rand(-fan,fan),v=rand(.35,1)*sp,l=rand(.12,.24);
   parts.push({spark:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,grav:500,life:l,max:l,color})}}
+function popText(x,y){parts.push({text:'PARRY',x,y,vx:0,vy:-60,grav:0,life:.7,max:.7,color:'#ffffff'})}
 function ring(x,y,color,rad){fxRec('r',[x,y,color,rad]);parts.push({ring:true,x,y,rad,life:.35,max:.35,color})}
 function cloud(x,y,color,n,spread){fxRec('c',[x,y,color,n,spread]);for(let i=0;i<n;i++)parts.push({x:x+rand(-spread,spread),y:y+rand(-spread,spread),vx:rand(-20,20),vy:rand(-40,-5),life:rand(1,1.8),max:1.8,size:rand(14,30),color,grav:0,blob:true})}
 function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push({flash:true,x,y,rad,life,max:life,color})}
@@ -1142,9 +1152,17 @@ function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.spe
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase,phaseLeft:2,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
    split:plain?0:s.split,grow:!plain&&s.grow,dist:0,well:plain?0:s.well,mines:!plain&&s.mines,stuck:false,fuse:0})}
+const BLOCK_T=.3;
 function doBlock(p){if(!p.alive)return;const s=p.s;
   if(p.blockCd>0){if(!(p.blockStock>0)||p.blockT>0)return;p.blockStock--}else{p.blockCd=s.blockCd;p.blockStock=s.blockStock}
-  p.blockT=.3;sfx('block');
+  // Echo Guard: each copy adds another free block a beat later (every block effect fires again)
+  if(s.echo)p.echoQ=Array.from({length:s.echo},(_,i)=>.3*(i+1));
+  blockFx(p)}
+// Shield Charge: blocking launches you along your aim; ramming your rival during the dash hurts and knocks them back
+function chargeKick(p){const s=p.s,a=p.aim,f=1+.25*(s.charge-1);p.vx=Math.cos(a)*1250*f;p.vy=Math.min(p.vy,0)+Math.sin(a)*950*f-120;p.ground=null;p.grounded=false;p.chargeT=.35}
+function blockFx(p){const s=p.s;
+  p.blockT=BLOCK_T;sfx('block');
+  if(s.charge){chargeKick(p);burst(p.x,p.y,p.glow,14,380,5,.35,0,true)}
   if(s.blockBombs){const n=s.blockBombs;for(let i=0;i<n;i++){const a=-Math.PI/2+(i-(n-1)/2)*(2.2/Math.max(1,n-1))+rand(-.1,.1),m=safeSpawn(p,a,p.r+10,7,false);if(m.smothered)continue;
     spawnBullet(p,m.x,m.y,a,{plain:true,dmg:55,r:7,life:2.6,speed:rand(340,440)});const b=bullets[bullets.length-1];b.explode=75;b.grav=1.15;b.bomb=true;b.plainRing=true}sfx('arm')}
   if(s.wallBlock){const a=p.aim,cx=p.x+Math.cos(a)*(p.r+40),cy=p.y+Math.sin(a)*(p.r+40),nx=-Math.sin(a),ny=Math.cos(a),L=70;
@@ -1211,9 +1229,14 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   if(p.alive&&p.s.spite>0){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
   burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;sfx('hit');
   b.dead=true;if(b.explode>0)explode(b,p)}
+// a ducking fighter is a flat ellipse hugging the ground, so a shot at head height sails over
+function bodyHit(p,x,y,rad){if(!p.duck)return Math.hypot(p.x-x,p.y-y)<p.r+rad;const cy=p.y+p.r*.42,ry=p.r*.58,dx=(x-p.x)/(p.r*1.15+rad),dy=(y-cy)/(ry+rad);return dx*dx+dy*dy<1}
+const PARRY_WIN=.12;   // a block that meets a bullet in its first 0.12 s deflects it back at the shooter
 function blocked(p,b){burst(b.x,b.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');
-  if(p.s.reflect){const t=b.owner&&b.owner!==p?b.owner:other(p),sp=Math.hypot(b.vx,b.vy),a=Math.atan2(t.y-b.y,t.x-b.x);
-    b.vx=Math.cos(a)*sp*1.1;b.vy=Math.sin(a)*sp*1.1;b.owner=p;b.reflected=true;b.dmg*=1.5;b.color=p.color;b.glow=p.glow;b.bounced=false;b.age=0;b.life=Math.max(b.life,1.5)}else b.dead=true}
+  const perfect=p.blockT>BLOCK_T-PARRY_WIN;if(perfect)game.parries=(game.parries||0)+1;
+  if(perfect){ring(p.x,p.y,'#ffffff',70);flashFx(b.x,b.y,60,.12,'#ffffff');sparks(b.x,b.y,'#ffffff',10,700,Math.atan2(b.y-p.y,b.x-p.x),.9);sfx('parry');addShake(5);fxRec('P',[p.x,p.y-p.r-30]);popText(p.x,p.y-p.r-30)}
+  if(p.s.reflect||perfect){const t=b.owner&&b.owner!==p?b.owner:other(p),sp=Math.hypot(b.vx,b.vy),a=Math.atan2(t.y-b.y,t.x-b.x);
+    b.vx=Math.cos(a)*sp*1.1;b.vy=Math.sin(a)*sp*1.1;b.owner=p;b.reflected=true;b.dmg*=p.s.reflect?1.5:1;b.color=p.color;b.glow=p.glow;b.bounced=false;b.age=0;b.life=Math.max(b.life,1.5)}else b.dead=true}
 
 /* ---------- updates ---------- */
 const segDist=(x,y,w)=>{const dx=w.x2-w.x1,dy=w.y2-w.y1,u=clamp(((x-w.x1)*dx+(y-w.y1)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(x-w.x1-dx*u,y-w.y1-dy*u)};
@@ -1228,7 +1251,7 @@ function updateBullets(dt){
     if(hom>0){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx),des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,
       na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
-    if(b.grow){if(b.base==null)b.base=b.dmg;b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b)}
+    if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(2.4,1+b.dist*.0011)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*dt;
     const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
@@ -1237,7 +1260,7 @@ function updateBullets(dt){
         // Ghost Rounds: slip through the first wall only, then collide normally
         if(b.phase&&!r.bound&&circleRect(b.x,b.y,wallR(b),r)&&(b.phasing||b.phaseLeft>0)){if(!b.phasing){b.phaseLeft--;b.phasing=true}ghostIn=true;continue}
         const n=bulletRect(b,r);if(!n)continue;
-        if(r.swing)pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));
+        if(r.swing){pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));r.lastHit=b.owner}
         if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
         else{killBullet(b,true,r,n);if(r.swing&&!b.stuck)sfx('thud')}break}
       if(b.phase&&!ghostIn)b.phasing=false;
@@ -1245,7 +1268,7 @@ function updateBullets(dt){
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner)continue;
-        if(Math.hypot(p.x-b.x,p.y-b.y)<p.r+b.r+(p.blockT>0?10:0)){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
+        if(bodyHit(p,b.x,b.y,b.r+(p.blockT>0?10:0))){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
@@ -1259,6 +1282,14 @@ function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.air
 function pushOut(p,r){const R=p.r,l=p.x+R-r.x,rr=r.x+r.w-(p.x-R),t=p.y+R-r.y,bt=r.y+r.h-(p.y-R),m=Math.min(l,rr,t,bt);
   if(m===t){p.y=r.y-R;if(p.vy>0)p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps}else if(m===bt){p.y=r.y+r.h+R;if(p.vy<0)p.vy=0}
   else if(m===l){p.x=r.x-R}else{p.x=r.x+r.w+R}}
+/* a hanging block swinging fast (shoot it to swing it) smashes whoever it hits; a block at the right moment knocks it back.
+   Host only: the guest just shows the result */
+function swingCrush(p,r,dt){if(r.mover||game.mode==='online-guest'||!(dt>0)||(p.crushT||0)>0)return;const vx=r.dx/dt,vy=r.dy/dt,sp=Math.hypot(vx,vy);if(sp<380)return;
+  if(p.ground===r||p.y+p.r*.5<=r.y)return;   // riding it is not being hit by it
+  const into=(p.x-(r.x+r.w/2))*vx+(p.y-(r.y+r.h/2))*vy;if(into<=0)return;p.crushT=.5;
+  if(p.blockT>0){pushSwing(r,-Math.sign(vx||1)*Math.min(1000,sp*1.3));r.av*=-1;ring(p.x,p.y,'#ffffff',70);sfx('parry');burst(p.x,p.y,'#ffffff',12,400,4,.3,0,true);return}
+  const k=sp/600;p.vx+=vx/sp*700*k;p.vy+=vy/sp*500*k-250;p.ground=null;p.kT=.35;damage(p,clamp(sp*.035,12,40),r.lastHit&&r.lastHit!==p?r.lastHit:null);
+  burst(p.x,p.y,'#cfd8e3',14,420,5,.35,0);addShake(10);sfx('crush')}
 /* a swinging block shoves a body aside, but if that would crush it into a wall the block yields and bounces back */
 function swingPush(p,r){const ox=p.x,oy=p.y,og=p.grounded,ogr=p.ground;pushOut(p,r);
   if(solids.some(o=>o!==r&&!o.oneway&&!o.bound&&boxHit(p.x,p.y,p.r-1,p.r-1,o))){p.x=ox;p.y=oy;p.grounded=og;p.ground=ogr;
@@ -1271,35 +1302,42 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   if(p.grounded)p.coyote=.1;
   // drop through a one-way plank
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
-  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1);p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.grounded?16:6.5)*dt);
+  // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
+  p.duck=!!(inp.down&&p.grounded&&!(p.ground&&p.ground.oneway));
+  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?16:6.5)*dt);   // a Shield Charge dash carries through
   p.padT=(p.padT||0)-dt;let g=PG;if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
-  if(inp.down&&!p.grounded)g*=1.35;p.vy=Math.min(1900,p.vy+g*dt);
+  if(inp.down&&!p.grounded)g*=p.vy<0&&p.padT<=0?3:2;   // down in the air: cut a jump short, or drop fast
+  p.vy=Math.min(1900,p.vy+g*dt);
   if(p.vy<-1)p.slamming=false;   // Ground Pound: hold down in the air to dive
   else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
   // wall slide + wall jump off the arena's blocks (never the outer edges: those aren't walls, they hurt)
-  if(p.wallDir&&!p.grounded&&p.vy>0&&inp.move===p.wallDir)p.vy=Math.min(p.vy,220);
+  // hold toward a wall to grip it: you barely slide, and touching it gives your air jump back
+  if(p.wallDir&&!p.grounded&&inp.move===p.wallDir){if(p.vy>0)p.vy=Math.min(p.vy,70);p.airJumps=s.airJumps}
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
   if(p.jumpBuf>0){const jv=1010*s.jumpPower;
     if(p.grounded||p.coyote>0){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;
       p.squash=1.25;moveFx(p,()=>{burst(p.x,p.y+p.r,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(p.wallDir){p.vy=-jv*.95;p.vx=-p.wallDir*580;p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
+    else if(p.wallDir){p.vy=-jv*.95;p.vx=-p.wallDir*(inp.move===p.wallDir?200:580);   /* holding into the wall climbs it; otherwise kick off */p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
     else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.72;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
 }
 // move by velocity and resolve against the arena
 /* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
    off the bottom with a small nudge, and the host deals the damage. You can't stand on, cling to or wall-jump off an edge. */
-const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1400;
+const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1400,EDGE_BLOCK_SIDE=1350,EDGE_BLOCK_TOP=1500;
 function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
-  if(p.x<lo){p.x=lo;p.vx=Math.max(Math.abs(p.vx)*.5,460);hit='left'}
-  else if(p.x>W-lo){p.x=W-lo;p.vx=-Math.max(Math.abs(p.vx)*.5,460);hit='right'}
-  if(p.y<lo){p.y=lo;p.vy=Math.max(Math.abs(p.vy)*.4,320);hit='top'}
+  // blocking into a border is the "sketchy jump": no damage, and it fires you back in (sides) or spikes you down (top)
+  const bl=p.blockT>0||p.localBlockT>0;
+  if(p.x<lo){p.x=lo;p.vx=bl?EDGE_BLOCK_SIDE:Math.max(Math.abs(p.vx)*.5,460);if(bl)p.vy=Math.min(p.vy,-380);hit='left'}
+  else if(p.x>W-lo){p.x=W-lo;p.vx=bl?-EDGE_BLOCK_SIDE:-Math.max(Math.abs(p.vx)*.5,460);if(bl)p.vy=Math.min(p.vy,-380);hit='right'}
+  if(p.y<lo){p.y=lo;p.vy=bl?EDGE_BLOCK_TOP:Math.max(Math.abs(p.vy)*.4,320);hit='top'}
   else if(p.y>H-R){p.y=H-R;p.vy=-(p.blockT>0||p.localBlockT>0?EDGE_BLOCK_POP:EDGE_FLOOR_POP);p.airJumps=p.s.airJumps;p.grounded=false;p.ground=null;hit='bottom'}
   if(hit){p.grounded=hit==='bottom'?false:p.grounded}
   return hit}
 function moveCollide(p,dt){
   // stacked knockbacks (several blasts in one frame, big Lob Shell stacks) can add up; cap the launch so nobody is flung off-screen
   p.vx=clamp(p.vx,-1900,1900);p.vy=clamp(p.vy,-2100,1900);
+  for(const r of swings)if(boxHit(p.x,p.y,p.r+3,p.r+3,r))swingCrush(p,r,dt);   // the blocks moved first this step: did one swing into us?
   // sub-step by speed so a huge knockback can never carry a body through a wall (each move ≤ half its radius)
   const R=p.r,nSub=Math.min(12,Math.max(1,Math.ceil(Math.max(Math.abs(p.vx),Math.abs(p.vy))*dt/(R*.5)))),mdt=dt/nSub;
   for(let ms=0;ms<nSub;ms++){
@@ -1325,12 +1363,12 @@ function moveCollide(p,dt){
   p.edgeHit=edgeBounce(p);
   if(!p.grounded)p.ground=null;
   p.wallDir=0;if(!p.grounded){if(solidBoxP(p.x+3,p.y,R,R*.6))p.wallDir=1;else if(solidBoxP(p.x-3,p.y,R,R*.6))p.wallDir=-1}
-  p.squash+=(1-p.squash)*Math.min(1,dt*12);p.walk+=Math.abs(p.vx)*dt*.045;
+  p.squash+=((p.duck?.6:1)-p.squash)*Math.min(1,dt*12);p.walk+=Math.abs(p.vx)*dt*.045;
 }
 // movement puffs and sounds: the host still shows them for the guest's fighter, but doesn't send them, because the guest predicts its own
 function moveFx(p,fn){if(net.role==='host'&&p.ctrl==='net'){net.noRec=true;try{fn()}finally{net.noRec=false}}else fn()}
 function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
-  p.fireT-=dt;p.blockT-=dt;p.sinceShot+=dt;p.kT=(p.kT||0)-dt;   // kT: just knocked by something the host decided (a hit, a blast)
+  p.fireT-=dt;p.blockT-=dt;p.sinceShot+=dt;p.kT=(p.kT||0)-dt;p.crushT=(p.crushT||0)-dt;   // kT: just knocked by something the host decided (a hit, a blast)
   p.hurtT-=dt;p.shotT-=dt;p.emptyT-=dt;p.chillT=(p.chillT||0)-dt;p.frozenT=(p.frozenT||0)-dt;
   if(p.frozenT>0){const i=inp;i.move=0;i.jumpP=false;i.jumpH=false;i.fire=false;i.blockP=false;i.down=false}   // frozen solid
   if(p.blockCd>0){p.blockCd-=dt;if(p.blockCd<=0)personal(p,'ready')}
@@ -1344,6 +1382,13 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   if(inp.fire){if(p.ammo<=0&&p.burstLeft<=0&&p.ctrl!=='cpu'&&p.emptyT<=0){personal(p,'empty');p.emptyT=.25}tryFire(p)}
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
+  if(p.echoQ&&p.echoQ.length){for(let i=0;i<p.echoQ.length;i++)p.echoQ[i]-=dt;if(p.echoQ[0]<=0){p.echoQ.shift();ring(p.x,p.y,p.glow,50);blockFx(p)}}
+  if(p.chargeT>0){const e=other(p);
+    if(game.mode!=='online-guest'&&e&&e.alive&&!(e.ramT>0)&&Math.hypot(e.x-p.x,e.y-p.y)<p.r+e.r+8){const a=Math.atan2(e.y-p.y,e.x-p.x),f=1+.25*(p.s.charge-1);
+      e.vx+=Math.cos(a)*900*f;e.vy+=Math.sin(a)*600*f-300;e.ground=null;e.kT=.35;e.ramT=.4;
+      if(e.blockT>0){ring(e.x,e.y,'#ffffff',60);sfx('tink')}else damage(e,28*f,p);
+      burst(e.x,e.y,'#ffffff',16,520,5,.35,0,true);addShake(8);sfx('crush')}}
+  p.ramT=(p.ramT||0)-dt;
   p.edgeT=(p.edgeT||0)-dt;
   moveCollide(p,dt);edgeHurt(p);
   if(p.y>H+400&&!pointDecided())die(p)}   // failsafe only: the bottom edge bounces you long before this
@@ -1647,12 +1692,13 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
       if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke()}
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   for(const q of parts){if(q.blob)continue;const a=clamp(q.life/q.max,0,1);
+    if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;ctx.fillText(q.text,q.x,q.y);ctx.textAlign='left';continue}
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
-  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
+  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
     ctx.fillStyle=q.color;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
@@ -1685,7 +1731,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-smooth';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-tricks';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1709,7 +1755,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>{popText(x,y);sfx('parry')},r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 function netSend(m){if(net.conn&&net.connected)try{net.conn.send(m)}catch(e){}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
@@ -1946,7 +1992,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0))me.localBlockT=.3}}
+  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.charge&&me.phys&&me.alive)chargeKick(me)}}}   // predict the Shield Charge dash
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);while(game.acc>=FIXED){game.acc-=FIXED;guestStep(FIXED,busy)}
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);

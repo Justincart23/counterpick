@@ -21,7 +21,7 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
     const spots = (r) => { const xs = []; for (let x = r.x + P.r + 2; x <= r.x + r.w - P.r - 2; x += 40) xs.push(x); if (!xs.length) xs.push(r.x + r.w / 2); return xs };
     const progs = [[], [0], [0, .2], [0, .3], [0, .4], [0, .7], [0, .9], [0, 1.1], [0, .25, .5, .75, 1.0, 1.25], [0, .3, .55, .8, 1.05, 1.3]];
     const waits = [0, .5, 1, 1.5, 2, 2.5];   // moving parts: try leaving at different moments
-    const tryFrom = (k, xi, wait, dir, presses) => {
+    const tryFrom = (k, xi, wait, dir, presses, holdFor = 99) => {
       A.loadMap(mi); A.game.state = 'play'; A.game.pointT = 0; A.keys.clear(); A.edges.clear(); A.mouse.down = false;
       const r = A.solids.find((q) => key(q) === k), xs = spots(r); if (xi >= xs.length) return null;
       A.resetPlayer(P, [xs[xi], r.y - P.r - 1]); P.ctrl = 'mouse';
@@ -29,7 +29,7 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
       if (!P.grounded || key(P.ground) !== k) return null;
       const dk = dir < 0 ? 'KeyA' : dir > 0 ? 'KeyD' : null; let left = false;
       for (let i = 0; i < 480; i++) { const t = i * H;
-        if (dk) A.keys.add(dk);
+        if (dk && t < holdFor) A.keys.add(dk); else if (dk) A.keys.delete(dk);   // let go of the direction to land on what you climbed
         if (presses.some((pt) => Math.abs(pt - t) < H / 2)) { A.edges.add('KeyW'); A.keys.add('KeyW') }
         if (presses.some((pt) => t > pt + .22 && t < pt + .22 + H)) A.keys.delete('KeyW');
         A.update(H);
@@ -38,8 +38,8 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
       A.keys.clear(); return null };
     const edges = new Map();
     for (const s of surf) { const to = new Set(), r0 = A.solids.find((q) => key(q) === s.k), moving = !!r0.swing, n = spots(r0).length;
-      for (let xi = 0; xi < n; xi++) for (const w of moving ? waits : [0]) for (const dir of [-1, 0, 1]) for (const pr of progs) {
-        if (!pr.length && !dir) continue; const g = tryFrom(s.k, xi, w, dir, pr); if (g) to.add(g) }
+      for (let xi = 0; xi < n; xi++) for (const w of moving ? waits : [0]) for (const dir of [-1, 0, 1]) for (const pr of progs) for (const hold of dir ? [99, .7] : [99]) {
+        if (!pr.length && !dir) continue; const g = tryFrom(s.k, xi, w, dir, pr, hold); if (g) to.add(g) }
       edges.set(s.k, to) }
     const spawnSurf = M.sp.map(([x, y]) => { A.loadMap(mi); A.resetPlayer(P, [x, y]); for (let i = 0; i < 60; i++) A.update(H); return key(P.ground) });
     const reach = (from) => { const seen = new Set([from]), q = [from]; while (q.length) { const k = q.shift(); for (const n of edges.get(k) || []) if (!seen.has(n)) { seen.add(n); q.push(n) } } return seen };

@@ -113,7 +113,7 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
     P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 620; P.vy = 100; P.grounded = false; P.ground = null; P.airJumps = 0; P.coyote = 0;
     A.keys.add('KeyD'); A.edges.add('KeyW'); A.keys.add('KeyW'); step(); A.keys.delete('KeyD'); A.keys.delete('KeyW');
-    check(P.vy < -500 && P.vx < -200, `jumping off a block should wall-jump up and away (vy ${P.vy | 0}, vx ${P.vx | 0})`);
+    check(P.vy < -500 && P.vx < -150, `jumping off a block should wall-jump up and away (vy ${P.vy | 0}, vx ${P.vx | 0})`);
     // and you can climb it: hug the wall and keep jumping until you're on top of it
     const [Q] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); Q.ctrl = 'mouse'; Q.x = 700; Q.s.airJumps = 0; Q.airJumps = 0; let top = Q.y;   // no double jump: only wall jumps can get you up there
     for (let f = 0; f < 400; f++) { A.keys.add('KeyD'); if (f % 14 === 0) A.edges.add('KeyW'); if (f % 14 < 9) A.keys.add('KeyW'); else A.keys.delete('KeyW'); step(); top = Math.min(top, Q.y) }
@@ -159,6 +159,62 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(y0 - top > 80, `the up arrow should jump (rose ${(y0 - top) | 0}px)`);
   }
 
+  // ---- ROUNDS mechanics from the guide video ----
+  const shoot = (o, x, y, ang, extra = {}) => { A.spawnBullet(o, x, y, ang, { plain: true, dmg: 30, speed: 1300, ...extra }); const b = A.bullets[A.bullets.length - 1]; b.grav = 0; return b };
+  // duck: hold S on the ground and a shot at head height flies over you; standing, it hits
+  {
+    const [P, E] = setup(); E.x = P.x + 400; E.y = P.y; P.ctrl = 'mouse'; A.keys.add('KeyS'); step(10); const hp = P.hp;
+    shoot(E, E.x - 40, P.y - 12, Math.PI); step(30); A.keys.delete('KeyS'); step(5);
+    check(P.hp === hp, `a ducking fighter should dodge a head-height shot (hp ${hp}->${P.hp | 0})`);
+    shoot(E, E.x - 40, P.y - 12, Math.PI); step(30);
+    check(P.hp < hp, 'standing up, the same shot should hit');
+  }
+  // perfect parry: a block that meets a bullet in its first instant sends it back and hurts the shooter; a late block just stops it
+  {
+    const [P, E] = setup(); E.x = P.x + 300; E.y = P.y; const b = shoot(E, E.x - 40, P.y, Math.PI); const hpE = E.hp;
+    while (Math.abs(b.x - P.x) > P.r + 20 && !b.dead) A.update(1 / 240); A.doBlock(P); step(40);
+    check(b.owner === P && E.hp < hpE, `a perfectly timed block should deflect the bullet into the shooter (owner ${b.owner === P ? 'you' : 'them'}, rival hp ${hpE}->${E.hp | 0})`);
+    const [Q, F] = setup(); F.x = Q.x + 150; F.y = Q.y; A.doBlock(Q); step(12); const c = shoot(F, F.x - 40, Q.y, Math.PI); const hpF = F.hp; step(30);
+    check(c.dead && c.owner === F && F.hp === hpF && Q.hp === Q.s.maxHp, 'a late block should stop the bullet without deflecting it');
+  }
+  // sketchy jump: blocking into a side border fires you back in fast with no damage
+  {
+    const [P] = setup(); P.y -= 200; P.grounded = false; P.ground = null; P.x = 40; P.vx = -500; P.edgeT = 0; const hp = P.hp; A.doBlock(P); step(2);
+    check(P.vx > 1000 && P.hp === hp, `blocking into the side border should launch you inward unharmed (vx ${P.vx | 0}, hp ${hp}->${P.hp | 0})`);
+  }
+  // wall grip: hold toward a wall in the air and you barely slide
+  {
+    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
+    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 560; P.vy = 0; P.grounded = false; P.ground = null; A.keys.add('KeyD'); step(30); A.keys.delete('KeyD');
+    check(P.vy <= 75 && P.y < 600, `holding toward a wall should grip it (vy ${P.vy | 0}, slid to ${P.y | 0})`);
+  }
+  // fast fall: holding S in the air drops you faster
+  {
+    const fallTo = (down) => { const [P] = setup(); P.ctrl = 'mouse'; P.y = 300; P.vy = 0; P.grounded = false; P.ground = null; if (down) A.keys.add('KeyS'); step(12); A.keys.delete('KeyS'); return P.vy };
+    const plain = fallTo(false), fast = fallTo(true); check(fast > plain * 1.4, `holding S should fall faster (${fast | 0} vs ${plain | 0})`);
+  }
+  // a hanging block swung hard into you hurts; blocking knocks it back instead
+  {
+    const hitBy = (blocking) => { const [P, E] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Gallows')); const w = A.swings[0]; E.x = 1300;
+      P.x = w.ax + w.w / 2 + P.r - 10; P.y = w.len; P.vy = 0; P.grounded = false; P.ground = null; w.ang = -.25; w.av = 2.4; w.lastHit = E; const hp = P.hp;
+      if (blocking) A.doBlock(P); for (let i = 0; i < 20; i++) { A.update(1 / 60); P.vy = Math.min(P.vy, 0) } return { lost: hp - P.hp, av: w.av } };
+    const hit = hitBy(false), safe = hitBy(true);
+    check(hit.lost >= 12, `a fast-swinging block should hurt whoever it hits (lost ${hit.lost | 0})`);
+    check(safe.lost === 0, `blocking should knock the swinging block back (lost ${safe.lost | 0})`);
+  }
+  // Echo Guard: one press, two blocks; Shield Charge: block dashes you along your aim and rams your rival
+  {
+    const [P] = setup(['Echo Guard']); A.doBlock(P); step(21); check(P.blockT > 0, `Echo Guard should block again a beat later (blockT ${P.blockT.toFixed(2)})`);
+    const [Q, E] = setup(['Shield Charge']); Q.aim = 0; E.x = Q.x + 160; E.y = Q.y; const hp = E.hp; A.doBlock(Q); const vx = Q.vx; step(20);
+    check(vx > 1000, `Shield Charge should launch you along your aim (vx ${vx | 0})`);
+    check(E.hp < hp, `ramming your rival should hurt them (hp ${hp}->${E.hp | 0})`);
+  }
+  // Long Haul bullets grow as they fly
+  {
+    const [P] = setup(['Long Haul']); A.spawnBullet(P, P.x + 30, P.y - 300, 0); const b = A.bullets[A.bullets.length - 1]; b.grav = 0; const r0 = b.r; step(30);
+    check(b.r > r0 * 1.5, `Long Haul bullets should grow as they fly (r ${r0} -> ${b.r.toFixed(1)})`);
+  }
+
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
@@ -178,6 +234,6 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     S.cpu = 'fight'; S.arena = -1; S.decks = [[], []];
   }
 
-  console.log(JSON.stringify({ cases: 17, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 26, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();

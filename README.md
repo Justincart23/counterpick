@@ -48,8 +48,15 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 ## What's in it
 
 - **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, and a 4-second block. Movement and bullets are tuned from frame-by-frame measurements of ROUNDS gameplay: low, snappy jumps (about four body-heights, plus a small double jump and wall jumps), and slower bullets that drop hard, so long shots are lobbed. Bullets fly as glowing tracers and throw sparks where they hit. An optional aim guide (Settings) shows the first stretch of your shot's arc. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
-- **47 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Ground Pound slams you into the ground with a shockwave, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
+- **49 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Ground Pound slams you into the ground with a shockwave, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
 - **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
+- **ROUNDS-style tricks** (from studying a ROUNDS tips guide):
+  - **Duck** by holding `S` on the ground: your hitbox squashes flat and head-height shots sail over. In the air, `S` cuts a jump short or drops you fast.
+  - **Grip walls** by holding toward them: you barely slide, and your air jump comes back. Jump while holding into the wall to climb it; jump without holding to kick off it.
+  - **Perfect parry:** a block that meets a bullet in its first 0.12 s sends it back at the shooter (PARRY).
+  - **Edge launches:** block as you hit the arena border to bounce off it unhurt: off the bottom you pop up high, off a side you rocket back in, off the top you spike down.
+  - **Hanging blocks hurt:** shoot one so it swings hard into your rival to smash them; block to knock it back.
+  - New cards: **Echo Guard** (every block fires a second free block a beat later) and **Shield Charge** (blocking dashes you along your aim and rams your rival). Long Haul bullets now grow as they fly, like ROUNDS' Grow.
 - **Sandbox:** hand yourself or the CPU any cards you like, as many copies as you want, and try them out with no drafting. Press Tab mid-fight to change cards; the CPU can fight back, dodge without shooting, or stand still as a target, and you can lock the arena.
 - **Smooth online play:** the joining player's game runs hanging blocks and moving platforms itself and steers toward the host's, and draws the other fighter a few milliseconds in the past along its true path, so nothing shakes between network updates. `net.js` checks both.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
@@ -68,7 +75,7 @@ scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
 scripts/balance.js     CPU-vs-CPU win rate of every card on its own (not in CI)
 scripts/reach.js       drives a fighter over every arena (with a 6% jump-height margin) and fails if any platform, wall top,
-                       hanging block or moving platform can't be reached from both spawns (not in CI: ~50 s)
+                       hanging block or moving platform can't be reached from both spawns (not in CI: ~80 s)
 scripts/stress.js      long CPU matches with big random card stacks: crashes, NaN, runaway bullets, stalls (not in CI)
 scripts/browser-perf.js headless Chrome frame times at 1x and 2x pixel density, up to hundreds of bullets (not in CI)
 scripts/browser-flow.js headless Chrome walkthrough: name, menu, draft, pause, settings, and a real online match on the live site (not in CI)
