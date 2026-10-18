@@ -1094,7 +1094,8 @@ function drawBigFace(p,mood){const fc=$('#face'),g=fc.getContext('2d'),S=560,R=2
 const boxHit=(x,y,hw,hh,r)=>x+hw>r.x&&x-hw<r.x+r.w&&y+hh>r.y&&y-hh<r.y+r.h;
 const solidBox=(x,y,hw,hh)=>solids.some(r=>boxHit(x,y,hw,hh,r));
 const solidBoxP=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&boxHit(x,y,hw,hh,r));   // walls a body cannot pass
-function sweepClear(x0,y0,x1,y1,R){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/(R*.4)));for(let i=1;i<=n;i++)if(solidBoxP(x0+(x1-x0)*i/n,y0+(y1-y0)*i/n,R-1,R-1))return false;return true}
+function sweepClear(x0,y0,x1,y1,R,skip){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/(R*.4)));
+  for(let i=1;i<=n;i++){const x=x0+(x1-x0)*i/n,y=y0+(y1-y0)*i/n;if(skip&&skip.length?solids.some(r=>!r.oneway&&!r.bound&&!skip.includes(r)&&boxHit(x,y,R-1,R-1,r)):solidBoxP(x,y,R-1,R-1))return false}return true}
 const pointSolid=(x,y)=>solids.some(r=>!r.bound&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
 function circleRect(x,y,rad,r){const cx=clamp(x,r.x,r.x+r.w),cy=clamp(y,r.y,r.y+r.h),dx=x-cx,dy=y-cy;return dx*dx+dy*dy<rad*rad}
 /* fraction of the segment travelled before a circle of radius rad touches a solid (1 = clear) */
@@ -1319,7 +1320,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   else if(p.s.slam&&inp.down&&!p.grounded&&p.dropT<=0){if(!p.slamming){p.slamming=true;p.vx*=.4;moveFx(p,()=>sfx('slamGo'))}p.vy=Math.max(p.vy,1500)}
   // wall slide + wall jump off the arena's blocks (never the outer edges: those aren't walls, they hurt)
   // hold toward a wall to grip it: you barely slide, and touching it gives your air jump back
-  if(p.wallDir&&!p.grounded&&inp.move===p.wallDir){if(p.vy>0)p.vy=Math.min(p.vy,70);p.airJumps=s.airJumps}
+  if(p.wallDir&&!p.grounded&&inp.move===p.wallDir){if(p.vy>0)p.vy=Math.min(p.vy,70);if(!swings.some(r=>boxHit(p.x+p.wallDir*3,p.y,p.r,p.r*.6,r)))p.airJumps=s.airJumps}   // a swinging block doesn't refresh it (online it's never in quite the same place on both screens)
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
   if(p.jumpBuf>0){const jv=1010*s.jumpPower;
@@ -1550,7 +1551,7 @@ function update(dt){pollPads();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
   if(net.role==='host'&&net.connected&&game.mode==='online-host'){net.sendT-=dt;net.pingT-=dt;
-    if(net.sendT<=0){net.sendT=net.relayed?1/20:1/30;netSend(snapshot())}
+    if(net.sendT<=1e-4){net.sendT=Math.max(-.05,net.sendT)+(net.relayed?1/20:1/30);netSend(snapshot())}   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
     if(performance.now()-net.lastRecv>15000)netLost(`Lost the connection to ${net.remoteName||'your opponent'}.`);if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}}
 
 /* ---------- render ---------- */
@@ -1738,7 +1739,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-tricks';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-online';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -1762,7 +1763,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>{popText(x,y);sfx('parry')},r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 function netSend(m){if(net.conn&&net.connected)try{net.conn.send(m)}catch(e){}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
@@ -1926,7 +1927,7 @@ function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith(
 function snapshot(){return{t:'s',ht:Math.round(performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
-    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0]),
+    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0),r2(b.grav),b.grow?r1(rangeMult(b)):1]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
 function applySnap(s){net.snap=s;net.snapAt=performance.now();
@@ -1956,8 +1957,12 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
   bullets=[...net.bmap.values()];
   // hanging blocks and moving platforms: the guest runs their motion itself every step (guestSwings) and steers toward
   // the host's state, so they glide instead of stepping at the snapshot rate
-  (s.sw||[]).forEach((a,i)=>{const w=swings[i];if(!w||!Array.isArray(a))return;const first=w.gAng==null;w.gAng=a[0];w.gAv=a[1];
-    if(first){w.ang=a[0];w.av=a[1];placeSwing(w);w.px=w.x;w.py=w.y;w.dx=0;w.dy=0}});
+  // they run one round trip AHEAD of the snapshot: the host will simulate this screen's next movement about that much later,
+  // so a platform here must already be where the host's will be then, or a fighter riding or bumping it gets corrected
+  const lead=clamp((net.rtt||0)/1000+2*FIXED,0,.45),ls=Math.round(lead/FIXED);
+  (s.sw||[]).forEach((a,i)=>{const w=swings[i];if(!w||!Array.isArray(a))return;const first=w.gAng==null;let ang=a[0],av=a[1];
+    if(w.mover)ang=(ang+lead/w.period)%1;else for(let k=0;k<ls;k++)[ang,av]=swingPhys(ang,av,w.len,FIXED);
+    w.gAng=ang;w.gAv=av;if(first){w.ang=ang;w.av=av;placeSwing(w);w.px=w.x;w.py=w.y;w.dx=0;w.dy=0}});
   for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
 // guest's own fighter: compare the host's state for the newest input it has applied with what this screen predicted
 // for that same input; shift the prediction by the difference and fade the visual jump out over ~0.1 s
@@ -1966,16 +1971,28 @@ function initPhys(p,x,y,vx,vy){net.snapN=(net.snapN||0)+1;Object.assign(p,{x,y,v
 function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   if(snapTo||!p.phys){initPhys(p,a[0],a[1],a[2],a[3]);return}
   const ack=a[18]|0,i=net.hist.findIndex(e=>e.s===ack);if(i<0)return;
-  // velocity corrections are capped per snapshot: when the two sides disagree by a step on when a jump started, a full
-  // correction would add the jump twice and fling the fighter; the remainder is fixed over the next few snapshots
-  const e=net.hist[i],ex=a[0]-e.x,ey=a[1]-e.y,evx=clamp(a[2]-e.vx,-450,450),evy=clamp(a[3]-e.vy,-450,450);
-  if(Math.hypot(ex,ey)>220){initPhys(p,a[0],a[1],a[2],a[3]);return}   // too far apart to blend: trust the host
-  // a correction must never carry the body into or through a wall: if the path isn't clear, take the host's spot outright
-  // (the drawn body still glides there over a few frames instead of teleporting)
-  if(!sweepClear(p.x,p.y,p.x+ex,p.y+ey,p.r)){const ox=p.x,oy=p.y;if(!solidBoxP(a[0],a[1],p.r-1,p.r-1)){initPhys(p,a[0],a[1],a[2],a[3]);
-    net.offX=clamp(net.offX+ox-p.x,-80,80);net.offY=clamp(net.offY+oy-p.y,-80,80)}return}
-  p.x+=ex;p.y+=ey;p.vx+=evx;p.vy+=evy;net.offX=clamp(net.offX-ex,-80,80);net.offY=clamp(net.offY-ey,-80,80);
-  net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=ex;h.y+=ey;h.vx+=evx;h.vy+=evy}}
+  // velocity corrections are capped per snapshot, and skipped right around this fighter's own jumps, landings, pad and edge
+  // bounces: there the two sides can disagree by a step on WHEN it happened, which looks like a huge velocity error that
+  // is gone a step later (correcting it would apply the jump twice and fling the fighter). Positions are still corrected.
+  const e=net.hist[i],ex=a[0]-e.x;let ey=a[1]-e.y,evy=clamp(a[3]-e.vy,-450,450),evx=clamp(a[2]-e.vx,-450,450);
+  for(let k=Math.max(0,i-8);k<Math.min(net.hist.length-1,i+8);k++){const h0=net.hist[k],h1=net.hist[k+1];if(Math.abs(h1.vy-h0.vy)>500||Math.abs(h1.vx-h0.vx)>500){evx=0;evy=0;break}}
+  // both sides say it's standing: the floor under it decides its height, so a small height error is noise (and nudging it
+  // up off a moving platform would make it flicker between standing and falling)
+  if(p.grounded&&a[15]&&Math.abs(ey)<14){ey=0;evy=0}
+  // air jumps left: carry over the host's count (as of that step) so both sides agree whether the next press jumps
+  if(a[22]!=null&&e.aj!=null)p.airJumps=clamp(p.airJumps+(a[22]-e.aj),0,p.s.airJumps);
+  if(Math.hypot(ex,ey)>220){const ox=p.x,oy=p.y;initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p);return}   // too far apart to blend: trust the host
+  // a correction must never carry the body into or through a wall. Apply what's clear: often only one axis is blocked (a
+  // correction measured mid-jump would push a fighter that has since landed down into the floor), so keep the other.
+  // Walls the body already touches (a platform riding into it) don't count as blocking.
+  let cx=ex,cy=ey;const skip=solids.filter(r=>!r.oneway&&!r.bound&&boxHit(p.x,p.y,p.r-1,p.r-1,r)),clear=(dx,dy)=>sweepClear(p.x,p.y,p.x+dx,p.y+dy,p.r,skip);
+  if(!clear(cx,cy)){if(clear(cx,0))cy=0;else if(clear(0,cy))cx=0;
+    else{const ox=p.x,oy=p.y;if(!solidBoxP(a[0],a[1],p.r-1,p.r-1)){initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p)}return}}
+  const fvx=cx===ex?evx:0,fvy=cy===ey?evy:0;
+  p.x+=cx;p.y+=cy;p.vx+=fvx;p.vy+=fvy;net.offX=clamp(net.offX-cx,-80,80);net.offY=clamp(net.offY-cy,-80,80);
+  net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=cx;h.y+=cy;h.vx+=fvx;h.vy+=fvy}}
+// a snap still glides on screen: the drawn body starts where it was and catches up over a few frames
+function snapGlide(ox,oy,p){net.offX=clamp(net.offX+ox-p.x,-80,80);net.offY=clamp(net.offY+oy-p.y,-80,80)}
 function swingPhys(ang,av,len,h){av+=(-(1500/len)*Math.sin(ang)-.35*av)*h;ang=clamp(ang+av*h,-1.1,1.1);if(Math.abs(ang)>=1.1)av*=-.3;return[ang,av]}
 function guestSwings(h){const k=Math.min(1,h*5);
   for(const s of swings){s.pa=s.ang;s.px=s.x;s.py=s.y;
@@ -1990,8 +2007,10 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
   const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
-    me.localBlockT=(me.localBlockT||0)-h;moveIntent(me,h);moveCollide(me,h);
-    net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy});if(net.hist.length>360)net.hist.shift()}
+    me.localBlockT=(me.localBlockT||0)-h;
+    if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me)}}
+    moveIntent(me,h);moveCollide(me,h);
+    net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}
   net.pendJump=false;
 }
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
@@ -1999,7 +2018,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.charge&&me.phys&&me.alive)chargeKick(me)}}}   // predict the Shield Charge dash
+  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);while(game.acc>=FIXED){game.acc-=FIXED;guestStep(FIXED,busy)}
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);

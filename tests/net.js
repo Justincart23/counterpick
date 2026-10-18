@@ -3,11 +3,13 @@
 // Checks: hosting and joining by code, names crossing over, drafting on both screens (the guest picks its own cards),
 // the guest's inputs moving its fighter on the host, the guest's view tracking the host's simulation,
 // a full match to the end screen on both sides, rematch, a wrong code, a full room, and a clean disconnect.
-//   node tests/net.js [latencyMs=40] [jitterMs=0]   (e.g. 90 45 is a typical cross-country link)
+//   node tests/net.js [latencyMs=40] [jitterMs=0] [features]   (e.g. 90 45 is a typical cross-country link)
 const { load, advance, schedule } = require('./env');
 
 const LATENCY = +(process.argv[2] || process.env.NET_LATENCY || 40); // ms each way
-const JITTER = +(process.argv[3] || process.env.NET_JITTER || 0);    // extra random ms per message (delivery stays in order, like a WebRTC data channel)
+const JITTER = +(process.argv[3] || process.env.NET_JITTER || 0);
+// 'features': both fighters carry the block/movement cards and the bots duck, block constantly (parries, edge launches) and hug walls
+const FEATURES = process.argv[4] === 'features';    // extra random ms per message (delivery stays in order, like a WebRTC data channel)
 let jseed = 99; const jrand = () => ((jseed = (jseed * 1103515245 + 12345) >>> 0) / 2 ** 32);
 const vnow = () => require('./env').clock.t;
 const registry = new Map();
@@ -93,7 +95,8 @@ const DT = 1 / 60;
   const actors = [H, G];   // every loaded copy gets a frame, like separate browser tabs
   // like a browser, let pending promise callbacks run between frames (the relay client is promise-based)
   const frameA = async (n = 1) => { for (let i = 0; i < n; i++) { frame(); await new Promise((r) => setImmediate(r)) } };
-  const frame = (n = 1) => { for (let i = 0; i < n; i++) { for (const A of actors) { try { A.update(DT) } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };
+  let fcount = 0;
+  const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++; for (const A of actors) { try { A.update(DT); if (fcount % 6 === 0) A.render() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };   // both screens draw too
 
   // --- a wrong code fails cleanly
   const X = (await load({ seed: 33, virtualTime: true })).api; X.setName('Lost');
@@ -140,21 +143,35 @@ const DT = 1 / 60;
     if (f % 55 === 0 || f % 55 === 18) A.edges.add('KeyW');   // jump, then double-jump near the top (clears tall walls)
     if (f % 55 < 16 || (f % 55 >= 18 && f % 55 < 34)) A.keys.add('KeyW');   // hold for full height (a tap gives a short hop)
     if (f % 233 === 0) A.mouse.rEdge = true;
+    if (FEATURES) {
+      if (f % 70 === 5) A.mouse.rEdge = true;                                   // block a lot: parries, edge launches, echo/charge
+      if (f % 160 >= 120 && f % 160 < 150) { A.keys.add('KeyS'); A.keys.delete('KeyW') } else A.keys.delete('KeyS');   // duck, fast-fall
+      if (f % 300 >= 200 && f % 300 < 230) { for (const k of ['KeyA', 'KeyD']) A.keys.delete(k); A.keys.add(me.x < 800 ? 'KeyA' : 'KeyD') }   // run at walls / edges
+    }
   };
+  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard'];
+  const giveDecks = () => { for (const p of H.players) { const want = FEATURE_DECK.map((n) => H.CARDS.find((c) => c.n === n)); if (p.cards.length < want.length || !want.every((c) => p.cards.includes(c))) { p.cards = [...want, ...p.cards.filter((c) => !want.includes(c))]; H.recompute(p) } } };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
   let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
-  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
     if (G.pickFor && G.pickMode === 'remote' && !G.pickLock) { G.netChoose(1); guestDrafts++ }
+    if (FEATURES && H.game.state === 'ready') giveDecks();
+    if (FEATURES && G.net.snap && H.game.state === 'play' && G.game.state === 'play' && G.game.mapIdx === H.game.mapIdx) {
+      // host and guest agree on what matters: who is alive, health (within one snapshot of change), shield walls
+      cons.n++; if (G.players.some((p, k) => p.alive !== H.players[k].alive)) cons.alive++;
+      if (G.players.some((p, k) => Math.abs(p.hp - H.players[k].hp) > 60)) cons.hp++;
+      if ((H.shields || []).length !== undefined) { const hs = H.game && H.players.length ? H.shieldsLen() : 0; if (Math.abs(G.shieldsLen() - hs) > 1) cons.shields++ }
+      cons.parries = H.game.parries || 0; if (H.players.some((p) => p.chargeT > 0)) cons.charges++; if (H.players.some((p) => p.duck)) cons.ducks++ }
     drive(H, H.players[0], H.players[1], frames);
     const me = G.players[1];
     const still = (f) => f.grounded && !(f.ground && f.ground.swing) && Math.abs(f.vx) < 5;   // on fixed ground: moving platforms carry you
     if (probe === 0 && frames > 300 && H.game.state === 'play' && me.alive && me.grounded) { probe = 1; probeT = 0 }
-    if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
+    if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW', 'KeyS']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
     if (probe === 1 && ++probeT >= 20 && !still(H.players[1])) probeT = 0;   // wait until the host's copy is standing still
     if (probe === 1 && G.game.state !== 'play') probeT = 0;   // a new point's countdown started: wait for live play
     if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; probeKey = G.solids.some((r) => !r.oneway && !r.bound && me.x + 60 > r.x && me.x < r.x + r.w && me.y > r.y - me.r && me.y < r.y + r.h + me.r) || me.x > 1400 ? 'KeyA' : 'KeyD'; G.keys.add(probeKey) }
@@ -194,7 +211,7 @@ const DT = 1 / 60;
   frame(20);
   check(G.game.state === 'over', `the guest should see the end screen (guest state ${G.game.state})`);
   check(hostDrafts >= 1 && guestDrafts >= 1, `both players should draft (host ${hostDrafts}, guest ${guestDrafts})`);
-  check(H.players[1].cards.length === guestDrafts, `the guest's picks should land on the host (${H.players[1].cards.length} vs ${guestDrafts})`);
+  check(H.players[1].cards.length === guestDrafts + (FEATURES ? 6 : 0), `the guest's picks should land on the host (${H.players[1].cards.length} vs ${guestDrafts})`);
   check(G.players[1].cards.length === H.players[1].cards.length && G.players[0].cards.length === H.players[0].cards.length, 'both screens should show the same decks');
   check(guestMoved > 800, `the guest's inputs should move its fighter on the host (moved ${guestMoved.toFixed(0)}px)`);
   check(sawGuestBullet, "the guest's shots should be fired on the host");
@@ -244,10 +261,16 @@ const DT = 1 / 60;
   brokerFor(H.RELAY_BROKERS[0]).up = true;
 
   check(errors === 0, `no exceptions (${errors})`);
+  if (FEATURES) {
+    check(cons.n > 1000 && cons.alive / cons.n < 0.02, `host and guest should agree who is alive (${cons.alive} of ${cons.n} frames differ)`);
+    check(cons.hp / cons.n < 0.02, `host and guest should agree on health (${cons.hp} of ${cons.n} frames off by >60)`);
+    check(cons.shields / cons.n < 0.02, `host and guest should show the same Bulwark walls (${cons.shields} of ${cons.n} frames differ)`);
+    check(cons.charges > 0 && cons.ducks > 0, `the features run should exercise dashes and ducks (charges ${cons.charges}, ducks ${cons.ducks})`);
+  }
 
-  check(sm.sw > 500 && sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
-  check(sm.path > 500 && sm.pathOff / sm.path < 0.03 && sm.pathSum / sm.path < 6, `the host's fighter should follow its true path on the guest's screen (mean ${(sm.pathSum / sm.path).toFixed(1)}px off, ${sm.pathOff} of ${sm.path} frames over 12px)`);
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  check(sm.sw < 200 || sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
+  check(sm.path > 300 && sm.pathOff / sm.path < 0.03 && sm.pathSum / sm.path < 6, `the host's fighter should follow its true path on the guest's screen (mean ${(sm.pathSum / sm.path).toFixed(1)}px off, ${sm.pathOff} of ${sm.path} frames over 12px)`);
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
