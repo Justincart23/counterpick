@@ -547,21 +547,21 @@ const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,560,260,30],[1040,560,260,30],[670,380,260,30]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
  {name:'Archipelago',rects:[[120,640,360,40],[620,520,360,40],[1120,640,360,40],[370,330,220,30],[1010,330,220,30]],sp:[[300,600],[1300,600]]},
- {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,560,240,30],[1180,560,240,30],[600,250,400,30]],sp:[[200,720],[1400,720]]},
+ {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,560,240,30],[1180,560,240,30],[600,290,400,30]],sp:[[200,720],[1400,720]]},
  {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,560,400,30]],sp:[[225,610],[1375,610]]},
  {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,24],[560,330,180,24],[860,330,180,24]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,520,220,26],[1180,520,220,26]],sp:[[200,750],[1400,750]]},
- {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:430,w:300,h:30}],sp:[[300,690],[1300,690]]},
+ {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],sp:[[300,690],[1300,690]]},
  {name:'Chimes',rects:[],swings:chimeLens.map((l,i)=>({ax:100+i*128,len:l,w:60,h:60})),sp:[[228,560-30-24],[1380,560-30-24]]},
- {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,450,320,28],[1180,450,320,28],[100,640,320,28],[1180,640,320,28],[560,300,480,28],[0,860,1600,40,2]],
-   swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,615],[1340,615]]},
- {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:540,w:220,h:30},{ax:1000,len:540,w:220,h:30},{ax:800,len:300,w:160,h:30}],sp:[[200,770],[1400,770]]},
+ {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,28],[1180,485,320,28],[100,665,320,28],[1180,665,320,28],[560,300,480,28],[0,860,1600,40,2]],
+   swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
+ {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:610,w:220,h:30},{ax:1000,len:610,w:220,h:30},{ax:800,len:400,w:160,h:30}],sp:[[200,770],[1400,770]]},
  {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,480,360,28]],movers:[{x:440,y:640,w:180,h:26,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
  {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,28],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:26,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:26,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,30],[740,404,120,16,3],[180,300,240,28],[1180,300,240,28]],sp:[[400,740],[1200,740]]},
  {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,430,480,30],[150,560,220,28],[1230,560,220,28],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
  {name:'Catwalk',rects:[[100,520,500,26],[1000,520,500,26],[300,730,240,40],[1060,730,240,40]],movers:[{x:620,y:380,w:160,h:24,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
- {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,300,400,28],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
+ {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,330,400,28],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
 ];
 const FRAME=10;
@@ -741,7 +741,11 @@ function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange')
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
-  s.maxHp=Math.max(10,s.maxHp);p.s=s;p.r=BASE_R*s.size}
+  s.maxHp=Math.max(10,s.maxHp);
+  // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
+  s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
+  s.moveSpeed=clamp(s.moveSpeed,.45,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
+  s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
   dots:[],slowT:0,slowAmt:0,alive:true,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
@@ -1099,10 +1103,13 @@ function safeSpawn(p,ang,dist,br,phase){const c=Math.cos(ang),s=Math.sin(ang),x1
 function separate(){const[a,b]=players;if(!a||!b||!a.alive||!b.alive)return;const dx=b.x-a.x,dy=b.y-a.y,m=a.r+b.r;
   if(Math.abs(dy)>m*.8||Math.abs(dx)>=m)return;const dir=Math.sign(dx)||(Math.random()<.5?-1:1),push=(m-Math.abs(dx))/2;
   for(const[p,sg]of[[a,-dir],[b,dir]]){const nx=p.x+sg*push;if(!solidBoxP(nx,p.y,p.r,p.r)&&nx>p.r&&nx<W-p.r)p.x=nx}}
-function bulletRect(b,r){const cx=clamp(b.x,r.x,r.x+r.w),cy=clamp(b.y,r.y,r.y+r.h),dx=b.x-cx,dy=b.y-cy,d2=dx*dx+dy*dy;if(d2>=b.r*b.r)return null;
-  let nx,ny;if(d2>1e-6){const d=Math.sqrt(d2);nx=dx/d;ny=dy/d;b.x=cx+nx*(b.r+.5);b.y=cy+ny*(b.r+.5)}
+/* walls and floors only see a bullet's core (at most WALL_R), so a huge stacked bullet still clears the floor it was fired over;
+   fighters are hit by its full size */
+const WALL_R=9,wallR=b=>Math.min(b.r,WALL_R);
+function bulletRect(b,r){const br=wallR(b),cx=clamp(b.x,r.x,r.x+r.w),cy=clamp(b.y,r.y,r.y+r.h),dx=b.x-cx,dy=b.y-cy,d2=dx*dx+dy*dy;if(d2>=br*br)return null;
+  let nx,ny;if(d2>1e-6){const d=Math.sqrt(d2);nx=dx/d;ny=dy/d;b.x=cx+nx*(br+.5);b.y=cy+ny*(br+.5)}
   else{const l=b.x-r.x,rr=r.x+r.w-b.x,t=b.y-r.y,bt=r.y+r.h-b.y,m=Math.min(l,rr,t,bt);
-    if(m===l){nx=-1;ny=0;b.x=r.x-b.r}else if(m===rr){nx=1;ny=0;b.x=r.x+r.w+b.r}else if(m===t){nx=0;ny=-1;b.y=r.y-b.r}else{nx=0;ny=1;b.y=r.y+r.h+b.r}}
+    if(m===l){nx=-1;ny=0;b.x=r.x-br}else if(m===rr){nx=1;ny=0;b.x=r.x+r.w+br}else if(m===t){nx=0;ny=-1;b.y=r.y-br}else{nx=0;ny=1;b.y=r.y+r.h+br}}
   return{nx,ny}}
 // cap spin so a swinging block's edge moves < ~1000px/s: fast enough to feel heavy, never fast enough to sweep through a body
 function pushSwing(s,ix){if(s.mover)return;s.av=clamp(s.av+ix/s.len,-1000/s.len,1000/s.len)}
@@ -1129,7 +1136,7 @@ function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1
 /* ---------- shooting & blocking ---------- */
 function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1);p.burstLeft=p.s.burst;p.burstT=0}
 function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
-  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,br,s.phase);
+  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
     spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1})}
@@ -1176,12 +1183,12 @@ function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
-// your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (Cluster Guard's bombs never do)
+// your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
 const SELF_BLAST=.4;
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive)continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
-    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,b.dmg*.55*f*(p===b.owner&&!b.mines?SELF_BLAST:1),b.owner)}}}
+    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
 const MINE_FUSE=.5;   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
@@ -1230,12 +1237,12 @@ function updateBullets(dt){
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
     if(b.grow){if(b.base==null)b.base=b.dmg;b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b)}
     b.vy+=BGRAV*b.grav*dt;
-    const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(b.r*.8)))),sdt=dt/steps;
+    const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
       let ghostIn=false;
       for(const r of solids){
         // Ghost Rounds: slip through the first wall only, then collide normally
-        if(b.phase&&!r.bound&&circleRect(b.x,b.y,b.r,r)&&(b.phasing||b.phaseLeft>0)){if(!b.phasing){b.phaseLeft--;b.phasing=true}ghostIn=true;continue}
+        if(b.phase&&!r.bound&&circleRect(b.x,b.y,wallR(b),r)&&(b.phasing||b.phaseLeft>0)){if(!b.phasing){b.phaseLeft--;b.phasing=true}ghostIn=true;continue}
         const n=bulletRect(b,r);if(!n)continue;
         if(r.swing)pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));
         if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
@@ -1298,6 +1305,8 @@ function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
   if(hit){p.grounded=hit==='bottom'?false:p.grounded}
   return hit}
 function moveCollide(p,dt){
+  // stacked knockbacks (several blasts in one frame, big Lob Shell stacks) can add up; cap the launch so nobody is flung off-screen
+  p.vx=clamp(p.vx,-1900,1900);p.vy=clamp(p.vy,-2100,1900);
   // sub-step by speed so a huge knockback can never carry a body through a wall (each move ≤ half its radius)
   const R=p.r,nSub=Math.min(12,Math.max(1,Math.ceil(Math.max(Math.abs(p.vx),Math.abs(p.vy))*dt/(R*.5)))),mdt=dt/nSub;
   for(let ms=0;ms<nSub;ms++){
@@ -1395,7 +1404,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
 function groundAhead(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<p.y+p.r+300;y+=18)if(pointSolid(x,y))return true;return false}
 function groundBelow(p){for(let y=p.y+p.r;y<H+40;y+=24)if(pointSolid(p.x,y)||pointSolid(p.x-p.r,y)||pointSolid(p.x+p.r,y))return true;return false}
 /* perception: simulate the real shot from the real muzzle, with the same wall rules bullets obey */
-function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=5*s.bulletSize,st=1/60,m=safeSpawn(p,ang,p.r+30,br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
+function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.min(5*s.bulletSize,WALL_R),st=1/60,m=safeSpawn(p,ang,p.r+30,br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
   let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,phaseLeft=s.phase?1:0,inW=false;
   for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(circleRect(x,y,br,r)){hit=r;break}
     if(hit){if(phaseLeft>0&&!hit.bound||inW&&!hit.bound){if(!inW){phaseLeft--;inW=true}}else return s.bounces>0&&Math.random()<.3}else inW=false;
@@ -1433,6 +1442,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
     if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>0&&p.airJumps>0)jump=true}
+    if(!p.grounded&&dy<-30&&p.vy>-160&&p.vy<140&&p.airJumps>0)jump=true;   // target above: spend the double jump at the top of the first
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
   if(ai.mode!=='recover'){
@@ -1680,7 +1690,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-physics';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-stacks';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

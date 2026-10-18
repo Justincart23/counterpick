@@ -9,6 +9,8 @@ const suite = [
   run('movement.js'),
   run('points.js'),
   run('combos.js'),
+  run('stacking.js'),
+  run('cpu-reach.js'),
   run('audio.js'),
   run('ceiling.js'),
   run('net.js'),

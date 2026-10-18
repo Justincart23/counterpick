@@ -66,7 +66,8 @@ api/turn.js            Vercel function: optional Cloudflare TURN credentials for
 scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
 scripts/balance.js     CPU-vs-CPU win rate of every card on its own (not in CI)
-scripts/reach.js       drives a fighter over every arena and lists any platform the jumps can't reach (not in CI)
+scripts/reach.js       drives a fighter over every arena (with a 6% jump-height margin) and fails if any platform, wall top,
+                       hanging block or moving platform can't be reached from both spawns (not in CI: ~50 s)
 scripts/stress.js      long CPU matches with big random card stacks: crashes, NaN, runaway bullets, stalls (not in CI)
 scripts/browser-perf.js headless Chrome frame times at 1x and 2x pixel density, up to hundreds of bullets (not in CI)
 scripts/browser-flow.js headless Chrome walkthrough: name, menu, draft, pause, settings, and a real online match on the live site (not in CI)
@@ -90,6 +91,8 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`net.js`** loads two copies of the game, connects them through a mock PeerJS with 40 ms latency, and has bots play a full online match. It runs twice: at 40 ms, and on a laggy, jittery link (90 ms ± 45 ms, like a cross-country connection), and fails if the guest's own fighter ever ends up inside or passes through a wall. It checks joining by code, drafting on both screens, input relay, view sync, rematch, a full room, a wrong code and disconnects. It also plays a relayed match through a mock MQTT broker (which parses the real packets) with the direct link blocked and the first broker down.
 - **`movement.js`** runs the same input timeline at 30, 60, 120, 144 and 240 fps and checks that run speed, jump height, tap-jump height and long-jump distance match. Physics advances in fixed 1/120 s steps on every device.
 - **`points.js`** checks scoring (the first death decides the point; only near-simultaneous deaths are trades) and the arena edges (damage and knock-back, a small pop off the bottom, no clinging to edges).
+- **`stacking.js`** fires every card stacked 1, 3, 6 and 9 times, plus 300 random mixed decks, and fails if a deck shoots nothing, its bullets don't fly, or anything goes NaN.
+- **`cpu-reach.js`** checks that the CPU can get to you and land a hit on every arena, from either spawn.
 - **`combos.js`** checks that you and the CPU can wall-jump up the arena's blocks but never climb its edges, that your own explosions hurt you a little, that Sandbox loadouts apply with no drafting, that stacked cards keep both effects (Limpet Mines with Splinter Rounds, double Ricochet), that the block cards work (Cluster Guard bombs, Frost Guard freeze, Double Guard's second charge), and that blocking into the bottom edge saves you and launches you high.
 - **`card-art.js`** renders all 44 card animations and icons for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
