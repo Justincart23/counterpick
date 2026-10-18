@@ -47,9 +47,9 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 
 ## What's in it
 
-- **Combat:** 100 health, 55 damage per shot (two hits kill), a 3-round magazine, and a 4-second block. Movement and bullets are tuned from frame-by-frame measurements of ROUNDS gameplay: low, snappy jumps (about four body-heights, plus a small double jump and wall jumps), and slower bullets that drop hard, so long shots are lobbed. Bullets fly as glowing tracers and throw sparks where they hit. An optional aim guide (Settings) shows the first stretch of your shot's arc. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
+- **Combat:** 130 health, 55 damage per shot (three plain hits kill), a 3-round magazine, and a 4-second block. Movement and bullets are tuned from frame-by-frame measurements of ROUNDS gameplay: low, snappy jumps (about four body-heights, plus a small double jump and wall jumps), and slower bullets that drop hard, so long shots are lobbed. Bullets fly as glowing tracers and throw sparks where they hit. An optional aim guide (Settings) shows the first stretch of your shot's arc. Your own explosions hurt you a little, so don't fire explosive rounds point-blank.
 - **48 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
-- **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
+- **21 arenas** (ROUNDS-style: chunky platforms, cover blocks, symmetric layouts, every climb within one jump plus an easy double jump) with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
 - **ROUNDS-style tricks** (from studying a ROUNDS tips guide):
   - **Duck** by holding `S` on the ground: your hitbox squashes flat and head-height shots sail over. In the air, `S` cuts a jump short or drops you fast.
   - **Grip walls** by holding toward them: you barely slide, and your air jump comes back. Jump while holding into the wall to climb it; jump without holding to kick off it.
@@ -76,9 +76,10 @@ api/turn.js            Vercel function: optional Cloudflare TURN credentials for
 scripts/relay-smoke.js live check of the public MQTT relays (not in CI)
 scripts/turn-check.js  live check of the Cloudflare TURN relay: real authenticated allocation (not in CI)
 scripts/balance.js     CPU-vs-CPU win rate of every card on its own (not in CI)
+scripts/pacing.js      full CPU matches: point length, close matches, comebacks, overtime (not in CI)
 scripts/browser-online.js  a real online match between two headless Chrome windows over PeerJS: bots play with every block and
                        movement card; checks errors, fps, snapshot rate and host/visitor agreement on both screens (not in CI)
-scripts/reach.js       drives a fighter over every arena (with a 6% jump-height margin) and fails if any platform, wall top,
+scripts/reach.js       drives a fighter over every arena (with a 12% jump-height margin) and fails if any platform, wall top,
                        hanging block or moving platform can't be reached from both spawns (not in CI: ~80 s)
 scripts/stress.js      long CPU matches with big random card stacks: crashes, NaN, runaway bullets, stalls (not in CI)
 scripts/browser-perf.js headless Chrome frame times at 1x and 2x pixel density, up to hundreds of bullets (not in CI)

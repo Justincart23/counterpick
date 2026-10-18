@@ -437,14 +437,14 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
-const BASE={maxHp:100,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1150,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
+const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1150,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
   split:0,grow:false,well:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
- {n:'Overpressure',k:'gun',r:0,d:'Pack every round with extra powder.',st:[['+70%','Damage',1],['+0.4s','Reload',0]],a:s=>{s.dmg*=1.7;s.reload+=.4}},
+ {n:'Overpressure',k:'gun',r:0,d:'Pack every round with extra powder.',st:[['+50%','Damage',1],['-1','Ammo',0],['+0.3s','Reload',0]],a:s=>{s.dmg*=1.5;s.ammo=Math.max(1,s.ammo-1);s.reload+=.3}},
  {n:'Hair Trigger',k:'gun',r:0,d:'Fire as fast as you can click.',st:[['+100%','Fire rate',1],['+2','Ammo',1],['-25%','Reload',1]],a:s=>{s.fireDelay*=.5;s.ammo+=2;s.reload*=.75}},
  {n:'Deep Magazine',k:'gun',r:0,d:'Three more rounds before you reload.',st:[['+3','Ammo',1]],a:s=>{s.ammo+=3}},
  {n:'Speed Loader',k:'gun',r:0,d:'Refill your magazine in a blink.',st:[['-50%','Reload',1]],a:s=>{s.reload*=.5}},
@@ -452,15 +452,15 @@ const CARDS=[
  {n:'Scattergun',k:'gun',r:1,d:'Every trigger pull fires a fan of pellets.',st:[['+2','Bullets',1],['-35%','Damage',0]],a:s=>{s.projectiles+=2;s.spread+=.16;s.dmg*=.65}},
  {n:'Triple Tap',k:'gun',r:1,d:'Each shot becomes a three-round burst.',st:[['+2','Burst',1],['+2','Ammo',1],['-25%','Damage',0]],a:s=>{s.burst+=2;s.ammo+=2;s.dmg*=.75}},
  {n:'Vampire Rounds',k:'body',r:1,d:'Heal for most of the damage you deal.',st:[['+70%','Life steal',1]],a:s=>{s.lifesteal+=.7}},
- {n:'Thick Skin',k:'body',r:0,d:'Bigger, sturdier, slightly slower.',st:[['+25%','Health',1],['+25%','Size',0],['-8%','Speed',0]],a:s=>{s.maxHp*=1.25;s.size*=1.25;s.moveSpeed*=.92}},
- {n:'Pipsqueak',k:'body',r:1,d:'Small and quick. Harder to hit, easier to drop.',st:[['-25%','Size',1],['+20%','Speed',1],['-25%','Health',0]],a:s=>{s.size*=.75;s.moveSpeed*=1.2;s.maxHp*=.75}},
+ {n:'Thick Skin',k:'body',r:0,d:'Bigger, sturdier, slightly slower.',st:[['+35%','Health',1],['+20%','Size',0],['-6%','Speed',0]],a:s=>{s.maxHp*=1.35;s.size*=1.2;s.moveSpeed*=.94}},
+ {n:'Pipsqueak',k:'body',r:1,d:'Small and quick. Harder to hit, easier to drop.',st:[['-25%','Size',1],['+20%','Speed',1],['-15%','Health',0]],a:s=>{s.size*=.75;s.moveSpeed*=1.2;s.maxHp*=.85}},
  {n:'Spring Heels',k:'body',r:0,d:'One more jump in the air.',st:[['+1','Air jump',1],['+10%','Jump height',1]],a:s=>{s.airJumps+=1;s.jumpPower*=1.1}},
  {n:'Venom Tips',k:'shot',r:1,d:'Hits poison instead of striking at once, for far more damage in total.',st:[['+50%','Total damage',1],['2s','Over time',0]],a:s=>{s.poison=true},u:1},
  {n:'Cryo Rounds',k:'shot',r:1,d:'Hits chill your rival. Three quick hits freeze them solid.',st:[['45%','Slow on hit',1],['3 hits','Freeze',1]],a:s=>{s.slow+=.45;s.freeze=true}},
- {n:'Seeker',k:'shot',r:2,d:'Bullets curve hard toward your rival.',st:[['Strong','Homing',1],['-10%','Bullet speed',0]],a:s=>{s.homing+=1.15;s.bulletSpeed*=.9}},
+ {n:'Seeker',k:'shot',r:2,d:'Bullets curve hard toward your rival.',st:[['Strong','Homing',1],['-15%','Bullet speed',0]],a:s=>{s.homing+=.55;s.bulletSpeed*=.85}},
  {n:'Blast Cap',k:'shot',r:1,d:'Bullets explode on impact.',st:[['+100px','Explosion',1]],a:s=>{s.explode+=100}},
- {n:'Rail Slug',k:'gun',r:2,d:'A fast, flat, devastating shot.',st:[['+100%','Bullet speed',1],['+70%','Damage',1],['+0.15s','Fire delay',0]],a:s=>{s.bulletSpeed*=2;s.bulletGravity*=.3;s.dmg*=1.7;s.fireDelay+=.15}},
- {n:'Lob Shell',k:'shot',r:1,d:'Heavy arcing shells that pop on landing.',st:[['+40%','Damage',1],['+85px','Explosion',1],['x1.35','Drop',0]],a:s=>{s.bulletGravity*=1.35;s.bulletSpeed*=.92;s.dmg*=1.4;s.explode+=85}},
+ {n:'Rail Slug',k:'gun',r:2,d:'A fast, flat, devastating shot.',st:[['+100%','Bullet speed',1],['+40%','Damage',1],['+0.3s','Fire delay',0]],a:s=>{s.bulletSpeed*=2;s.bulletGravity*=.3;s.dmg*=1.4;s.fireDelay+=.3}},
+ {n:'Lob Shell',k:'shot',r:1,d:'Heavy arcing shells that pop on landing.',st:[['+15%','Damage',1],['+85px','Explosion',1],['x1.35','Drop',0]],a:s=>{s.bulletGravity*=1.35;s.bulletSpeed*=.92;s.dmg*=1.15;s.explode+=85}},
  {n:'Quick Guard',k:'guard',r:0,d:'Your block comes back sooner.',st:[['-40%','Block cooldown',1]],a:s=>{s.blockCd*=.6}},
  {n:'Shockwave Guard',k:'guard',r:1,d:'Blocking blasts nearby bullets and shoves your rival.',st:[['On','Shockwave',1],['+0.25s','Block cooldown',0]],a:s=>{s.blockWave=true;s.blockCd+=.25},u:1},
  {n:'Cluster Guard',k:'guard',r:1,d:'Blocking tosses three bombs around you that blow up on impact.',st:[['+3','Bombs',1],['30','Blast damage',1]],a:s=>{s.blockBombs+=3},u:1},
@@ -476,7 +476,7 @@ const CARDS=[
  {n:'Regrowth',k:'body',r:0,d:'Slowly knit back together.',st:[['+2.5%/s','Regen',1]],a:s=>{s.regen+=.025}},
  {n:'Second Wind',k:'body',r:2,d:'Survive one lethal hit per point with a third of your health.',st:[['+1','Revive',1],['-35%','Health',0]],a:s=>{s.revive+=1;s.maxHp*=.65}},
  {n:'Fat Rounds',k:'shot',r:0,d:'Bigger bullets are easier to land.',st:[['+80%','Bullet size',1],['+15%','Damage',1],['-10%','Bullet speed',0]],a:s=>{s.bulletSize*=1.8;s.dmg*=1.15;s.bulletSpeed*=.9}},
- {n:'Haymaker',k:'shot',r:0,d:'Hits send your rival flying. Deadly near pits and edges.',st:[['+150%','Knockback',1],['+25%','Damage',1]],a:s=>{s.knock*=2.5;s.dmg*=1.25}},
+ {n:'Haymaker',k:'shot',r:0,d:'Hits send your rival flying. Deadly near pits and edges.',st:[['+150%','Knockback',1],['+15%','Damage',1]],a:s=>{s.knock*=2.5;s.dmg*=1.15}},
  {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets slip through up to two walls and pass straight through blocks.',st:[['2 walls','Phasing',1],['Unblockable','Shots',1],['+10%','Damage',1]],a:s=>{s.phase=true;s.dmg*=1.1},u:1},
  {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+90%','Damage',1],['-45%','Health',0]],a:s=>{s.dmg*=1.9;s.maxHp*=.55}},
  {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
@@ -484,12 +484,12 @@ const CARDS=[
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
- {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave.',st:[['+25%','Damage per 100px',1],['Up to x4','At long range',1],['Up to x2.4','Size',1],['+0.25s','Reload',0]],a:s=>{s.grow=true;s.reload+=.25},u:1},
+ {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
- {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-15%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.85;s.moveSpeed*=.9}},
+ {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-25%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.75;s.moveSpeed*=.9}},
  {n:'Momentum',k:'body',r:1,d:'Move faster, and the faster you move, the harder you hit.',st:[['+15%','Speed',1],['Up to +60%','Damage at speed',1]],a:s=>{s.momentum=true;s.moveSpeed*=1.15},u:1},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
 ];
@@ -572,24 +572,27 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
 const chimeLens=[620,560,500,440,380,320,320,380,440,500,560,620];
 const MAPS=[
- {name:'Yard',rects:[[0,760,1600,140],[300,560,260,30],[1040,560,260,30],[670,380,260,30]],sp:[[220,720],[1380,720]]},
+ {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
- {name:'Archipelago',rects:[[120,640,360,40],[620,520,360,40],[1120,640,360,40],[370,330,220,30],[1010,330,220,30]],sp:[[300,600],[1300,600]]},
- {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,560,240,30],[1180,560,240,30],[600,290,400,30]],sp:[[200,720],[1400,720]]},
- {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,560,400,30]],sp:[[225,610],[1375,610]]},
- {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,24],[560,330,180,24],[860,330,180,24]],sp:[[250,470],[1350,470]]},
- {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,520,220,26],[1180,520,220,26]],sp:[[200,750],[1400,750]]},
+ {name:'Archipelago',rects:[[120,640,360,56],[620,520,360,56],[1120,640,360,56],[370,360,220,38],[1010,360,220,38]],sp:[[300,600],[1300,600]]},
+ {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,590,240,40],[1180,590,240,40],[600,310,400,38],[420,700,60,60],[1120,700,60,60]],sp:[[200,720],[1400,720]]},
+ {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,600,400,40],[740,720,120,60]],sp:[[225,610],[1375,610]]},
+ {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],sp:[[250,470],[1350,470]]},
+ {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,600,220,40],[1180,600,220,40]],sp:[[200,750],[1400,750]]},
  {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],sp:[[300,690],[1300,690]]},
  {name:'Chimes',rects:[],swings:chimeLens.map((l,i)=>({ax:100+i*128,len:l,w:60,h:60})),sp:[[228,560-30-24],[1380,560-30-24]]},
- {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,28],[1180,485,320,28],[100,665,320,28],[1180,665,320,28],[560,300,480,28],[0,860,1600,40,2]],
+ {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,36],[1180,485,320,36],[100,665,320,36],[1180,665,320,36],[560,310,480,36],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
  {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:610,w:220,h:30},{ax:1000,len:610,w:220,h:30},{ax:800,len:400,w:160,h:30}],sp:[[200,770],[1400,770]]},
- {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,480,360,28]],movers:[{x:440,y:640,w:180,h:26,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
- {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,28],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:26,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:26,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
- {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,30],[740,404,120,16,3],[180,300,240,28],[1180,300,240,28]],sp:[[400,740],[1200,740]]},
- {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,430,480,30],[150,560,220,28],[1230,560,220,28],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
- {name:'Catwalk',rects:[[100,520,500,26],[1000,520,500,26],[300,730,240,40],[1060,730,240,40]],movers:[{x:620,y:380,w:160,h:24,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
- {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,330,400,28],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
+ {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,480,360,38]],movers:[{x:440,y:640,w:180,h:30,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
+ {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,38],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:30,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:30,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
+ {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,40],[740,404,120,16,3],[180,300,240,38],[1180,300,240,38]],sp:[[400,740],[1200,740]]},
+ {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
+ {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
+ {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
+ {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
+ {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],sp:[[200,740],[1400,740]]},
+ {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
 ];
 const FRAME=10;
@@ -1312,7 +1315,7 @@ function killBullet(b,impact,wall,n){
     sparks(b.x,b.y,'#fff6e8',6,420+sp*.15,ang,1.05);sparks(b.x,b.y,b.glow,4,300,ang,1.4)}
   burst(b.x,b.y,b.glow,4,240,3,.25,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 /* Long Haul: +25% damage per 100 px flown, up to x4; hits past x2 land with a shockwave that shoves everyone nearby */
-const rangeMult=b=>Math.min(4,1+b.dist*.0025);
+const rangeMult=b=>Math.min(3,1+b.dist*.002);
 function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);sfx('boom');
   for(const o of players){if(!o.alive)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<R){const a=Math.atan2(o.y-b.y,o.x-b.x),f=(1-d/R)*(o===p?.4:1);o.vx+=Math.cos(a)*700*f;o.vy+=Math.sin(a)*600*f-220*f;o.ground=null;o.kT=.35}}}
@@ -1350,7 +1353,7 @@ function updateBullets(dt){
     if(hom>0){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx),des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,
       na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
-    if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(2.4,1+b.dist*.0011)}   // Long Haul: bigger and harder the farther it flies
+    if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*dt;
     const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
@@ -1394,7 +1397,7 @@ function swingPush(p,r){const ox=p.x,oy=p.y,og=p.grounded,ogr=p.ground;pushOut(p
 const berserkOn=p=>p.s.berserk&&p.hp<p.s.maxHp*.5;
 function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.coyote-=dt;
   if(p.grounded&&p.ground&&p.ground.swing){p.x+=p.ground.dx;p.y+=p.ground.dy}
-  if(p.grounded)p.coyote=.1;
+  if(p.grounded)p.coyote=.12;
   // drop through a one-way plank
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
@@ -1408,11 +1411,17 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   if(p.wallDir&&!p.grounded&&inp.move===p.wallDir){if(p.vy>0)p.vy=Math.min(p.vy,70);if(!swings.some(r=>boxHit(p.x+p.wallDir*3,p.y,p.r,p.r*.6,r)))p.airJumps=s.airJumps}   // a swinging block doesn't refresh it (online it's never in quite the same place on both screens)
   // jump buffer (press slightly early) + coyote time (press slightly late) make jumps feel reliable
   if(inp.jumpP)p.jumpBuf=.12;
-  if(p.jumpBuf>0){const jv=1010*s.jumpPower;
-    if(p.grounded||p.coyote>0){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;
+  // online, the guest's own screen says which jump it made (inp.jumpKind: 1 ground, 3 air, 5/6 wall left/right) and the host
+  // makes the same one: a few pixels of difference must not turn a wall jump into an air jump (or none) on one side only
+  const fk=inp.jumpKind||0;p.jk=0;
+  if(p.jumpBuf>0||fk){const jv=1010*s.jumpPower;
+    if(fk===1||!fk&&(p.grounded||p.coyote>0)){p.vy=-jv;if(p.ground&&p.ground.swing){p.vx+=p.ground.dx/dt*.5;pushSwing(p.ground,-p.vx*.3)}p.grounded=false;p.ground=null;p.coyote=0;p.jumpBuf=0;p.jk=1;
       p.squash=1.25;moveFx(p,()=>{burst(p.x,p.y+p.r,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(p.wallDir){p.vy=-jv*.95;p.vx=-p.wallDir*(inp.move===p.wallDir?200:580);   /* holding into the wall climbs it; otherwise kick off */p.jumpBuf=0;const wd=p.wallDir;moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
-    else if(inp.jumpP&&p.airJumps>0){p.airJumps--;p.vy=-jv*.72;p.jumpBuf=0;moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
+    else if(fk>=5||!fk&&p.wallDir){const wd=fk>=5?(fk===5?-1:1):p.wallDir;p.vy=-jv*.95;p.vx=-wd*(inp.move===wd?200:580);p.jumpBuf=0;p.jk=wd<0?5:6;   /* holding into the wall climbs it; otherwise kick off */
+      moveFx(p,()=>{burst(p.x+wd*p.r,p.y,'#cfd8e3',5,160,3,.25,0);sfx('jump')})}
+    else if(fk===3||!fk&&inp.jumpP&&p.airJumps>0){p.airJumps=Math.max(0,p.airJumps-1);p.vy=Math.min(-jv*.85,Math.max(p.vy-jv*.45,-jv*1.05));p.jumpBuf=0;p.jk=3;   /* double jump: never weaker than where you are, so an early press isn't wasted */
+      moveFx(p,()=>{ring(p.x,p.y+p.r,p.glow,26);sfx('jump')})}}
+  inp.jumpKind=0;
 }
 // move by velocity and resolve against the arena
 /* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
@@ -1529,7 +1538,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     const idle=x=>x[1]===0&&!x[2]&&!x[3]&&x[4]===p.netJc&&x[5]===p.netBc&&(x[6]==null||x[6]===p.netSc)&&p.grounded&&!(p.ground&&p.ground.swing)&&Math.abs(p.vx)<1;
     if(game.state==='ready'||Q.length>90){if(Q.length>1)Q.splice(0,Q.length-1);net.lagSteps=0}
     while(Q.length>2&&((net.lagSteps>0&&same(Q[0],net.heldIn))||(Q.length>4&&idle(Q[0])))){if(net.lagSteps>0&&same(Q[0],net.heldIn))net.lagSteps--;Q.shift()}
-    if(Q.length){q=Q.shift();net.heldIn=q}else if(net.heldIn){q=net.heldIn;net.lagSteps=Math.min(30,net.lagSteps+1)}
+    let real=false;if(Q.length){q=Q.shift();net.heldIn=q;real=true}else if(net.heldIn){q=net.heldIn;net.lagSteps=Math.min(30,net.lagSteps+1)}
     if(q){inp.move=clamp(q[1]|0,-1,1);inp.jumpH=!!q[2];inp.down=!!q[3];p.ackSeq=q[0]+net.lagSteps}
     else{inp.move=clamp(r.m|0,-1,1);inp.jumpH=!!r.jh;inp.down=!!r.d}
     // presses arrive as running counters, so a press is never lost between frames
@@ -1537,6 +1546,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     if(p.netJc==null){p.netJc=jc;p.netBc=bc}if(jc>p.netJc){inp.jumpP=true;p.netJc=jc}if(bc>p.netBc){inp.blockP=true;p.netBc=bc}
     // a shot fires on the very step the guest fired it (its shot counter went up), aimed where it aimed then, so the host's
     // bullet leaves from the same spot as the guest's instant ghost bullet. Ammo and fire rate are still checked here.
+    if(q&&real&&q[8])inp.jumpKind=q[8]|0;   // only a real recorded step forces a jump (never a stand-in repeat)
     if(q&&q[6]!=null){if(Number.isFinite(q[7]))inp.aim=q[7];if(p.netSc==null)p.netSc=q[6];if(q[6]>p.netSc){inp.shoot=true;p.netSc=q[6]}}
     else if(!q||q[6]==null)inp.fire=!!r.f}}
 
@@ -1833,7 +1843,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-coins';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-balance';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2110,7 +2120,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
     me.localBlockT=(me.localBlockT||0)-h;
     if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me)}}
-    moveIntent(me,h);
+    moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
     net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}

@@ -155,7 +155,7 @@ const DT = 1 / 60;
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
   let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
-  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; const bm = { wasDown: false, clickAt: null, lat: [], seen: new WeakSet(), seenBefore: new WeakSet(), n: 0, jerk: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, hpRun: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; const bm = { wasDown: false, clickAt: null, lat: [], seen: new WeakSet(), seenBefore: new WeakSet(), n: 0, jerk: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
@@ -164,7 +164,8 @@ const DT = 1 / 60;
     if (FEATURES && G.net.snap && H.game.state === 'play' && G.game.state === 'play' && G.game.mapIdx === H.game.mapIdx) {
       // host and guest agree on what matters: who is alive, health (within one snapshot of change), shield walls
       cons.n++; if (G.players.some((p, k) => p.alive !== H.players[k].alive)) cons.alive++;
-      if (G.players.some((p, k) => Math.abs(p.hp - H.players[k].hp) > 60)) cons.hp++;
+      // health reaches the guest one snapshot trip after a hit: only a difference that lasts longer than that is a disagreement
+      if (G.players.some((p, k) => Math.abs(p.hp - H.players[k].hp) > 60)) { if (++cons.hpRun > 12) cons.hp++ } else cons.hpRun = 0;
       if ((H.shields || []).length !== undefined) { const hs = H.game && H.players.length ? H.shieldsLen() : 0; if (Math.abs(G.shieldsLen() - hs) > 1) cons.shields++ }
       cons.parries = H.game.parries || 0; if (H.players.some((p) => p.chargeT > 0)) cons.charges++; if (H.players.some((p) => p.duck)) cons.ducks++ }
     drive(H, H.players[0], H.players[1], frames);
@@ -174,6 +175,7 @@ const DT = 1 / 60;
     if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW', 'KeyS']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
     if (probe === 1 && ++probeT >= 20 && !still(H.players[1])) probeT = 0;   // wait until the host's copy is standing still
     if (probe === 1 && G.game.state !== 'play') probeT = 0;   // a new point's countdown started: wait for live play
+    if (probe === 1 && (!me.grounded || Math.abs(me.vx) > 5)) probeT = 0;   // the guest's own copy runs a little ahead: it must be standing still too, the whole wait
     if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; probeKey = G.solids.some((r) => !r.oneway && !r.bound && me.x + 60 > r.x && me.x < r.x + r.w && me.y > r.y - me.r && me.y < r.y + r.h + me.r) || me.x > 1400 ? 'KeyA' : 'KeyD'; G.keys.add(probeKey) }
     else if (probe === 2) { G.keys.add(probeKey); if (++probeT >= 3) { responsive = Math.abs(me.x - gx0); hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete(probeKey) } }
     frame();

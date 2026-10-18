@@ -13,7 +13,7 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
   for (let mi = 0; mi < A.MAPS.length; mi++) {
     const M = A.MAPS[mi]; if (ONLY && M.name !== ONLY) continue;
     A.startMatch('cpu'); flush(); A.loadMap(mi); A.game.state = 'play'; A.game.dropT = 0; A.game.dropOff = 0;
-    const [P, E] = A.players; E.alive = false; E.x = -999; P.cards = []; A.recompute(P); P.s.jumpPower = .94;   // a margin: nothing should need a pixel-perfect max-height jump
+    const [P, E] = A.players; E.alive = false; E.x = -999; P.cards = []; A.recompute(P); P.s.jumpPower = .88;   // a margin: nothing should need a pixel-perfect max-height jump (12% short of the real max)
     // a surface is a solid you can stand on: rects by position, hanging blocks / movers by their index (they move)
     const key = (r) => !r ? null : r.swing ? 'swing' + A.solids.filter((q) => q.swing).indexOf(r) : `${r.x},${r.y},${r.w},${r.h}`;
     const standable = (r) => !r.bound && r.kind !== 3 && (r.swing || r.y > 2 * P.r + 14);   // pads launch you; a block flush with the ceiling has no top

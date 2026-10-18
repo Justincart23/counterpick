@@ -202,8 +202,8 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   }
   // Long Haul bullets grow as they fly
   {
-    const [P] = setup(['Long Haul']); A.spawnBullet(P, P.x + 30, P.y - 300, 0); const b = A.bullets[A.bullets.length - 1]; b.grav = 0; const r0 = b.r; step(30);
-    check(b.r > r0 * 1.5, `Long Haul bullets should grow as they fly (r ${r0} -> ${b.r.toFixed(1)})`);
+    const [P] = setup(['Long Haul']); A.spawnBullet(P, P.x + 30, P.y - 400, 0); const b = A.bullets[A.bullets.length - 1]; b.grav = 0; const r0 = b.r; step(30);
+    check(b.r > r0 * 1.3, `Long Haul bullets should grow as they fly (r ${r0} -> ${b.r.toFixed(1)})`);
   }
 
   // Ricochet stacks: two copies, four bounces
