@@ -45,7 +45,7 @@ async function tab(port, url) {
   // ---- local build, fresh visitor ----
   const A = await tab(9335, 'file://' + path.join(dir, 'index.html'));
   await sleep(1200);
-  ok(await A.ev(shown('#nameScreen')), 'a first visit asks for a name');
+  ok(await A.until(shown('#nameScreen'), 6000), 'a first visit asks for a name');   // boot waits up to 1.5 s for fonts
   await A.ev(`document.querySelector('#nameInput').focus()`); await A.cdp('Input.insertText', { text: 'Tester' }); await A.key('Enter');
   ok(await A.until(`document.querySelector('#nameScreen').hidden`) && await A.until(`document.querySelector('[data-myname]').textContent==='Tester'`), 'the name is saved and shown on the menu');
   ok(await A.ev(`[...document.querySelectorAll('[data-sub="main"] .mlist button')].map(b=>b.textContent).join('|')`) === 'Duel a friend|Practice vs CPU|Sandbox|How to play|Settings', 'the menu lists Duel a friend, Practice vs CPU, Sandbox, How to play, Settings');
