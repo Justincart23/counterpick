@@ -1325,14 +1325,16 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
 // move by velocity and resolve against the arena
 /* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
    off the bottom with a small nudge, and the host deals the damage. You can't stand on, cling to or wall-jump off an edge. */
-const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1400,EDGE_BLOCK_SIDE=1350,EDGE_BLOCK_TOP=1500;
+const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1750,EDGE_BLOCK_SIDE=1350,EDGE_BLOCK_TOP=1500;
 function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
   // blocking into a border is the "sketchy jump": no damage, and it fires you back in (sides) or spikes you down (top)
   const bl=p.blockT>0||p.localBlockT>0;
   if(p.x<lo){p.x=lo;p.vx=bl?EDGE_BLOCK_SIDE:Math.max(Math.abs(p.vx)*.5,460);if(bl)p.vy=Math.min(p.vy,-380);hit='left'}
   else if(p.x>W-lo){p.x=W-lo;p.vx=bl?-EDGE_BLOCK_SIDE:-Math.max(Math.abs(p.vx)*.5,460);if(bl)p.vy=Math.min(p.vy,-380);hit='right'}
   if(p.y<lo){p.y=lo;p.vy=bl?EDGE_BLOCK_TOP:Math.max(Math.abs(p.vy)*.4,320);hit='top'}
-  else if(p.y>H-R){p.y=H-R;p.vy=-(p.blockT>0||p.localBlockT>0?EDGE_BLOCK_POP:EDGE_FLOOR_POP);p.airJumps=p.s.airJumps;p.grounded=false;p.ground=null;hit='bottom'}
+  // a block save off the bottom is a full launch (like a bounce pad: letting go of jump doesn't cut it short), high enough to
+  // steer back onto a platform with your air jump, which it refreshes
+  else if(p.y>H-R){p.y=H-R;p.vy=-(bl?EDGE_BLOCK_POP:EDGE_FLOOR_POP);if(bl)p.padT=.6;p.airJumps=p.s.airJumps;p.grounded=false;p.ground=null;hit='bottom'}
   if(hit){p.grounded=hit==='bottom'?false:p.grounded}
   return hit}
 function moveCollide(p,dt){
@@ -1737,7 +1739,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-shots';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-edgesave';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

@@ -54,7 +54,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
   - **Duck** by holding `S` on the ground: your hitbox squashes flat and head-height shots sail over. In the air, `S` cuts a jump short or drops you fast.
   - **Grip walls** by holding toward them: you barely slide, and your air jump comes back. Jump while holding into the wall to climb it; jump without holding to kick off it.
   - **Perfect parry:** a block that meets a bullet in its first 0.12 s sends it back at the shooter (PARRY).
-  - **Edge launches:** block as you hit the arena border to bounce off it unhurt: off the bottom you pop up high, off a side you rocket back in, off the top you spike down.
+  - **Edge launches:** block as you hit the arena border to bounce off it unhurt: off the bottom you launch about halfway up the screen with your air jump back (enough to get onto a platform from any gap; `edge-save.js` checks every arena), off a side you rocket back in, off the top you spike down.
   - **Hanging blocks hurt:** shoot one so it swings hard into your rival to smash them; block to knock it back.
   - New cards: **Echo Guard** (every block fires a second free block a beat later) and **Shield Charge** (blocking dashes you along your aim and rams your rival). Long Haul bullets now grow as they fly, like ROUNDS' Grow.
 - **Sandbox:** hand yourself or the CPU any cards you like, as many copies as you want, and try them out with no drafting. Press Tab mid-fight to change cards; the CPU can fight back, dodge without shooting, or stand still as a target, and you can lock the arena.

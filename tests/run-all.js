@@ -11,6 +11,7 @@ const suite = [
   run('combos.js'),
   run('stacking.js'),
   run('cpu-reach.js'),
+  run('edge-save.js'),
   run('audio.js'),
   run('ceiling.js'),
   run('net.js'),
