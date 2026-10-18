@@ -145,7 +145,7 @@ const DT = 1 / 60;
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
   let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
-  let probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
@@ -162,7 +162,18 @@ const DT = 1 / 60;
     frame();
     if (H.game.state === 'play' && G.game.state === 'play' && G.game.map && G.game.map.name !== H.game.map.name) mapMismatch++;
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
-    if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
+    // a hit's or a blast's knockback is decided on the host, so the guest can't predict it: the moment after a hit isn't a prediction error
+    if (H.players[1].hurtT > 0 || H.players[1].kT > 0 || (lastHp != null && me.hp < lastHp)) hitAt = frames; lastHp = me.hp;
+    if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && frames - hitAt > 24 && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
+    // smoothness on the guest's screen: hanging blocks / moving platforms must glide (no frame-to-frame shake), and the
+    // host's fighter must follow its true path (drawn INTERP ms in the past, so compare with where it really was then)
+    if (G.game.state === 'play' && G.game.mapIdx === lastMap) for (const w of G.solids.filter((r) => r.swing)) {
+      if (w._p1) { sm.sw++; if (Math.hypot(w.x - 2 * w._p1[0] + w._p2[0], w.y - 2 * w._p1[1] + w._p2[1]) > 3) sm.swShake++ } w._p2 = w._p1 || [w.x, w.y]; w._p1 = [w.x, w.y] }
+    { const h = H.players[0], now = vnow(); sm.hist.push([now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 400) sm.hist.shift();
+      const o = G.players[0];
+      if (G.game.state === 'play' && o.alive && G.net.clk != null) { const rt = now - G.net.clk - 55 - (G.net.relayed ? 35 : 0); let best = null;
+        for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
+        if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } } }
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) embedded++;
@@ -234,7 +245,9 @@ const DT = 1 / 60;
 
   check(errors === 0, `no exceptions (${errors})`);
 
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  check(sm.sw > 500 && sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
+  check(sm.path > 500 && sm.pathOff / sm.path < 0.03 && sm.pathSum / sm.path < 6, `the host's fighter should follow its true path on the guest's screen (mean ${(sm.pathSum / sm.path).toFixed(1)}px off, ${sm.pathOff} of ${sm.path} frames over 12px)`);
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

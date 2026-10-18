@@ -32,7 +32,7 @@ Without them, `/api/turn` returns STUN only and the MQTT relay covers blocked ne
 
 | | Move | Jump | Drop through a plank | Aim | Shoot | Block |
 |---|---|---|---|---|---|---|
-| **Orange** | `A` `D` | `W` / `Space` | `S` | mouse | click | right-click / `Shift` |
+| **You** | `A` `D` or `←` `→` | `W` / `Space` / `↑` | `S` / `↓` | mouse | click | right-click / `Shift` |
 
 Press `Esc` to pause and `M` to mute. In the menus, use `↑` `↓` to choose, `Enter` to select, `←` `→` to change a setting and `Esc` to go back.
 
@@ -51,6 +51,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 - **47 cards** across gun, bullet, block and body upgrades, each with its own custom icon and animated art. Cards stack, so combos multiply. Many change how you move or fight, not just your numbers: Limpet Mines stick to walls and blow half a second later (careful, they hurt you too), Bulwark raises a bullet-stopping wall when you block, Ground Pound slams you into the ground with a shockwave, Cluster Guard tosses bombs when you block, Frost Guard freezes a nearby rival, Gravity Well bullets drag your rival, Aegis soaks a hit.
 - **18 arenas** with one-way planks, solid walls, pits, hanging blocks that swing when you shoot or land on them, moving platforms that carry you, and bounce pads. The arena edge is a glowing energy border, not a wall: touching the sides or ceiling hurts and knocks you back (you can wall-jump up the arena's blocks, never up its edges), and falling to the bottom pops you up with damage instead of killing you outright.
 - **Sandbox:** hand yourself or the CPU any cards you like, as many copies as you want, and try them out with no drafting. Press Tab mid-fight to change cards; the CPU can fight back, dodge without shooting, or stand still as a target, and you can lock the arena.
+- **Smooth online play:** the joining player's game runs hanging blocks and moving platforms itself and steers toward the host's, and draws the other fighter a few milliseconds in the past along its true path, so nothing shakes between network updates. `net.js` checks both.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
 - **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, and effects with a room reverb so impacts boom. Music and volume settings; no audio files.

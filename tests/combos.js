@@ -149,6 +149,16 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(P.hp < hp, 'touching the edge should hurt');
   }
 
+  // arrow keys move and jump as well as WASD
+  {
+    const [P] = setup(); P.ctrl = 'mouse'; const x0 = P.x;
+    A.keys.add('ArrowRight'); step(30); A.keys.delete('ArrowRight');
+    check(P.x - x0 > 150, `the right arrow should move you (moved ${(P.x - x0) | 0}px)`);
+    step(30); const y0 = P.y; let top = P.y; A.edges.add('ArrowUp'); A.keys.add('ArrowUp');
+    for (let i = 0; i < 20; i++) { step(); top = Math.min(top, P.y) } A.keys.delete('ArrowUp');
+    check(y0 - top > 80, `the up arrow should jump (rose ${(y0 - top) | 0}px)`);
+  }
+
   // Ricochet stacks: two copies, four bounces
   { const [P] = setup(['Ricochet', 'Ricochet']); check(P.s.bounces === 4, `two Ricochets should give 4 bounces (${P.s.bounces})`) }
 
@@ -168,6 +178,6 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     S.cpu = 'fight'; S.arena = -1; S.decks = [[], []];
   }
 
-  console.log(JSON.stringify({ cases: 16, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 17, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();
