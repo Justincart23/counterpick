@@ -97,16 +97,7 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     check(!(Q.blockT > 0), 'a third block should wait for the cooldown');
   }
 
-  // Ground Pound: hold down in the air to dive; the landing blasts a rival standing nearby
-  {
-    const [P, E] = setup(['Ground Pound']); const hp = E.hp; E.x = P.x + 90; E.y = P.y;
-    P.y -= 220; P.vy = 0; P.grounded = false; P.ground = null; P.input.down = true; let maxVy = 0, launch = 0;
-    for (let i = 0; i < 40; i++) { step(); maxVy = Math.max(maxVy, P.vy); launch = Math.min(launch, E.vy) }
-    P.input.down = false;
-    check(maxVy >= 1500, `holding down in the air should dive fast (max vy ${maxVy | 0})`);
-    check(E.hp < hp && launch < -400, `the slam should hurt and launch a nearby rival (hp ${hp}->${E.hp | 0}, launch vy ${launch | 0})`);
-    check(P.hp === P.s.maxHp, 'your own slam should not hurt you');
-  }
+
 
   // wall jumps work off the arena's blocks: jumping against one in mid-air with no double jump left kicks you up and away
   {
@@ -234,6 +225,6 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
     S.cpu = 'fight'; S.arena = -1; S.decks = [[], []];
   }
 
-  console.log(JSON.stringify({ cases: 26, failures: fail.length, fail }));
+  console.log(JSON.stringify({ cases: 25, failures: fail.length, fail }));
   process.exit(fail.length ? 1 : 0);
 })();

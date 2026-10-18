@@ -48,7 +48,7 @@ async function tab(port, url) {
   ok(await A.until(shown('#nameScreen'), 6000), 'a first visit asks for a name');   // boot waits up to 1.5 s for fonts
   await A.ev(`document.querySelector('#nameInput').focus()`); await A.cdp('Input.insertText', { text: 'Tester' }); await A.key('Enter');
   ok(await A.until(`document.querySelector('#nameScreen').hidden`) && await A.until(`document.querySelector('[data-myname]').textContent==='Tester'`), 'the name is saved and shown on the menu');
-  ok(await A.ev(`[...document.querySelectorAll('[data-sub="main"] .mlist button')].map(b=>b.textContent).join('|')`) === 'Duel a friend|Practice vs CPU|Sandbox|How to play|Settings', 'the menu lists Duel a friend, Practice vs CPU, Sandbox, How to play, Settings');
+  ok(await A.ev(`[...document.querySelectorAll('[data-sub="main"] .mlist button')].map(b=>b.textContent).join('|')`) === 'Duel a friend|Practice vs CPU|Sandbox|Shop|How to play|Settings', 'the menu lists Duel a friend, Practice vs CPU, Sandbox, Shop, How to play, Settings');
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');
   await sleep(900); await A.ev(`document.querySelector('#pick .card').click()`);
@@ -80,6 +80,9 @@ async function tab(port, url) {
   await A.key('Escape', 'Escape'); ok(await A.until(`document.querySelector('#sandbox').hidden&&!window.__G.game.paused`, 2000), 'Esc closes it and play resumes');
   await A.key('Escape', 'Escape'); await A.until(shown('#pause'), 2000);
   await A.ev(`document.querySelector('#pause [data-act="menu"]').click()`); await A.until(shown('#menu'), 3000);
+  await A.ev(`document.querySelector('.mlist [data-act="shop"]').click()`);
+  ok(await A.until(shown('#shop'), 2000) && await A.ev(`document.querySelectorAll('#shopGrid .shop-item').length`) >= 5, 'the Shop opens with items');
+  await A.key('Escape', 'Escape'); ok(await A.until(`document.querySelector('#shop').hidden`, 2000), 'Esc closes the Shop');
   await A.ev(`document.querySelector('[data-act="settings"]').click()`);
   ok(await A.until(shown('[data-sub="settings"]'), 2000), 'Settings opens');
   await A.key('Escape', 'Escape');
