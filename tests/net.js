@@ -155,7 +155,7 @@ const DT = 1 / 60;
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
   let embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
-  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
+  const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; const bm = { wasDown: false, clickAt: null, lat: [], seen: new WeakSet(), seenBefore: new WeakSet(), n: 0, jerk: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
@@ -191,6 +191,14 @@ const DT = 1 / 60;
       if (G.game.state === 'play' && o.alive && G.net.clk != null) { const rt = now - G.net.clk - 55 - (G.net.relayed ? 35 : 0); let best = null;
         for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
         if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } } }
+    // bullets on the guest's screen: how soon its own shot appears after a click, and whether bullets fly smoothly
+    if (G.game.state === 'play') { const mine = G.bullets.filter((b) => b.color === G.players[1].color);
+      if (G.mouse.down && !bm.wasDown) bm.clickAt = frames; bm.wasDown = G.mouse.down;
+      for (const b of mine) if (!bm.seen.has(b)) { bm.seen.add(b); if (bm.clickAt != null && !b.trail.length) { /* brand new */ } }
+      if (bm.clickAt != null && mine.some((b) => !bm.seenBefore.has(b))) { bm.lat.push(frames - bm.clickAt); bm.clickAt = null }
+      for (const b of mine) bm.seenBefore.add(b);
+      for (const b of G.bullets) { const t = b.trail, n = t.length; if (b.stuck || n < 6) continue;
+        const jx = t[n - 2] - 2 * t[n - 4] + t[n - 6], jy = t[n - 1] - 2 * t[n - 3] + t[n - 5]; bm.n++; if (Math.hypot(jx, jy) > 4) bm.jerk++ } }
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) embedded++;
@@ -270,7 +278,9 @@ const DT = 1 / 60;
 
   check(sm.sw < 200 || sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
   check(sm.path > 300 && sm.pathOff / sm.path < 0.03 && sm.pathSum / sm.path < 6, `the host's fighter should follow its true path on the guest's screen (mean ${(sm.pathSum / sm.path).toFixed(1)}px off, ${sm.pathOff} of ${sm.path} frames over 12px)`);
-  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  check(bm.n < 500 || bm.jerk / bm.n < 0.05, `bullets should fly smoothly on the guest's screen (${(100 * bm.jerk / bm.n).toFixed(1)}% of bullet-frames jerked >4px)`);
+  { const ok = G.net.gMerged || 0, lost = G.net.gLost || 0; check(ok + lost < 10 || lost / (ok + lost) < 0.25, `the guest's instant shots should be confirmed by the host (${ok} confirmed, ${lost} never fired there)`) }
+  const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ownShotFrames: bm.lat.length ? bm.lat.slice().sort((a, b) => a - b)[bm.lat.length >> 1] : null, bulletJerkPct: bm.n ? +(100 * bm.jerk / bm.n).toFixed(2) : null, ghostShotsConfirmed: G.net.gMerged || 0, ghostShotsPhantom: G.net.gLost || 0, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

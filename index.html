@@ -1151,7 +1151,7 @@ function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.mi
     if(i===0){fx=m.x;fy=m.y}
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
     spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1})}
-  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))}
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.3?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
 function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
@@ -1388,6 +1388,7 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   moveIntent(p,dt);
   if(inp.aim!=null)p.aim=inp.aim;
   if(inp.fire){if(p.ammo<=0&&p.burstLeft<=0&&p.ctrl!=='cpu'&&p.emptyT<=0){personal(p,'empty');p.emptyT=.25}tryFire(p)}
+  if(inp.shoot){inp.shoot=false;if(p.fireT>0&&p.fireT<.05)p.fireT=0;if(p.ammo<=0&&p.sinceShot>=p.s.reload-.1)p.ammo=p.s.ammo;tryFire(p)}   // the guest's own timers said ready: allow a hair of rounding
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
   if(p.echoQ&&p.echoQ.length){for(let i=0;i<p.echoQ.length;i++)p.echoQ[i]-=dt;if(p.echoQ[0]<=0){p.echoQ.shift();ring(p.x,p.y,p.glow,50);blockFx(p)}}
@@ -1429,7 +1430,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
       const rx=pad.axes[2]||0,ry=pad.axes[3]||0;if(Math.hypot(rx,ry)>.35)aim=Math.atan2(ry,rx)}
     inp.move=mv;const e=other(p);inp.aim=aim??(e.alive?aimSolution(p,e):p.aim)}
   else if(p.ctrl==='net'){const r=net.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
-    inp.fire=!!r.f;if(Number.isFinite(r.a))inp.aim=r.a;
+    inp.fire=false;if(Number.isFinite(r.a))inp.aim=r.a;   // shots come from the guest's step records (below), aligned to its physics steps
     // movement replays the guest's own physics steps one for one, so the host moves the guest exactly as the guest's
     // screen predicted, however bunched up the packets arrive. A small buffer soaks up jitter; a backlog is skipped.
     // When the buffer runs dry the host stands in with the last input and counts it (lagSteps); those stand-in steps are
@@ -1437,8 +1438,8 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     const Q=net.inQ;let q=null;
     // A backlog (hitstop pauses the host but not the guest) drains only through steps where the fighter stands still on
     // fixed ground with no input: skipping one of those changes nothing. Between points it's simply cleared.
-    const same=(x,y)=>x&&y&&x[1]===y[1]&&x[2]===y[2]&&x[3]===y[3]&&x[4]===y[4]&&x[5]===y[5];
-    const idle=x=>x[1]===0&&!x[2]&&!x[3]&&x[4]===p.netJc&&x[5]===p.netBc&&p.grounded&&!(p.ground&&p.ground.swing)&&Math.abs(p.vx)<1;
+    const same=(x,y)=>x&&y&&x[1]===y[1]&&x[2]===y[2]&&x[3]===y[3]&&x[4]===y[4]&&x[5]===y[5]&&x[6]===y[6];
+    const idle=x=>x[1]===0&&!x[2]&&!x[3]&&x[4]===p.netJc&&x[5]===p.netBc&&(x[6]==null||x[6]===p.netSc)&&p.grounded&&!(p.ground&&p.ground.swing)&&Math.abs(p.vx)<1;
     if(game.state==='ready'||Q.length>90){if(Q.length>1)Q.splice(0,Q.length-1);net.lagSteps=0}
     while(Q.length>2&&((net.lagSteps>0&&same(Q[0],net.heldIn))||(Q.length>4&&idle(Q[0])))){if(net.lagSteps>0&&same(Q[0],net.heldIn))net.lagSteps--;Q.shift()}
     if(Q.length){q=Q.shift();net.heldIn=q}else if(net.heldIn){q=net.heldIn;net.lagSteps=Math.min(30,net.lagSteps+1)}
@@ -1446,7 +1447,11 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     else{inp.move=clamp(r.m|0,-1,1);inp.jumpH=!!r.jh;inp.down=!!r.d}
     // presses arrive as running counters, so a press is never lost between frames
     const jc=q?q[4]:r.jc,bc=q?q[5]:r.bc;
-    if(p.netJc==null){p.netJc=jc;p.netBc=bc}if(jc>p.netJc){inp.jumpP=true;p.netJc=jc}if(bc>p.netBc){inp.blockP=true;p.netBc=bc}}}
+    if(p.netJc==null){p.netJc=jc;p.netBc=bc}if(jc>p.netJc){inp.jumpP=true;p.netJc=jc}if(bc>p.netBc){inp.blockP=true;p.netBc=bc}
+    // a shot fires on the very step the guest fired it (its shot counter went up), aimed where it aimed then, so the host's
+    // bullet leaves from the same spot as the guest's instant ghost bullet. Ammo and fire rate are still checked here.
+    if(q&&q[6]!=null){if(Number.isFinite(q[7]))inp.aim=q[7];if(p.netSc==null)p.netSc=q[6];if(q[6]>p.netSc){inp.shoot=true;p.netSc=q[6]}}
+    else if(!q||q[6]==null)inp.fire=!!r.f}}
 
 /* ---------- control: CPU ---------- */
 function groundAhead(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<p.y+p.r+300;y+=18)if(pointSolid(x,y))return true;return false}
@@ -1523,7 +1528,7 @@ const FIXED=1/120;
 function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
-  if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.blockP=false;i.jumpP=false}}
+  if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players)updatePlayer(p,h);separate();updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
   edges.clear();mouse.rEdge=false   // a press is consumed by the first step that sees it
@@ -1739,12 +1744,12 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);r
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-online';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-shots';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
-  out:{jc:0,bc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
+  out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
   relayClients:[],relayed:false,relayTrying:false,relayReady:false,lastRecv:0,sendParity:0,
-  inSeq:0,steps:[],inQ:[],lastQ:-1,heldIn:null,lagSteps:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false};
+  inSeq:0,steps:[],inQ:[],lastQ:-1,ghosts:[],heldIn:null,lagSteps:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false};
 /* relay settings: /api/turn hands out short-lived Cloudflare TURN credentials, so players on networks that can't link
    directly (strict routers, campus or office Wi-Fi, phone carriers) still connect through a relay */
 const STUN_ONLY=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
@@ -1936,7 +1941,7 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
   Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,dropOff:s.dO});
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
-  if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear()}
+  if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}
   shields=(s.sh||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
   if(s.rt)net.rtt=s.rt;
@@ -1951,15 +1956,16 @@ function applySnap(s){net.snap=s;net.snapAt=performance.now();
     p.aim=a[4]});
   const seen=new Set();
   for(const a of s.b){seen.add(a[0]);let b=net.bmap.get(a[0]);const o=players[a[6]]||players[0];
-    if(!b){b={id:a[0],trail:[],x:a[1],y:a[2]};net.bmap.set(a[0],b)}
-    Object.assign(b,{sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1})}
+    let fresh=false;if(!b){b={id:a[0],trail:[],x:a[1],y:a[2]};net.bmap.set(a[0],b);fresh=true}
+    Object.assign(b,{sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1});if(fresh&&a[6]===1)adoptGhost(b)}
   for(const id of[...net.bmap.keys()])if(!seen.has(id))net.bmap.delete(id);
   bullets=[...net.bmap.values()];
   // hanging blocks and moving platforms: the guest runs their motion itself every step (guestSwings) and steers toward
   // the host's state, so they glide instead of stepping at the snapshot rate
   // they run one round trip AHEAD of the snapshot: the host will simulate this screen's next movement about that much later,
   // so a platform here must already be where the host's will be then, or a fighter riding or bumping it gets corrected
-  const lead=clamp((net.rtt||0)/1000+2*FIXED,0,.45),ls=Math.round(lead/FIXED);
+  net.leadS=net.leadS==null?(net.rtt||0)/1000:net.leadS+((net.rtt||0)/1000-net.leadS)*.05;   // smoothed: a jittery ping must not shove the platforms
+  const lead=clamp(net.leadS+2*FIXED,0,.45),ls=Math.round(lead/FIXED);
   (s.sw||[]).forEach((a,i)=>{const w=swings[i];if(!w||!Array.isArray(a))return;const first=w.gAng==null;let ang=a[0],av=a[1];
     if(w.mover)ang=(ang+lead/w.period)%1;else for(let k=0;k<ls;k++)[ang,av]=swingPhys(ang,av,w.len,FIXED);
     w.gAng=ang;w.gAv=av;if(first){w.ang=ang;w.av=av;placeSwing(w);w.px=w.x;w.py=w.y;w.dx=0;w.dy=0}});
@@ -2004,12 +2010,20 @@ function guestSwings(h){const k=Math.min(1,h*5);
     placeSwing(s)}}
 function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);
   const mv=on?(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp')),dn=on&&(keys.has('KeyS')||keys.has('ArrowDown'));
-  const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc]);if(net.steps.length>40)net.steps.shift();
+  // firing is decided per physics step, with the same timers the host runs for this fighter, and the shot counter goes in
+  // this step's record: the host fires on exactly this step
+  if(me&&me.phys&&me.alive&&game.state==='play'){const s=me.s;me.gFireT=(me.gFireT||0)-h;me.gSince=(me.gSince??99)+h;if(me.gAmmo==null)me.gAmmo=s.ammo;
+    if(me.gAmmo<s.ammo&&me.gSince>=s.reload)me.gAmmo=s.ammo;
+    if(on&&mouse.down&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++}}
+  else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0}
+  const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0)]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
     me.localBlockT=(me.localBlockT||0)-h;
     if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me)}}
-    moveIntent(me,h);moveCollide(me,h);
+    moveIntent(me,h);
+    if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
+    moveCollide(me,h);
     net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}
   net.pendJump=false;
 }
@@ -2018,7 +2032,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
+  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);while(game.acc>=FIXED){game.acc-=FIXED;guestStep(FIXED,busy)}
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
@@ -2032,11 +2046,48 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
         else{const A=B[i-1],C=B[i],f=(rt-A[0])/(C[0]-A[0]||1);px=A[1]+(C[1]-A[1])*f;py=A[2]+(C[2]-A[2])*f}}
       p.x=px;p.y=py;
       p.walk=(p.walk||0)+Math.abs(p.vx)*dt*.045}
-    for(const b of bullets){if(b.stuck){b.x=b.sx;b.y=b.sy;b.trail.length=0;if(!b.stuckAt)b.stuckAt=performance.now();continue}b.x=b.sx+b.vx*age;b.y=b.sy+b.vy*age+.5*BGRAV*b.g*age*age;b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}}
+    // bullets are placed on the HOST's clock (not by when each snapshot happened to arrive, which jitters by milliseconds and
+    // made them stutter), and each one glides: it flies on its own velocity every frame and is steered onto the host's path
+    const hAge=net.clk!=null&&net.snap.ht!=null?clamp((performance.now()-net.clk-net.snap.ht)/1000,0,.25):age;
+    for(const b of net.bmap.values()){if(b.stuck){b.x=b.sx;b.y=b.sy;b.rx=null;b.trail.length=0;if(!b.stuckAt)b.stuckAt=performance.now();continue}
+      const A=hAge+(b.lead||0),tx=b.sx+b.vx*A,ty=b.sy+b.vy*A+.5*BGRAV*b.g*A*A;
+      if(b.rx==null){b.rx=tx;b.ry=ty}else{b.rx+=b.vx*dt;b.ry+=(b.vy+BGRAV*b.g*A)*dt;const d=Math.hypot(tx-b.rx,ty-b.ry);
+        if(d>90){b.rx=tx;b.ry=ty}else{const kk=Math.min(1,dt*12);b.rx+=(tx-b.rx)*kk;b.ry+=(ty-b.ry)*kk}}
+      if(b.lead>0)b.lead=Math.max(0,b.lead-dt*.2);   // a merged own shot eases from its predicted lead onto the host's timeline
+      b.x=b.rx;b.y=b.ry;b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}}
+  guestGhosts(dt,busy);
+  bullets=net.ghosts.length?[...net.bmap.values(),...net.ghosts]:[...net.bmap.values()];
   guestSend();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
   edges.clear();mouse.rEdge=false}
+/* the visitor's own shots fire the instant they click (a ghost bullet from their own gun, same speed, drop, walls and
+   bounces); when the host's real bullet shows up it takes over the ghost's place and trail, so the shot never hitches */
+function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
+  if(!me||!me.phys||!me.alive||game.state!=='play'){G.length=0;return}   // (shots are fired in guestStep, per physics step)
+  const now=performance.now();
+  // a ghost the host never confirms within 0.7 s was a phantom shot (counted, so tests can catch prediction drift); past
+  // 0.45 s an unconfirmed ghost turns faint so it fades rather than pops
+  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
+    for(let k=0;k<st&&!b.dead;k++){b.x+=b.vx*dt/st;b.y+=b.vy*dt/st;
+      for(const r of solids){if(b.phase&&!r.bound)continue;const n=bulletRect(b,r);if(!n)continue;
+        if(b.bounces>0){const d=b.vx*n.nx+b.vy*n.ny;if(d<0){b.vx-=2*d*n.nx;b.vy-=2*d*n.ny}b.bounces--}else b.dead=true;break}}
+    b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}
+  for(let i=G.length-1;i>=0;i--)if(G[i].dead)G.splice(i,1)}
+function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
+  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}if(m.smothered)continue;
+    net.ghosts.push({ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
+      color:p.color,glow:p.glow,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
+// a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
+function adoptGhost(b){const G=net.ghosts;if(!G.length)return;const g0=BGRAV*b.g;let best=-1,bs=1e9,bt=0;
+  for(let i=0;i<G.length;i++){const g=G[i];
+    // where along the host bullet's own arc is the ghost? (it's ahead by up to a round trip; the arc curves under gravity)
+    let t=0;for(let k=0;k<3;k++){const vx=b.vx,vy=b.vy+g0*t,px=b.sx+b.vx*t,py=b.sy+b.vy*t+.5*g0*t*t,v2=vx*vx+vy*vy||1;t=clamp(t+((g.x-px)*vx+(g.y-py)*vy)/v2,-.05,.6)}
+    const px=b.sx+b.vx*t,py=b.sy+b.vy*t+.5*g0*t*t,d=Math.hypot(g.x-px,g.y-py),ang=Math.abs(wrapA(Math.atan2(b.vy+g0*t,b.vx)-Math.atan2(g.vy,g.vx)));
+    if(d>70||ang>.4)continue;const sc=d+ang*60;if(sc<bs){bs=sc;best=i;bt=t}}
+  if(best<0)return;net.gMerged=(net.gMerged||0)+1;const g=G.splice(best,1)[0];
+  b.lead=clamp(bt,0,.35);b.rx=g.x;b.ry=g.y;b.trail=g.trail}
 function guestSend(){const me=players[1];if(!me||!net.connected)return;
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
   if(me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));
