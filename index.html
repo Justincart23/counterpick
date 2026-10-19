@@ -550,7 +550,7 @@ const CARDS=[
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
- {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
+ {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
@@ -792,7 +792,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'horn':tone('sawtooth',220,215,t,.6,.08);tone('sawtooth',277,272,t,.6,.06);break;
   case'tick':tone('square',1500,1300,t,.025,.03);break;
   case'freeze':noise(t,.22,.16,'highpass',5000,5000,1,room);tone('sine',2400*v,1800,t,.25,.07,room);tone('triangle',1600*v,1200,t,.18,.06);break;   // frozen solid
-  case'tick':tone('square',1900,1900,t,.03,.05);break;   // mine fuse beep
+  case'fuse':tone('square',1900,1900,t,.03,.05);break;   // mine fuse beep
   case'zap':noise(t,.16,.2,'bandpass',3200,1600,3,room);tone('square',240*v,90,t,.14,.08,room);tone('sawtooth',1200*v,400,t,.08,.04);break;   // energy border
   case'spring':tone('sine',180,640,t,.18,.16);tone('triangle',360,1200,t,.12,.06);break;                                                     // bounce pad
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
@@ -802,7 +802,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
 
 /* ---------- input ---------- */
 const keys=new Set(),edges=new Set();
-const mouse={x:W/2,y:H/2,down:false,rEdge:false};
+const mouse={x:W/2,y:H/2,down:false,rEdge:false,tapN:0,tapT:0};
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#shop').hidden){if(e.code==='Escape'){e.preventDefault();closeShop()}return}
@@ -1030,9 +1030,9 @@ function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
-/* each card in a hand rolls 60% common, 34% uncommon, 6% rare (about a third of hands show a rare); three drafts without one guarantees one */
+/* each card in a hand rolls 55% common, 32% uncommon, 13% rare (about half of hands show a rare); three drafts without one guarantees one */
 function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),out=[];let guard=0;
-  while(out.length<5&&guard++<500){const roll=Math.random(),r=roll<.6?0:roll<.94?1:2;const pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(pool.length)out.push(pick(pool))}
+  while(out.length<5&&guard++<500){const roll=Math.random(),r=roll<.55?0:roll<.87?1:2;const pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(pool.length)out.push(pick(pool))}
   if(!out.some(c=>c.r===2)&&(p.sinceRare||0)>=3){const rares=CARDS.filter(c=>c.r===2&&!owned.has(c.id)&&!out.includes(c));if(rares.length)out[Math.floor(Math.random()*out.length)]=pick(rares)}
   p.sinceRare=out.some(c=>c.r===2)?0:(p.sinceRare||0)+1;
   return out}
@@ -1375,7 +1375,8 @@ const MINE_FUSE=.5,INTERP_MS=55;   // Limpet Mines: stick, beep for half a secon
 function killBullet(b,impact,wall,n){
   if(wall&&b.mines&&!b.stuck){if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45);b.mineN=n}
     b.stuck=true;b.vx=0;b.vy=0;b.grav=0;b.trail=[];b.fuse=MINE_FUSE;b.stuckAt=performance.now();b.bounces=0;b.life=5;sfx('arm');return}
-  b.dead=true;if(!impact)return;
+  b.dead=true;if(b.grow)longShock(b,null);   // Long Haul: a long shot lands with its shockwave wherever it ends (wall, floor, mid-air)
+  if(!impact)return;
   if(wall){const o=b.owner;
     if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45)}
   }{const sp=Math.hypot(b.vx,b.vy)||1;let ang=Math.atan2(-b.vy,-b.vx);if(n){const d=b.vx*n.nx+b.vy*n.ny;ang=Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx)}
@@ -1413,7 +1414,7 @@ function updateBullets(dt){
   for(const w of shields)w.t-=dt;shields=shields.filter(w=>w.t>0&&w.owner.alive);
   for(const b of bullets){if(b.dead)continue;
     if(b.well){const t=other(b.owner);if(t&&t.alive){const dx=b.x-t.x,dy=b.y-t.y,d=Math.hypot(dx,dy);if(d<200&&d>1){const f=(1-d/200)*1500*b.well*dt;t.vx+=dx/d*f;t.vy+=dy/d*f*.7}}}
-    if(b.stuck){const f0=b.fuse;b.fuse-=dt;if(Math.floor(f0*12)!==Math.floor(b.fuse*12)&&b.fuse>.05&&b.fuse<.42)sfx('tick');
+    if(b.stuck){const f0=b.fuse;b.fuse-=dt;if(Math.floor(f0*12)!==Math.floor(b.fuse*12)&&b.fuse>.05&&b.fuse<.42)sfx('fuse');
       if(b.fuse<=0){b.dead=true;explode(b,null);if(b.split>0){const n=b.mineN;splinter(b,n?Math.atan2(n.ny,n.nx):-Math.PI/2,Math.PI*.9/Math.max(1,b.split-1))}}continue}
     b.age+=dt;b.life-=dt;if(b.life<=0){killBullet(b,b.explode>0);continue}
     const hom=Math.max(b.homing,game.overtime&&!b.plainRing?.6:0);
@@ -1583,7 +1584,7 @@ function aimSolutionAt(p,ex,ey,evx,evy,grounded){const s=p.s,v=s.bulletSpeed;let
 function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
   if(p.ctrl==='mouse'){const ar=!players.some(q=>q.ctrl==='p2');   // arrow keys move you too, unless a second local player owns them
     inp.move=(keys.has('KeyD')||ar&&keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||ar&&keys.has('ArrowLeft')?1:0);inp.down=keys.has('KeyS')||ar&&keys.has('ArrowDown');inp.jumpH=keys.has('KeyW')||keys.has('Space')||ar&&keys.has('ArrowUp');
-    inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down||!!mouse.tap;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
+    inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down||mouse.tapN>0;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
     inp.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x)}
   else if(p.ctrl==='p2'){const pad=pads[0];let mv=(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0);
     inp.jumpH=keys.has('ArrowUp');inp.jumpP=edges.has('ArrowUp');inp.fire=keys.has('Period')||keys.has('Numpad0');inp.blockP=edges.has('Slash')||edges.has('Numpad1')||edges.has('ShiftRight');
@@ -1694,7 +1695,7 @@ function step(h){
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players)updatePlayer(p,h);separate();updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
-  edges.clear();mouse.rEdge=false;mouse.tap=false   // a press is consumed by the first step that sees it
+  edges.clear();mouse.rEdge=false;tapStep(players.find(p=>p.ctrl==='mouse'),h,!!players.find(p=>p.ctrl==='mouse'&&p.sinceShot===0))   // a press is consumed by the first step that sees it
 }
 function simTick(h){const st=game.state;
   if(st==='ready'&&game.dropT>0){game.dropT-=h;const e=clamp(1-game.dropT/.6,0,1),c1=1.70158,c3=c1+1,eb=1+c3*Math.pow(e-1,3)+c1*Math.pow(e-1,2);
@@ -1775,7 +1776,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   if(p.blockT>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.globalAlpha=Math.min(1,p.blockT*5);ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.stroke();
     ctx.globalAlpha*=.3;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.fill();ctx.restore()}
   // name, health, ammo
-  const bw=Math.max(46,R*2.2),by=-R-24;
+  const bw=Math.max(46,R*2.2),by=-R-24;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
   ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
@@ -1790,6 +1791,7 @@ function chipAt(mx,my){for(const p of players){const list=p.cards.slice(-12),cy=
   for(let i=0;i<list.length;i++){const cx=W-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i],cx,cy}}}return null}
 function wrapLines(text,maxW){const out=[];let line='';for(const w of text.split(' ')){const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){out.push(line);line=w}else line=t}if(line)out.push(line);return out}
 function drawCardTip(){hoverChip=null;
+  if(touch.on)return;   // a phone's virtual pointer follows the aim stick: it must never pop tooltips over the fight
   if(!$('#pick').hidden||!$('#pause').hidden||!$('#end').hidden||!$('#menu').hidden)return;
   const hit=chipAt(mouse.x,mouse.y);if(!hit)return;hoverChip=hit;const{p,c,cx,cy}=hit,col=CAT[c.k],TW=300,pad=16;
   ctx.save();ctx.font='700 15px Nunito, sans-serif';const desc=wrapLines(c.d,TW-pad*2);
@@ -1885,7 +1887,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
   ctx.restore();drawHUD();
   drawCardTip();
-  if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden){if(settings.aim)drawAimGuide();drawCrosshair()}}
+  if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden){
+    // on a phone the arc shows only while the aim stick is dragged out (not in its cancel zone), and there's no pointer to draw
+    if(touch.on){if(settings.aim&&touchAiming())drawAimGuide()}else{if(settings.aim)drawAimGuide();drawCrosshair()}}}
 // the hazard border: a glowing energy line around the arena that flares when someone hits it
 function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Math.sin(performance.now()/260)+fl*.45;ctx.save();
   ctx.fillStyle='rgba(14,8,22,.55)';ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);ctx.fillRect(0,H-4,W,4);
@@ -1930,12 +1934,19 @@ function applyTouch(){const R=56,m=touch.move,a=touch.aim;let mx=0,up=false,down
   if(up&&!touch.up)edges.add('KeyW');touch.up=up;tKey('KeyW',up||touch.jumpBtn);
   if(a){const d=Math.hypot(a.dx,a.dy);a.maxD=Math.max(a.maxD||0,d);if(d>12)touch.aimA=Math.atan2(a.dy,a.dx);const c=Math.min(1,R/(d||1));
     $('#tsAim .knob').style.transform=`translate(${a.dx*c}px,${a.dy*c}px)`;$('#tsAim').classList.toggle('cancel',d<AIM_DEAD&&a.maxD>=AIM_DEAD)}}
-// fire one shot: a queued trigger pull (mouse.tap) that the next physics step uses, so a tap is always exactly one shot
-function touchShoot(){mouse.tap=true}
+// fire one shot: a queued trigger pull (mouse.tapN) that physics steps use, so every tap is exactly one shot. A tap while the
+// gun is still cycling waits up to TAP_BUF for it (spam-tapping never drops a shot); an empty gun clears the queue
+const TAP_BUF=.25;
+function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=TAP_BUF;touch.tapAuto=!!auto}
+function tapStep(me,h,fired){if(!(mouse.tapN>0))return;
+  if(fired){mouse.tapN--;mouse.tapT=TAP_BUF;return}
+  if(!me||!me.alive||me.ammo<=0&&!(me.burstLeft>0)||(mouse.tapT-=h)<=0)mouse.tapN=0}
 function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
-  if(quick){const me=touchMe(),e=me&&(game.mode==='online-guest'?players[0]:other(me));   // tap: auto-aim at the rival (lob, drop and lead included)
-    if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}touchShoot()}
-  else if(d>=AIM_DEAD)touchShoot()}   // aimed: fire where it points; let go in the middle to cancel
+  if(quick){autoAim();touchShoot(true)}   // tap: auto-aim at the rival (lob, drop and lead included)
+  else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
+function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'?players[0]:other(me));
+  if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}}
+const touchAiming=()=>!!(touch.aim&&(touch.aim.maxD||0)>=TAP_MOVE&&Math.hypot(touch.aim.dx,touch.aim.dy)>=AIM_DEAD);
 function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')}
 // keep the virtual mouse out along the aim, wherever the fighter goes
 function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
@@ -1955,14 +1966,15 @@ cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touch
   bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
   const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
 function touchFrame(){const live=touchLive();bodyCls('ingame',live);
-  if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tap)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tap=false;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
+  if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
+  if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame();update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-mobile2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-19-audit';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2226,13 +2238,14 @@ function guestSwings(h){const k=Math.min(1,h*5);
       if(s.gAng!=null){[s.gAng,s.gAv]=swingPhys(s.gAng,s.gAv,s.len,h);const d=s.gAng-s.ang;
         if(Math.abs(d)>.3){s.ang=s.gAng;s.av=s.gAv}else{s.ang+=d*k;s.av+=(s.gAv-s.av)*k}}}
     placeSwing(s)}}
-function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);
+function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
+  if(me&&me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
   const mv=on?(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp')),dn=on&&(keys.has('KeyS')||keys.has('ArrowDown'));
   // firing is decided per physics step, with the same timers the host runs for this fighter, and the shot counter goes in
   // this step's record: the host fires on exactly this step
   if(me&&me.phys&&me.alive&&game.state==='play'){const s=me.s;me.gFireT=(me.gFireT||0)-h;me.gSince=(me.gSince??99)+h;if(me.gAmmo==null)me.gAmmo=s.ammo;
     if(me.gAmmo<s.ammo&&me.gSince>=s.reload)me.gAmmo=s.ammo;
-    if(on&&(mouse.down||mouse.tap)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
+    if(on&&(mouse.down||mouse.tapN>0)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){fired=true;me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
   else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0}
   const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0)]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
@@ -2243,7 +2256,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
     net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}
-  net.pendJump=false;mouse.tap=false;
+  net.pendJump=false;tapStep(me&&me.phys?{alive:me.alive,ammo:me.gAmmo??1,burstLeft:me.gBurst}:null,h,fired);
 }
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
 function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
