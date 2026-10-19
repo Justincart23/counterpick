@@ -232,21 +232,6 @@ body.touch #hudbtns{top:calc(6px + env(safe-area-inset-top,0px));bottom:auto;lef
 body.touch:not(.ingame) #hudbtns{display:none}
 body.touch #hudbtns button{font-size:12px;padding:6px 10px}
 body.touch .menu-foot .touchnote{display:inline}
-/* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
-@media (max-height:520px){
-  /* two columns: title, name and coins on the left; the options on the right */
-  .menu-wrap{width:min(860px,100%);margin:auto;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;row-gap:6px;align-items:start;align-content:center}
-  .menu-wrap>div:first-child,.menu-wrap>.playing-as,.menu-wrap>.menu-msg{grid-column:1}
-  .menu-wrap>[data-sub]{grid-column:2;grid-row:1 / span 3;align-self:center}
-  .menu-foot{display:none}
-  .menu-screen{background:rgba(14,8,22,.74)}
-  .logo{font-size:clamp(40px,8vh,64px)}.tagline{font-size:14px}.playing-as{font-size:13px}
-  .mlist button{font-size:clamp(18px,5.4vh,26px);padding:1px 10px 1px 34px}
-  .mlist button::before{border-left-width:13px;border-top-width:9px;border-bottom-width:9px}
-  .menu-hint{margin-top:4px;font-size:13px;height:2.8em}
-  .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
-  .menu-foot{font-size:11px;max-width:calc(100% - 32px)}
-}
 #hudbtns button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:4px;background:rgba(18,29,42,.8);color:var(--muted);padding:5px 9px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
@@ -290,6 +275,14 @@ body.touch .menu-foot .touchnote{display:inline}
 /* names, lobby, room codes */
 .tagline{margin:-4px 0 0;font-family:var(--display);font-size:clamp(18px,2.2vw,26px);letter-spacing:.08em;text-transform:uppercase;color:var(--hot)}
 .playing-as{margin:0;font-size:15px;color:var(--muted)}
+.opts-wrap{display:grid;gap:2px;justify-items:start}.opts-wrap>.lbl{margin:0 0 4px 40px}
+.opts-wrap.centered{justify-items:center}.opts-wrap.centered .menu-hint{margin:10px auto 0;text-align:center}
+/* settings rows: smaller than the menu's actions, value column right-aligned so every ‹ › lines up */
+.mlist.opts{width:min(480px,100%)}
+.mlist.opts button{display:flex;justify-content:space-between;align-items:baseline;gap:24px;width:100%;font-size:clamp(22px,2.5vw,30px);padding-top:2px;padding-bottom:2px}
+.mlist.opts .val{margin:0;text-align:right;white-space:nowrap}
+.mlist .val.edit::before,.mlist .val.edit::after{content:none}
+.playing-as b{color:var(--text);font-weight:800}
 .menu-hint{margin:10px 0 0 40px;height:4.2em;overflow:hidden;font-size:15px;color:var(--muted);max-width:44ch;line-height:1.4}   /* fixed 3-line box: hovering options never moves the menu */
 .linkish{font:inherit;font-weight:800;color:var(--text);background:none;border:0;border-bottom:2px solid var(--blue);padding:0 2px;cursor:pointer}
 .linkish:focus-visible,.copy:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
@@ -309,6 +302,24 @@ body.touch .menu-foot .touchnote{display:inline}
 .form-err{margin:0;color:var(--bad);font-weight:800}
 @media (prefers-reduced-motion:reduce){.logo,.mlist button{animation:none}}
 
+/* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
+@media (max-height:520px){
+  /* two columns: title, name and coins on the left; the options on the right */
+  .menu-wrap{width:min(860px,100%);margin:auto;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;row-gap:6px;align-items:start;align-content:center}
+  .menu-wrap>div:first-child,.menu-wrap>.playing-as,.menu-wrap>.menu-msg{grid-column:1}
+  .menu-wrap>[data-sub]{grid-column:2;grid-row:1 / span 3;align-self:center}
+  .menu-foot{display:none}
+  .menu-screen{background:rgba(14,8,22,.74)}
+  .logo{font-size:clamp(40px,8vh,64px)}.tagline{font-size:14px}.playing-as{font-size:13px}
+  .mlist button{font-size:clamp(18px,5.4vh,26px);padding:1px 10px 1px 34px}
+  .mlist.opts button{font-size:clamp(15px,4.6vh,21px);padding-top:0;padding-bottom:0}.mlist.centered.opts button{padding-left:34px;padding-right:34px}
+  .mlist.opts{width:min(400px,100%)}.opts-wrap>.lbl{margin:0 0 2px 34px}.opts-wrap .menu-hint{margin-top:2px}
+  .pause-screen .screen-title{font-size:clamp(30px,9vh,44px)}
+  .mlist button::before{border-left-width:13px;border-top-width:9px;border-bottom-width:9px}
+  .menu-hint{margin-top:4px;font-size:13px;height:2.8em}
+  .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
+  .menu-foot{font-size:11px;max-width:calc(100% - 32px)}
+}
 </style>
 </head>
 <body>
@@ -328,7 +339,7 @@ body.touch .menu-foot .touchnote{display:inline}
       <h1 class="logo" aria-label="CUUED"><span class="a">CU</span><span class="b">UED</span></h1>
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
-    <p class="playing-as">Playing as <button type="button" class="linkish" data-act="name"><span data-myname>—</span> ✎</button>
+    <p class="playing-as">Playing as <b data-myname>—</b>
       <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: open the shop"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
@@ -364,16 +375,20 @@ body.touch .menu-foot .touchnote{display:inline}
       <p class="lobby-msg" id="joinMsg" role="status">Ask your host for their 4-letter code.</p>
       <nav class="mlist"><button type="submit" style="--i:0">Join</button><button type="button" data-act="cancelOnline" style="--i:1">Back</button></nav>
     </form>
-    <nav class="mlist" data-sub="settings" aria-label="Settings" hidden>
-      <button type="button" data-act="name" style="--i:0">Name <span class="val" data-myname>—</span></button>
-      <button type="button" data-opt="diff" style="--i:1">CPU skill <span class="val">Normal</span></button>
-      <button type="button" data-opt="len" style="--i:2">Rounds to win <span class="val">5</span></button>
-      <button type="button" data-opt="sound" style="--i:3">Sound <span class="val">On</span></button>
-      <button type="button" data-opt="vol" style="--i:4">Volume <span class="val">75%</span></button>
-      <button type="button" data-opt="music" style="--i:5">Music <span class="val">On</span></button>
-      <button type="button" data-opt="aim" style="--i:6">Aim guide <span class="val">On</span></button>
-      <button type="button" data-act="back" style="--i:7">Back</button>
-    </nav>
+    <div class="opts-wrap" data-sub="settings" hidden>
+      <div class="lbl">Settings</div>
+      <nav class="mlist opts" aria-label="Settings">
+        <button type="button" data-act="name" data-hint="The name your opponent sees. Change it whenever you like." style="--i:0">Name <span class="val edit"><span data-myname>—</span> ✎</span></button>
+        <button type="button" data-opt="diff" data-hint="How well the computer aims, dodges and blocks in Practice." style="--i:1">CPU skill <span class="val">Normal</span></button>
+        <button type="button" data-opt="len" data-hint="Rounds needed to win a match. Two points win a round." style="--i:2">Rounds to win <span class="val">5</span></button>
+        <button type="button" data-opt="sound" data-hint="All game sound on or off." style="--i:3">Sound <span class="val">On</span></button>
+        <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:4">Volume <span class="val">75%</span></button>
+        <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:5">Music <span class="val">On</span></button>
+        <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:6">Aim guide <span class="val">Off</span></button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:7">Back</button>
+      </nav>
+      <p class="menu-hint" aria-live="polite">The name your opponent sees. Change it whenever you like.</p>
+    </div>
     <div class="help" data-sub="help" hidden>
       <div class="info">
         <div>
@@ -462,14 +477,17 @@ body.touch .menu-foot .touchnote{display:inline}
       <button type="button" data-act="restart" id="pRestart" style="--i:2">Restart match</button>
       <button type="button" data-act="menu" id="pMenu" style="--i:3">Main menu</button>
     </nav>
-    <nav class="mlist centered" data-sub="settings" aria-label="Settings" hidden>
-      <button type="button" data-opt="diff" style="--i:0">CPU skill <span class="val">Normal</span></button>
-      <button type="button" data-opt="sound" style="--i:1">Sound <span class="val">On</span></button>
-      <button type="button" data-opt="vol" style="--i:2">Volume <span class="val">75%</span></button>
-      <button type="button" data-opt="music" style="--i:3">Music <span class="val">On</span></button>
-      <button type="button" data-opt="aim" style="--i:4">Aim guide <span class="val">On</span></button>
-      <button type="button" data-act="back" style="--i:5">Back</button>
-    </nav>
+    <div class="opts-wrap centered" data-sub="settings" hidden>
+      <nav class="mlist centered opts" aria-label="Settings">
+        <button type="button" data-opt="diff" data-hint="How well the computer aims, dodges and blocks in Practice." style="--i:0">CPU skill <span class="val">Normal</span></button>
+        <button type="button" data-opt="sound" data-hint="All game sound on or off." style="--i:1">Sound <span class="val">On</span></button>
+        <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:2">Volume <span class="val">75%</span></button>
+        <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:3">Music <span class="val">On</span></button>
+        <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:4">Aim guide <span class="val">Off</span></button>
+        <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:5">Back</button>
+      </nav>
+      <p class="menu-hint" aria-live="polite">How well the computer aims, dodges and blocks in Practice.</p>
+    </div>
   </div>
 </div>
 
@@ -2341,8 +2359,8 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:true};
-try{Object.assign(settings,JSON.parse(localStorage.getItem('counterpick.settings')||'{}'))}catch(e){}
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,v:2};   // the aim guide starts off: turn it on in Settings
+try{const o=JSON.parse(localStorage.getItem('counterpick.settings')||'{}');if(o&&typeof o==='object'){if((o.v|0)<2)delete o.aim;Object.assign(settings,o,{v:2})}}catch(e){}   // older saves always stored aim:on (the old default), so they start from the new default
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
 const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
