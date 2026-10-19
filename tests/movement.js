@@ -3,7 +3,7 @@
 //   node tests/movement.js
 const { load } = require('./env');
 
-const EXPECT = { run1s: [480, 500], jumpApex: [145, 165], tapApex: [95, 120], longJump: [295, 345], airtime: [0.55, 0.65] };   // ROUNDS-like: low, snappy jumps
+const EXPECT = { run1s: [462, 482], jumpApex: [145, 165], tapApex: [95, 120], longJump: [295, 345], airtime: [0.55, 0.65] };   // ROUNDS-like: low, snappy jumps
 const fail = [];
 const check = (ok, msg) => { if (!ok) fail.push(msg) };
 

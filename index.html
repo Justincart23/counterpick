@@ -406,7 +406,7 @@ body.touch .menu-foot .touchnote{display:inline}
           <div class="keys">
             <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> duck, drop through planks, fall fast · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
             <b class="touch-only">PHONE</b><span class="touch-only">Hold it sideways. Left thumb: a stick appears where you touch (run, flick up to jump, pull down to duck or drop). Right thumb: tap to auto-aim and fire, or drag to aim and let go to fire (drag back to the middle to cancel). Buttons for Jump and Block. Full screen is on the menu (on iPhone: Share, then Add to Home Screen).</span>
-            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
+            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Bullets fly right over it, so a high lob comes back down. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
       </div>
@@ -1283,7 +1283,7 @@ const losClear=(x0,y0,x1,y1)=>rayHit(x0,y0,x1,y1,1,true)>=1;
 /* the muzzle is ~50px out from the body: never let it poke through a wall. Ray from body centre to muzzle. */
 /* also stops at the rival's body, so a point-blank shot lands instead of spawning past them */
 function safeSpawn(p,ang,dist,br,phase){const c=Math.cos(ang),s=Math.sin(ang),x1=p.x+c*dist,y1=p.y+s*dist;
-  let t=phase?1:rayHit(p.x,p.y,x1,y1,br),hitEnemy=false;const blocked=t<1,smothered=!phase&&t<=0;
+  let t=phase?1:rayHit(p.x,p.y,x1,y1,br,true),hitEnemy=false;const blocked=t<1,smothered=!phase&&t<=0;
   const e=other(p);if(e&&e.alive&&!smothered){const fx=p.x-e.x,fy=p.y-e.y,R=e.r+br,b=fx*c+fy*s,cc=fx*fx+fy*fy-R*R,disc=b*b-cc;
     if(disc>=0){let k=-b-Math.sqrt(disc);if(cc<0)k=0;if(k>=0&&k/dist<t){t=Math.max(0,k-1)/dist;hitEnemy=true}}}
   return{x:p.x+(x1-p.x)*t,y:p.y+(y1-p.y)*t,blocked:blocked&&!hitEnemy,smothered,hitEnemy}}
@@ -1329,7 +1329,7 @@ function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.mi
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
-    spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1});const nb=bullets[bullets.length-1];nb.gunShot=true;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
+    spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1});const nb=bullets[bullets.length-1];nb.gunShot=true;game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.3?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
@@ -1364,8 +1364,9 @@ function blockFx(p){const s=p.s;
     for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2;if(Math.hypot(cx-p.x,cy-p.y)<320)pushSwing(w,Math.sign(cx-p.x)*900)}}
   if(s.blockVolley){const n=s.blockVolley;for(let i=0;i<n;i++)ringShot(p,p.aim+i/n*TAU,22,5,1.3,1100)}
   if(s.staticGuard)p.staticReady=true;
+  // Blink never lands past an edge (below the bottom you'd end up under the floor)
   if(s.blink){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
-    if(!solidBoxP(tx,ty,p.r,p.r)&&tx>p.r&&tx<W-p.r&&ty>p.r){burst(p.x,p.y,p.glow,14,300,6,.4,0,true);p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;burst(p.x,p.y,p.glow,14,300,6,.4,0,true);break}}}}
+    if(!solidBoxP(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){burst(p.x,p.y,p.glow,14,300,6,.4,0,true);p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;burst(p.x,p.y,p.glow,14,300,6,.4,0,true);break}}}}
 
 /* ---------- damage ---------- */
 // overtime escalates: +50% damage for every 10s past the overtime horn, so long stalemates always end
@@ -1389,7 +1390,7 @@ function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x
     p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
-const MINE_FUSE=.5,INTERP_MS=55;   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
+const MINE_FUSE=.5,INTERP_MS=55,OUT_X=400;   // OUT_X: past this far off a side a shot is gone (a homing one may still curve back before it)   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
 function killBullet(b,impact,wall,n){
   if(wall&&b.mines&&!b.stuck){if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45);b.mineN=n}
     b.stuck=true;b.vx=0;b.vy=0;b.grav=0;b.trail=[];b.fuse=MINE_FUSE;b.stuckAt=performance.now();b.bounces=0;b.life=5;sfx('arm');return}
@@ -1407,6 +1408,7 @@ function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   for(const o of players){if(!o.alive)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<R){const a=Math.atan2(o.y-b.y,o.x-b.x),f=(1-d/R)*(o===p?.4:1);o.vx+=Math.cos(a)*700*f;o.vy+=Math.sin(a)*600*f-220*f;o.ground=null;o.kT=.35}}}
 function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x,b.y,'#ffffff',7,620,Math.atan2(b.vy,b.vx),.75);if(b.grow)longShock(b,p);const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
   if(p.aegis>0){p.aegis--;b.dead=true;ring(p.x,p.y,'#dff4ff',70);burst(p.x,p.y,'#dff4ff',16,420,4,.4,0,true);sfx('pop');return}
+  if(b.gunShot)game.hits=(game.hits||0)+1;   // (counted for tuning: how often trigger pulls land)
   const o=b.owner;if(o&&o!==p&&o.s.reflexGuard)o.blockCd=Math.max(0,o.blockCd-o.s.reflexGuard);
   p.vx+=b.vx/sp*380*kf;p.vy+=b.vy/sp*300*kf-120*kf;p.ground=null;p.kT=.35;
   if(b.poison){p.dots.push({dps:b.dmg*1.5/2,t:2,src:b.owner});p.hurtT=.1;cloud(p.x,p.y,C.poison,6,20)}
@@ -1419,7 +1421,7 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   b.dead=true;if(b.explode>0)explode(b,p)}
 // a ducking fighter is a flat ellipse hugging the ground, so a shot at head height sails over
 function bodyHit(p,x,y,rad){if(!p.duck)return Math.hypot(p.x-x,p.y-y)<p.r+rad;const cy=p.y+p.r*.42,ry=p.r*.58,dx=(x-p.x)/(p.r*1.15+rad),dy=(y-cy)/(ry+rad);return dx*dx+dy*dy<1}
-const PARRY_WIN=.12;   // a block that meets a bullet in its first 0.12 s deflects it back at the shooter
+const PARRY_WIN=.12,HIT_PAD=3;   // bullets reach fighters 3px sooner than they look (walls still see only the core): near misses land   // a block that meets a bullet in its first 0.12 s deflects it back at the shooter
 function blocked(p,b){burst(b.x,b.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');
   const perfect=p.blockT>BLOCK_T-PARRY_WIN;if(perfect)game.parries=(game.parries||0)+1;
   if(perfect){ring(p.x,p.y,'#ffffff',70);flashFx(b.x,b.y,60,.12,'#ffffff');sparks(b.x,b.y,'#ffffff',10,700,Math.atan2(b.y-p.y,b.x-p.x),.9);sfx('parry');addShake(5);fxRec('P',[p.x,p.y-p.r-30]);popText(p.x,p.y-p.r-30)}
@@ -1444,7 +1446,7 @@ function updateBullets(dt){
     const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
       let ghostIn=false;
-      for(const r of solids){
+      for(const r of solids){if(r.bound)continue;   // the energy border stops fighters, not bullets: shots fly out over it (and lobs fall back in)
         // Ghost Rounds: slip through the first wall only, then collide normally
         if(b.phase&&!r.bound&&circleRect(b.x,b.y,wallR(b),r)&&(b.phasing||b.phaseLeft>0)){if(!b.phasing){b.phaseLeft--;b.phasing=true}ghostIn=true;continue}
         const n=bulletRect(b,r);if(!n)continue;
@@ -1454,9 +1456,9 @@ function updateBullets(dt){
       if(b.phase&&!ghostIn)b.phasing=false;
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
-      if(b.dead)break;if(b.y>H+120){b.dead=true;break}
+      if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner)continue;
-        if(bodyHit(p,b.x,b.y,b.r+(p.blockT>0?10:0))){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
+        if(bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
@@ -1481,6 +1483,9 @@ function swingPush(p,r){const ox=p.x,oy=p.y,og=p.grounded,ogr=p.ground;pushOut(p
 /* movement is split from combat so an online guest can run the exact same movement code to predict its own fighter */
 // running, gravity, drop-through and jumping (with buffer and coyote time) from this step's input
 const berserkOn=p=>p.s.berserk&&p.hp<p.s.maxHp*.5;
+// how fast you reach your run speed or turn around: on the ground a reversal takes ~0.1 s (readable, still snappy); in the
+// air you steer less, so a jump is a committed arc a rival can lead
+const GROUND_ACC=10,AIR_ACC=4.5;
 function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.coyote-=dt;
   if(p.grounded&&p.ground&&p.ground.swing){p.x+=p.ground.dx;p.y+=p.ground.dy}
   if(p.grounded)p.coyote=.12;
@@ -1488,7 +1493,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
   p.duck=!!(inp.down&&p.grounded&&!(p.ground&&p.ground.oneway));
-  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?16:6.5)*dt);   // a Shield Charge dash carries through
+  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?GROUND_ACC:AIR_ACC)*dt);   // a Shield Charge dash carries through
   p.padT=(p.padT||0)-dt;let g=PG;if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
   if(inp.down&&!p.grounded)g*=p.vy<0&&p.padT<=0?3:2;   // down in the air: cut a jump short, or drop fast
   p.vy=Math.min(1900,p.vy+g*dt);
@@ -1596,9 +1601,16 @@ function ballistic(sx,sy,tx,ty,v,g){const dx=tx-sx,dy=sy-ty;if(g<1)return Math.a
   return Math.atan2(-Math.sin(th),Math.cos(th)*(dx>=0?1:-1))}
 function bulletG(s){return BGRAV*s.bulletGravity*(1-Math.min(.85,s.homing*.7))}
 function aimSolution(p,e){return aimSolutionAt(p,e.x,e.y,e.vx,e.vy,e.grounded)}
-function aimSolutionAt(p,ex,ey,evx,evy,grounded){const s=p.s,v=s.bulletSpeed;let tx=ex,ty=ey;
-  for(let i=0;i<2;i++){const t=Math.hypot(tx-p.x,ty-p.y)/v;tx=ex+evx*t*.8;ty=ey+(grounded?0:evy*t*.4)}
-  return ballistic(p.x,p.y,tx,ty,v,bulletG(s))}
+// lead uses the real flight time along the arc (a lobbed shot is in the air far longer than distance / speed), and a
+// target can't run past the arena edge
+function aimSolutionAt(p,ex,ey,evx,evy,grounded){const s=p.s,v=s.bulletSpeed,g=bulletG(s);let tx=ex,ty=ey;
+  // bullets leave the muzzle (p.r+30 out along the aim) at full speed, so the arc is solved from there, not the body's centre
+  const mz=p.r+30;let a=Math.atan2(ty-p.y,tx-p.x),mx=p.x,my=p.y;
+  if(Math.hypot(tx-p.x,ty-p.y)<mz*2.5)return Math.atan2(ey-p.y,ex-p.x);   // point-blank: the muzzle would be past the target, so aim straight at it
+  for(let i=0;i<4;i++){mx=p.x+Math.cos(a)*mz;my=p.y+Math.sin(a)*mz;a=ballistic(mx,my,tx,ty,v,g);
+    const dx=Math.abs(tx-mx),vx=Math.abs(Math.cos(a))*v,t=dx>1?dx/Math.max(vx,v*.2):Math.hypot(tx-mx,ty-my)/v;
+    tx=clamp(ex+evx*t,FRAME+20,W-FRAME-20);ty=ey+(grounded?0:evy*t*.4)}
+  mx=p.x+Math.cos(a)*mz;my=p.y+Math.sin(a)*mz;return ballistic(mx,my,tx,ty,v,g)}
 function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
   if(p.ctrl==='mouse'){const ar=!players.some(q=>q.ctrl==='p2');   // arrow keys move you too, unless a second local player owns them
     inp.move=(keys.has('KeyD')||ar&&keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||ar&&keys.has('ArrowLeft')?1:0);inp.down=keys.has('KeyS')||ar&&keys.has('ArrowDown');inp.jumpH=keys.has('KeyW')||keys.has('Space')||ar&&keys.has('ArrowUp');
@@ -1642,7 +1654,7 @@ function groundBelow(p){for(let y=p.y+p.r;y<H+40;y+=24)if(pointSolid(p.x,y)||poi
 /* perception: simulate the real shot from the real muzzle, with the same wall rules bullets obey */
 function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.min(5*s.bulletSize,WALL_R),st=1/60,m=safeSpawn(p,ang,p.r+30,br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
   let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,phaseLeft=s.phase?1:0,inW=false;
-  for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(circleRect(x,y,br,r)){hit=r;break}
+  for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(!r.bound&&circleRect(x,y,br,r)){hit=r;break}
     if(hit){if(phaseLeft>0&&!hit.bound||inW&&!hit.bound){if(!inW){phaseLeft--;inW=true}}else return s.bounces>0&&Math.random()<.3}else inW=false;
     if(Math.hypot(x-e.x,y-e.y)<e.r+br+10)return true;if(y>H+40)return false}return false}
 function landingSpot(p,dir){const up=140+(p.airJumps>0?75:0);for(let dx=70;dx<=360;dx+=24){const x=p.x+dir*dx;for(let dy=-up;dy<=280;dy+=14){const y=p.y+p.r+dy;if(pointSolid(x,y)&&!pointSolid(x,y-p.r*2))return true}}return false}
@@ -1890,6 +1902,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     {const col=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8',sp=Math.hypot(b.vx,b.vy);ctx.globalAlpha=ga;
       if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke()}
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
+  // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
+  for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
+    const x=clamp(b.x,FRAME+8,W-FRAME-8),y=FRAME+5,s=5+4*k;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s,y+s*1.4);ctx.lineTo(x+s,y+s*1.4);ctx.closePath();ctx.fill()}
   for(const q of parts){if(q.blob)continue;const a=clamp(q.life/q.max,0,1);
     if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;ctx.fillText(q.text,q.x,q.y);ctx.textAlign='left';continue}
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
@@ -1919,7 +1934,7 @@ function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Mat
 function drawAimGuide(){const p=players.find(q=>q.ctrl==='mouse');if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
   const s=p.s,a=p.aim,g=bulletG(s),c=Math.cos(a),sn=Math.sin(a);let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*s.bulletSpeed,vy=sn*s.bulletSpeed;
   if(pointSolid(x,y))return;ctx.save();ctx.fillStyle=p.glow;const st=.022,N=15;
-  for(let i=1;i<=N;i++){vy+=g*st;x+=vx*st;y+=vy*st;if(pointSolid(x,y)||x<0||x>W||y<0||y>H)break;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
+  for(let i=1;i<=N;i++){vy+=g*st;x+=vx*st;y+=vy*st;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.globalAlpha=.9;
   ctx.beginPath();ctx.arc(x,y,9,0,TAU);ctx.stroke();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){ctx.beginPath();ctx.moveTo(x+a*13,y+b*13);ctx.lineTo(x+a*19,y+b*19);ctx.stroke()}
@@ -1992,7 +2007,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-19-audit';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-19-feel';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2319,7 +2334,7 @@ function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
   // 0.45 s an unconfirmed ghost turns faint so it fades rather than pops
   for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
     for(let k=0;k<st&&!b.dead;k++){b.x+=b.vx*dt/st;b.y+=b.vy*dt/st;
-      for(const r of solids){if(b.phase&&!r.bound)continue;const n=bulletRect(b,r);if(!n)continue;
+      for(const r of solids){if(r.bound||b.phase)continue;const n=bulletRect(b,r);if(!n)continue;
         if(b.bounces>0){const d=b.vx*n.nx+b.vy*n.ny;if(d<0){b.vx-=2*d*n.nx;b.vy-=2*d*n.ny}b.bounces--}else b.dead=true;break}}
     b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}
   for(let i=G.length-1;i>=0;i--)if(G[i].dead)G.splice(i,1)}
