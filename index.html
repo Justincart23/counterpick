@@ -211,6 +211,7 @@ body.touch.ingame #touchUI{display:block}
 .tstick.on{opacity:1;transition:none}
 .tstick .knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(255,255,255,.32);box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .tstick.aim .knob{background:rgba(255,171,26,.45)}
+.tstick.aim.cancel .knob{background:rgba(255,90,79,.35)}.tstick.aim.cancel{border-color:rgba(255,90,79,.6)}
 #tsMove{left:calc(110px + env(safe-area-inset-left,0px));top:calc(100% - 120px - env(safe-area-inset-bottom,0px))}
 #tsAim{left:calc(100% - 190px - env(safe-area-inset-right,0px));top:calc(100% - 120px - env(safe-area-inset-bottom,0px))}
 .tbtn{pointer-events:auto;position:fixed;width:66px;height:66px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(20,12,30,.45);color:#fff;
@@ -389,7 +390,7 @@ body.touch .menu-foot .touchnote{display:inline}
           <div class="lbl">Controls</div>
           <div class="keys">
             <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> duck, drop through planks, fall fast · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
-            <b class="touch-only">PHONE</b><span class="touch-only">Hold it sideways. Left thumb: a stick appears where you touch (run, flick up to jump, pull down to duck or drop). Right thumb: drag to aim, hold it out to fire. Buttons for Jump and Block. Full screen is on the menu (on iPhone: Share, then Add to Home Screen).</span>
+            <b class="touch-only">PHONE</b><span class="touch-only">Hold it sideways. Left thumb: a stick appears where you touch (run, flick up to jump, pull down to duck or drop). Right thumb: tap to auto-aim and fire, or drag to aim and let go to fire (drag back to the middle to cancel). Buttons for Jump and Block. Full screen is on the menu (on iPhone: Share, then Add to Home Screen).</span>
             <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
@@ -397,7 +398,7 @@ body.touch .menu-foot .touchnote{display:inline}
       <nav class="mlist"><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
     </div>
   </div>
-  <p class="menu-foot"><span class="kh">↑ ↓ choose · Enter select · ← → change · Esc back</span><span class="touchnote"> · Play sideways: left thumb moves (flick up to jump, down to duck), right thumb aims and fires, buttons for Block and Jump.</span></p>
+  <p class="menu-foot"><span class="kh">↑ ↓ choose · Enter select · ← → change · Esc back</span><span class="touchnote"> · Play sideways: left thumb moves (flick up to jump, down to duck), right thumb taps to auto-fire or drags to aim and fires on release, buttons for Block and Jump.</span></p>
 </div>
 
 <div id="nameScreen" class="overlay pause-screen" hidden>
@@ -816,9 +817,10 @@ addEventListener('keydown',e=>{initAudio();
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();mouse.down=false});
 function toWorld(cx,cy){return[(cx-view.cox)/view.cs,(cy-view.coy)/view.cs]}
-cv.addEventListener('pointermove',e=>{[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY)});
-cv.addEventListener('pointerdown',e=>{initAudio();cv.focus();[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
-addEventListener('pointerup',e=>{if(e.button===0)mouse.down=false});
+// mouse / pen only: on a touch screen the sticks drive the virtual mouse (touch pointers would otherwise hold the trigger)
+cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY)});
+cv.addEventListener('pointerdown',e=>{initAudio();if(e.pointerType==='touch')return;cv.focus();[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
+addEventListener('pointerup',e=>{if(e.pointerType==='touch')return;if(e.button===0)mouse.down=false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 let pads=[],padPrev={};
 function pollPads(){try{pads=(navigator.getGamepads?[...navigator.getGamepads()]:[]).filter(Boolean)}catch(e){pads=[]}}
@@ -1581,7 +1583,7 @@ function aimSolutionAt(p,ex,ey,evx,evy,grounded){const s=p.s,v=s.bulletSpeed;let
 function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
   if(p.ctrl==='mouse'){const ar=!players.some(q=>q.ctrl==='p2');   // arrow keys move you too, unless a second local player owns them
     inp.move=(keys.has('KeyD')||ar&&keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||ar&&keys.has('ArrowLeft')?1:0);inp.down=keys.has('KeyS')||ar&&keys.has('ArrowDown');inp.jumpH=keys.has('KeyW')||keys.has('Space')||ar&&keys.has('ArrowUp');
-    inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
+    inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down||!!mouse.tap;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
     inp.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x)}
   else if(p.ctrl==='p2'){const pad=pads[0];let mv=(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0);
     inp.jumpH=keys.has('ArrowUp');inp.jumpP=edges.has('ArrowUp');inp.fire=keys.has('Period')||keys.has('Numpad0');inp.blockP=edges.has('Slash')||edges.has('Numpad1')||edges.has('ShiftRight');
@@ -1692,7 +1694,7 @@ function step(h){
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players)updatePlayer(p,h);separate();updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
-  edges.clear();mouse.rEdge=false   // a press is consumed by the first step that sees it
+  edges.clear();mouse.rEdge=false;mouse.tap=false   // a press is consumed by the first step that sees it
 }
 function simTick(h){const st=game.state;
   if(st==='ready'&&game.dropT>0){game.dropT-=h;const e=clamp(1-game.dropT/.6,0,1),c1=1.70158,c3=c1+1,eb=1+c3*Math.pow(e-1,3)+c1*Math.pow(e-1,2);
@@ -1905,9 +1907,11 @@ function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#
 let last=performance.now();
 /* ---------- touch controls (phones and tablets) ----------
    left thumb: a stick wherever you touch the left side (run, flick up to jump, pull down to duck / drop);
-   right thumb: an aim stick wherever you touch the right side (drag to aim, fires while pulled out); Jump and Block buttons.
+   right thumb, Brawl Stars style: a quick tap auto-aims at your rival and fires (tap fast to spam); a drag aims (the aim guide
+   shows the arc) and letting go fires; drag back to the middle before letting go to cancel. Jump and Block buttons.
    They drive the same keys and mouse the keyboard does, so every mode (online too) works unchanged */
-const touch={on:false,move:null,aim:null,aimA:null,up:false,jumpBtn:false};
+const touch={on:false,move:null,aim:null,aimA:null,up:false,jumpBtn:false,pulse:0};
+const AIM_DEAD=26,TAP_MS=230,TAP_MOVE=20;   // aim stick: release outside AIM_DEAD fires; a touch shorter and stiller than TAP_* is a tap
 const bodyCls=(c,on)=>{const b=document.body;if(b&&b.classList)b.classList.toggle(c,on)};
 function setTouchMode(on){touch.on=on;bodyCls('touch',on);const d=document,de=d.documentElement||{},api=!!(de.requestFullscreen||de.webkitRequestFullscreen),
   standalone=mq('(display-mode: fullscreen), (display-mode: standalone)')||(typeof navigator!=='undefined'&&navigator.standalone);
@@ -1924,8 +1928,14 @@ function applyTouch(){const R=56,m=touch.move,a=touch.aim;let mx=0,up=false,down
     const d=Math.hypot(m.dx,m.dy)||1,c=Math.min(1,R/d);$('#tsMove .knob').style.transform=`translate(${m.dx*c}px,${m.dy*c}px)`}
   tKey('KeyD',mx>0);tKey('KeyA',mx<0);tKey('KeyS',down);
   if(up&&!touch.up)edges.add('KeyW');touch.up=up;tKey('KeyW',up||touch.jumpBtn);
-  if(a){const d=Math.hypot(a.dx,a.dy);if(d>10)touch.aimA=Math.atan2(a.dy,a.dx);mouse.down=d>26;const c=Math.min(1,R/(d||1));$('#tsAim .knob').style.transform=`translate(${a.dx*c}px,${a.dy*c}px)`}
-  else mouse.down=false}
+  if(a){const d=Math.hypot(a.dx,a.dy);a.maxD=Math.max(a.maxD||0,d);if(d>12)touch.aimA=Math.atan2(a.dy,a.dx);const c=Math.min(1,R/(d||1));
+    $('#tsAim .knob').style.transform=`translate(${a.dx*c}px,${a.dy*c}px)`;$('#tsAim').classList.toggle('cancel',d<AIM_DEAD&&a.maxD>=AIM_DEAD)}}
+// fire one shot: a queued trigger pull (mouse.tap) that the next physics step uses, so a tap is always exactly one shot
+function touchShoot(){mouse.tap=true}
+function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
+  if(quick){const me=touchMe(),e=me&&(game.mode==='online-guest'?players[0]:other(me));   // tap: auto-aim at the rival (lob, drop and lead included)
+    if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}touchShoot()}
+  else if(d>=AIM_DEAD)touchShoot()}   // aimed: fire where it points; let go in the middle to cancel
 function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')}
 // keep the virtual mouse out along the aim, wherever the fighter goes
 function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
@@ -1933,11 +1943,11 @@ function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(
 cv.addEventListener('touchstart',e=>{if(!touchLive())return;e.preventDefault();initAudio();
   for(const t of e.changedTouches){const left=t.clientX<innerWidth*.45;
     if(left&&!touch.move){touch.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsMove'),t.clientX,t.clientY)}
-    else if(!left&&!touch.aim){touch.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsAim'),t.clientX,t.clientY)}}
+    else if(!left&&!touch.aim){touch.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0,t0:performance.now(),maxD:0};stickAt($('#tsAim'),t.clientX,t.clientY)}}
   applyTouch()},{passive:false});
 cv.addEventListener('touchmove',e=>{if(!touch.move&&!touch.aim)return;e.preventDefault();
   for(const t of e.changedTouches)for(const s of[touch.move,touch.aim])if(s&&s.id===t.identifier){s.dx=t.clientX-s.ox;s.dy=t.clientY-s.oy}applyTouch()},{passive:false});
-const touchEnd=e=>{for(const t of e.changedTouches){if(touch.move&&touch.move.id===t.identifier){touch.move=null;stickHome($('#tsMove'))}if(touch.aim&&touch.aim.id===t.identifier){touch.aim=null;stickHome($('#tsAim'))}}applyTouch()};
+const touchEnd=e=>{for(const t of e.changedTouches){if(touch.move&&touch.move.id===t.identifier){touch.move=null;stickHome($('#tsMove'))}if(touch.aim&&touch.aim.id===t.identifier){const a=touch.aim;touch.aim=null;stickHome($('#tsAim'));$('#tsAim').classList.remove('cancel');if(e.type==='touchend'&&touchLive())touchRelease(a)}}applyTouch()};
 cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touchEnd);
 {const jb=$('#tJump'),bb=$('#tBlock');
   jb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();touch.jumpBtn=true;edges.add('KeyW');jb.classList.add('down');applyTouch()},{passive:false});
@@ -1945,14 +1955,14 @@ cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touch
   bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
   const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
 function touchFrame(){const live=touchLive();bodyCls('ingame',live);
-  if(!live&&(touch.move||touch.aim||touch.jumpBtn)){touch.move=touch.aim=null;touch.jumpBtn=false;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
+  if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tap)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tap=false;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   touchAim()}
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame();update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-mobile';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-mobile2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2222,7 +2232,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
   // this step's record: the host fires on exactly this step
   if(me&&me.phys&&me.alive&&game.state==='play'){const s=me.s;me.gFireT=(me.gFireT||0)-h;me.gSince=(me.gSince??99)+h;if(me.gAmmo==null)me.gAmmo=s.ammo;
     if(me.gAmmo<s.ammo&&me.gSince>=s.reload)me.gAmmo=s.ammo;
-    if(on&&mouse.down&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
+    if(on&&(mouse.down||mouse.tap)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
   else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0}
   const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0)]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
@@ -2233,7 +2243,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
     net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}
-  net.pendJump=false;
+  net.pendJump=false;mouse.tap=false;
 }
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
 function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}

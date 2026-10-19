@@ -6,7 +6,7 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const OUT = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mobile-'));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mob-'));
 let html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8').replace('<head>', '<head><script>try{localStorage.setItem("cuued.name","Phone")}catch(e){}</script>');
-html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,keys,mouse,get players(){return players},get bullets(){return bullets}};})();</script>');
+html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,keys,mouse,recompute,get players(){return players},get bullets(){return bullets}};})();</script>');
 fs.writeFileSync(path.join(dir, 'm.html'), html);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]); return c };
@@ -39,16 +39,37 @@ const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]
   await ev(`document.querySelector('#pick .card').click()`);
   ok(await until(`window.__G.game.state==='play'`, 8000), 'phone: a practice match starts by tapping');
   ok(await ev(`getComputedStyle(document.querySelector('#touchUI')).display==='block'`), 'phone: the touch controls show during play');
+  // a calm test: the CPU stands still and our fighter carries no cards (bursts would look like extra shots)
+  await ev(`(()=>{const G=window.__G,[P,E]=G.players;E.ctrl='idle';E.input.fire=false;E.input.move=0;P.cards=[];G.recompute(P);E.s.maxHp=E.hp=1e9;P.s.maxHp=P.hp=1e9})()`);   // neither can die (our shots, pits and edges never end the point mid-test)
   const me = `window.__G.players[0]`; const x0 = await ev(`${me}.x`);
   // left stick: drag right and hold
   await touch('touchStart', [[150, 280, 1]]); for (let k = 1; k <= 6; k++) { await touch('touchMove', [[150 + k * 12, 280, 1]]); await sleep(30) } await sleep(500);
   const x1 = await ev(`${me}.x`); ok(x1 - x0 > 120, `phone: the left stick runs (moved ${Math.round(x1 - x0)}px)`);
   await touch('touchEnd', []); await sleep(150);
-  // right stick: drag up-left and hold to fire
-  const nb0 = await ev(`window.__G.bullets.filter(b=>b.owner===${me}).length`);
-  await touch('touchStart', [[700, 250, 2]]); for (let k = 1; k <= 5; k++) { await touch('touchMove', [[700 + k * 8, 250 - k * 6, 2]]); await sleep(30) }
-  let fired = false; for (let i = 0; i < 10 && !fired; i++) { await sleep(100); fired = await ev(`window.__G.bullets.some(b=>b.owner===${me})`) || (await ev(`${me}.ammo`)) < 3 }
-  ok(fired, 'phone: the right stick aims and fires'); await shot('phone-play.png'); await touch('touchEnd', []); await sleep(200);
+  // right stick, Brawl Stars style (a new shot = a bullet of ours with a higher id than any before)
+  const lastId = () => ev(`Math.max(0,...window.__G.bullets.filter(b=>b.owner===${me}).map(b=>b.id),window.__lastId||0)`);
+  const remember = async () => { await ev(`window.__since0=${me}.sinceShot`); return 0 };
+  // fired since remember() = the gun's time-since-last-shot reset (a bullet can hit a wall and vanish before we look)
+  const firedSince = async () => (await ev(`${me}.sinceShot<window.__since0`));
+  const waitReady = () => until(`window.__G.game.state==='play'&&${me}.alive&&${me}.fireT<=0&&${me}.ammo>0&&!(${me}.burstLeft>0)`, 8000);
+  // 1) a quick tap fires one shot, auto-aimed at the CPU
+  await waitReady(); let id0 = await remember();
+  await touch('touchStart', [[700, 250, 2]]); await sleep(60); await touch('touchEnd', []);
+  let tapShot = false; for (let i = 0; i < 10 && !tapShot; i++) { await sleep(50); tapShot = await firedSince(id0) }
+  const towards = await ev(`(()=>{const p=${me},e=window.__G.players[1],a=p.aim;return Math.sign(Math.cos(a))===Math.sign(e.x-p.x)})()`);
+  ok(tapShot && towards, `phone: a quick tap auto-aims at the CPU and fires (shot ${tapShot}, toward the CPU ${towards})`);
+  // 2) dragging aims but holding doesn't fire; 3) letting go fires where it points
+  await waitReady(); id0 = await remember();
+  await touch('touchStart', [[700, 250, 2]]); for (let k = 1; k <= 6; k++) { await touch('touchMove', [[700 - k * 9, 250 - k * 7, 2]]); await sleep(40) } await sleep(400);
+  const held = !(await firedSince(id0)), aimUpLeft = await ev(`(()=>{const a=${me}.aim;return Math.cos(a)<0&&Math.sin(a)<0})()`);
+  ok(held && aimUpLeft, `phone: dragging the aim stick aims (up-left ${aimUpLeft}) without firing while held (${held})`);
+  await shot('phone-play.png');
+  await touch('touchEnd', []); let relShot = false; for (let i = 0; i < 10 && !relShot; i++) { await sleep(50); relShot = await firedSince(id0) }
+  ok(relShot, 'phone: letting go of the aim stick fires');
+  // 4) drag out, come back to the middle, let go: cancelled
+  await waitReady(); id0 = await remember();
+  await touch('touchStart', [[700, 250, 2]]); await touch('touchMove', [[760, 250, 2]]); await sleep(300); await touch('touchMove', [[702, 251, 2]]); await sleep(100); await touch('touchEnd', []); await sleep(400);
+  ok(!(await firedSince(id0)), 'phone: dragging back to the middle before letting go cancels the shot');
   // jump and block buttons
   const jb = await ev(`(()=>{const r=document.querySelector('#tJump').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()`);
   await sleep(600); const yv = []; await touch('touchStart', [[jb[0], jb[1], 3]]); for (let i = 0; i < 6; i++) { await sleep(40); yv.push(await ev(`${me}.vy`)) } await touch('touchEnd', []);
