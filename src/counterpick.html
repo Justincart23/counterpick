@@ -1,6 +1,12 @@
 <title>CUUED</title>
 <meta name="description" content="Queue up. Duel a friend. A fast 1v1 browser shooter: shoot, block, wall-jump, and stack wild power-up cards.">
 <meta name="theme-color" content="#1a1226">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CUUED">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CUUED">
 <meta property="og:url" content="https://www.cuued.com/">
@@ -191,6 +197,49 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .shop-item .nm{font-weight:800;font-size:15px}
 .shop-item .pr{font-family:var(--mono);font-size:12px;font-weight:700;color:#ffd36b}.shop-item .pr.own{color:var(--good)}.shop-item .pr.poor{color:var(--muted)}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
+/* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
+body:not(.touch) .touch-only{display:none!important}
+#touchUI{position:fixed;inset:0;pointer-events:none;z-index:1;display:none}
+body.touch.ingame #touchUI{display:block}
+.tstick{position:fixed;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);transition:opacity .15s;opacity:.3}
+.tstick.on{opacity:1;transition:none}
+.tstick .knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(255,255,255,.32);box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.tstick.aim .knob{background:rgba(255,171,26,.45)}
+#tsMove{left:calc(110px + env(safe-area-inset-left,0px));top:calc(100% - 120px - env(safe-area-inset-bottom,0px))}
+#tsAim{left:calc(100% - 190px - env(safe-area-inset-right,0px));top:calc(100% - 120px - env(safe-area-inset-bottom,0px))}
+.tbtn{pointer-events:auto;position:fixed;width:66px;height:66px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(20,12,30,.45);color:#fff;
+  font:800 14px var(--body);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.tbtn.down{background:rgba(255,255,255,.3)}
+#tJump{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+#tBlock{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));border-color:rgba(255,255,255,.6)}
+#rotate{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;background:rgba(14,8,22,.94);color:var(--text);font:800 20px var(--body);text-align:center;padding:24px}
+@media (orientation:portrait){body.touch.ingame #rotate{display:flex}}
+.rot-ic{width:46px;height:76px;margin:0 auto 16px;border:4px solid #ffd36b;border-radius:10px;animation:rot 1.6s ease-in-out infinite}
+@keyframes rot{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
+.mobile-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 0 40px}
+.mobile-row .btn{font-size:16px;padding:9px 16px}.ios-hint{color:var(--muted);font-size:14px;max-width:40ch}
+body.touch #game{touch-action:none}
+body.touch button{touch-action:manipulation}
+body.touch .kh{display:none}
+body.touch #hudbtns{top:calc(6px + env(safe-area-inset-top,0px));bottom:auto;left:50%;right:auto;transform:translateX(-50%);gap:6px}
+body.touch:not(.ingame) #hudbtns{display:none}
+body.touch #hudbtns button{font-size:12px;padding:6px 10px}
+body.touch .menu-foot .touchnote{display:inline}
+/* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
+@media (max-height:520px){
+  /* two columns: title, name and coins on the left; the options on the right */
+  .menu-wrap{width:min(860px,100%);margin:auto;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;row-gap:6px;align-items:start;align-content:center}
+  .menu-wrap>div:first-child,.menu-wrap>.playing-as,.menu-wrap>.menu-msg{grid-column:1}
+  .menu-wrap>[data-sub]{grid-column:2;grid-row:1 / span 3;align-self:center}
+  .menu-foot{display:none}
+  .menu-screen{background:rgba(14,8,22,.74)}
+  .logo{font-size:clamp(40px,8vh,64px)}.tagline{font-size:14px}.playing-as{font-size:13px}
+  .mlist button{font-size:clamp(18px,5.4vh,26px);padding:1px 10px 1px 34px}
+  .mlist button::before{border-left-width:13px;border-top-width:9px;border-bottom-width:9px}
+  .menu-hint{margin-top:4px;font-size:13px;height:2.8em}
+  .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
+  .menu-foot{font-size:11px;max-width:calc(100% - 32px)}
+}
 #hudbtns button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:4px;background:rgba(18,29,42,.8);color:var(--muted);padding:5px 9px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
@@ -256,7 +305,14 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
-<div id="hudbtns"><button id="bCards" type="button" hidden>Cards · Tab</button><button id="bPause" type="button">Pause · Esc</button><button id="bMute" type="button">Sound on · M</button><button id="bFull" type="button">Full screen · F</button></div>
+<div id="touchUI" class="touch-only" aria-hidden="true">
+  <div class="tstick" id="tsMove"><div class="knob"></div></div>
+  <div class="tstick aim" id="tsAim"><div class="knob"></div></div>
+  <button type="button" class="tbtn" id="tJump">Jump</button>
+  <button type="button" class="tbtn block" id="tBlock">Block</button>
+</div>
+<div id="rotate" class="touch-only"><div><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways to play</div></div>
+<div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh"> · Tab</span></button><button id="bPause" type="button">Pause<span class="kh"> · Esc</span></button><button id="bMute" type="button">Sound on<span class="kh"> · M</span></button><button id="bFull" type="button">Full screen<span class="kh"> · F</span></button></div>
 
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
@@ -277,6 +333,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
         <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:5">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
+      <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
     </div>
     <div data-sub="online" hidden>
       <nav class="mlist" aria-label="Duel a friend">
@@ -325,6 +382,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
           <div class="lbl">Controls</div>
           <div class="keys">
             <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> duck, drop through planks, fall fast · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
+            <b class="touch-only">PHONE</b><span class="touch-only">Hold it sideways. Left thumb: a stick appears where you touch (run, flick up to jump, pull down to duck or drop). Right thumb: drag to aim, hold it out to fire. Buttons for Jump and Block. Full screen is on the menu (on iPhone: Share, then Add to Home Screen).</span>
             <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
           </div>
         </div>
@@ -332,7 +390,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
       <nav class="mlist"><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
     </div>
   </div>
-  <p class="menu-foot">↑ ↓ choose · Enter select · ← → change · Esc back<span class="touchnote"> · Needs a keyboard and mouse or a gamepad; on a phone you can still watch a CPU match from How to play.</span></p>
+  <p class="menu-foot"><span class="kh">↑ ↓ choose · Enter select · ← → change · Esc back</span><span class="touchnote"> · Play sideways: left thumb moves (flick up to jump, down to duck), right thumb aims and fires, buttons for Block and Jump.</span></p>
 </div>
 
 <div id="nameScreen" class="overlay pause-screen" hidden>
@@ -972,7 +1030,7 @@ function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),ou
 let pickMode='local';   // local: this screen picks · remote: this guest picks, host applies · watch: someone else is picking
 function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=2;pickLock=false;pickMode=mode;
   $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
-  $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):' · click, or press 1–5');
+  $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':' · click, or press 1–5');
   const el=$('#fan');el.innerHTML='';
   hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-2;
     b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
@@ -1838,12 +1896,56 @@ function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#
   ctx.restore()}
 
 let last=performance.now();
-function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();requestAnimationFrame(frame)}
+/* ---------- touch controls (phones and tablets) ----------
+   left thumb: a stick wherever you touch the left side (run, flick up to jump, pull down to duck / drop);
+   right thumb: an aim stick wherever you touch the right side (drag to aim, fires while pulled out); Jump and Block buttons.
+   They drive the same keys and mouse the keyboard does, so every mode (online too) works unchanged */
+const touch={on:false,move:null,aim:null,aimA:null,up:false,jumpBtn:false};
+const bodyCls=(c,on)=>{const b=document.body;if(b&&b.classList)b.classList.toggle(c,on)};
+function setTouchMode(on){touch.on=on;bodyCls('touch',on);const d=document,de=d.documentElement||{},api=!!(de.requestFullscreen||de.webkitRequestFullscreen),
+  standalone=mq('(display-mode: fullscreen), (display-mode: standalone)')||(typeof navigator!=='undefined'&&navigator.standalone);
+  const f=$('#mFull'),h=$('#iosHint');if(f)f.hidden=!api||standalone;if(h)h.hidden=api||standalone}
+const mq=q=>typeof matchMedia==='function'&&matchMedia(q).matches;
+setTouchMode(mq('(pointer: coarse)')&&!mq('(pointer: fine)'));
+addEventListener('touchstart',()=>{if(!touch.on)setTouchMode(true)},{passive:true,capture:true});
+const touchLive=()=>!game.bg&&['play','ready','pointEnd'].includes(game.state)&&$('#pause').hidden&&$('#pick').hidden&&$('#sandbox').hidden&&$('#shop').hidden;
+const tKey=(k,on)=>{if(on)keys.add(k);else keys.delete(k)};
+function stickAt(el,x,y){el.style.left=x+'px';el.style.top=y+'px';el.classList.add('on')}
+function stickHome(el){el.style.left='';el.style.top='';el.classList.remove('on');const k=el.querySelector('.knob');if(k)k.style.transform=''}
+function applyTouch(){const R=56,m=touch.move,a=touch.aim;let mx=0,up=false,down=false;
+  if(m){if(m.dx>16)mx=1;else if(m.dx<-16)mx=-1;up=m.dy<-R*.55&&-m.dy>Math.abs(m.dx)*.6;down=m.dy>R*.55&&m.dy>Math.abs(m.dx)*.8;
+    const d=Math.hypot(m.dx,m.dy)||1,c=Math.min(1,R/d);$('#tsMove .knob').style.transform=`translate(${m.dx*c}px,${m.dy*c}px)`}
+  tKey('KeyD',mx>0);tKey('KeyA',mx<0);tKey('KeyS',down);
+  if(up&&!touch.up)edges.add('KeyW');touch.up=up;tKey('KeyW',up||touch.jumpBtn);
+  if(a){const d=Math.hypot(a.dx,a.dy);if(d>10)touch.aimA=Math.atan2(a.dy,a.dx);mouse.down=d>26;const c=Math.min(1,R/(d||1));$('#tsAim .knob').style.transform=`translate(${a.dx*c}px,${a.dy*c}px)`}
+  else mouse.down=false}
+function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')}
+// keep the virtual mouse out along the aim, wherever the fighter goes
+function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
+  mouse.x=me.x+(game.mode==='online-guest'?net.offX:0)+Math.cos(touch.aimA)*260;mouse.y=me.y+(game.mode==='online-guest'?net.offY:0)+Math.sin(touch.aimA)*260}
+cv.addEventListener('touchstart',e=>{if(!touchLive())return;e.preventDefault();initAudio();
+  for(const t of e.changedTouches){const left=t.clientX<innerWidth*.45;
+    if(left&&!touch.move){touch.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsMove'),t.clientX,t.clientY)}
+    else if(!left&&!touch.aim){touch.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsAim'),t.clientX,t.clientY)}}
+  applyTouch()},{passive:false});
+cv.addEventListener('touchmove',e=>{if(!touch.move&&!touch.aim)return;e.preventDefault();
+  for(const t of e.changedTouches)for(const s of[touch.move,touch.aim])if(s&&s.id===t.identifier){s.dx=t.clientX-s.ox;s.dy=t.clientY-s.oy}applyTouch()},{passive:false});
+const touchEnd=e=>{for(const t of e.changedTouches){if(touch.move&&touch.move.id===t.identifier){touch.move=null;stickHome($('#tsMove'))}if(touch.aim&&touch.aim.id===t.identifier){touch.aim=null;stickHome($('#tsAim'))}}applyTouch()};
+cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touchEnd);
+{const jb=$('#tJump'),bb=$('#tBlock');
+  jb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();touch.jumpBtn=true;edges.add('KeyW');jb.classList.add('down');applyTouch()},{passive:false});
+  const jEnd=e=>{e.preventDefault();touch.jumpBtn=false;jb.classList.remove('down');applyTouch()};jb.addEventListener('touchend',jEnd);jb.addEventListener('touchcancel',jEnd);
+  bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
+  const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
+function touchFrame(){const live=touchLive();bodyCls('ingame',live);
+  if(!live&&(touch.move||touch.aim||touch.jumpBtn)){touch.move=touch.aim=null;touch.jumpBtn=false;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
+  touchAim()}
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame();update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-18-balance';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-18-mobile';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2235,6 +2337,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox')startMatch(a);
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openShop();
+  else if(a==='fullscreen')toggleFull();
   else if(a==='online')showSub(ov,'online');
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
@@ -2261,16 +2364,17 @@ function togglePause(){
     if(show){refreshOpts();$('#pLoadout').hidden=true;$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
-function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').textContent=(muted?'Sound off':'Sound on')+' · M';if(!fromSetting){saveSettings();refreshOpts()}}
+function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').innerHTML=(muted?'Sound off':'Sound on')+'<span class="kh"> · M</span>';if(!fromSetting){saveSettings();refreshOpts()}}
 function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#shop').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
 function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
-  else{const el=d.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el)}}catch(e){}}
+  else{const el=d.documentElement,r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);   // phones: also hold it sideways
+    Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 {const b=$('#bFull'),d=document,ok=!!(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen);if(!ok)b.hidden=true;b.onclick=()=>{b.blur();toggleFull()};
-  const sync=()=>{b.textContent=(d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen')+' · F'};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
+  const sync=()=>{b.innerHTML=(d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen')+'<span class="kh"> · F</span>';const m=$('#mFull');if(m)m.textContent=d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen'};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
 const boot=()=>{fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
