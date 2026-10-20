@@ -10,6 +10,10 @@ const LATENCY = +(process.argv[2] || process.env.NET_LATENCY || 40); // ms each 
 const JITTER = +(process.argv[3] || process.env.NET_JITTER || 0);
 // 'features': both fighters carry the block/movement cards and the bots duck, block constantly (parries, edge launches) and hug walls
 const FEATURES = process.argv[4] === 'features';    // extra random ms per message (delivery stays in order, like a WebRTC data channel)
+// NET_LOSS=2 loses 2% of packets. On the reliable channel (PeerJS's, ordered) a lost packet is resent after a retransmit
+// timeout and holds up everything behind it, as SCTP does; on the game's fast channel it is simply gone.
+// NET_FAST=0 leaves out the fast channel (the game then sends everything reliably, as before it existed).
+const LOSS = +(process.env.NET_LOSS || 0) / 100, FAST = process.env.NET_FAST !== '0', RETX = Math.max(200, 2 * LATENCY + 80);
 let jseed = 99; const jrand = () => ((jseed = (jseed * 1103515245 + 12345) >>> 0) / 2 ** 32);
 const vnow = () => require('./env').clock.t;
 const registry = new Map();
@@ -18,9 +22,21 @@ class Emitter {
   on(e, f) { (this.handlers[e] = this.handlers[e] || []).push(f); return this }
   emit(e, ...a) { for (const f of this.handlers[e] || []) f(...a) }
 }
+let lseed = 7; const lrand = () => ((lseed = (lseed * 1103515245 + 12345) >>> 0) / 2 ** 32);   // its own stream: loss never shifts the jitter
+class MockChannel {   // a negotiated, unordered, never-retransmitted RTCDataChannel
+  constructor() { this.readyState = 'connecting'; this.bufferedAmount = 0; this.peer = null }
+  send(str) { if (this.readyState !== 'open') return; if (LOSS && lrand() < LOSS) return; const o = this.peer;
+    const t = vnow(); let at = t + LATENCY + jrand() * JITTER; if (process.env.NET_FAST_ORDER) { at = Math.max(this.lastAt || 0, at); this.lastAt = at }
+    schedule(() => { if (o.readyState === 'open' && o.onmessage) o.onmessage({ data: str }) }, at - t) }
+  close() { this.readyState = 'closed'; if (this.peer) this.peer.readyState = 'closed' }
+}
 class MockConn extends Emitter {
-  constructor() { super(); this.open = false; this.other = null }
-  send(m) { if (!this.open) return; const d = JSON.parse(JSON.stringify(m)), o = this.other, t = vnow(), at = Math.max(this.lastAt || 0, t + LATENCY + jrand() * JITTER); this.lastAt = at; schedule(() => o.open && o.emit('data', d), at - t) }
+  constructor() { super(); this.open = false; this.other = null; this.chans = {};
+    if (FAST) this.peerConnection = { createDataChannel: (label, o) => { const ch = new MockChannel(); this.chans[o.id] = ch; const th = this.other && this.other.chans[o.id];
+      if (th) { ch.peer = th; th.peer = ch; schedule(() => { ch.readyState = th.readyState = 'open' }, LATENCY) } return ch } } }
+  send(m) { if (!this.open) return; const d = JSON.parse(JSON.stringify(m)), o = this.other, t = vnow();
+    let at = Math.max(this.lastAt || 0, t + LATENCY + jrand() * JITTER); if (LOSS && lrand() < LOSS) at += RETX;   // lost: resent later, and in order, so it blocks the rest
+    this.lastAt = at; schedule(() => o.open && o.emit('data', d), at - t) }
   close() { if (!this.open) return; this.open = false; const o = this.other; schedule(() => { this.emit('close'); if (o.open) { o.open = false; o.emit('close') } }, LATENCY) }
 }
 class MockPeer extends Emitter {
@@ -151,6 +167,7 @@ const DT = 1 / 60;
   };
   const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard'];
   const giveDecks = () => { for (const p of H.players) { const want = FEATURE_DECK.map((n) => H.CARDS.find((c) => c.n === n)); if (p.cards.length < want.length || !want.every((c) => p.cards.includes(c))) { p.cards = [...want, ...p.cards.filter((c) => !want.includes(c))]; H.recompute(p) } } };
+  const sg = { hj: [], last: null, gaps: [], n: 0, stutter: 0, o1: null, o2: null, h1: null, h2: null };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
@@ -190,7 +207,7 @@ const DT = 1 / 60;
       if (w._p1) { sm.sw++; if (Math.hypot(w.x - 2 * w._p1[0] + w._p2[0], w.y - 2 * w._p1[1] + w._p2[1]) > 3) sm.swShake++ } w._p2 = w._p1 || [w.x, w.y]; w._p1 = [w.x, w.y] }
     { const h = H.players[0], now = vnow(); sm.hist.push([now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 400) sm.hist.shift();
       const o = G.players[0];
-      if (G.game.state === 'play' && o.alive && G.net.clk != null) { const rt = now - G.net.clk - 55 - (G.net.relayed ? 35 : 0); let best = null;
+      if (G.game.state === 'play' && o.alive && G.net.clk != null) { const base = G.net.relayed ? 90 : 55, rt = now - G.net.clk - Math.min(170, Math.max(base, base + (G.net.lateMax || 0) * .8 - 15)); let best = null;
         for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
         if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } } }
     // bullets on the guest's screen: how soon its own shot appears after a click, and whether bullets fly smoothly
@@ -201,6 +218,13 @@ const DT = 1 / 60;
       for (const b of mine) bm.seenBefore.add(b);
       for (const b of G.bullets) { const t = b.trail, n = t.length; if (b.stuck || n < 6) continue;
         const jx = t[n - 2] - 2 * t[n - 4] + t[n - 6], jy = t[n - 1] - 2 * t[n - 3] + t[n - 5]; bm.n++; if (Math.hypot(jx, jy) > 4) bm.jerk++ } }
+    if (G.net.snapAt !== sg.last) { if (sg.last != null && G.game.state === 'play') sg.gaps.push(G.net.snapAt - sg.last); sg.last = G.net.snapAt }
+    { const o = G.players[0], h = H.players[0];
+      if (G.game.state === 'play' && o.alive && Number.isFinite(o.x) && G.game.mapIdx === lastMap && sg.o1 && sg.o2) { sg.n++;
+        const jo = Math.hypot(o.x - 2 * sg.o1[0] + sg.o2[0], o.y - 2 * sg.o1[1] + sg.o2[1]), jh = Math.hypot(h.x - 2 * sg.h1[0] + sg.h2[0], h.y - 2 * sg.h1[1] + sg.h2[1]);
+        sg.hj.push(jh); if (sg.hj.length > 20) sg.hj.shift();   // the guest shows the host ~55-170 ms late: a real kink (a landing, a bounce) anywhere in that window isn't stutter
+        if (jo > 6 && Math.max(...sg.hj) < 3) sg.stutter++ }
+      sg.o2 = sg.o1; sg.o1 = [o.x, o.y]; sg.h2 = sg.h1; sg.h1 = [h.x, h.y] }
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) embedded++;
@@ -283,6 +307,9 @@ const DT = 1 / 60;
   check(bm.n < 500 || bm.jerk / bm.n < 0.05, `bullets should fly smoothly on the guest's screen (${(100 * bm.jerk / bm.n).toFixed(1)}% of bullet-frames jerked >4px)`);
   { const ok = G.net.gMerged || 0, lost = G.net.gLost || 0; check(ok + lost < 10 || lost / (ok + lost) < 0.25, `the guest's instant shots should be confirmed by the host (${ok} confirmed, ${lost} never fired there)`) }
   const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ownShotFrames: bm.lat.length ? bm.lat.slice().sort((a, b) => a - b)[bm.lat.length >> 1] : null, bulletJerkPct: bm.n ? +(100 * bm.jerk / bm.n).toFixed(2) : null, ghostShotsConfirmed: G.net.gMerged || 0, ghostShotsPhantom: G.net.gLost || 0, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  { const g = sg.gaps.slice().sort((a, b) => a - b); Object.assign(result, { snapGapP99Ms: g.length ? Math.round(g[Math.floor(g.length * .99)]) : null, snapGapMaxMs: g.length ? Math.round(g[g.length - 1]) : null, otherStutterPct: sg.n ? +(100 * sg.stutter / sg.n).toFixed(2) : null, lossPct: LOSS * 100, fast: FAST }) }
+  if (LOSS && FAST) { const g = sg.gaps.slice().sort((a, b) => a - b); check(!g.length || g[g.length - 1] < 160, `a lost packet must not stall the guest's view (longest gap between snapshots ${Math.round(g[g.length - 1])} ms)`) }
+  check(sg.n < 500 || sg.stutter / sg.n < 0.03, `the host's fighter should move smoothly on the guest's screen (${sg.stutter} of ${sg.n} frames stuttered)`);
   console.log(JSON.stringify(result));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

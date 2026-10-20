@@ -1743,7 +1743,7 @@ function update(dt){pollPads();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
   if(net.role==='host'&&net.connected&&game.mode==='online-host'){net.sendT-=dt;net.pingT-=dt;
-    if(net.sendT<=1e-4){net.sendT=Math.max(-.05,net.sendT)+(net.relayed?1/20:1/30);netSend(snapshot())}   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
+    if(net.sendT<=1e-4){net.sendT=Math.max(-.05,net.sendT)+(net.relayed?1/20:1/30);{const sn=snapshot();if(net.fast&&net.fast.readyState==='open'){if(sn.fx.length)netSend({t:'fx',fx:sn.fx});delete sn.fx}netSend(sn)}}   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
     if(performance.now()-net.lastRecv>15000)netLost(`Lost the connection to ${net.remoteName||'your opponent'}.`);if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}}
 
 /* ---------- render ---------- */
@@ -2000,7 +2000,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-19-feel';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-20-fastlane';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2025,7 +2025,21 @@ const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
 const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
-function netSend(m){if(net.conn&&net.connected)try{net.conn.send(m)}catch(e){}}
+/* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
+   never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
+   resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
+   self-contained (full state; inputs repeat the last 24 steps), so a lost one is simply skipped and the next one
+   (16-33 ms later) carries on. Picks, results, effects and everything else stay on the reliable channel. */
+const FAST_T={s:1,i:1,ping:1,pong:1};
+function netSend(m){if(!net.conn||!net.connected)return;const f=net.fast;
+  if(FAST_T[m.t]&&f&&f.readyState==='open'){if(f.bufferedAmount>65536)return;   // backed up: drop this one (the next is newer anyway) rather than queue lag
+    try{f.send(JSON.stringify(m));return}catch(e){}}
+  try{net.conn.send(m)}catch(e){}}
+// both sides open the same pre-agreed channel (negotiated, id 42) on the link PeerJS already made: no extra signalling
+function openFast(conn){const pc=conn&&conn.peerConnection;if(!pc||typeof pc.createDataChannel!=='function')return;
+  try{const ch=pc.createDataChannel('cuued-fast',{negotiated:true,id:42,ordered:false,maxRetransmits:0});net.fast=ch;
+    ch.onmessage=e=>{if(net.conn!==conn||net.fast!==ch)return;let m;try{m=JSON.parse(e.data)}catch(err){return}
+      if(m&&typeof m==='object'&&FAST_T[m.t]){net.lastRecv=performance.now();onNet(m)}}}catch(e){net.fast=null}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
 function netErr(err,code){const t=err&&err.type;
@@ -2149,25 +2163,26 @@ function attachConn(conn){net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq)})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq)})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 function onNet(m){
-  if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
+  if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     if(net.role==='host')startMatch('online-host');else{startMatch('online-guest')}return}
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
   if(net.role==='host'){
-    if(m.t==='i'){net.remote=m;
+    if(m.t==='i'){if(!net.remote||!(m.s<net.remote.s))net.remote=m;
       if(Array.isArray(m.st))for(const q of m.st)if(q[0]>net.lastQ){net.inQ.push(q);net.lastQ=q[0]}}
     else if(m.t==='choose'){if(pickFor&&pickFor.ctrl==='net'&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
     else if(m.t==='rematch'){if(game.state==='over'&&game.mode==='online-host'){startMatch('online-host');netSend({t:'restart'})}}
     else if(m.t==='pong'&&Number.isFinite(m.at))net.rtt=performance.now()-m.at;
     return}
   if(m.t==='s')applySnap(m);
+  else if(m.t==='fx'){for(const[n,a]of m.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
   else if(m.t==='ping')netSend({t:'pong',at:m.at});
   else if(m.t==='pick'){const p=players[m.pid];if(p)showHand(p,(m.hand||[]).map(i=>CARDS[i]).filter(Boolean),m.sub||'',m.pid===1?'remote':'watch')}
   else if(m.t==='chosen'){if(!pickLock){pickLock=true;animChosen(m.i|0)}}
@@ -2180,7 +2195,8 @@ function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText(
 function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
   if(c&&net.connected)try{c.send({t:'bye'})}catch(e){}
   for(const rc of net.relayClients)rc.close();
-  Object.assign(net,{role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
+  if(net.fast)try{net.fast.close()}catch(e){}
+  Object.assign(net,{fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
@@ -2191,9 +2207,12 @@ function snapshot(){return{t:'s',ht:Math.round(performance.now()),mn:game.map&&g
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
-function applySnap(s){net.snap=s;net.snapAt=performance.now();
+function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
+  net.snap=s;net.snapAt=performance.now();
   // host-clock offset: the smallest (arrival - send) seen is the least-delayed path; it drifts up slowly to follow clock drift
-  if(s.ht!=null){const o=net.snapAt-s.ht;net.clk=net.clk==null||o<net.clk?o:net.clk+(o-net.clk)*.002}
+  if(s.ht!=null){const o=net.snapAt-s.ht;net.clk=net.clk==null||o<net.clk?o:net.clk+(o-net.clk)*.002;
+    // how late snapshots run beyond the fastest path: the other fighter is drawn far enough behind to always have one to glide to
+    net.lateMax=Math.max(o-net.clk,(net.lateMax||0)*.985)}
   Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,dropOff:s.dO});
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
@@ -2295,7 +2314,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
     // the other fighter is drawn a little in the past (INTERP_MS), exactly along its real path between two snapshots,
     // so it moves smoothly however unevenly snapshots arrive; past the newest snapshot it coasts on its last velocity briefly
-    const rt=performance.now()-(net.clk||0)-(net.relayed?INTERP_MS+35:INTERP_MS);
+    const rt=performance.now()-(net.clk||0)-clamp((net.relayed?INTERP_MS+35:INTERP_MS)+(net.lateMax||0)*.8-15,net.relayed?INTERP_MS+35:INTERP_MS,170);
     for(const p of players){if(p.tx==null||p.phys)continue;const B=p.buf||[];let px=p.tx+p.vx*age,py=p.ty+p.vy*age;
       if(B.length&&net.clk!=null){let i=B.length-1;while(i>0&&B[i-1][0]>rt)i--;
         if(rt<=B[0][0]){px=B[0][1];py=B[0][2]}

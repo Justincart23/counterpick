@@ -69,6 +69,8 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
   const hS = await stats(H), vS = await stats(V);
   console.log('host   ', JSON.stringify(hS)); console.log('visitor', JSON.stringify(vS));
   ok(hS.connected && vS.connected, 'still connected at the end');
+  { const fh = await H.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`), fv = await V.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`);
+    ok(fh === 'open' && fv === 'open', `the fast (lossy, unordered) channel carries snapshots and inputs on both sides (host ${fh}, visitor ${fv})`) }
   ok(hS.fps >= 55 && vS.fps >= 55, `both screens hold ~60 fps (host ${hS.fps}, visitor ${vS.fps})`);
   ok(hS.framesOver50 <= 3 && vS.framesOver50 <= 3, `no hitches (frames over 50 ms: host ${hS.framesOver50}, visitor ${vS.framesOver50})`);
   ok(vS.snapGapsOver250 <= 2, `snapshots arrive steadily on the visitor (median gap ${vS.snapGapP50} ms, ${vS.snapGapsOver250} gaps over 250 ms)`);
