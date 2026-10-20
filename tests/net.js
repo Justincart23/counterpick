@@ -353,8 +353,7 @@ const DT = 1 / 60;
   check(H.net.role === null && H.game.mode === 'demo', 'the host should return to the menu when the relayed guest leaves');
   brokerFor(H.RELAY_BROKERS[0]).up = true;
 
-  check(sg.sawDrop, 'power-up capsules should drop during an online match');
-  check(!(sg.dropOff > 10), `the visitor should see the same capsules as the host (${sg.dropOff || 0} frames differed)`);
+  check(!sg.sawDrop, 'a duel has no power-up drops (they belong to Survival)');
   check(errors === 0, `no exceptions (${errors})`);
   if (FEATURES) {
     check(cons.n > 1000 && cons.alive / cons.n < 0.02, `host and guest should agree who is alive (${cons.alive} of ${cons.n} frames differ)`);

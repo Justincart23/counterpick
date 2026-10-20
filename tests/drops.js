@@ -1,11 +1,11 @@
-// Power-up drops: a beam marks the spot before a capsule falls onto a platform; touching it gives its power-up (each
-// kind checked); bosses never take one; the setting turns drops off.
+// Power-up drops (Survival only): a beam marks the spot before a capsule falls onto a platform; touching it gives its
+// power-up (each kind checked); bosses never take one.
 //   node tests/drops.js
 const { load, flushTimers } = require('./env');
 (async () => {
   const { api: A } = await load({ seed: 3 });
   const fail = [], check = (ok, m) => { if (!ok) fail.push(m) };
-  const fresh = () => { A.settings.drops = true; A.startMatch('cpu'); flushTimers(); while (A.game.state === 'pick') { A.choose(A.hand[0], null); flushTimers() }
+  const fresh = () => { A.startSurvival(); flushTimers(); while (A.game.state === 'pick') { A.choose(A.hand[0], null); flushTimers() }
     A.game.state = 'play'; for (const p of A.players) { p.ctrl = 'idle'; p.hp = p.s.maxHp } };
   // a drop appears: beam first, then it falls and lands on top of a platform
   fresh(); A.game.dropT = 0; A.dropTick(1 / 120);
@@ -23,10 +23,7 @@ const { load, flushTimers } = require('./env');
   { const p = take('wild'); check((p.tempCards || []).length === 1, 'Wild card adds a card for the point'); A.newPoint(); check(!(p.tempCards || []).length, 'the Wild card ends with the point') }
   check(A.drops.length === 0, 'a new point clears capsules');
   // bosses never take one
-  { A.settings.drops = true; A.startBoss(0); flushTimers(); while (A.game.state === 'pick') { A.choose(A.hand[0], null); flushTimers() } A.game.state = 'play';
-    const b = A.players[1]; A.drops = [{ id: 7, kind: 'heal', x: b.x, y: b.y, ty: b.y, state: 'ready', t: 10 }]; A.dropTick(1 / 120); check(A.drops.length === 1, 'a boss never picks up a capsule') }
-  // off means off
-  fresh(); A.settings.drops = false; A.game.dropT = 0; for (let i = 0; i < 1200; i++) A.dropTick(1 / 120); check(A.drops.length === 0, 'with the setting off, nothing drops');
+  { fresh(); const b = A.players[1]; b.boss = A.BOSSES[0]; A.drops = [{ id: 7, kind: 'heal', x: b.x, y: b.y, ty: b.y, state: 'ready', t: 10 }]; A.dropTick(1 / 120); check(A.drops.length === 1, 'a boss never picks up a capsule') }
   console.log(JSON.stringify({ kinds: Object.keys(A.DROPS).length, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

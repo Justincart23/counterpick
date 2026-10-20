@@ -218,7 +218,9 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .shop-item.on{border-color:#ffd36b;background:var(--night-2)}
 .shop-item canvas{width:110px;height:82px}
 .shop-item .nm{font-weight:800;font-size:15px}
-.shop-item .pr{font-family:var(--mono);font-size:12px;font-weight:700;color:#ffd36b}.shop-item .pr.own{color:var(--good)}.shop-item .pr.poor{color:var(--muted)}
+.shop-item .pr,.sb-card .pr{font-family:var(--mono);font-size:12px;font-weight:700;color:#ffd36b}.shop-item .pr.own,.sb-card .pr.own{color:var(--good)}.shop-item .pr.poor,.sb-card .pr.poor{color:var(--muted)}
+#survShop{z-index:2}.sv-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-height:none}.sv-grid .sb-card{padding:12px 8px 10px}.sv-grid .sb-card canvas{width:56px;height:56px}.sv-grid .sb-card:disabled{opacity:.55;cursor:default}
+.scrapchip{color:#9be15d;cursor:default}@media (max-width:640px){.sv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
 /* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
 body:not(.touch) .touch-only{display:none!important}
@@ -332,6 +334,9 @@ body.touch .menu-foot .touchnote{display:inline}
   .mlist.opts button{font-size:clamp(15px,4.6vh,21px);padding-top:0;padding-bottom:0}.mlist.centered.opts button{padding-left:34px;padding-right:34px}
   .mlist.opts{width:min(400px,100%)}.opts-wrap>.lbl{margin:0 0 2px 34px}.opts-wrap .menu-hint{margin-top:2px}
   .pause-screen .screen-title{font-size:clamp(30px,9vh,44px)}
+  #survShop .panel{gap:8px;padding:14px 18px}#survShop .screen-title{font-size:clamp(26px,8vh,36px)}#survShop .shop-stats{font-size:11px}
+  .sv-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.sv-grid .sb-card{padding:6px 4px 5px}.sv-grid .sb-card canvas{width:30px;height:30px}.sv-grid .sb-card .nm{font-size:12px}
+  #survShop .sb-info{min-height:0;font-size:12px}#survShop .sb-foot .btn{font-size:14px;padding:6px 12px}#svDeck .chip{font-size:10px;padding:1px 5px}
   .mlist button::before{border-left-width:13px;border-top-width:9px;border-bottom-width:9px}
   .menu-hint{margin-top:4px;font-size:13px;height:2.8em}
   .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
@@ -363,7 +368,7 @@ body.touch .menu-foot .touchnote{display:inline}
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="online" data-hint="Play a friend online. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="cpu" data-hint="Warm up against the computer. Pick its skill in Settings." style="--i:1">Practice vs CPU</button>
-        <button type="button" data-act="boss" data-hint="Fight bosses with signature builds and special attacks. Beat one to unlock the next." style="--i:2">Boss Rush</button>
+        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2">Survival</button>
         <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3">Sandbox</button>
         <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:4">Shop</button>
         <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:5">How to play</button>
@@ -371,11 +376,6 @@ body.touch .menu-foot .touchnote{display:inline}
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
-    </div>
-    <div data-sub="boss" hidden>
-      <div class="lbl" style="margin:0 0 4px 40px">Boss Rush · 3 lives</div>
-      <nav class="mlist" id="bossList" aria-label="Boss Rush"></nav>
-      <p class="menu-hint" id="bossHint" aria-live="polite"></p>
     </div>
     <div data-sub="online" hidden>
       <nav class="mlist" aria-label="Duel a friend">
@@ -408,8 +408,7 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:4">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:5">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:6">Aim guide <span class="val">Off</span></button>
-        <button type="button" data-opt="drops" data-hint="Power-up capsules fall onto the arena: health, double damage, rapid fire, a bubble or a wild card. The host decides online." style="--i:7">Power-up drops <span class="val">On</span></button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:8">Back</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:7">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">The name your opponent sees. Change it whenever you like.</p>
     </div>
@@ -423,7 +422,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Boss Rush: fight bosses with signature builds and special attacks. Each one warns you first (a red laser, a wind-up), so dodge, then punish. 3 lives; at each new phase you draft a card.</li>
+            <li>Survival: pick a card to build on, then fight round after round of tougher enemies, with a boss every 5th round (it always warns you before its special attack). Power-ups drop during rounds; clearing one pays scrap to spend in the shop. 3 lives for the whole run.</li>
           </ol>
         </div>
         <div>
@@ -492,6 +491,19 @@ body.touch .menu-foot .touchnote{display:inline}
   </div>
 </div>
 
+<div id="survShop" class="overlay" hidden>
+  <div class="panel sb-panel shop-panel" role="dialog" aria-labelledby="svTitle">
+    <div class="sb-head">
+      <h2 class="screen-title" id="svTitle">Round cleared</h2>
+      <div class="shop-bal"><span class="coinchip big scrapchip"><b id="svScrap">0</b>&nbsp;scrap</span><span class="shop-stats" id="svPay"></span></div>
+    </div>
+    <div class="sb-grid sv-grid" id="svGrid"></div>
+    <p class="sb-info" id="svMsg" aria-live="polite">&nbsp;</p>
+    <div class="lbl">Your build</div><div class="deck" id="svDeck"></div>
+    <div class="sb-foot"><button type="button" class="btn" data-sv="reroll">Reroll</button><button type="button" class="btn primary" data-sv="next">Next round</button></div>
+  </div>
+</div>
+
 <div id="pause" class="overlay pause-screen" hidden>
   <div class="center-wrap">
     <h2 class="screen-title" id="pauseTitle">Paused</h2>
@@ -509,8 +521,7 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:2">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:3">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:4">Aim guide <span class="val">Off</span></button>
-        <button type="button" data-opt="drops" data-hint="Power-up capsules fall onto the arena: health, double damage, rapid fire, a bubble or a wild card. The host decides online." style="--i:5">Power-up drops <span class="val">On</span></button>
-        <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:6">Back</button>
+        <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:5">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">How well the computer aims, dodges and blocks in Practice.</p>
     </div>
@@ -887,7 +898,7 @@ let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, whic
 function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
-function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
@@ -901,14 +912,13 @@ const playerLabel=p=>p.boss?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · 
 
 function startMatch(mode){
   game.token++;game.awarded=false;game.mode=mode;game.dropT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.target=game.bg||mode==='sandbox'||mode==='boss'?99:settings.len;
-  game.diff=mode==='boss'?'normal':settings.diff;game.lives=BOSS_LIVES;game.bossT=0;
+  game.target=game.bg||mode==='sandbox'||mode==='survival'?99:settings.len;
+  game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.scrap=0;game.round=0;game.cleared=0;game.starter=null;
   const you=myName||'You';
-  const ctrls={boss:['mouse','cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
-  const names={boss:[you,BOSSES[game.bossIdx||0].n],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
+  const ctrls={survival:['mouse','cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
+  const names={survival:[you,'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
   {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||[mine,{}];players.forEach((p,k)=>p.cos=cos[k]||{})}
-  if(mode==='boss')makeBoss(players[1],BOSSES[game.bossIdx||0]);
   players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
@@ -916,7 +926,7 @@ function startMatch(mode){
   newPoint(true);
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
-  if(mode==='boss'){const B=BOSSES[game.bossIdx||0];beginPick([0],`${B.n} · pick a card for the fight`,()=>{game.state='ready';game.stT=1.8;game.banner=B.n.toUpperCase();game.bannerT=1.8});if(!game.bg)cv.focus();return}
+  if(mode==='survival'){players[0].nextHand=cardsNamed(STARTERS);beginPick([0],'Survival · pick a card to build your run on',()=>{const me=players[0];game.starter=me.cards[me.cards.length-1];survRound(1)});cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -929,7 +939,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
 function newPoint(fresh){
-  let i;if(game.mode==='boss')i=Math.max(0,MAPS.findIndex(m=>m.name===BOSSES[game.bossIdx||0].map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
+  let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,game.map.sp[k])});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -938,7 +948,7 @@ function newPoint(fresh){
 }
 function resolvePoint(){
   const w=game.lastWinner;
-  if(game.mode==='boss'){bossResolve();return}
+  if(game.mode==='survival'){survResolve();return}
   if(game.mode==='sandbox'){if(w>=0)game.wins[w]++;newPoint();return}   // sandbox: just a running tally, no drafts, no end
   if(w<0){newPoint();return}
   game.points[w]++;sfx(game.points[w]>=2?'round':'point');
@@ -1086,7 +1096,7 @@ const DROPS={heal:{n:'HEALTH',col:'#7ed321'},over:{n:'OVERCHARGE',col:'#ff6a3a'}
 const WILD_SKIP=new Set(['Thick Skin','Pipsqueak']);
 const DROP_KINDS=Object.keys(DROPS),DROP_WARN=1.2,DROP_R=16,DROP_LIFE=12,OVER_T=8,RAPID_T=6;
 let drops=[],dropSeq=0;
-const dropsOn=()=>settings.drops!==false&&!game.bg&&game.mode!=='sandbox'&&game.mode!=='online-guest';
+const dropsOn=()=>game.mode==='survival';   // power-ups drop only in Survival: duels stay pure
 // where a capsule can land: on top of a fixed platform, with room above, away from both fighters
 function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=70);
   for(let k=0;k<40&&tops.length;k++){const r=pick(tops),x=rand(r.x+28,r.x+r.w-28),y=r.y-DROP_R-2;
@@ -1131,26 +1141,37 @@ function drawDrops(){if(!drops.length)return;const now=performance.now()/1000;ct
     else{ctx.strokeRect(x-5,y-7,10,14);ctx.fillRect(x-1.5,y-1.5,3,3)}}
   ctx.restore()}
 
-/* ---------- Boss Rush: solo fights against bosses with signature builds. A boss is a CPU fighter with its own deck and
-   much more health, plus a special attack it always warns you about first (a laser, a wind-up), so the fight is about
-   reading and punishing it. You have 3 lives; the boss keeps its damage. At 66% and 33% health it slams down a new card,
-   and you draft one and get a breather. Beat a boss to unlock the next ---------- */
+/* ---------- Survival: an endless run, round after round (like CoD Zombies crossed with Brotato). Pick a card to base your
+   build on, then fight a tougher enemy each round, with a boss every 5th round. Power-up capsules drop during rounds.
+   Clearing a round pays scrap to spend in the shop before the next one. You have 3 lives for the whole run (an enemy
+   keeps its damage when you lose one); how far can you get? ---------- */
 const BOSSES=[
  {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Divider',
-  hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe',reward:4},
+  hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe'},
  {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Yard',
-  hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge',reward:4},
+  hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge'},
 ];
-const BOSS_LIVES=3,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6;
-wallet.boss=wallet.boss&&typeof wallet.boss==='object'?wallet.boss:{};
-const bossBeat=id=>!!(wallet.boss[id]&&wallet.boss[id].beat);
-const bossOpen=i=>i===0||bossBeat(BOSSES[i-1].id);
+const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6;
+// the opening pick: one card of each kind to base the run on (the shop leans toward the same kind)
+const STARTERS=['Triple Tap','Ricochet','Quick Guard','Thick Skin'];
+// ordinary enemies: a name, a look, and a growing random deck
+const RAIDERS=[{n:'Raider',color:'#4fb3a9',glow:'#9ff0e6',hat:'antenna'},{n:'Hunter',color:'#9a6bd8',glow:'#d2b4ff',hat:'tophat'},{n:'Gunner',color:'#d8b04f',glow:'#ffe7a0',hat:'party'},{n:'Shade',color:'#5a6a8c',glow:'#aebddc',hat:'halo'}];
 const bossOf=()=>players.find(p=>p.boss);
 const cardsNamed=names=>names.map(n=>CARDS.find(c=>c.n===n)).filter(Boolean);
-function startBoss(i){game.bossIdx=i;startMatch('boss')}
-// set up the boss fighter: its look, its deck and its special-attack brain
-function makeBoss(p,B){p.boss=B;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;
-  p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0};recompute(p)}
+const survBossFor=n=>n%BOSS_EVERY===0?BOSSES[(n/BOSS_EVERY-1)%BOSSES.length]:null;
+wallet.survBest=Math.max(0,Math.floor(+wallet.survBest||0));
+function startSurvival(){startMatch('survival')}
+// a boss fighter: its look, its deck and its special-attack brain; each time round it comes back stronger
+function makeBoss(p,B,cycle){p.boss=B;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;p.hpMul=1+.35*(cycle||0);
+  p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0}}
+function makeRaider(p,n){const R=RAIDERS[(n-1)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
+  const k=Math.min(14,n-1+Math.floor(n/3)),pool=CARDS.filter(c=>c.r<2||n>=6),out=[];
+  for(let i=0;i<k;i++){const c=pick(pool);if(c.u&&out.includes(c)){i--;continue}out.push(c)}p.cards=out;p.hpMul=1+.12*(n-1)}
+// set up round n: the enemy, the arena, both fighters fresh
+function survRound(n){game.round=n;const e=players[1],B=survBossFor(n);
+  if(B){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/BOSSES.length));e.name=B.n}else makeRaider(e,n);
+  game.diff=n<=2?'easy':n<=6?'normal':'hard';recompute(e);players[0].ammo=players[0].s.ammo;
+  newPoint(true);game.state='ready';game.stT=1.8;game.banner=B?B.n.toUpperCase():`ROUND ${n}`;game.bannerT=1.8;bullets=[];shields=[]}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
   p.stunT=(p.stunT||0)-h;
@@ -1177,42 +1198,9 @@ function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.al
         if(e.blockT>0){bossStun(p);ring(e.x,e.y,'#ffffff',80);sfx('parry');popText(e.x,e.y-e.r-30);e.vx+=S.dir*300}
         else{damage(e,30,p);e.vx=S.dir*1300;e.vy=-650;e.ground=null;e.kT=.35;burst(e.x,e.y,'#ffffff',18,560,5,.35,0,true);addShake(14);sfx('crush');S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}
       if(S.at<=0&&S.state==='charge'){S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}}}
-// after physics: a charging Brute that hits a wall or the arena edge is stunned
 function bossPost(p){const S=p.bs;if(!p.boss||!S||S.state!=='charge'||S.at>CHARGE_MAX-.05)return;   // (give the launch a few steps)
   if(p.wallDir===S.dir||p.edgeHit==='left'||p.edgeHit==='right'||Math.abs(p.vx)<CHARGE_SPEED*.4){bossStun(p);addShake(12);burst(p.x+S.dir*p.r,p.y,'#cfd8e3',16,420,5,.4,0);sfx('crush')}}
 function bossStun(p){p.stunT=STUN_T;p.bs.state='idle';p.bs.t=STUN_T+rand(1.5,2.5);p.vx*=.2;ring(p.x,p.y-p.r,'#ffd36b',60)}
-// phases: at 66% and 33% the boss adds its next cards; you draft one and both of you reset to your corners
-function bossPhaseCheck(){const p=bossOf(),me=players[0];if(!p||!p.alive||game.state!=='play')return;
-  const f=p.hp/p.s.maxHp,next=p.phase===0&&f<=.66?1:p.phase===1&&f<=.33?2:0;if(!next)return;
-  p.phase=next;p.cards.push(...cardsNamed(p.boss.phases[next-1]||[]));recompute(p);p.hp=f*p.s.maxHp;
-  const sp=game.map.sp;p.x=sp[1][0];p.y=sp[1][1];p.vx=p.vy=0;p.lx=p.x;p.ly=p.y;p.bs.state='idle';p.bs.t=2.5;p.stunT=0;bullets=[];
-  ring(p.x,p.y,p.glow,160);burst(p.x,p.y,p.glow,30,600,6,.6,0,true);addShake(16);sfx('round');
-  const added=(p.boss.phases[next-1]||[]).join(' + ');game.banner=`PHASE ${next+1}`;game.bannerT=1.6;
-  beginPick([0],`${p.boss.n} adds ${added} · your turn`,()=>{game.state='ready';game.stT=1.4;game.banner=`PHASE ${next+1}`})}
-// a point in Boss Rush: you dying costs a life (the boss keeps its damage); the boss dying wins
-function bossResolve(){const p=bossOf(),me=players[0];
-  if(!p||!p.alive){bossEnd(true);return}
-  game.lives--;if(game.lives<=0){bossEnd(false);return}
-  const sp=game.map.sp,hp=p.hp;resetPlayer(me,sp[0]);p.x=sp[1][0];p.y=sp[1][1];p.vx=p.vy=0;p.lx=p.x;p.ly=p.y;p.hp=hp;p.bs.state='idle';p.bs.t=2.5;p.stunT=0;
-  bullets=[];shields=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
-function bossEnd(win){const p=bossOf(),B=p.boss,secs=Math.round(game.bossT||0),rec=wallet.boss[B.id]||{};game.state='over';
-  let coins=0;if(win){coins=rec.beat?1:B.reward;rec.beat=true;rec.best=rec.best?Math.min(rec.best,secs):secs;wallet.boss[B.id]=rec;wallet.coins+=coins;wallet.earned+=coins;saveWallet();refreshWallet()}
-  const t=`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
-  $('#endTitle').textContent=win?`${B.n} defeated`:`${B.n} wins`;$('#endTitle').style.color=win?players[0].color:B.color;
-  $('#endScore').textContent=win?`Beaten in ${t} with ${game.lives} ${game.lives===1?'life':'lives'} left.${rec.best===secs?' Your best time.':` Best ${Math.floor(rec.best/60)}:${String(rec.best%60).padStart(2,'0')}.`}${BOSSES[game.bossIdx+1]?` ${BOSSES[game.bossIdx+1].n} is unlocked.`:''}`
-    :`It had ${Math.max(1,Math.round(100*p.hp/p.s.maxHp))}% health left. Pick different cards and try again.`;
-  [0,1].forEach(k=>{$('#deckName'+k).textContent=players[k].name+"'s deck";const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
-  const el=$('#endCoins');if(el){el.hidden=!win;if(win){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''}${coins>1?' (first win)':''} · you have ${wallet.coins}`}}
-  const again=$('#end [data-act=again]');if(again)again.textContent=win?'Fight again':'Try again';
-  $('#end').hidden=false;showSub($('#end'),'main');sfx(win?'round':'die',true)}
-// the boss list on the menu: beaten, open or locked
-function renderBossMenu(){const nav=$('#bossList');if(!nav)return;nav.innerHTML='';
-  BOSSES.forEach((B,i)=>{const b=document.createElement('button');b.type='button';b.style.setProperty('--i',i);const open=bossOpen(i),rec=wallet.boss[B.id];
-    b.dataset.hint=open?B.sub:`Beat ${BOSSES[i-1].n} to unlock.`;if(open){b.dataset.act='bossgo';b.dataset.boss=i}else b.setAttribute('aria-disabled','true');
-    b.innerHTML=`${B.n} <span class="val edit">${!open?'Locked':rec&&rec.beat?`Beaten · ${Math.floor(rec.best/60)}:${String(rec.best%60).padStart(2,'0')}`:'New'}</span>`;nav.appendChild(b)});
-  const back=document.createElement('button');back.type='button';back.dataset.act='back';back.dataset.hint='Back to the main menu.';back.textContent='Back';back.style.setProperty('--i',BOSSES.length);nav.appendChild(back);
-  const h=$('#bossHint');if(h)h.textContent=BOSSES[0].sub}
-// telegraphs, drawn over the arena: the Sniper's laser, the Brute's wind-up lane, stun stars
 function drawBossFx(){const p=bossOf();if(!p||!p.alive)return;const S=p.bs;ctx.save();
   if(S.state==='aim'){const a=S.lock,c=Math.cos(a),s=Math.sin(a),x0=p.x+c*(p.r+30),y0=p.y+s*(p.r+30),L=2400,t=rayHit(x0,y0,x0+c*L,y0+s*L,2,true)*L,k=1-S.at/SNIPE_AIM,locked=S.at<=SNIPE_LOCK;
     ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -1225,14 +1213,65 @@ function drawBossFx(){const p=bossOf();if(!p||!p.alive)return;const S=p.bs;ctx.s
   if(p.stunT>0){ctx.fillStyle='#ffd36b';for(let i=0;i<3;i++){const a=performance.now()/220+i*TAU/3,sx=p.x+Math.cos(a)*p.r*.9,sy=p.y-p.r-16+Math.sin(a)*6;
     ctx.beginPath();for(let j=0;j<10;j++){const b=j/10*TAU-Math.PI/2,rr=j%2?3:7;ctx.lineTo(sx+Math.cos(b)*rr,sy+Math.sin(b)*rr)}ctx.fill()}}
   ctx.restore()}
-// the boss bar across the top and your lives
-function drawBossHud(){const p=bossOf();if(!p)return;const bw=640,x=W/2-bw/2,y=40,f=clamp(p.hp/p.s.maxHp,0,1);
-  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=p.color;ctx.fillText(p.boss.n.toUpperCase(),W/2,22);
+// boss phases at 66% and 33%: the boss slams down its next cards (the fight carries on)
+function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')return;
+  const f=p.hp/p.s.maxHp,next=p.phase===0&&f<=.66?1:p.phase===1&&f<=.33?2:0;if(!next)return;
+  p.phase=next;p.cards.push(...cardsNamed(p.boss.phases[next-1]||[]));recompute(p);p.hp=f*p.s.maxHp;
+  ring(p.x,p.y,p.glow,160);burst(p.x,p.y,p.glow,30,600,6,.6,0,true);addShake(16);sfx('round');
+  game.banner=`${p.boss.n.toUpperCase()} · +${(p.boss.phases[next-1]||[]).join(' + ').toUpperCase()}`;game.bannerT=1.6}
+// a point in Survival: the enemy dying clears the round (on to the shop); you dying costs a life, and the enemy keeps
+// its damage. No lives left ends the run
+function survResolve(){const e=players[1],me=players[0];
+  if(!e.alive){const pay=10+2*game.round+(me.hp>=me.s.maxHp*.999?5:0);game.scrap=(game.scrap||0)+pay;game.lastPay=pay;game.cleared=game.round;openSurvShop();return}
+  game.lives--;if(game.lives<=0){survEnd();return}
+  const sp=game.map.sp,hp=e.hp;resetPlayer(me,sp[0]);e.x=sp[1][0];e.y=sp[1][1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;
+  bullets=[];shields=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
+// ---- the shop between rounds: scrap buys cards (4 offers, leaning toward your starting kind), a reroll gets 4 new ones
+const SHOP_PRICE=[6,10,16];
+function survOffers(){const me=players[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,out=[],luck=Math.min(.25,game.round*.012);
+  for(let g=0;out.length<4&&g<200;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
+    let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.4){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
+    if(pool.length)out.push(pick(pool))}
+  game.offers=out.map(c=>({c,price:SHOP_PRICE[c.r]+Math.floor(game.round/2),sold:false}))}
+function openSurvShop(){game.state='shop';game.reroll=2+Math.floor(game.round/4);survOffers();$('#survShop').hidden=false;renderSurvShop();sfx('round',true);
+  const b=$('#survShop [data-sv=next]');b&&b.focus({preventScroll:true})}
+function renderSurvShop(msg){const me=players[0],grid=$('#svGrid');if(!grid)return;
+  setText('#svTitle',`Round ${game.round} cleared`);setText('#svScrap',game.scrap);
+  setText('#svPay',`+${game.lastPay} scrap${game.lastPay>10+2*game.round?' (no damage taken: +5)':''} · next: ${survBossFor(game.round+1)?survBossFor(game.round+1).n:`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} left`);
+  grid.innerHTML='';
+  game.offers.forEach((o,i)=>{const c=o.c,b=document.createElement('button');b.type='button';b.className='sb-card r'+c.r+(o.sold?' has':'');b.dataset.svbuy=i;b.style.setProperty('--cat',CAT[c.k]);b.style.setProperty('--pc',me.color);
+    b.disabled=o.sold;b.innerHTML=`<canvas width="80" height="80" aria-hidden="true"></canvas><span class="nm">${c.n}</span><span class="rar">${RAR[c.r]}</span><span class="pr${o.sold?' own':game.scrap<o.price?' poor':''}">${o.sold?'Bought':`${o.price} scrap`}</span>`;
+    const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,40,40,48,'#ffffff',4);grid.appendChild(b)});
+  const rr=$('#survShop [data-sv=reroll]');if(rr)rr.textContent=`Reroll · ${game.reroll} scrap`;
+  const deck=$('#svDeck');if(deck)deck.innerHTML=me.cards.map(c=>`<span class="chip">${c.n}</span>`).join('');
+  const m=$('#svMsg');if(m)m.innerHTML=msg||'&nbsp;'}
+function survBuy(i){const o=game.offers[i],me=players[0];if(!o||o.sold)return;
+  if(game.scrap<o.price){sfx('empty',true);renderSurvShop(`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${game.scrap}.`);return}
+  game.scrap-=o.price;o.sold=true;me.cards.push(o.c);recompute(me);sfx('pick',true);renderSurvShop(`Bought <b>${o.c.n}</b>.`)}
+function survReroll(){if(game.scrap<game.reroll){sfx('empty',true);renderSurvShop(`A reroll costs ${game.reroll} scrap.`);return}
+  game.scrap-=game.reroll;game.reroll+=2;survOffers();sfx('deal',true);renderSurvShop()}
+function survNext(){$('#survShop').hidden=true;sfx('go',true);survRound(game.round+1);cv.focus()}
+{const root=$('#survShop');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
+  if((b=t.closest('[data-svbuy]'))){survBuy(+b.dataset.svbuy);return}
+  if((b=t.closest('[data-sv]'))){const a=b.dataset.sv;if(a==='reroll')survReroll();else if(a==='next')survNext()}});
+  root.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('[data-svbuy]');const o=b&&game.offers&&game.offers[+b.dataset.svbuy];if(o){const m=$('#svMsg');if(m)m.innerHTML=`<b>${o.c.n}</b> · ${CATNAME[o.c.k]} · ${RAR[o.c.r]}. ${o.c.d}`}})}
+// the run is over: how far you got, your best, and CUUED coins for the rounds you cleared
+function survEnd(){const n=game.cleared||0,best=wallet.survBest||0,coins=Math.floor(n/2);game.state='over';
+  if(n>best)wallet.survBest=n;if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
+  $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=players[0].color;
+  $('#endScore').textContent=n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}.`;
+  [0,1].forEach(k=>{$('#deckName'+k).textContent=k?'Last enemy':`${players[0].name}'s build`;const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
+  const el=$('#endCoins');if(el){el.hidden=!coins;if(coins){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`}}
+  const again=$('#end [data-act=again]');if(again)again.textContent='New run';
+  $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
+// the enemy's bar across the top, the round, your lives and scrap
+function drawSurvHud(){const p=players[1];if(!p)return;const bw=640,x=W/2-bw/2,y=40,f=clamp(p.hp/p.s.maxHp,0,1);
+  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=p.color;ctx.fillText(`ROUND ${game.round} · ${p.name.toUpperCase()}`,W/2,22);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=p.stunT>0?'#ffd36b':p.color;ctx.fillRect(x,y,bw*f,14);
   ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
-  ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22);
-  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);
-  for(let i=0;i<BOSS_LIVES;i++){ctx.fillStyle=i<game.lives?players[0].color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}}
+  if(p.boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
+  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);ctx.fillText(`SCRAP ${game.scrap||0}`,20,50);
+  for(let i=0;i<SURV_LIVES;i++){ctx.fillStyle=i<game.lives?players[0].color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}}
 
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
@@ -1244,11 +1283,11 @@ function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),ou
   p.sinceRare=out.some(c=>c.r===2)?0:(p.sinceRare||0)+1;
   return out}
 let pickMode='local';   // local: this screen picks · remote: this guest picks, host applies · watch: someone else is picking
-function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=2;pickLock=false;pickMode=mode;
+function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
   $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
-  $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':' · click, or press 1–5');
+  $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
   const el=$('#fan');el.innerHTML='';
-  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-2;
+  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-(hand.length-1)/2;
     b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
     b.style.setProperty('--x',`calc(${o} * clamp(150px,16vw,222px))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
@@ -1263,7 +1302,7 @@ function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=2;pickLock=false;pickMode=mo
   markHl()}
 function nextPick(){
   if(!pickQ.length){$('#pick').hidden=true;pickFor=null;netSend({t:'pickEnd'});const d=pickDone;pickDone=null;d&&d();return}
-  const p=players[pickQ.shift()],h=dealHand(p);
+  const p=players[pickQ.shift()],h=p.nextHand||dealHand(p);p.nextHand=null;
   if(game.bg){pickFor=p;hand=h;pickLock=false;choose(pick(h));return}
   showHand(p,h,pickSub,p.ctrl==='cpu'||p.ctrl==='net'?'watch':'local');
   netSend({t:'pick',pid:p.id,hand:h.map(c=>c.id),sub:pickSub});
@@ -1282,9 +1321,9 @@ function choose(c,i){if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
     setTimeout(()=>{if(tk!==game.token)return;p.cards.push(c);recompute(p);resetPlayer(p,game.map.sp[p.id]);nextPick()},480);return}
   p.cards.push(c);recompute(p);resetPlayer(p,game.map.sp[p.id]);nextPick()}
 function pickKey(e){if(!pickFor||game.bg||pickMode==='watch')return;
-  const n=parseInt(e.key,10);if(n>=1&&n<=5){pickNow(n-1);return}
-  if(['ArrowLeft','KeyA'].includes(e.code)){hl=(hl+4)%5;markHl()}
-  if(['ArrowRight','KeyD'].includes(e.code)){hl=(hl+1)%5;markHl()}
+  const n=parseInt(e.key,10),L=hand.length||5;if(n>=1&&n<=L){pickNow(n-1);return}
+  if(['ArrowLeft','KeyA'].includes(e.code)){hl=(hl+L-1)%L;markHl()}
+  if(['ArrowRight','KeyD'].includes(e.code)){hl=(hl+1)%L;markHl()}
   if(['Enter','Space','KeyF','Period'].includes(e.code)){e.preventDefault();pickNow(hl)}}
 
 
@@ -1872,7 +1911,7 @@ function dropSafe(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<H;y+=16)if
 const wallAhead=(p,dir)=>solidBoxP(p.x+dir*(p.r+14),p.y,6,p.r*.8);
 const onewayAbove=p=>solids.some(r=>r.oneway&&p.x>r.x&&p.x<r.x+r.w&&r.y<p.y-p.r&&r.y>p.y-p.r-230);
 function nearestPerch(p){let best=null,bd=1e9;for(const r of solids){if(r.bound)continue;const cx=clamp(p.x,r.x+10,r.x+r.w-10),d=Math.abs(cx-p.x)+Math.max(0,r.y-p.y)*.3+(r.y<p.y-200?400:0);if(d<bd){bd=d;best=cx}}return best??W/2}
-function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'normal':game.diff];inp.jumpP=false;inp.blockP=false;inp.fire=false;inp.down=false;
+function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(game.bg?'normal':game.diff)];inp.jumpP=false;inp.blockP=false;inp.fire=false;inp.down=false;
   if(!e.alive){inp.move=0;inp.jumpH=false;return}
   ai.errT-=dt;if(ai.errT<=0){ai.errT=rand(.3,.7);ai.err=(Math.random()+Math.random()-1)*sk.err*(1+Math.hypot(e.x-p.x,e.y-p.y)/700)}
   // perception lag: the CPU reacts to where you were a moment ago, not where you are now
@@ -1946,7 +1985,7 @@ function simTick(h){const st=game.state;
   if(st==='ready'&&game.dropT>0){game.dropT-=h;const e=clamp(1-game.dropT/.6,0,1),c1=1.70158,c3=c1+1,eb=1+c3*Math.pow(e-1,3)+c1*Math.pow(e-1,2);
     game.dropOff=-(1-eb)*H*.85;if(game.dropT<=0){game.dropOff=0;addShake(9);sfx('thud')}}
   if(st==='ready'){game.stT-=h;step(h);if(game.stT<=0){game.state='play';sfx('go')}return true}
-  if(st==='play'){step(h);game.pointT+=h;if(game.mode==='boss'){game.bossT=(game.bossT||0)+h;bossPhaseCheck();game.pointT=0}
+  if(st==='play'){step(h);game.pointT+=h;if(game.mode==='survival'){bossPhaseCheck();game.pointT=0}
     // overtime: a point that drags past 45s makes every bullet seek, so nobody can camp behind cover forever
     if(!game.overtime&&game.pointT>45){game.overtime=true;game.banner='OVERTIME';game.bannerT=1.4;sfx('horn')}return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
@@ -2068,8 +2107,8 @@ function drawCardTip(){hoverChip=null;
   ctx.restore()}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
-  if(game.mode==='boss'){drawBossHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
-  const sb=game.mode==='sandbox'||game.mode==='boss';
+  if(game.mode==='survival'){drawSurvHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
+  const sb=game.mode==='sandbox'||game.mode==='survival';
   if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
   for(const p of players){const y=24+p.id*24;
@@ -2084,7 +2123,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=C.text;ctx.fillText(t,W/2,H/2-40)}
-  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='boss'?(w===0?'BOSS DOWN!':'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
+  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='survival'?(w===0?(players[1].boss?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
     ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,W/2,H/2-40)}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
@@ -2241,7 +2280,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-21-drops';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-21-survival';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2661,10 +2700,10 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,drops:true,v:2};   // the aim guide starts off: turn it on in Settings
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,v:2};   // the aim guide starts off: turn it on in Settings
 try{const o=JSON.parse(localStorage.getItem('counterpick.settings')||'{}');if(o&&typeof o==='object'){if((o.v|0)<2)delete o.aim;Object.assign(settings,o,{v:2})}}catch(e){}   // older saves always stored aim:on (the old default), so they start from the new default
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},drops:{vals:[true,false],label:v=>v?'On':'Off'}};
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;saveSettings();refreshOpts();sfx('tick',true)}
@@ -2689,8 +2728,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openShop();
   else if(a==='fullscreen')toggleFull();
   else if(a==='online')showSub(ov,'online');
-  else if(a==='boss'){renderBossMenu();showSub(ov,'boss')}
-  else if(a==='bossgo')startBoss(+b.dataset.boss||0);
+  else if(a==='survival')startSurvival();
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,'online')}
