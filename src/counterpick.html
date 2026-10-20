@@ -401,7 +401,8 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:4">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:5">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:6">Aim guide <span class="val">Off</span></button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:7">Back</button>
+        <button type="button" data-opt="drops" data-hint="Power-up capsules fall onto the arena: health, double damage, rapid fire, a bubble or a wild card. The host decides online." style="--i:7">Power-up drops <span class="val">On</span></button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:8">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">The name your opponent sees. Change it whenever you like.</p>
     </div>
@@ -501,7 +502,8 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:2">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:3">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:4">Aim guide <span class="val">Off</span></button>
-        <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:5">Back</button>
+        <button type="button" data-opt="drops" data-hint="Power-up capsules fall onto the arena: health, double damage, rapid fire, a bubble or a wild card. The host decides online." style="--i:5">Power-up drops <span class="val">On</span></button>
+        <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:6">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">How well the computer aims, dodges and blocks in Practice.</p>
     </div>
@@ -833,6 +835,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
+  case'grab':[880,1320,1760].forEach((f,i)=>tone('triangle',f*v,f*v,t+i*.05,.14,.08));noise(t,.08,.06,'highpass',6000);break;   // power-up taken
   case'blink':noise(t,.12,.14,'bandpass',700*v,5200,2.5,room);tone('sine',380*v,1700*v,t,.11,.1,room);tone('triangle',1900*v,2600,t+.08,.09,.05);break;   // teleport: a rising zip
   }}catch(e){}}
 
@@ -877,20 +880,20 @@ let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, whic
 function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
-function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
   s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
   s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
-  dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
+  dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 const other=p=>players[1-p.id];
 const playerLabel=p=>p.boss?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function startMatch(mode){
-  game.token++;game.awarded=false;game.mode=mode;game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
+  game.token++;game.awarded=false;game.mode=mode;game.dropT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
   game.target=game.bg||mode==='sandbox'||mode==='boss'?99:settings.len;
   game.diff=mode==='boss'?'normal':settings.diff;game.lives=BOSS_LIVES;game.bossT=0;
   const you=myName||'You';
@@ -920,8 +923,8 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
 function newPoint(fresh){
   let i;if(game.mode==='boss')i=Math.max(0,MAPS.findIndex(m=>m.name===BOSSES[game.bossIdx||0].map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
-  loadMap(i);
-  players.forEach((p,k)=>resetPlayer(p,game.map.sp[k]));
+  loadMap(i);drops=[];
+  players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,game.map.sp[k])});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
   game.banner=finalRound?'FINAL ROUND':game.map.name.toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
@@ -1067,6 +1070,59 @@ function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color
   root.addEventListener('contextmenu',e=>{const c=card(e.target);if(c){e.preventDefault();sbRemove(c);setSbInfo(c)}});
   root.addEventListener('mouseover',e=>{const c=card(e.target);if(c)setSbInfo(c)});
   root.addEventListener('focusin',e=>{const c=card(e.target);if(c)setSbInfo(c)})}
+
+/* ---------- power-up drops: every 10-14 s of play a capsule falls onto a platform; a beam of light marks the spot first,
+   so both fighters can race for it. Touch it to take it. Bosses never pick them up. The host decides everything online;
+   the visitor draws the same capsules ---------- */
+const DROPS={heal:{n:'HEALTH',col:'#7ed321'},over:{n:'OVERCHARGE',col:'#ff6a3a'},rapid:{n:'RAPID FIRE',col:'#ffd36b'},bubble:{n:'BUBBLE',col:'#9fe8ff'},wild:{n:'WILD CARD',col:'#c99bff'}};
+// a Wild card never changes your size mid-point (growing against a wall would wedge you into it)
+const WILD_SKIP=new Set(['Thick Skin','Pipsqueak']);
+const DROP_KINDS=Object.keys(DROPS),DROP_WARN=1.2,DROP_R=16,DROP_LIFE=12,OVER_T=8,RAPID_T=6;
+let drops=[],dropSeq=0;
+const dropsOn=()=>settings.drops!==false&&!game.bg&&game.mode!=='sandbox'&&game.mode!=='online-guest';
+// where a capsule can land: on top of a fixed platform, with room above, away from both fighters
+function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=70);
+  for(let k=0;k<40&&tops.length;k++){const r=pick(tops),x=rand(r.x+28,r.x+r.w-28),y=r.y-DROP_R-2;
+    if(x<FRAME+40||x>W-FRAME-40||y<FRAME+60)continue;if(solidBoxP(x,y-30,DROP_R,40))continue;
+    if(players.some(p=>p.alive&&Math.hypot(p.x-x,p.y-y)<220))continue;return{x,y}}return null}
+function dropTick(h){if(!dropsOn()||game.state!=='play')return;
+  game.dropT=(game.dropT??6)-h;
+  if(game.dropT<=0){game.dropT=rand(10,14);if(!drops.length){const s=dropSpot();if(s){drops.push({id:++dropSeq,kind:pick(DROP_KINDS),x:s.x,y:-30,ty:s.y,state:'warn',t:DROP_WARN,vy:0});sfx('arm')}}}
+  for(const d of drops){d.t-=h;
+    if(d.state==='warn'&&d.t<=0){d.state='fall';d.y=-30}
+    if(d.state==='fall'){d.vy+=2600*h;d.y+=d.vy*h;if(d.y>=d.ty){d.y=d.ty;d.state='ready';d.t=DROP_LIFE;burst(d.x,d.y+DROP_R,'#cfd8e3',8,220,3,.3,0);sfx('thud')}}
+    if(d.state!=='warn')for(const p of players){if(!p.alive||p.boss)continue;if(Math.hypot(p.x-d.x,p.y-d.y)<p.r+DROP_R+4){takeDrop(p,d);break}}}
+  drops=drops.filter(d=>!d.taken&&!(d.state==='ready'&&d.t<=0))}
+function takeDrop(p,d){d.taken=true;const s=p.s;
+  if(d.kind==='heal')p.hp=Math.min(s.maxHp,p.hp+s.maxHp*.4);
+  else if(d.kind==='over')p.buffOver=OVER_T;
+  else if(d.kind==='rapid'){p.buffRapid=RAPID_T;p.ammo=s.ammo}
+  else if(d.kind==='bubble')p.aegis=(p.aegis|0)+1;
+  else if(d.kind==='wild'){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),pool=CARDS.filter(c=>c.r<2&&!owned.has(c.id)&&!WILD_SKIP.has(c.n));
+    if(pool.length){const c=pick(pool),f=p.hp/s.maxHp;p.tempCards=[c];recompute(p);p.hp=f*p.s.maxHp;d.card=c.n}}
+  dropFx(p.x,p.y-p.r-26,d.kind,d.card||'')}
+// the pickup: a ring, sparks and the power-up's name over the fighter (sent to the other screen too)
+function dropFx(x,y,kind,card){fxRec('D',[x,y,kind,card]);const D=DROPS[kind];if(!D)return;
+  ring(x,y+26,D.col,90);burst(x,y+26,D.col,18,420,5,.45,0,true);
+  parts.push({text:card?`${D.n}: ${card.toUpperCase()}`:D.n,x,y,vx:0,vy:-55,grav:0,life:1.1,max:1.1,color:D.col});sfx('grab')}
+// capsules: the warning beam, then a bobbing capsule with the power-up's mark; it blinks before it expires
+function drawDrops(){if(!drops.length)return;const now=performance.now()/1000;ctx.save();
+  for(const d of drops){const D=DROPS[d.kind]||DROPS.heal;
+    if(d.state==='warn'){const k=1-d.t/DROP_WARN;ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(0,0,0,d.ty);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(1,D.col);
+      ctx.globalAlpha=.18+.3*k;ctx.fillStyle=g;ctx.fillRect(d.x-10-8*k,0,20+16*k,d.ty+DROP_R);ctx.globalAlpha=.5+.4*k;ctx.strokeStyle=D.col;ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(d.x,d.ty+DROP_R,26-10*k,6-2*k,0,0,TAU);ctx.stroke();ctx.globalCompositeOperation='source-over';continue}
+    if(d.state==='ready'&&d.t<3&&Math.sin(now*18)>0)continue;
+    const y=d.y+(d.state==='ready'?Math.sin(now*3+d.id)*3:0);ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(d.x,d.ty+DROP_R+2,DROP_R*.9,4,0,0,TAU);ctx.fill();
+    ctx.globalCompositeOperation='lighter';const gl=ctx.createRadialGradient(d.x,y,4,d.x,y,DROP_R*2.2);gl.addColorStop(0,D.col);gl.addColorStop(1,'rgba(0,0,0,0)');ctx.globalAlpha=.45;ctx.fillStyle=gl;ctx.beginPath();ctx.arc(d.x,y,DROP_R*2.2,0,TAU);ctx.fill();
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#1a1226';ctx.strokeStyle=D.col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(d.x,y,DROP_R,0,TAU);ctx.fill();ctx.stroke();
+    ctx.strokeStyle=D.col;ctx.fillStyle=D.col;ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';const x=d.x;
+    if(d.kind==='heal'){ctx.fillRect(x-7,y-2.5,14,5);ctx.fillRect(x-2.5,y-7,5,14)}
+    else if(d.kind==='over'){ctx.beginPath();ctx.moveTo(x+2,y-9);ctx.lineTo(x-5,y+1);ctx.lineTo(x+1,y+1);ctx.lineTo(x-2,y+9);ctx.lineTo(x+6,y-2);ctx.lineTo(x,y-2);ctx.closePath();ctx.fill()}
+    else if(d.kind==='rapid'){for(const o of[-5,3]){ctx.beginPath();ctx.moveTo(x+o-3,y-6);ctx.lineTo(x+o+3,y);ctx.lineTo(x+o-3,y+6);ctx.stroke()}}
+    else if(d.kind==='bubble'){ctx.beginPath();ctx.arc(x,y,7,0,TAU);ctx.stroke()}
+    else{ctx.strokeRect(x-5,y-7,10,14);ctx.fillRect(x-1.5,y-1.5,3,3)}}
+  ctx.restore()}
 
 /* ---------- Boss Rush: solo fights against bosses with signature builds. A boss is a CPU fighter with its own deck and
    much more health, plus a special attack it always warns you about first (a laser, a wind-up), so the fight is about
@@ -1449,8 +1505,8 @@ function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push(
 function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1))}
 
 /* ---------- shooting & blocking ---------- */
-function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1);p.burstLeft=p.s.burst;p.burstT=0}
-function spawnShot(p){const s=p.s,mult=(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
+function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1);p.burstLeft=p.s.burst;p.burstT=0}
+function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
@@ -1708,7 +1764,7 @@ function moveCollide(p,dt){
 function moveFx(p,fn){if(net.role==='host'&&p.ctrl==='net'){net.noRec=true;try{fn()}finally{net.noRec=false}}else fn()}
 function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   p.fireT-=dt;p.blockT-=dt;p.sinceShot+=dt;p.kT=(p.kT||0)-dt;p.crushT=(p.crushT||0)-dt;   // kT: just knocked by something the host decided (a hit, a blast)
-  p.hurtT-=dt;p.shotT-=dt;p.emptyT-=dt;p.chillT=(p.chillT||0)-dt;p.frozenT=(p.frozenT||0)-dt;
+  p.hurtT-=dt;p.shotT-=dt;p.emptyT-=dt;p.buffOver=(p.buffOver||0)-dt;p.buffRapid=(p.buffRapid||0)-dt;p.chillT=(p.chillT||0)-dt;p.frozenT=(p.frozenT||0)-dt;
   if(p.frozenT>0){const i=inp;i.move=0;i.jumpP=false;i.jumpH=false;i.fire=false;i.blockP=false;i.down=false}   // frozen solid
   if(p.blockCd>0){p.blockCd-=dt;if(p.blockCd<=0)personal(p,'ready')}
   if(p.ammo<s.ammo&&p.sinceShot>=s.reload){p.ammo=s.ammo;personal(p,'reload')}
@@ -1827,6 +1883,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
   const dx=e.x-p.x,dy=e.y-p.y,dist=Math.abs(dx),want=p.s.projectiles>1?300:p.s.bulletSpeed>2200?620:440;
   ai.t-=dt;if(ai.t<=0){ai.t=rand(.6,1.4);ai.strafe=Math.random()<.5?-1:1}
   let dir=0,jump=false,down=false;
+  const dr=!p.boss&&drops.find(d=>d.state!=='warn'&&Math.abs(d.x-p.x)<480&&Math.abs(d.ty-p.y)<170);
   if(ai.mode==='engage'){const sdx=Math.sign(dx)||ai.strafe;dir=dist>want+90?sdx:dist<want-90?-sdx:ai.strafe;
     if(p.grounded&&dy<-150&&Math.random()<dt*1.6)jump=true;
     if(p.grounded&&Math.random()<dt*.18)jump=true}
@@ -1840,6 +1897,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
     if(!p.grounded&&dy<-30&&p.vy>-160&&p.vy<140&&p.airJumps>0)jump=true;   // target above: spend the double jump at the top of the first
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
+  if(dr&&ai.mode!=='recover'){dir=Math.sign(dr.x-p.x)||1;if(dr.ty<p.y-60&&p.grounded)jump=true}
   if(ai.mode!=='recover'){
     if(p.grounded&&dir&&!groundAhead(p,dir)){
       if(ai.mode==='hunt'&&dy>110&&dropSafe(p,dir)){/* target is below: just walk off */}
@@ -1871,6 +1929,7 @@ function step(h){
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
+  dropTick(h);
   if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
@@ -1951,6 +2010,9 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   if(p.frozenT>0||p.frozen){ctx.save();ctx.fillStyle='rgba(200,236,255,.45)';ctx.strokeStyle='rgba(235,250,255,.95)';ctx.lineWidth=2.5;
     ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-R-7,-R-7,R*2+14,R*2+14,6);else ctx.rect(-R-7,-R-7,R*2+14,R*2+14);ctx.fill();ctx.stroke();
     ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-R+2,-R+6);ctx.lineTo(-R+10,-R-2);ctx.stroke();ctx.restore()}
+  for(const[t,max,col]of[[p.buffOver,OVER_T,DROPS.over.col],[p.buffRapid,RAPID_T,DROPS.rapid.col]])if(t>0){const k=clamp(t/max,0,1),sp=performance.now()/(col===DROPS.rapid.col?120:300);
+    ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=col;ctx.lineWidth=3;ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(0,0,R+12,sp,sp+TAU*k);ctx.stroke();
+    ctx.globalAlpha=.18+.08*Math.sin(sp*3);ctx.fillStyle=col;ctx.beginPath();ctx.arc(0,0,R+10,0,TAU);ctx.fill();ctx.restore()}
   if(p.aegis>0){ctx.save();ctx.strokeStyle='rgba(205,238,255,.8)';ctx.lineWidth=2.5;ctx.globalAlpha=.55+.25*Math.sin(performance.now()/180);ctx.beginPath();ctx.arc(0,0,R+9,0,TAU);ctx.stroke();ctx.restore()}
   if(p.blockT>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.globalAlpha=Math.min(1,p.blockT*5);ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.stroke();
     ctx.globalAlpha*=.3;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.fill();ctx.restore()}
@@ -2041,6 +2103,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
+  drawDrops();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -2171,7 +2234,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-21-smooth';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-21-drops';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2195,7 +2258,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
    never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
@@ -2375,9 +2438,10 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.c
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
+  dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
-    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0]),
+    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
@@ -2390,10 +2454,12 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}
+  drops=(s.dr||[]).map(a=>({id:a[0],kind:DROP_KINDS[a[1]]||'heal',x:a[2],y:a[3],state:a[4]===0?'warn':a[4]===1?'fall':'ready',t:a[5],ty:a[6]}));
   shields=(s.sh||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
   if(s.rt)net.rtt=s.rt;
   s.p.forEach((a,k)=>{const p=players[k];if(!p)return;
+    p.buffOver=a[24]||0;p.buffRapid=a[25]||0;if(p.tempKey!==(a[26]||'')){p.tempKey=a[26]||'';p.tempCards=p.tempKey?String(p.tempKey).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     if(p.cardKey!==a[17]){p.cardKey=a[17];p.cards=a[17]?String(a[17]).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     const snapTo=p.tx==null||(!p.alive&&a[6]);
     if(k===0&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5)game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
@@ -2475,7 +2541,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
   // this step's record: the host fires on exactly this step
   if(me&&me.phys&&me.alive&&game.state==='play'){const s=me.s;me.gFireT=(me.gFireT||0)-h;me.gSince=(me.gSince??99)+h;if(me.gAmmo==null)me.gAmmo=s.ammo;
     if(me.gAmmo<s.ammo&&me.gSince>=s.reload)me.gAmmo=s.ammo;
-    if(on&&(mouse.down||mouse.tapN>0)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){fired=true;me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
+    if(on&&(mouse.down||mouse.tapN>0)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){fired=true;if(!(me.buffRapid>0))me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1)*(me.buffRapid>0?.4:1);me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
   else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0}
   const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0),0,net.clk!=null?Math.round(performance.now()-(net.clkS??net.clk)-(net.interpMs||INTERP_MS)):0]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
@@ -2588,10 +2654,10 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,v:2};   // the aim guide starts off: turn it on in Settings
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,drops:true,v:2};   // the aim guide starts off: turn it on in Settings
 try{const o=JSON.parse(localStorage.getItem('counterpick.settings')||'{}');if(o&&typeof o==='object'){if((o.v|0)<2)delete o.aim;Object.assign(settings,o,{v:2})}}catch(e){}   // older saves always stored aim:on (the old default), so they start from the new default
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'}};
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},drops:{vals:[true,false],label:v=>v?'On':'Off'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;saveSettings();refreshOpts();sfx('tick',true)}
