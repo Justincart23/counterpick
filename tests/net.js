@@ -165,7 +165,7 @@ const DT = 1 / 60;
       if (f % 300 >= 200 && f % 300 < 230) { for (const k of ['KeyA', 'KeyD']) A.keys.delete(k); A.keys.add(me.x < 800 ? 'KeyA' : 'KeyD') }   // run at walls / edges
     }
   };
-  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard'];
+  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard', 'Blink Guard'];
   const giveDecks = () => { for (const p of H.players) { const want = FEATURE_DECK.map((n) => H.CARDS.find((c) => c.n === n)); if (p.cards.length < want.length || !want.every((c) => p.cards.includes(c))) { p.cards = [...want, ...p.cards.filter((c) => !want.includes(c))]; H.recompute(p) } } };
   const sg = { hj: [], last: null, gaps: [], n: 0, stutter: 0, o1: null, o2: null, h1: null, h2: null };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
@@ -200,14 +200,18 @@ const DT = 1 / 60;
     const vis = me.alive && Number.isFinite(me.x) ? [me.x + G.net.offX, me.y + G.net.offY] : null;
     // a hit's or a blast's knockback is decided on the host, so the guest can't predict it: the moment after a hit isn't a prediction error
     if (H.players[1].hurtT > 0 || H.players[1].kT > 0 || (lastHp != null && me.hp < lastHp)) hitAt = frames; lastHp = me.hp;
-    if (vis && lastVis && G.game.mapIdx === lastMap && G.game.state === 'play' && frames - hitAt > 24 && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) visJumps++;
+    if (process.env.BLINKDBG) { const hb = H.players[1].blinkN || 0; if (hb !== (sg.hbn || 0)) { sg.hbn = hb; console.log('HOST  blink', hb, Math.round(H.players[1].x), Math.round(H.players[1].y), 'guestNow', Math.round(me.x), Math.round(me.y), 'aim', H.players[1].aim.toFixed(2), 'ack', H.players[1].ackSeq, 'gseq', G.net.inSeq, 'st', H.game.state, 'cd', H.players[1].blockCd.toFixed(2), 'stock', H.players[1].blockStock) }
+      if ((me.blinkN || 0) !== (sg.bn || 0)) console.log('GUEST blink', me.blinkN, Math.round(me.x), Math.round(me.y), 'aim', me.aim.toFixed(2), 'hostNow', Math.round(H.players[1].x), Math.round(H.players[1].y), 'gseq', G.net.inSeq, 'gst', G.game.state, 'cd', (me.blockCd || 0).toFixed(2), 'stock', me.blockStock) }
+    const blinked = (me.blinkN || 0) !== (sg.bn || 0); sg.bn = me.blinkN || 0; if (blinked) { sg.blinks = (sg.blinks || 0) + 1; sg.lastBlinkF = frames }   // Blink Guard: a teleport is meant to jump
+    if (vis && lastVis && !blinked && G.game.mapIdx === lastMap && G.game.state === 'play' && frames - hitAt > 24 && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) { visJumps++; if (process.env.BLINKDBG) console.log('JUMP', Math.round(Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1])), 'fsb', frames - (sg.lastBlinkF || -999), 'gseq', G.net.inSeq, 'snapAck', G.net.snap && G.net.snap.p[1][18], 'snapBlinkN', G.net.snap && G.net.snap.p[1][23], 'guestBlinkN', me.blinkN, 'hostBlinkN', H.players[1].blinkN, 'hostAck', H.players[1].ackSeq, 'lag', H.net.lagSteps) }
     // smoothness on the guest's screen: hanging blocks / moving platforms must glide (no frame-to-frame shake), and the
     // host's fighter must follow its true path (drawn INTERP ms in the past, so compare with where it really was then)
     if (G.game.state === 'play' && G.game.mapIdx === lastMap) for (const w of G.solids.filter((r) => r.swing)) {
       if (w._p1) { sm.sw++; if (Math.hypot(w.x - 2 * w._p1[0] + w._p2[0], w.y - 2 * w._p1[1] + w._p2[1]) > 3) sm.swShake++ } w._p2 = w._p1 || [w.x, w.y]; w._p1 = [w.x, w.y] }
     { const h = H.players[0], now = vnow(); sm.hist.push([now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 400) sm.hist.shift();
       const o = G.players[0];
-      if (G.game.state === 'play' && o.alive && G.net.clk != null) { const base = G.net.relayed ? 90 : 55, rt = now - G.net.clk - Math.min(170, Math.max(base, base + (G.net.lateMax || 0) * .8 - 15)); let best = null;
+      const hb0 = H.players[0].blinkN || 0; if (hb0 !== sm.hb0) { sm.hb0 = hb0; sm.hbF = frames }
+      if (G.game.state === 'play' && o.alive && G.net.clk != null && frames - (sm.hbF ?? -999) > 20) { const base = G.net.relayed ? 90 : 55, rt = now - G.net.clk - Math.min(170, Math.max(base, base + (G.net.lateMax || 0) * .8 - 15)); let best = null;
         for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
         if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } } }
     // bullets on the guest's screen: how soon its own shot appears after a click, and whether bullets fly smoothly
@@ -228,7 +232,7 @@ const DT = 1 / 60;
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) embedded++;
-      else if (lastMe && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; break } }
+      else if (lastMe && !blinked && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; break } }
       lastMe = [me.x, me.y, G.game.mapIdx, G.net.snapN] } else lastMe = null;
     const hp = H.players[1];
     if (H.game.state === 'play' && hp.alive) { if (lastX.v != null) guestMoved += Math.abs(hp.x - lastX.v); lastX.v = hp.x } else lastX.v = null;
@@ -245,7 +249,7 @@ const DT = 1 / 60;
   frame(20);
   check(G.game.state === 'over', `the guest should see the end screen (guest state ${G.game.state})`);
   check(hostDrafts >= 1 && guestDrafts >= 1, `both players should draft (host ${hostDrafts}, guest ${guestDrafts})`);
-  check(H.players[1].cards.length === guestDrafts + (FEATURES ? 6 : 0), `the guest's picks should land on the host (${H.players[1].cards.length} vs ${guestDrafts})`);
+  check(H.players[1].cards.length === guestDrafts + (FEATURES ? FEATURE_DECK.length : 0), `the guest's picks should land on the host (${H.players[1].cards.length} vs ${guestDrafts})`);
   check(G.players[1].cards.length === H.players[1].cards.length && G.players[0].cards.length === H.players[0].cards.length, 'both screens should show the same decks');
   check(guestMoved > 800, `the guest's inputs should move its fighter on the host (moved ${guestMoved.toFixed(0)}px)`);
   check(sawGuestBullet, "the guest's shots should be fired on the host");
@@ -307,7 +311,7 @@ const DT = 1 / 60;
   check(bm.n < 500 || bm.jerk / bm.n < 0.05, `bullets should fly smoothly on the guest's screen (${(100 * bm.jerk / bm.n).toFixed(1)}% of bullet-frames jerked >4px)`);
   { const ok = G.net.gMerged || 0, lost = G.net.gLost || 0; check(ok + lost < 10 || lost / (ok + lost) < 0.25, `the guest's instant shots should be confirmed by the host (${ok} confirmed, ${lost} never fired there)`) }
   const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ownShotFrames: bm.lat.length ? bm.lat.slice().sort((a, b) => a - b)[bm.lat.length >> 1] : null, bulletJerkPct: bm.n ? +(100 * bm.jerk / bm.n).toFixed(2) : null, ghostShotsConfirmed: G.net.gMerged || 0, ghostShotsPhantom: G.net.gLost || 0, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
-  { const g = sg.gaps.slice().sort((a, b) => a - b); Object.assign(result, { snapGapP99Ms: g.length ? Math.round(g[Math.floor(g.length * .99)]) : null, snapGapMaxMs: g.length ? Math.round(g[g.length - 1]) : null, otherStutterPct: sg.n ? +(100 * sg.stutter / sg.n).toFixed(2) : null, lossPct: LOSS * 100, fast: FAST }) }
+  { const g = sg.gaps.slice().sort((a, b) => a - b); Object.assign(result, { guestBlinks: sg.blinks || 0, snapGapP99Ms: g.length ? Math.round(g[Math.floor(g.length * .99)]) : null, snapGapMaxMs: g.length ? Math.round(g[g.length - 1]) : null, otherStutterPct: sg.n ? +(100 * sg.stutter / sg.n).toFixed(2) : null, lossPct: LOSS * 100, fast: FAST }) }
   if (LOSS && FAST) { const g = sg.gaps.slice().sort((a, b) => a - b); check(!g.length || g[g.length - 1] < 160, `a lost packet must not stall the guest's view (longest gap between snapshots ${Math.round(g[g.length - 1])} ms)`) }
   check(sg.n < 500 || sg.stutter / sg.n < 0.03, `the host's fighter should move smoothly on the guest's screen (${sg.stutter} of ${sg.n} frames stuttered)`);
   console.log(JSON.stringify(result));

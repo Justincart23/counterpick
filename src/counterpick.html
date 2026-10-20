@@ -826,6 +826,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
+  case'blink':noise(t,.12,.14,'bandpass',700*v,5200,2.5,room);tone('sine',380*v,1700*v,t,.11,.1,room);tone('triangle',1900*v,2600,t+.08,.09,.05);break;   // teleport: a rising zip
   }}catch(e){}}
 
 /* ---------- input ---------- */
@@ -874,7 +875,7 @@ function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);s.fireDela
   s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
   s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
-  dots:[],slowT:0,slowAmt:0,alive:true,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
+  dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 const other=p=>players[1-p.id];
 const playerLabel=p=>p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
@@ -1375,8 +1376,19 @@ function blockFx(p){const s=p.s;
   if(s.blockVolley){const n=s.blockVolley;for(let i=0;i<n;i++)ringShot(p,p.aim+i/n*TAU,22,5,1.3,1100)}
   if(s.staticGuard)p.staticReady=true;
   // Blink never lands past an edge (below the bottom you'd end up under the floor)
-  if(s.blink){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
-    if(!solidBoxP(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){burst(p.x,p.y,p.glow,14,300,6,.4,0,true);p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;burst(p.x,p.y,p.glow,14,300,6,.4,0,true);break}}}}
+  if(s.blink)blinkMove(p)}
+function blinkMove(p){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
+    if(!solidBoxP(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){const ox=p.x,oy=p.y;p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;p.grounded=false;p.squash=1.3;
+      p.blinkN=(p.blinkN||0)+1;moveFx(p,()=>blinkFx(ox,oy,tx,ty,p.r,p.color,p.glow));return true}}return false}
+/* Blink Guard's teleport, readable at a glance: the body collapses into a ring where it was, a bright streak and fading
+   afterimages trace the jump, and it pops back out with a flash and a ring where it lands. A rising zip plays */
+function blinkFx(x0,y0,x1,y1,r,color,glow){fxRec('T',[x0,y0,x1,y1,r,color,glow]);
+  parts.push({implode:true,x:x0,y:y0,rad:r*2.4,life:.22,max:.22,color:glow,vx:0,vy:0,grav:0});
+  parts.push({streak:true,x:x0,y:y0,x1,y1,r,life:.2,max:.2,color:glow,vx:0,vy:0,grav:0});
+  for(let i=1;i<=4;i++){const t=i/5,l=.12+.05*i;parts.push({ghost:true,x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,r,life:l,max:l,color,vx:0,vy:0,grav:0})}
+  parts.push({ring:true,x:x1,y:y1,rad:r*3,life:.3,max:.3,color:glow});parts.push({flash:true,x:x1,y:y1,rad:r*3.2,life:.12,max:.12,color:glow});
+  for(let i=0;i<10&&parts.length<800;i++){const a=Math.random()*TAU,v=rand(120,320);parts.push({x:x1,y:y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.2,.35),max:.35,size:rand(2,4),color:glow,grav:0,glow:true})}
+  sfx('blink',false,true)}
 
 /* ---------- damage ---------- */
 // overtime escalates: +50% damage for every 10s past the overtime horn, so long stalemates always end
@@ -1917,13 +1929,17 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
     const x=clamp(b.x,FRAME+8,W-FRAME-8),y=FRAME+5,s=5+4*k;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s,y+s*1.4);ctx.lineTo(x+s,y+s*1.4);ctx.closePath();ctx.fill()}
   for(const q of parts){if(q.blob)continue;const a=clamp(q.life/q.max,0,1);
+    if(q.ghost){ctx.globalAlpha=a*.45;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.r*(.7+.3*a),0,TAU);ctx.fill();continue}
+    if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
+      ctx.globalAlpha=a;ctx.strokeStyle=gr;ctx.lineWidth=q.r*1.6*a+2;ctx.beginPath();ctx.moveTo(q.x+dx*(1-a)*.5,q.y+dy*(1-a)*.5);ctx.lineTo(q.x1,q.y1);ctx.stroke();continue}
+    if(q.implode){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=3+3*a;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*a,0,TAU);ctx.stroke();continue}
     if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;ctx.fillText(q.text,q.x,q.y);ctx.textAlign='left';continue}
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
-  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
+  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
     ctx.fillStyle=q.color;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
@@ -2023,7 +2039,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-20-audit2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-20-blink';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2047,7 +2063,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+const FXR={T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
    never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
@@ -2227,7 +2243,7 @@ function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith(
 function snapshot(){return{t:'s',ht:Math.round(performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
-    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0]),
+    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
@@ -2251,7 +2267,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
     if(k===1){reconcile(p,a,snapTo);return}   // the guest's own fighter is predicted locally; its arm follows the local mouse
     p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.squash=a[14];p.grounded=!!a[15];if(snapTo){p.x=a[0];p.y=a[1];p.walk=p.walk||0;p.buf=[]}
     // interpolation buffer: the other fighter's recent states on the host's clock
-    if(s.ht!=null){p.buf=p.buf||[];const L=p.buf[p.buf.length-1];if(!L||s.ht>L[0]){p.buf.push([s.ht,a[0],a[1],a[2],a[3]]);if(p.buf.length>16)p.buf.shift()}}
+    if(s.ht!=null){p.buf=p.buf||[];const L=p.buf[p.buf.length-1];if(!L||s.ht>L[0]){p.buf.push([s.ht,a[0],a[1],a[2],a[3],a[23]|0]);if(p.buf.length>16)p.buf.shift()}}
     p.aim=a[4]});
   const seen=new Set();
   for(const a of s.b){seen.add(a[0]);let b=net.bmap.get(a[0]);const o=players[a[6]]||players[0];
@@ -2279,7 +2295,15 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   // velocity corrections are capped per snapshot, and skipped right around this fighter's own jumps, landings, pad and edge
   // bounces: there the two sides can disagree by a step on WHEN it happened, which looks like a huge velocity error that
   // is gone a step later (correcting it would apply the jump twice and fling the fighter). Positions are still corrected.
-  const e=net.hist[i],ex=a[0]-e.x;let ey=a[1]-e.y,evy=clamp(a[3]-e.vy,-450,450),evx=clamp(a[2]-e.vx,-450,450);
+  const e=net.hist[i];
+  // teleports: this screen made one the host hasn't applied as of that step yet (the host ran a stand-in step and gets to
+  // the press one step later): that snapshot is a step behind on it, so it isn't a correction. Shortly after, the host has
+  // either made it too or never will (it refused the press): from then on, and when the host made one this screen
+  // didn't, the host's state wins and the counts are brought back in line.
+  if(a[23]!=null&&e.bn!=null&&(a[23]|0)!==e.bn){
+    if((a[23]|0)<e.bn&&ack-e.bs<24)return;
+    const d=(a[23]|0)-e.bn;p.blinkN=(p.blinkN|0)+d;p.gBn=p.blinkN;for(const h of net.hist)h.bn+=d}
+  const ex=a[0]-e.x;let ey=a[1]-e.y,evy=clamp(a[3]-e.vy,-450,450),evx=clamp(a[2]-e.vx,-450,450);
   for(let k=Math.max(0,i-8);k<Math.min(net.hist.length-1,i+8);k++){const h0=net.hist[k],h1=net.hist[k+1];if(Math.abs(h1.vy-h0.vy)>500||Math.abs(h1.vx-h0.vx)>500){evx=0;evy=0;break}}
   // both sides say it's standing: the floor under it decides its height, so a small height error is noise (and nudging it
   // up off a moving platform would make it flicker between standing and falling)
@@ -2308,7 +2332,10 @@ function guestSwings(h){const k=Math.min(1,h*5);
         if(Math.abs(d)>.3){s.ang=s.gAng;s.av=s.gAv}else{s.ang+=d*k;s.av+=(s.gAv-s.av)*k}}}
     placeSwing(s)}}
 function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
-  if(me&&me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
+  // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
+  // and an aim taken after it would point back the other way, so the host would teleport the other way
+  if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
+  else if(me&&me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
   const mv=on?(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp')),dn=on&&(keys.has('KeyS')||keys.has('ArrowDown'));
   // firing is decided per physics step, with the same timers the host runs for this fighter, and the shot counter goes in
   // this step's record: the host fires on exactly this step
@@ -2319,12 +2346,14 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
   const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0)]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
-    me.localBlockT=(me.localBlockT||0)-h;
-    if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me)}}
+    me.localBlockT=(me.localBlockT||0)-h;me.gCd=Math.max(0,(me.gCd||0)-h);
+    if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me);if(me.s.blink){blinkMove(me);net.offX=net.offY=0}}}
     moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
-    net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps});if(net.hist.length>360)net.hist.shift()}
+    if((me.blinkN|0)!==(me.gBn|0)){me.gBn=me.blinkN|0;me.gBs=seq}   // the step of this screen's latest teleport
+    net.hist.push({s:seq,x:me.x,y:me.y,vx:me.vx,vy:me.vy,aj:me.airJumps,bn:me.blinkN|0,bs:me.gBs|0});if(net.hist.length>360)net.hist.shift()}
+  if(me&&(!me.alive||!(live||game.state==='ready')||game.state==='ready'&&game.stT>1)){me.gEcho=null;me.gCd=0}   // a new point: nothing queued carries over
   net.pendJump=false;tapStep(me&&me.phys?{alive:me.alive,ammo:me.gAmmo??1,burstLeft:me.gBurst}:null,h,fired);
 }
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
@@ -2332,7 +2361,17 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.hitMark=Math.max(0,(game.hitMark||0)-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
+  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];
+    // predict the block only when the host will make it (no blocking in the countdown), and spend the cooldown or a stored
+    // charge here at once, as doBlock does: otherwise every press before the next snapshot counted as a fresh block
+    // the host's cooldown on the step it will apply this press: the snapshot's value (taken right after the host applied this
+    // screen's step 'ack') counts down one physics step per step until this press's step. Exact: no clock guessing
+    const sp=net.snap&&net.snap.p&&net.snap.p[1],ack=sp?sp[18]|0:0,hostCd=me?me.blockCd-(net.inSeq+1-ack)*FIXED:1,ready=hostCd<=1e-6&&!((me&&me.gCd)>0);
+    // a press in the last instant of the countdown lands after GO on the host (it hears it a trip later): same step count
+    const liveThen=game.state==='play'||game.state==='pointEnd'||game.state==='ready'&&net.snap&&(net.snap.stT||0)-(net.inSeq+1-ack)*FIXED<=0;
+    if(me&&me.alive&&liveThen&&(ready||me.blockStock>0&&!(me.localBlockT>0))){if(!ready)me.blockStock--;else{me.gCd=me.s.blockCd;me.blockStock=me.s.blockStock}
+      // the aim this block (and its dash or teleport) uses, recorded for the host too
+      if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);while(game.acc>=FIXED){game.acc-=FIXED;guestStep(FIXED,busy)}
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
@@ -2343,7 +2382,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
       if(B.length&&net.clk!=null){let i=B.length-1;while(i>0&&B[i-1][0]>rt)i--;
         if(rt<=B[0][0]){px=B[0][1];py=B[0][2]}
         else if(rt>=B[B.length-1][0]){const L=B[B.length-1],e=Math.min(.1,(rt-L[0])/1000);px=L[1]+L[3]*e;py=L[2]+L[4]*e}
-        else{const A=B[i-1],C=B[i],f=(rt-A[0])/(C[0]-A[0]||1);px=A[1]+(C[1]-A[1])*f;py=A[2]+(C[2]-A[2])*f}}
+        else{const A=B[i-1],C=B[i],f=(rt-A[0])/(C[0]-A[0]||1);if(A[5]!==C[5]){const E=f<.5?A:C;px=E[1];py=E[2]}else{px=A[1]+(C[1]-A[1])*f;py=A[2]+(C[2]-A[2])*f}}}   // a teleport between two snapshots: vanish and reappear, never slide
       p.x=px;p.y=py;
       p.walk=(p.walk||0)+Math.abs(p.vx)*dt*.045}
     // bullets are placed on the HOST's clock (not by when each snapshot happened to arrive, which jitters by milliseconds and
