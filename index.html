@@ -539,7 +539,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1150,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
-  lifesteal:0,size:1,moveSpeed:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
+  lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
   split:0,grow:false,well:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
@@ -550,9 +550,9 @@ const CARDS=[
  {n:'Deep Magazine',k:'gun',r:0,d:'Three more rounds before you reload.',st:[['+3','Ammo',1]],a:s=>{s.ammo+=3}},
  {n:'Speed Loader',k:'gun',r:0,d:'Refill your magazine in a blink.',st:[['-50%','Reload',1]],a:s=>{s.reload*=.5}},
  {n:'Ricochet',k:'shot',r:0,d:'Bullets bounce off walls twice and hit 20% harder after every bounce.',st:[['+2','Bounces',1],['+20%','Damage per bounce',1]],a:s=>{s.bounces+=2;s.bounceDmg+=.2}},
- {n:'Scattergun',k:'gun',r:1,d:'Every trigger pull fires a fan of pellets.',st:[['+2','Bullets',1],['-35%','Damage',0]],a:s=>{s.projectiles+=2;s.spread+=.16;s.dmg*=.65}},
+ {n:'Scattergun',k:'gun',r:1,d:'Every trigger pull fires a fan of pellets.',st:[['+2','Bullets',1],['-40%','Damage',0]],a:s=>{s.projectiles+=2;s.spread+=.16;s.dmg*=.6}},
  {n:'Triple Tap',k:'gun',r:1,d:'Each shot becomes a three-round burst.',st:[['+2','Burst',1],['+2','Ammo',1],['-25%','Damage',0]],a:s=>{s.burst+=2;s.ammo+=2;s.dmg*=.75}},
- {n:'Vampire Rounds',k:'body',r:1,d:'Heal for most of the damage you deal.',st:[['+70%','Life steal',1]],a:s=>{s.lifesteal+=.7}},
+ {n:'Vampire Rounds',k:'body',r:1,d:'Heal for most of the damage you deal.',st:[['+60%','Life steal',1]],a:s=>{s.lifesteal+=.6}},
  {n:'Thick Skin',k:'body',r:0,d:'Bigger, sturdier, slightly slower.',st:[['+35%','Health',1],['+20%','Size',0],['-6%','Speed',0]],a:s=>{s.maxHp*=1.35;s.size*=1.2;s.moveSpeed*=.94}},
  {n:'Pipsqueak',k:'body',r:1,d:'Small and quick. Harder to hit, easier to drop.',st:[['-25%','Size',1],['+20%','Speed',1],['-15%','Health',0]],a:s=>{s.size*=.75;s.moveSpeed*=1.2;s.maxHp*=.85}},
  {n:'Spring Heels',k:'body',r:0,d:'One more jump in the air.',st:[['+1','Air jump',1],['+10%','Jump height',1]],a:s=>{s.airJumps+=1;s.jumpPower*=1.1}},
@@ -583,7 +583,7 @@ const CARDS=[
  {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
  {n:'Accelerator',k:'shot',r:1,d:'Bullets speed up and hit harder the longer they fly.',st:[['Up to x3.5','Speed & damage',1]],a:s=>{s.accel=true},u:1},
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
- {n:'Sprinter',k:'body',r:0,d:'Cover ground fast.',st:[['+25%','Speed',1]],a:s=>{s.moveSpeed*=1.25}},
+ {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+15%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.15}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
  {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
@@ -878,7 +878,7 @@ function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);s.fireDela
   s.maxHp=Math.max(10,s.maxHp);
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
-  s.moveSpeed=clamp(s.moveSpeed,.45,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
+  s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
   s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
   dots:[],slowT:0,slowAmt:0,alive:true,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
@@ -1425,7 +1425,8 @@ function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   for(const o of players){if(!o.alive)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<R){const a=Math.atan2(o.y-b.y,o.x-b.x),f=(1-d/R)*(o===p?.4:1);o.vx+=Math.cos(a)*700*f;o.vy+=Math.sin(a)*600*f-220*f;o.ground=null;o.kT=.35}}}
 function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x,b.y,'#ffffff',7,620,Math.atan2(b.vy,b.vx),.75);if(b.grow)longShock(b,p);const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
   if(p.aegis>0){p.aegis--;b.dead=true;ring(p.x,p.y,'#dff4ff',70);burst(p.x,p.y,'#dff4ff',16,420,4,.4,0,true);sfx('pop');return}
-  if(b.gunShot)game.hits=(game.hits||0)+1;   // (counted for tuning: how often trigger pulls land)
+  if(b.gunShot)game.hits=(game.hits||0)+1;
+  if(b.owner&&b.owner.ctrl==='mouse'&&b.owner!==p)game.hitMark=.22;   // hit marker on your crosshair   // (counted for tuning: how often trigger pulls land)
   const o=b.owner;if(o&&o!==p&&o.s.reflexGuard)o.blockCd=Math.max(0,o.blockCd-o.s.reflexGuard);
   p.vx+=b.vx/sp*380*kf;p.vy+=b.vy/sp*300*kf-120*kf;p.ground=null;p.kT=.35;
   if(b.poison){p.dots.push({dps:b.dmg*1.5/2,t:2,src:b.owner});p.hurtT=.1;cloud(p.x,p.y,C.poison,6,20)}
@@ -1510,7 +1511,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
   p.duck=!!(inp.down&&p.grounded&&!(p.ground&&p.ground.oneway));
-  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?GROUND_ACC:AIR_ACC)*dt);   // a Shield Charge dash carries through
+  const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?GROUND_ACC:AIR_ACC)*s.agility*dt);   // a Shield Charge dash carries through
   p.padT=(p.padT||0)-dt;let g=PG;if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
   if(inp.down&&!p.grounded)g*=p.vy<0&&p.padT<=0?3:2;   // down in the air: cut a jump short, or drop fast
   p.vy=Math.min(1900,p.vy+g*dt);
@@ -1759,7 +1760,7 @@ function update(dt){pollPads();
   if(game.paused){edges.clear();mouse.rEdge=false;return}
   if(game.hitstop>0){game.hitstop-=dt;return}
   if(game.slowT>0){game.slowT-=dt;dt*=.35}
-  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);
+  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.hitMark=Math.max(0,(game.hitMark||0)-dt);game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   game.acc=Math.min((game.acc||0)+dt,FIXED*8);
   while(game.acc>=FIXED){game.acc-=FIXED;snapPrev();if(!simTick(FIXED)){game.acc=0;edges.clear();mouse.rEdge=false;break}}
@@ -1934,6 +1935,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
   const vg=ctx.createRadialGradient(W/2,H/2,H*.45,W/2,H/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  {const me=game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse');   // your health is low: the screen edges pulse red
+    if(me&&me.alive&&!game.bg&&me.s&&me.hp<me.s.maxHp*.35&&['play','ready','pointEnd'].includes(game.state)){const k=1-clamp(me.hp/(me.s.maxHp*.35),0,1),pu=RM?.5:.5+.5*Math.sin(performance.now()/180);
+      const rg=ctx.createRadialGradient(W/2,H/2,H*.38,W/2,H/2,H*.95);rg.addColorStop(0,'rgba(255,40,50,0)');rg.addColorStop(1,`rgba(255,40,50,${(.16+.18*k)*(.6+.4*pu)})`);ctx.fillStyle=rg;ctx.fillRect(0,0,W,H)}}
   if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
   ctx.restore();drawHUD();
   drawCardTip();
@@ -1953,7 +1957,9 @@ function drawAimGuide(){const p=players.find(q=>q.ctrl==='mouse');if(!p||!p.aliv
   if(pointSolid(x,y))return;ctx.save();ctx.fillStyle=p.glow;const st=.022,N=15;
   for(let i=1;i<=N;i++){vy+=g*st;x+=vx*st;y+=vy*st;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
   ctx.restore()}
-function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.globalAlpha=.9;
+function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
+  if(game.hitMark>0){const a=game.hitMark/.22,o=10+(1-a)*5;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.lineCap='round';ctx.globalAlpha=a;
+    for(const[sx,sy]of[[1,1],[-1,1],[1,-1],[-1,-1]]){ctx.beginPath();ctx.moveTo(x+sx*o,y+sy*o);ctx.lineTo(x+sx*(o+8),y+sy*(o+8));ctx.stroke()}ctx.restore()}ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.globalAlpha=.9;
   ctx.beginPath();ctx.arc(x,y,9,0,TAU);ctx.stroke();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){ctx.beginPath();ctx.moveTo(x+a*13,y+b*13);ctx.lineTo(x+a*19,y+b*19);ctx.stroke()}
   const p=players.find(q=>q.ctrl==='mouse');if(p&&p.alive&&p.ammo<p.s.ammo){ctx.strokeStyle=p.glow;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,24,-Math.PI/2,-Math.PI/2+TAU*clamp(p.sinceShot/p.s.reload,0,1));ctx.stroke()}
   ctx.restore()}
@@ -2024,7 +2030,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-20-fastlane';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-20-audit2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2247,6 +2253,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   s.p.forEach((a,k)=>{const p=players[k];if(!p)return;
     if(p.cardKey!==a[17]){p.cardKey=a[17];p.cards=a[17]?String(a[17]).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     const snapTo=p.tx==null||(!p.alive&&a[6]);
+    if(k===0&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5)game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
     Object.assign(p,{hp:a[5],alive:!!a[6],ammo:a[7],sinceShot:a[8],blockT:a[9],blockCd:a[10],staticReady:!!a[11],shotT:a[12],hurtT:a[13],slowAmt:a[16],aegis:a[19]|0,frozen:!!a[20],blockStock:a[21]|0});
     if(k===1){reconcile(p,a,snapTo);return}   // the guest's own fighter is predicted locally; its arm follows the local mouse
     p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.squash=a[14];p.grounded=!!a[15];if(snapTo){p.x=a[0];p.y=a[1];p.walk=p.walk||0;p.buf=[]}
@@ -2329,7 +2336,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
 }
 // guest frame: predict its own fighter, smooth everything else toward the latest snapshot, animate effects, send inputs
 function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.connected&&performance.now()-net.lastRecv>15000){netLost(`Lost the connection to ${net.remoteName||'the host'}.`);return}
-  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);
+  game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.hitMark=Math.max(0,(game.hitMark||0)-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
   if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];if(me&&(me.blockCd<=0||me.blockStock>0)){me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
