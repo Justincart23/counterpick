@@ -452,7 +452,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: pick a card to build on, then fight round after round of tougher enemies, with a boss every 5th round (it always warns you before its special attack). Power-ups drop during rounds; clearing one pays scrap to spend in the shop. 3 lives for the whole run.</li>
+            <li>Survival: choose a character (more unlock as you reach new rounds), draft a card, then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). Damage earns XP: each level lets you pick 1 of 4 upgrades. Clearing a round pays scrap for the shop: 5 cards, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
           </ol>
         </div>
         <div>
@@ -919,10 +919,10 @@ const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,ma
   slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
 let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
 
-function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
+function makePlayer(id,ctrl,name,team){return{id,team:team??id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
-function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
@@ -931,8 +931,16 @@ function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);for(const 
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
   dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
-const other=p=>players[1-p.id];
-const playerLabel=p=>p.boss?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
+// the rival: in a duel the other fighter; with more fighters, the nearest living enemy (any enemy if none is alive)
+// where fighter k starts: the arena's own spawn for the first two; extra enemies on a free platform far from the heroes
+function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];if(p.team===0)return sp[0];
+  const n=players.filter(q=>q.team===1).indexOf(p);if(n<=0)return sp[1];
+  const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=80),hero=sp[0];
+  for(let g=0;g<60&&tops.length;g++){const r=pick(tops),x=rand(r.x+30,r.x+r.w-30),y=r.y-BASE_R*1.6;if(Math.abs(x-hero[0])<380||y<FRAME+40||x<FRAME+30||x>W-FRAME-30)continue;if(solidBoxP(x,y-10,22,30))continue;return[x,y]}
+  return[sp[1][0]+(n%2?-1:1)*70*n,sp[1][1]]}
+const other=p=>{if(players.length===2)return players[1-p.id];let best=null,bd=1e9;for(const q of players){if(q===p||q.team===p.team)continue;const d=(q.alive?0:1e7)+Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q}}return best||players.find(q=>q!==p)};
+const foes=(a,b)=>a&&b&&a!==b&&a.team!==b.team;
+const playerLabel=p=>p.boss||game.mode==='survival'?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function startMatch(mode){
   game.token++;game.awarded=false;game.mode=mode;game.dropT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
@@ -950,7 +958,10 @@ function startMatch(mode){
   newPoint(true);
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
-  if(mode==='survival'){beginPick([0],'Survival · pick a card to start your run',()=>{const me=players[0];game.starter=me.cards[me.cards.length-1];survRound(1)});cv.focus();return}
+  if(mode==='survival'){game.bossOrder=[0,1,2,3,4].sort(()=>Math.random()-.5);const me=players[0];me.team=0;me.xp=0;me.lvl=1;me.pendingLv=0;me.ups=[];me.char=null;
+    const locked=CHARS.filter(c=>!charOpen(c)),next=locked[0];me.nextHand=CHARS.filter(charOpen);
+    beginPick([0],next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character',()=>{
+      beginPick([0],'Survival · draft a card to start your run',()=>{game.starter=me.cards[me.cards.length-1];survRound(1)})});$('#pickTitle').textContent='Choose your character';cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -965,7 +976,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
 function newPoint(fresh){
   let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);drops=[];
-  players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,game.map.sp[k])});
+  players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k))});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
   game.banner=finalRound?'FINAL ROUND':game.map.name.toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
@@ -1132,7 +1143,7 @@ function dropTick(h){if(!dropsOn()||game.state!=='play')return;
   for(const d of drops){d.t-=h;
     if(d.state==='warn'&&d.t<=0){d.state='fall';d.y=-30}
     if(d.state==='fall'){d.vy+=2600*h;d.y+=d.vy*h;if(d.y>=d.ty){d.y=d.ty;d.state='ready';d.t=DROP_LIFE;burst(d.x,d.y+DROP_R,'#cfd8e3',8,220,3,.3,0);sfx('thud')}}
-    if(d.state!=='warn')for(const p of players){if(!p.alive||p.boss)continue;if(Math.hypot(p.x-d.x,p.y-d.y)<p.r+DROP_R+4){takeDrop(p,d);break}}}
+    if(d.state!=='warn')for(const p of players){if(!p.alive||p.boss||(game.mode==='survival'&&p.team!==0))continue;if(Math.hypot(p.x-d.x,p.y-d.y)<p.r+DROP_R+4){takeDrop(p,d);break}}}
   drops=drops.filter(d=>!d.taken&&!(d.state==='ready'&&d.t<=0))}
 function takeDrop(p,d){d.taken=true;const s=p.s;
   if(d.kind==='heal')p.hp=Math.min(s.maxHp,p.hp+s.maxHp*.4);
@@ -1165,42 +1176,91 @@ function drawDrops(){if(!drops.length)return;const now=performance.now()/1000;ct
     else{ctx.strokeRect(x-5,y-7,10,14);ctx.fillRect(x-1.5,y-1.5,3,3)}}
   ctx.restore()}
 
-/* ---------- Survival: an endless run, round after round (like CoD Zombies crossed with Brotato). Pick a card to base your
-   build on, then fight a tougher enemy each round, with a boss every 5th round. Power-up capsules drop during rounds.
-   Clearing a round pays scrap to spend in the shop before the next one. You have 3 lives for the whole run (an enemy
-   keeps its damage when you lose one); how far can you get? ---------- */
+/* ---------- Survival: an endless run (CoD Zombies crossed with Brotato). Choose a character, draft a first card, then fight
+   round after round: waves of enemies that grow in number and strength, a boss every 5th round (the Crown every 25th),
+   and now and then a twist round. Power-up capsules drop during rounds. Damage earns XP: every level lets you pick one
+   of four stat upgrades when the round ends. Clearing a round pays scrap for the shop. 3 lives for the whole run (enemies
+   keep their damage when you lose one). Reaching new rounds unlocks new characters ---------- */
 const BOSSES=[
  {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Divider',
   hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe'},
  {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Yard',
   hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge'},
+ {id:'bombardier',n:'The Bombardier',sub:'Calls down shells: red circles mark where they land. Keep moving.',color:'#d9822b',glow:'#ffc27a',hat:'tophat',map:'Bunkers',
+  hp:4.5,size:1.3,deck:['Lob Shell','Cluster Guard'],phases:[['Blast Cap'],['Splinter Rounds']],special:'barrage'},
+ {id:'phantom',n:'The Phantom',sub:'A shimmer shows where it will appear. Turn and fire as it lands.',color:'#8e7bff',glow:'#c9bdff',hat:'halo',map:'Archipelago',
+  hp:4,size:1.1,deck:['Ghost Rounds','Pipsqueak'],phases:[['Triple Tap'],['Seeker']],special:'phase'},
+ {id:'warden',n:'The Warden',sub:'Raises a mirror shield that throws your shots back. Wait it out, then punish.',color:'#3fa9a0',glow:'#9ff0e6',hat:'crown',map:'Crossroads',
+  hp:5,size:1.4,deck:['Bulwark','Quick Guard'],phases:[['Mirror Guard'],['Counterfire']],special:'fortress'},
 ];
-const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6;
+// every 25th round: all their tricks, one per phase
+const CROWN={id:'crown',n:'The Crown',sub:'Every trick in the book: it changes its attack at each phase.',color:'#ffd36b',glow:'#fff1b8',hat:'crown',map:'Towers',
+  hp:6,size:1.5,deck:['Rail Slug','Thick Skin'],phases:[['Haymaker','Lob Shell'],['Blink Guard','Speed Loader']],special:'crown',specials:['snipe','charge','barrage']};
+const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6,STRIKE_WARN=1,PHASE_WARN=.7,FORT_RAISE=.6,FORT_T=2.4,FORT_TIRED=1.8;
 // ordinary enemies: a name, a look, and a growing random deck
 const RAIDERS=[{n:'Raider',color:'#4fb3a9',glow:'#9ff0e6',hat:'antenna'},{n:'Hunter',color:'#9a6bd8',glow:'#d2b4ff',hat:'tophat'},{n:'Gunner',color:'#d8b04f',glow:'#ffe7a0',hat:'party'},{n:'Shade',color:'#5a6a8c',glow:'#aebddc',hat:'halo'}];
-const bossOf=()=>players.find(p=>p.boss);
+/* characters: how a run starts. Each changes your base stats (shown like a card; the art borrows a card's). Reaching a
+   round unlocks the next */
+const CHARS=[
+ {n:'Drifter',k:'body',r:0,art:'Sprinter',icon:'Sprinter',d:'Steady all round. Earns 20% more scrap.',st:[['+20%','Scrap',1]],a:s=>{},scrap:1.2,unlock:0},
+ {n:'Duelist',k:'gun',r:0,art:'Overpressure',icon:'Overpressure',d:'Hits hard, breaks easily.',st:[['+35%','Damage',1],['-25%','Health',0]],a:s=>{s.dmg*=1.35;s.maxHp*=.75},unlock:0},
+ {n:'Tank',k:'body',r:0,art:'Thick Skin',icon:'Thick Skin',d:'A wall on legs.',st:[['+50%','Health',1],['+15%','Size',0],['-10%','Speed',0]],a:s=>{s.maxHp*=1.5;s.size*=1.15;s.moveSpeed*=.9},unlock:0},
+ {n:'Gunslinger',k:'gun',r:0,art:'Hair Trigger',icon:'Hair Trigger',d:'Fast hands, light rounds.',st:[['+45%','Fire rate',1],['+2','Ammo',1],['-15%','Damage',0]],a:s=>{s.fireDelay/=1.45;s.ammo+=2;s.dmg*=.85},unlock:0},
+ {n:'Sprite',k:'body',r:1,art:'Spring Heels',icon:'Spring Heels',d:'Quick and floaty. Reach round 8 to unlock.',st:[['+25%','Speed',1],['+1','Air jump',1],['-15%','Health',0]],a:s=>{s.moveSpeed*=1.25;s.airJumps+=1;s.maxHp*=.85},unlock:8},
+ {n:'Sentinel',k:'guard',r:1,art:'Mending Guard',icon:'Mending Guard',d:'Blocks often, and blocks heal. Reach round 12 to unlock.',st:[['-40%','Block cooldown',1],['+15','Heal on block',1]],a:s=>{s.blockCd*=.6;s.blockHeal+=15},unlock:12},
+ {n:'Scavenger',k:'shot',r:1,art:'Splinter Rounds',icon:'Splinter Rounds',d:'Lives off the land. Reach round 16 to unlock.',st:[['+60%','Scrap',1],['Cheaper','Rerolls',1],['-10%','Damage',0]],a:s=>{s.dmg*=.9},scrap:1.6,cheapReroll:1,unlock:16},
+ {n:'Juggernaut',k:'guard',r:2,art:'Shield Charge',icon:'Shield Charge',d:'Every block is a charge. Reach round 20 to unlock.',st:[['Shield Charge','Built in',1],['+25%','Health',1],['-10%','Fire rate',0]],a:s=>{s.charge+=1;s.maxHp*=1.25;s.fireDelay*=1.1},unlock:20},
+];
+CHARS.forEach(c=>c.char=true);
+// level-up choices: small stat steps that stack (shown like cards; the art borrows a card's)
+const UPGRADES=[
+ {n:'+12% Damage',k:'gun',art:'Overpressure',a:s=>{s.dmg*=1.12}},{n:'+14% Fire rate',k:'gun',art:'Hair Trigger',a:s=>{s.fireDelay/=1.14}},
+ {n:'+1 Ammo',k:'gun',art:'Deep Magazine',a:s=>{s.ammo+=1}},{n:'-12% Reload',k:'gun',art:'Speed Loader',a:s=>{s.reload*=.88}},
+ {n:'+15% Bullet speed',k:'shot',art:'Rail Slug',a:s=>{s.bulletSpeed*=1.15}},{n:'+15% Bullet size',k:'shot',art:'Fat Rounds',a:s=>{s.bulletSize*=1.15}},
+ {n:'+15% Knockback',k:'shot',art:'Haymaker',a:s=>{s.knock*=1.15}},{n:'+18% Health',k:'body',art:'Thick Skin',a:s=>{s.maxHp*=1.18}},
+ {n:'+7% Speed',k:'body',art:'Sprinter',a:s=>{s.moveSpeed*=1.07}},{n:'+6% Life steal',k:'body',art:'Vampire Rounds',a:s=>{s.lifesteal+=.06}},
+ {n:'+1% Regen',k:'body',art:'Regrowth',a:s=>{s.regen+=.01}},{n:'-12% Block cooldown',k:'guard',art:'Quick Guard',a:s=>{s.blockCd*=.88}},
+ {n:'+8 Heal on block',k:'guard',art:'Mending Guard',a:s=>{s.blockHeal+=8}},{n:'+8% Jump',k:'body',art:'Spring Heels',a:s=>{s.jumpPower*=1.08}},
+];
+UPGRADES.forEach(u=>{u.up=true;u.r=0;u.icon=u.art;u.d='A level-up. Stacks with everything.';u.st=[[u.n.split(' ')[0],u.n.split(' ').slice(1).join(' '),1]]});
+// twist rounds: a rule that changes for one round
+const TWISTS=[{id:'low',n:'LOW GRAVITY',sub:'everything floats'},{id:'fast',n:'FAST BULLETS',sub:'every shot flies 35% faster'},{id:'frenzy',n:'FRENZY',sub:'everyone fires 60% faster'},{id:'glass',n:'GLASS',sub:'everything hits 50% harder'}];
+const twistOn=id=>game.mode==='survival'&&game.twist&&game.twist.id===id;
+const gMul=()=>twistOn('low')?.6:1;
+const heroes=()=>players.filter(p=>p.team===0),enemies=()=>players.filter(p=>p.team===1);
+const bossOf=()=>players.find(p=>p.boss&&p.alive)||players.find(p=>p.boss);
 const cardsNamed=names=>names.map(n=>CARDS.find(c=>c.n===n)).filter(Boolean);
-const survBossFor=n=>n%BOSS_EVERY===0?BOSSES[(n/BOSS_EVERY-1)%BOSSES.length]:null;
-wallet.survBest=Math.max(0,Math.floor(+wallet.survBest||0));
+// the boss for round n: the Crown every 25th round; otherwise the run's own (shuffled) order of the other five
+const survBossFor=n=>!n||n%BOSS_EVERY?null:n%25===0?CROWN:BOSSES[(game.bossOrder||[0,1,2,3,4])[((n/BOSS_EVERY-1)-Math.floor(n/25))%BOSSES.length]];
+wallet.survBest=Math.max(0,Math.floor(+wallet.survBest||0));wallet.survBy=wallet.survBy&&typeof wallet.survBy==='object'?wallet.survBy:{};
+const charOpen=c=>(wallet.survBest||0)>=c.unlock;
+const xpNeed=L=>25+15*L;
 function startSurvival(){startMatch('survival')}
 // a boss fighter: its look, its deck and its special-attack brain; each time round it comes back stronger
-function makeBoss(p,B,cycle){p.boss=B;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;p.hpMul=1+.35*(cycle||0);
+function makeBoss(p,B,cycle){p.boss=B;p.name=B.n;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;p.hpMul=1+.35*(cycle||0);
   p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0}}
-function makeRaider(p,n){const R=RAIDERS[(n-1)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
-  const k=Math.min(14,n-1+Math.floor(n/3)),pool=CARDS.filter(c=>c.r<2||n>=6),out=[];
-  for(let i=0;i<k;i++){const c=pick(pool);if(c.u&&out.includes(c)){i--;continue}out.push(c)}p.cards=out;p.hpMul=1+.12*(n-1)}
-// set up round n: the enemy, the arena, both fighters fresh
-function survRound(n){game.round=n;const e=players[1],B=survBossFor(n);
-  if(B){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/BOSSES.length));e.name=B.n}else makeRaider(e,n);
-  game.diff=n<=2?'easy':n<=6?'normal':'hard';recompute(e);players[0].ammo=players[0].s.ammo;
-  newPoint(true);game.state='ready';game.stT=1.8;game.banner=B?B.n.toUpperCase():`ROUND ${n}`;game.bannerT=1.8;bullets=[];shields=[]}
+function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
+  const k=Math.min(14,n-1+Math.floor(n/3)-(count-1)),pool=CARDS.filter(c=>(c.r<2||n>=6)&&!['Second Wind','Aegis'].includes(c.n)),out=[];
+  for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
+  // a bigger wave splits the strength: more enemies, each a little weaker
+  p.hpMul=(1+.12*(n-1))*(count>1?.62:1)}
+// set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
+function survRound(n){game.round=n;const B=survBossFor(n);
+  game.twist=!B&&n>=6&&n%4===2?pick(TWISTS):null;
+  const count=B?(n>=15?2:1):Math.min(4,1+Math.floor((n-1)/3)),hs=heroes();
+  const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
+  players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
+  foes.forEach((e,i)=>{if(B&&i===0)makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));else makeRaider(e,n,i,B?3:count);recompute(e)});
+  game.diff=n<=2?'easy':n<=6?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
+  newPoint(true);game.state='ready';game.stT=2;
+  game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;bullets=[];shields=[];game.strikes=[]}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
   p.stunT=(p.stunT||0)-h;
-  if(p.stunT>0){inp.move=0;inp.fire=false;inp.jumpP=false;inp.jumpH=false;inp.blockP=false;S.state='idle';return}
+  if(p.stunT>0){inp.move=0;inp.fire=false;inp.jumpP=false;inp.jumpH=false;inp.blockP=false;S.state='idle';p.mirror=false;return}
   if(game.state!=='play'||!e||!e.alive){if(S.state!=='idle'){S.state='idle';S.t=1.5}return}
-  S.t-=h;const late=p.phase>=2;
-  if(B.special==='snipe'){
+  S.t-=h;const late=p.phase>=2,sp=B.special==='crown'?B.specials[Math.min(2,p.phase||0)]:B.special;
+  if(sp==='snipe'){
     if(S.state==='idle'&&S.t<=0&&losClear(p.x,p.y,e.x,e.y)){S.state='aim';S.at=SNIPE_AIM;S.lock=Math.atan2(e.y-p.y,e.x-p.x);sfx('arm')}
     if(S.state==='aim'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.blockP=false;
       // the laser tracks you slowly, then holds still for the last moment: move out of the line to dodge
@@ -1209,7 +1269,7 @@ function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.al
       if(S.at<=0){const m=safeSpawn(p,S.lock,p.r+30,6,false);
         if(!m.smothered){spawnBullet(p,m.x,m.y,S.lock,{plain:true,dmg:44,r:6.5,speed:2700,life:2});const b=bullets[bullets.length-1];b.grav=.12;b.snipe=true}
         S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,SNIPE_AIM-S.at);flashFx(m.x,m.y,70,.12,B.glow);addShake(9);sfx('shotRail');p.vx-=Math.cos(S.lock)*260;S.state='idle';S.t=late?rand(2.4,3.4):rand(3.6,5)}}}
-  else if(B.special==='charge'){const dx=e.x-p.x;
+  else if(sp==='charge'){const dx=e.x-p.x;
     if(S.state==='idle'&&S.t<=0&&p.grounded&&Math.abs(e.y-p.y)<140&&Math.abs(dx)>180){S.state='wind';S.at=CHARGE_WIND;S.dir=Math.sign(dx)||1;sfx('horn')}
     if(S.state==='wind'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.jumpH=false;inp.blockP=false;p.squash=.82;inp.aim=S.dir>0?0:Math.PI;
       if(S.at<=0){S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,CHARGE_WIND-S.at);S.state='charge';S.at=CHARGE_MAX;p.vx=S.dir*CHARGE_SPEED;p.chargeT=.05;sfx('boing');addShake(5)}}
@@ -1219,11 +1279,47 @@ function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.al
       if(Math.hypot(e.x-p.x,e.y-p.y)<p.r+e.r+8&&!(e.ramT>0)){e.ramT=.5;
         if(e.blockT>0){bossStun(p);ring(e.x,e.y,'#ffffff',80);sfx('parry');popText(e.x,e.y-e.r-30);e.vx+=S.dir*300}
         else{damage(e,30,p);e.vx=S.dir*1300;e.vy=-650;e.ground=null;e.kT=.35;burst(e.x,e.y,'#ffffff',18,560,5,.35,0,true);addShake(14);sfx('crush');S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}
-      if(S.at<=0&&S.state==='charge'){S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}}}
+      if(S.at<=0&&S.state==='charge'){S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}}
+  else if(sp==='barrage'){
+    // shells called down on the hero: red circles mark each landing spot a second ahead; the boss stands still to call them
+    if(S.state==='idle'&&S.t<=0&&e.grounded){S.state='call';S.at=.55;const n=late?5:3,xs=[e.x];for(let i=1;i<n;i++)xs.push(e.x+(i%2?1:-1)*Math.ceil(i/2)*rand(120,160));
+      game.strikes=game.strikes||[];for(const x of xs){const gx=clamp(x,FRAME+40,W-FRAME-40),gy=groundAt(gx,e.y);if(gy!=null)game.strikes.push({x:gx,y:gy,t:STRIKE_WARN,max:STRIKE_WARN,R:85,dmg:30*(p.hpMul||1),owner:p})}
+      S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,STRIKE_WARN);sfx('horn')}
+    if(S.state==='call'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.blockP=false;inp.aim=-Math.PI/2;if(S.at<=0){S.state='idle';S.t=late?rand(2.6,3.4):rand(3.6,4.8)}}}
+  else if(sp==='phase'){
+    // the Phantom: a shimmer where it will appear (behind you), then it's there, firing a burst
+    if(S.state==='idle'&&S.t<=0){const face=Math.cos(e.aim)>=0?1:-1;for(const d of[150,110,190]){const tx=e.x-face*d,ty=e.y;
+        if(tx>FRAME+p.r&&tx<W-FRAME-p.r&&!staticBox(tx,ty,p.r,p.r)){S.state='shimmer';S.at=PHASE_WARN;S.tx=tx;S.ty=ty;sfx('arm');break}}if(S.state==='idle')S.t=.5}
+    if(S.state==='shimmer'){S.at-=h;if(S.at<=0){const ox=p.x,oy=p.y;p.x=S.tx;p.y=S.ty;p.lx=p.x;p.ly=p.y;p.vx=p.vy=0;p.blinkN=(p.blinkN||0)+1;blinkFx(ox,oy,p.x,p.y,p.r,p.color,p.glow);
+      p.aim=Math.atan2(e.y-p.y,e.x-p.x);inp.aim=p.aim;p.fireT=0;p.burstLeft=late?4:3;p.burstT=.12;S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,PHASE_WARN);S.state='idle';S.t=late?rand(2.4,3.2):rand(3.2,4.4)}}}
+  else if(sp==='fortress'){
+    // the Warden: a mirror dome that throws shots back, then it's left dazed (and takes 50% more damage)
+    if(S.state==='idle'&&S.t<=0){S.state='raise';S.at=FORT_RAISE;sfx('arm')}
+    if(S.state==='raise'||S.state==='shield'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.blockP=false;
+      if(S.state==='raise'&&S.at<=0){S.state='shield';S.at=FORT_T*(late?1.2:1);p.mirror=true;S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,FORT_RAISE);ring(p.x,p.y,p.glow,p.r+40);sfx('block')}
+      else if(S.state==='shield'&&S.at<=0){p.mirror=false;S.state='idle';p.stunT=FORT_TIRED;S.t=FORT_TIRED+rand(2.5,3.5);ring(p.x,p.y-p.r,'#ffd36b',60);sfx('pop')}}}}
+// the floor under x, looking down from about y (null over a pit)
+function groundAt(x,y){for(let gy=Math.max(FRAME,y-40);gy<H;gy+=6)if(pointSolid(x,gy))return gy;return null}
+// called-down shells: count down, then blow up where they were marked (hurting the caller's foes only)
+function strikeTick(h){const S=game.strikes;if(!S||!S.length)return;for(const k of S)k.t-=h;
+  for(const k of S)if(k.t<=0){ring(k.x,k.y,k.owner.glow,k.R);flashFx(k.x,k.y,k.R,.2,k.owner.glow);burst(k.x,k.y,'#ffc27a',24,700,6,.5,300,true);addShake(9);sfx('boom');
+    for(const p of players)if(p.alive&&foes(p,k.owner)&&Math.hypot(p.x-k.x,p.y-k.y)<k.R+p.r){const a=Math.atan2(p.y-k.y,p.x-k.x);p.vx+=Math.cos(a)*700;p.vy-=650;p.ground=null;p.kT=.35;damage(p,k.dmg,k.owner)}}
+  game.strikes=S.filter(k=>k.t>0)}
+function drawStrikes(){const S=game.strikes;if(!S||!S.length)return;ctx.save();
+  for(const k of S){const f=clamp(k.t/k.max,0,1);ctx.globalAlpha=.25+.35*(1-f);ctx.fillStyle='#ff3b4f';ctx.beginPath();ctx.ellipse(k.x,k.y,k.R,k.R*.28,0,0,TAU);ctx.fill();
+    ctx.globalAlpha=.9;ctx.strokeStyle='#ff7a7a';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(k.x,k.y,k.R*f+6,(k.R*f+6)*.28,0,0,TAU);ctx.stroke();
+    // the shell, falling toward its mark
+    const sy=k.y-(f*700);ctx.globalAlpha=1;ctx.fillStyle='#1a1226';ctx.strokeStyle=k.owner.glow;ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(k.x,sy,9,13,0,0,TAU);ctx.fill();ctx.stroke()}
+  ctx.restore()}
+
 function bossPost(p){const S=p.bs;if(!p.boss||!S||S.state!=='charge'||S.at>CHARGE_MAX-.05)return;   // (give the launch a few steps)
   if(p.wallDir===S.dir||p.edgeHit==='left'||p.edgeHit==='right'||Math.abs(p.vx)<CHARGE_SPEED*.4){bossStun(p);addShake(12);burst(p.x+S.dir*p.r,p.y,'#cfd8e3',16,420,5,.4,0);sfx('crush')}}
 function bossStun(p){p.stunT=STUN_T;p.bs.state='idle';p.bs.t=STUN_T+rand(1.5,2.5);p.vx*=.2;ring(p.x,p.y-p.r,'#ffd36b',60)}
 function drawBossFx(){const p=bossOf();if(!p||!p.alive)return;const S=p.bs;ctx.save();
+  if(S.state==='shimmer'){const k=1-S.at/PHASE_WARN;ctx.globalAlpha=.2+.5*k;ctx.strokeStyle=p.glow;ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.lineDashOffset=-performance.now()/30;
+    ctx.beginPath();ctx.arc(S.tx,S.ty,p.r*(1.6-.6*k),0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.15+.25*k;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(S.tx,S.ty,p.r,0,TAU);ctx.fill();ctx.globalAlpha=1}
+  if(S.state==='raise'||p.mirror){const k=S.state==='raise'?1-S.at/FORT_RAISE:1,R=(p.r+34)*k;ctx.globalCompositeOperation='lighter';ctx.strokeStyle=p.glow;ctx.lineWidth=p.mirror?5:2;
+    ctx.globalAlpha=p.mirror?.75+.2*Math.sin(performance.now()/90):.5;ctx.beginPath();ctx.arc(p.x,p.y,R,0,TAU);ctx.stroke();ctx.globalAlpha*=.25;ctx.fillStyle=p.glow;ctx.fill();ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
   if(S.state==='aim'){const a=S.lock,c=Math.cos(a),s=Math.sin(a),x0=p.x+c*(p.r+30),y0=p.y+s*(p.r+30),L=2400,t=rayHit(x0,y0,x0+c*L,y0+s*L,2,true)*L,k=1-S.at/SNIPE_AIM,locked=S.at<=SNIPE_LOCK;
     ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
     ctx.strokeStyle='#ff2a44';ctx.globalAlpha=.18+.3*k;ctx.lineWidth=10+8*k;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+c*t,y0+s*t);ctx.stroke();
@@ -1241,26 +1337,35 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
   p.phase=next;p.cards.push(...cardsNamed(p.boss.phases[next-1]||[]));recompute(p);p.hp=f*p.s.maxHp;
   ring(p.x,p.y,p.glow,160);burst(p.x,p.y,p.glow,30,600,6,.6,0,true);addShake(16);sfx('round');
   game.banner=`${p.boss.n.toUpperCase()} · +${(p.boss.phases[next-1]||[]).join(' + ').toUpperCase()}`;game.bannerT=1.6}
-// a point in Survival: the enemy dying clears the round (on to the shop); you dying costs a life, and the enemy keeps
-// its damage. No lives left ends the run
-function survResolve(){const e=players[1],me=players[0];
-  if(!e.alive){const pay=10+2*game.round+(me.hp>=me.s.maxHp*.999?5:0);game.scrap=(game.scrap||0)+pay;game.lastPay=pay;game.cleared=game.round;openSurvShop();return}
+// a point in Survival: every enemy down clears the round (level-ups, then the shop); every hero down costs a life, and the
+// enemies keep their damage. No lives left ends the run
+function survResolve(){const hs=heroes(),me=hs[0];
+  if(!enemies().some(e=>e.alive)){const mul=(me.char&&me.char.scrap)||1,pay=Math.round((10+2*game.round+(me.hp>=me.s.maxHp*.999?5:0))*mul);
+    game.scrap=(game.scrap||0)+pay;game.lastPay=pay;game.cleared=game.round;survLevelUps();return}
   game.lives--;if(game.lives<=0){survEnd();return}
-  const sp=game.map.sp,hp=e.hp;resetPlayer(me,sp[0]);e.x=sp[1][0];e.y=sp[1][1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;
-  bullets=[];shields=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
+  for(const h of hs)resetPlayer(h,spawnFor(h,h.id));
+  for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
+  bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
+// XP from damage you deal; each level waits for the end of the round
+function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.12+(killed?6:0);
+  while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;src.pendingLv=(src.pendingLv||0)+1;
+    parts.push({text:'LEVEL UP',x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1,max:1,color:'#9be15d'});sfx('point')}}
+function survLevelUps(){const me=heroes()[0];if(!(me.pendingLv>0)){openSurvShop();return}
+  me.pendingLv--;const pool=UPGRADES.slice(),hand=[];while(hand.length<4&&pool.length)hand.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  me.nextHand=hand;beginPick([me.id],`Level ${me.lvl-me.pendingLv} · pick an upgrade`,()=>survLevelUps());$('#pickTitle').textContent='Level up!'}
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
 const SHOP_PRICE=[6,10,16],SHOP_N=5;
 const cardPrice=c=>SHOP_PRICE[c.r]+Math.floor((game.round||1)/2);
-function survOffers(){const me=players[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,luck=Math.min(.25,game.round*.012);
+function survOffers(){const me=heroes()[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,luck=Math.min(.25,game.round*.012);
   const keep=(game.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
   for(let g=0;out.length<SHOP_N&&g<300;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
     let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.35){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
     if(pool.length)out.push(pick(pool))}
   game.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c)}:{c,price:cardPrice(c),sold:false,locked:false}})}
-function openSurvShop(){game.state='shop';game.reroll=2+Math.floor(game.round/4);survOffers();showSurvShop();sfx('round',true)}
-function showSurvShop(){const me=players[0],nx=survBossFor(game.round+1);
+function openSurvShop(){game.state='shop';const me=heroes()[0];game.reroll=(me.char&&me.char.cheapReroll?1:2)+Math.floor(game.round/4);survOffers();showSurvShop();sfx('round',true)}
+function showSurvShop(){const me=heroes()[0],nx=survBossFor(game.round+1);
   showHand(me,game.offers.map(o=>o.c),'','shop');$('#pick').classList.add('shopmode');$('#pickShop').hidden=false;
   $('#pickTitle').textContent=`Round ${game.round} cleared`;
   $('#pickSub').textContent=`+${game.lastPay} scrap${game.lastPay>10+2*game.round?' (no damage taken)':''} · next: ${nx?nx.n:`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
@@ -1270,40 +1375,46 @@ function decorateShop(){[...$('#fan').children].forEach((b,i)=>{const o=game.off
     row.querySelector('.lockbtn').addEventListener('click',ev=>{ev.stopPropagation();survLock(i)});b.querySelector('.float').appendChild(row)}
   const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&game.scrap<o.price);
   const lk=row.querySelector('.lockbtn');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold})}
-function renderShopBar(msg){const me=players[0];setText('#psScrap',game.scrap);
+function renderShopBar(msg){const me=heroes()[0];setText('#psScrap',game.scrap);
   const rr=$('#pickShop [data-ps=reroll]');if(rr)rr.textContent=`Reroll · ${game.reroll}`;
   const el=$('#psBuild');if(el)el.innerHTML='<span class="lbl">Your build</span>'+me.cards.map((c,i)=>`<button type="button" class="chip" data-sell="${i}" title="Sell ${c.n} for ${Math.floor(cardPrice(c)/2)} scrap">${c.n}</button>`).join('');
   const m=$('#psMsg');if(m)m.innerHTML=msg||'Click a card in your build to sell it for half price.'}
-function survBuy(i){const o=game.offers[i],me=players[0];if(!o||o.sold||game.state!=='shop')return;
+function survBuy(i){const o=game.offers[i],me=heroes()[0];if(!o||o.sold||game.state!=='shop')return;
   if(game.scrap<o.price){sfx('empty',true);renderShopBar(`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${game.scrap}.`);return}
   game.scrap-=o.price;o.sold=true;o.locked=false;me.cards.push(o.c);recompute(me);sfx('pick',true);drawBigFace(me,'happy');decorateShop();renderShopBar(`Bought <b>${o.c.n}</b>.`)}
 function survLock(i){const o=game.offers[i];if(!o||o.sold)return;o.locked=!o.locked;sfx('tick',true);decorateShop();renderShopBar(o.locked?`<b>${o.c.n}</b> will wait for you in the next shop.`:null)}
 function survReroll(){if(game.state!=='shop')return;if(game.scrap<game.reroll){sfx('empty',true);renderShopBar(`A reroll costs ${game.reroll} scrap.`);return}
-  game.scrap-=game.reroll;game.reroll+=2;survOffers();showSurvShop()}
-function survSell(i){const me=players[0],c=me.cards[i];if(!c||game.state!=='shop')return;const back=Math.floor(cardPrice(c)/2);
+  game.scrap-=game.reroll;game.reroll+=(heroes()[0].char&&heroes()[0].char.cheapReroll)?1:2;survOffers();showSurvShop()}
+function survSell(i){const me=heroes()[0],c=me.cards[i];if(!c||game.state!=='shop')return;const back=Math.floor(cardPrice(c)/2);
   me.cards.splice(i,1);recompute(me);game.scrap+=back;sfx('thud',true);decorateShop();renderShopBar(`Sold <b>${c.n}</b> for ${back} scrap.`)}
 function survNext(){if(game.state!=='shop')return;$('#pick').hidden=true;$('#pick').classList.toggle('shopmode',false);$('#pickShop').hidden=true;pickFor=null;sfx('go',true);survRound(game.round+1);cv.focus()}
 {const bar=$('#pickShop');bar.addEventListener('click',e=>{const t=e.target;let b;initAudio();
   if((b=t.closest('[data-sell]'))){survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
-// the run is over: how far you got, your best, and CUUED coins for the rounds you cleared
-function survEnd(){const n=game.cleared||0,best=wallet.survBest||0,coins=Math.floor(n/2);game.state='over';
-  if(n>best)wallet.survBest=n;if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
-  $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=players[0].color;
-  $('#endScore').textContent=n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}.`;
-  [0,1].forEach(k=>{$('#deckName'+k).textContent=k?'Last enemy':`${players[0].name}'s build`;const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
+// the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
+function survEnd(){const me=heroes()[0],n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
+  const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
+  if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
+  $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
+  $('#endScore').textContent=`${ch}, level ${me.lvl||1}. `+(n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}${cb?`, ${cb} with ${ch}`:''}.`)+(opened.length?` Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
+  [0,1].forEach(k=>{const el=$('#deck'+k);el.innerHTML='';if(k===0){$('#deckName0').textContent=`${me.name}'s build`;[...(me.char?[me.char]:[]),...me.cards,...(me.ups||[])].forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}
+    else{const e=enemies().find(q=>q.boss)||enemies()[0];$('#deckName1').textContent=e?`Last enemy: ${e.name}`:'';(e?e.cards:[]).forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}});
   const el=$('#endCoins');if(el){el.hidden=!coins;if(coins){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`}}
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
-// the enemy's bar across the top, the round, your lives and scrap
-function drawSurvHud(){const p=players[1];if(!p)return;const bw=640,x=W/2-bw/2,y=40,f=clamp(p.hp/p.s.maxHp,0,1);
-  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=p.color;ctx.fillText(`ROUND ${game.round} · ${p.name.toUpperCase()}`,W/2,22);
-  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=p.stunT>0?'#ffd36b':p.color;ctx.fillRect(x,y,bw*f,14);
-  ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
-  if(p.boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
+// the boss's bar across the top (or the whole wave's), the round, your lives, scrap, level and XP
+function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=heroes()[0];if(!me)return;const bw=640,x=W/2-bw/2,y=40;
+  let f=0,col=C.text,label=`ROUND ${game.round}`;
+  if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
+  else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
+  if(game.twist)label+=` · ${game.twist.n}`;
+  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,W/2,22);
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=boss&&boss.stunT>0?'#ffd36b':col;ctx.fillRect(x,y,bw*f,14);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
+  if(boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
   ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);ctx.fillText(`SCRAP ${game.scrap||0}`,20,50);
-  for(let i=0;i<SURV_LIVES;i++){ctx.fillStyle=i<game.lives?players[0].color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}}
-
+  for(let i=0;i<SURV_LIVES;i++){ctx.fillStyle=i<game.lives?me.color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}
+  ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText(`LV ${me.lvl||1}`,20,74);ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(66,68,110,8);ctx.fillStyle='#9be15d';ctx.fillRect(66,68,110*clamp((me.xp||0)/xpNeed(me.lvl||1),0,1),8);
+  if(me.pendingLv>0){ctx.fillStyle='#9be15d';ctx.fillText(`+${me.pendingLv} level${me.pendingLv>1?'s':''} at round end`,184,74)}}
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
@@ -1320,11 +1431,11 @@ function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);p
   const el=$('#fan');el.innerHTML='';
   hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-(hand.length-1)/2;
     b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
-    b.style.setProperty('--x',`calc(${o} * clamp(150px,16vw,222px))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
+    b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
-    b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
+    b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${c.char?'Character':c.up?'Upgrade':RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
     b.querySelector('canvas')._card=c;const tl=b.querySelector('.tilt');
-    {const m=b.querySelector('.medal'),mg=m&&m.getContext('2d');if(mg){mg.clearRect(0,0,96,96);drawIcon(mg,c.n,48,48,56,'#ffffff',5)}}
+    {const m=b.querySelector('.medal'),mg=m&&m.getContext('2d');if(mg){mg.clearRect(0,0,96,96);drawIcon(mg,c.icon||c.n,48,48,56,'#ffffff',5)}}
     b.addEventListener('pointermove',ev=>{const r=b.getBoundingClientRect();tl.style.setProperty('--rx',((ev.clientX-r.left)/r.width-.5)*20+'deg');tl.style.setProperty('--ry',(.5-(ev.clientY-r.top)/r.height)*20+'deg')});
     b.addEventListener('pointerleave',()=>{tl.style.setProperty('--rx','0deg');tl.style.setProperty('--ry','0deg')});
     b.addEventListener('click',()=>pickNow(i));b.addEventListener('mouseenter',()=>{if(pickMode!=='watch'){hl=i;markHl()}});el.appendChild(b)});
@@ -1349,8 +1460,10 @@ function cpuChoice(p,h){let best=0,bs=-1;h.forEach((c,i)=>{const sc=(CPU_PREF[c.
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
 function choose(c,i){if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
   if(!game.bg&&i!=null){animChosen(i);netSend({t:'chosen',i});const tk=game.token;
-    setTimeout(()=>{if(tk!==game.token)return;p.cards.push(c);recompute(p);resetPlayer(p,game.map.sp[p.id]);nextPick()},480);return}
-  p.cards.push(c);recompute(p);resetPlayer(p,game.map.sp[p.id]);nextPick()}
+    setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()},480);return}
+  takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()}
+// a draft pick: a card goes in the deck; a character or a level-up goes where it belongs
+function takeChoice(p,c){if(c.char)p.char=c;else if(c.up)(p.ups=p.ups||[]).push(c);else p.cards.push(c)}
 function pickKey(e){if(!pickFor||game.bg||pickMode==='watch')return;
   const n=parseInt(e.key,10),L=hand.length||5;if(n>=1&&n<=L){pickNow(n-1);return}
   if(['ArrowLeft','KeyA'].includes(e.code)){hl=(hl+L-1)%L;markHl()}
@@ -1497,12 +1610,12 @@ const ART={
 function drawCardArt(cvs,c,t,hl){if(!c)return;const g=cvs.getContext('2d'),w=cvs.width,h=cvs.height,col=CAT[c.k],sp=hl?1.7:1;
   const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,shade(col,.22));gr.addColorStop(1,shade(col,-.4));g.fillStyle=gr;g.fillRect(0,0,w,h);
   const step=46,off=(t*12)%step;
-  if(!cvs._pat){const tile=document.createElement('canvas');tile.width=tile.height=step;drawIcon(tile.getContext('2d'),c.n,step/2,step/2,20,'rgba(255,255,255,.17)',1.6);cvs._pat=g.createPattern(tile,'repeat')}
+  if(!cvs._pat){const tile=document.createElement('canvas');tile.width=tile.height=step;drawIcon(tile.getContext('2d'),c.icon||c.n,step/2,step/2,20,'rgba(255,255,255,.17)',1.6);cvs._pat=g.createPattern(tile,'repeat')}
   if(cvs._pat){g.save();g.translate(off-step,off*.5-step);g.fillStyle=cvs._pat;g.fillRect(0,0,w+step*2,h+step*2);g.restore()}
   g.fillStyle='rgba(255,255,255,.08)';g.beginPath();g.moveTo(0,0);g.lineTo(w*.55,0);g.lineTo(0,h*.85);g.fill();
   g.fillStyle='rgba(0,0,0,.14)';g.beginPath();g.moveTo(w,h*.2);g.lineTo(w,h);g.lineTo(w*.35,h);g.fill();
   g.save();g.translate(w/2,h/2+6);
-  if(ART[c.n])ART[c.n](g,t*sp);
+  if(ART[c.art||c.n])ART[c.art||c.n](g,t*sp);
   else if(c.k==='gun'){const ph=(t*.85*sp)%1,x=-w*.62+ph*w*1.24,y=-Math.sin(ph*Math.PI)*14;
     const tg=g.createLinearGradient(x-170,0,x,0);tg.addColorStop(0,'rgba(255,240,205,0)');tg.addColorStop(1,'rgba(255,240,205,.95)');g.fillStyle=tg;g.fillRect(x-170,y-5,170,10);
     g.fillStyle='#fff';g.beginPath();g.ellipse(x,y,17,9,0,0,TAU);g.fill();
@@ -1550,7 +1663,8 @@ function safeSpawn(p,ang,dist,br,phase){const c=Math.cos(ang),s=Math.sin(ang),x1
     if(disc>=0){let k=-b-Math.sqrt(disc);if(cc<0)k=0;if(k>=0&&k/dist<t){t=Math.max(0,k-1)/dist;hitEnemy=true}}}
   return{x:p.x+(x1-p.x)*t,y:p.y+(y1-p.y)*t,blocked:blocked&&!hitEnemy,smothered,hitEnemy}}
 /* fighters are solid to each other horizontally, so they never stack into one blob */
-function separate(){const[a,b]=players;if(!a||!b||!a.alive||!b.alive)return;const dx=b.x-a.x,dy=b.y-a.y,m=a.r+b.r;
+function separate(){for(let i=0;i<players.length;i++)for(let j=i+1;j<players.length;j++)sep2(players[i],players[j])}
+function sep2(a,b){if(!a||!b||!a.alive||!b.alive)return;const dx=b.x-a.x,dy=b.y-a.y,m=a.r+b.r;
   if(Math.abs(dy)>m*.8||Math.abs(dx)>=m)return;const dir=Math.sign(dx)||(Math.random()<.5?-1:1),push=(m-Math.abs(dx))/2;
   for(const[p,sg]of[[a,-dir],[b,dir]]){const nx=p.x+sg*push;if(!solidBoxP(nx,p.y,p.r,p.r)&&nx>p.r&&nx<W-p.r)p.x=nx}}
 /* walls and floors only see a bullet's core (at most WALL_R), so a huge stacked bullet still clears the floor it was fired over;
@@ -1585,7 +1699,7 @@ function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push(
 function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1))}
 
 /* ---------- shooting & blocking ---------- */
-function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1);p.burstLeft=p.s.burst;p.burstT=0}
+function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1)*(twistOn('frenzy')?.625:1);p.burstLeft=p.s.burst;p.burstT=0}
 function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
@@ -1596,7 +1710,7 @@ function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.3?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
 function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
-function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed);
+function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed)*(twistOn('fast')?1.35:1);
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase,phaseLeft:2,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
@@ -1651,18 +1765,21 @@ const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
    after that the survivor can't be hurt and can't die from a fall while the point wraps up */
 const POINT_END=1.7,TRADE_WINDOW=.12;
 const pointDecided=()=>game.state==='pointEnd'&&POINT_END-game.endT>TRADE_WINDOW;
-function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;p.hp-=amt;p.hurtT=.12;
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;p.hp-=amt;p.hurtT=.12;
+  if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,amt,p.hp<=0&&!(p.revives>0));
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
 function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
+  if(game.mode==='survival'){if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
+    if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
 // your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
 const SELF_BLAST=.4;
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
-  for(const p of players){if(!p.alive)continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
+  for(const p of players){if(!p.alive||(b.owner&&p!==b.owner&&p.team===b.owner.team))continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
     p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
@@ -1706,6 +1823,9 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   b.dead=true;if(b.explode>0)explode(b,p)}
 // a ducking fighter is a flat ellipse hugging the ground, so a shot at head height sails over
 function bodyHit(p,x,y,rad){if(!p.duck)return Math.hypot(p.x-x,p.y-y)<p.r+rad;const cy=p.y+p.r*.42,ry=p.r*.58,dx=(x-p.x)/(p.r*1.15+rad),dy=(y-cy)/(ry+rad);return dx*dx+dy*dy<1}
+// the Warden's mirror dome throws a shot straight back at whoever fired it
+function mirrorBack(p,b){const t=b.owner,sp=Math.hypot(b.vx,b.vy)*1.1,a=Math.atan2(t.y-b.y,t.x-b.x);b.vx=Math.cos(a)*sp;b.vy=Math.sin(a)*sp;b.owner=p;b.reflected=true;b.color=p.color;b.glow=p.glow;b.age=0;b.life=Math.max(b.life,1.5);
+  ring(b.x,b.y,'#ffffff',30);sfx('tink')}
 const PARRY_WIN=.12,HIT_PAD=3,LAG_COMP_MS=300;
 /* favour the shooter online: the visitor saw the host's fighter a moment in the past (the network trip plus its smoothing
    buffer), so its shots are checked against where the host's fighter was then (at most LAG_COMP_MS back). A shot that
@@ -1733,7 +1853,7 @@ function updateBullets(dt){
     if(b.well)wellBend(b,other(b.owner),dt);
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
     if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
-    b.vy+=BGRAV*b.grav*dt;
+    b.vy+=BGRAV*b.grav*gMul()*dt;
     const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
       let ghostIn=false;
@@ -1748,8 +1868,8 @@ function updateBullets(dt){
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
-      for(const p of players){if(!p.alive)continue;if(p===b.owner)continue;
-        if(b.rew>0&&p.id===0&&game.mode==='online-host'?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
+      for(const p of players){if(!p.alive)continue;if(p===b.owner||(b.owner&&p.team===b.owner.team))continue;
+        if(b.rew>0&&p.id===0&&game.mode==='online-host'?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner&&!b.phase){mirrorBack(p,b);break}if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
@@ -1785,7 +1905,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
   p.duck=!!(inp.down&&p.grounded&&!(p.ground&&p.ground.oneway));
   const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?GROUND_ACC:AIR_ACC)*s.agility*dt);   // a Shield Charge dash carries through
-  p.padT=(p.padT||0)-dt;let g=PG;if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
+  p.padT=(p.padT||0)-dt;let g=PG*gMul();if(p.vy<0&&!inp.jumpH&&p.padT<=0)g*=1.9;   // a bounce pad throws you its full height, held jump or not
   if(inp.down&&!p.grounded)g*=p.vy<0&&p.padT<=0?3:2;   // down in the air: cut a jump short, or drop fast
   p.vy=Math.min(1900,p.vy+g*dt);
   // wall slide + wall jump off the arena's blocks (never the outer edges: those aren't walls, they hurt)
@@ -1890,7 +2010,7 @@ function edgeHurt(p){
 function ballistic(sx,sy,tx,ty,v,g){const dx=tx-sx,dy=sy-ty;if(g<1)return Math.atan2(ty-sy,tx-sx);
   const v2=v*v,disc=v2*v2-g*(g*dx*dx+2*dy*v2);const th=disc<0?Math.PI/4:Math.atan2(v2-Math.sqrt(disc),g*Math.abs(dx));
   return Math.atan2(-Math.sin(th),Math.cos(th)*(dx>=0?1:-1))}
-function bulletG(s){return BGRAV*s.bulletGravity*(1-Math.min(.85,s.homing*.7))}
+function bulletG(s){return BGRAV*gMul()*s.bulletGravity*(1-Math.min(.85,s.homing*.7))}
 function aimSolution(p,e){return aimSolutionAt(p,e.x,e.y,e.vx,e.vy,e.grounded)}
 // lead uses the real flight time along the arc (a lobbed shot is in the air far longer than distance / speed), and a
 // target can't run past the arena edge
@@ -2000,7 +2120,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
   inp.down=down;
   const bit=1<<p.id;
-  for(const b of bullets){if(b.owner===p&&!b.bounced)continue;if(b.seen&bit)continue;
+  for(const b of bullets){if(b.owner===p&&!b.bounced)continue;if(b.owner&&b.owner!==p&&b.owner.team===p.team)continue;if(b.seen&bit)continue;
     const fx=b.x+b.vx*.17,fy=b.y+b.vy*.17,sx=fx-b.x,sy=fy-b.y,l2=sx*sx+sy*sy||1,t=clamp(((p.x-b.x)*sx+(p.y-b.y)*sy)/l2,0,1),
       cx=b.x+sx*t,cy=b.y+sy*t;
     if(Math.hypot(p.x-cx,p.y-cy)<p.r+b.r+14){b.seen|=bit;
@@ -2020,7 +2140,7 @@ function step(h){
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
-  dropTick(h);
+  dropTick(h);strikeTick(h);
   if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
@@ -2156,7 +2276,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const sb=game.mode==='sandbox'||game.mode==='survival';
   if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
-  for(const p of players){const y=24+p.id*24;
+  for(const p of players){if(game.mode==='survival'&&p.team!==0)continue;const y=24+p.id*24;
     if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
     if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
@@ -2168,7 +2288,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=C.text;ctx.fillText(t,W/2,H/2-40)}
-  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='survival'?(w===0?(players[1].boss?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
+  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='survival'?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
     ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,W/2,H/2-40)}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
@@ -2194,7 +2314,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
-  drawDrops();
+  drawDrops();drawStrikes();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -2325,7 +2445,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-stage1';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-stage2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
