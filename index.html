@@ -574,7 +574,7 @@ const css=getComputedStyle(document.documentElement);
 const tok=n=>css.getPropertyValue(n).trim();
 const C={night:tok('--night'),night2:tok('--night-2'),text:tok('--text'),orange:tok('--orange'),blue:tok('--blue'),plank:tok('--plank'),hot:tok('--hot'),hp:tok('--hp'),
   oGlow:'#ffc06b',bGlow:'#8fcbff',poison:'#b6e33a',white:'#ffffff',dark:'#121820'};
-const W=1600,H=900,PG=3400,BGRAV=1650,TAU=Math.PI*2,BASE_R=18;
+const VW=1600,VH=900,PG=3400,BGRAV=1650,TAU=Math.PI*2,BASE_R=18;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -738,16 +738,27 @@ const MAPS=[
  {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],sp:[[200,740],[1400,740]]},
  {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
+ // big arenas (Survival's bigger waves only): larger than the screen, so the camera follows you
+ {name:'Canyon',big:1,w:2400,h:1100,rects:[[0,960,900,140],[1500,960,900,140],[1040,820,320,40],[200,800,260,40],[1940,800,260,40],[560,680,260,40],[1580,680,260,40],[1030,560,340,40],
+   [250,520,220,40],[1930,520,220,40],[700,400,240,38],[1460,400,240,38],[1100,290,200,38],[60,944,90,16,3],[2250,944,90,16,3]],sp:[[300,920],[2100,920]]},
+ {name:'Fortress',big:1,w:2400,h:1200,rects:[[0,1060,2400,140],[1000,880,400,180],[1080,710,240,40],[160,760,60,300,1],[2180,760,60,300,1],[260,900,260,40],[1880,900,260,40],[440,740,260,40],[1700,740,260,40],
+   [640,580,260,40],[1500,580,260,40],[260,450,240,40],[1900,450,240,40],[840,420,200,38],[1360,420,200,38],[1100,270,200,38]],sp:[[340,1020],[2060,1020]]},
+ {name:'Skyline',big:1,w:2800,h:1000,rects:[[80,800,520,56],[760,690,420,56],[1300,820,320,56],[1720,690,420,56],[2280,800,440,56],[320,580,240,38],[1000,480,260,38],[1820,480,260,38],[2440,580,240,38],
+   [1330,340,260,38]],movers:[{x:1390,y:560,w:140,h:30,mx:0,my:180,period:5}],sp:[[300,760],[2500,760]]},
 ];
 const FRAME=10;
-const BOUNDS=[[-80,-600,80+FRAME,H+1200],[W-FRAME,-600,80+FRAME,H+1200],[-80,-80,W+160,80+FRAME]].map(([x,y,w,h])=>({x,y,w,h,bound:true}));
-let solids=[],swings=[],bounds=BOUNDS;
+/* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
+   VW x VH is the view the HUD is laid out in */
+let W=VW,H=VH;
+const mkBounds=()=>[[-80,-600,80+FRAME,H+1200],[W-FRAME,-600,80+FRAME,H+1200],[-80,-80,W+160,80+FRAME]].map(([x,y,w,h])=>({x,y,w,h,bound:true}));
+let BOUNDS=mkBounds();
+let solids=[],swings=[];
 
 /* ---------- canvas & art ---------- */
 const cv=$('#game'),ctx=cv.getContext('2d');
 let view={s:1,ox:0,oy:0,cs:1,cox:0,coy:0};
 function resize(){const dpr=Math.min(2,devicePixelRatio||1),ww=innerWidth,wh=innerHeight;cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
-  cv.style.width=ww+'px';cv.style.height=wh+'px';const s=Math.min(ww/W,wh/H);view={s:s*dpr,ox:(ww-W*s)/2*dpr,oy:(wh-H*s)/2*dpr,cs:s,cox:(ww-W*s)/2,coy:(wh-H*s)/2}}
+  cv.style.width=ww+'px';cv.style.height=wh+'px';const s=Math.min(ww/VW,wh/VH);view={s:s*dpr,ox:(ww-VW*s)/2*dpr,oy:(wh-VH*s)/2*dpr,cs:s,cox:(ww-VW*s)/2,coy:(wh-VH*s)/2}}
 addEventListener('resize',resize);resize();
 const bgC=document.createElement('canvas');bgC.width=W;bgC.height=H;const bgx=bgC.getContext('2d');
 const platC=document.createElement('canvas');platC.width=W;platC.height=H;const platx=platC.getContext('2d');
@@ -883,7 +894,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
 
 /* ---------- input ---------- */
 const keys=new Set(),edges=new Set();
-const mouse={x:W/2,y:H/2,down:false,rEdge:false,tapN:0,tapT:0};
+const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0};
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#shop').hidden){if(e.code==='Escape'){e.preventDefault();closeShop()}return}
@@ -899,10 +910,12 @@ addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();mouse.down=false});
 // online: tell the other player when this tab goes to the background (browsers pause a hidden tab's game loop)
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(net.connected)netSend({t:document.hidden?'away':'back'})});
-function toWorld(cx,cy){return[(cx-view.cox)/view.cs,(cy-view.coy)/view.cs]}
+function toView(cx,cy){return[(cx-view.cox)/view.cs,(cy-view.coy)/view.cs]}
+function toWorld(cx,cy){const[x,y]=toView(cx,cy);return[x/cam.z+cam.x,y/cam.z+cam.y]}
+function pointerAt(e){[mouse.sx,mouse.sy]=toView(e.clientX,e.clientY);[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY)}
 // mouse / pen only: on a touch screen the sticks drive the virtual mouse (touch pointers would otherwise hold the trigger)
-cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY)});
-cv.addEventListener('pointerdown',e=>{initAudio();if(e.pointerType==='touch')return;cv.focus();[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
+cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;pointerAt(e)});
+cv.addEventListener('pointerdown',e=>{initAudio();if(e.pointerType==='touch')return;cv.focus();pointerAt(e);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
 addEventListener('pointerup',e=>{if(e.pointerType==='touch')return;if(e.button===0)mouse.down=false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 let pads=[],padPrev={};
@@ -965,16 +978,18 @@ function startMatch(mode){
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
-function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
+function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h||VH;BOUNDS=mkBounds();
+  for(const c of[bgC,platC,decC])if(c.width!==W||c.height!==H){c.width=W;c.height=H}
   swings=(game.map.swings||[]).map(d=>{const s={swing:true,ax:d.ax,ay:0,len:d.len,w:d.w,h:d.h,ang:rand(-.04,.04),av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,0);edgeDecor(ag,0,0,d.w,d.h,0,false);s.x=s.ax+Math.sin(s.ang)*s.len-s.w/2;s.y=Math.cos(s.ang)*s.len-s.h/2;s.px=s.x;s.py=s.y;return s});
   // moving platforms ride the same carry/push/sync path as hanging blocks; their 'ang' is the phase of a smooth back-and-forth
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
-  buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
+  buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[];camSnap()}
 function newPoint(fresh){
-  let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
+  let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.5))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx));
+  else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k))});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -1245,9 +1260,11 @@ function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=nu
   // a bigger wave splits the strength: more enemies, each a little weaker
   p.hpMul=(1+.12*(n-1))*(count>1?.62:1)}
 // set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
+// how many enemies a round brings (a boss round: the boss, plus one from round 15)
+const survWave=(n=game.round||1)=>survBossFor(n)?1:Math.min(4,1+Math.floor((n-1)/3));
 function survRound(n){game.round=n;const B=survBossFor(n);
   game.twist=!B&&n>=6&&n%4===2?pick(TWISTS):null;
-  const count=B?(n>=15?2:1):Math.min(4,1+Math.floor((n-1)/3)),hs=heroes();
+  const count=B?(n>=15?2:1):survWave(n),hs=heroes();
   const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
   foes.forEach((e,i)=>{if(B&&i===0)makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));else makeRaider(e,n,i,B?3:count);recompute(e)});
@@ -1403,12 +1420,12 @@ function survEnd(){const me=heroes()[0],n=game.cleared||0,best=wallet.survBest||
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
 // the boss's bar across the top (or the whole wave's), the round, your lives, scrap, level and XP
-function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=heroes()[0];if(!me)return;const bw=640,x=W/2-bw/2,y=40;
+function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=heroes()[0];if(!me)return;const ty=touch.on?22+Math.round(44/view.cs):22,bw=640,x=VW/2-bw/2,y=ty+18;   // on a phone the pause / sound buttons sit at the top centre: go below them
   let f=0,col=C.text,label=`ROUND ${game.round}`;
   if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
   else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
   if(game.twist)label+=` · ${game.twist.n}`;
-  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,W/2,22);
+  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,VW/2,ty);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=boss&&boss.stunT>0?'#ffd36b':col;ctx.fillRect(x,y,bw*f,14);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
   if(boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
   ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);ctx.fillText(`SCRAP ${game.scrap||0}`,20,50);
@@ -2240,14 +2257,14 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
 let hoverChip=null;
 // the chip under a point in arena coordinates (same layout drawHUD uses), or null
 function chipAt(mx,my){for(const p of players){const list=p.cards.slice(-12),cy=24+p.id*24-2+p.id*14;
-  for(let i=0;i<list.length;i++){const cx=W-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i],cx,cy}}}return null}
+  for(let i=0;i<list.length;i++){const cx=VW-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i],cx,cy}}}return null}
 function wrapLines(text,maxW){const out=[];let line='';for(const w of text.split(' ')){const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){out.push(line);line=w}else line=t}if(line)out.push(line);return out}
 function drawCardTip(){hoverChip=null;
   if(touch.on)return;   // a phone's virtual pointer follows the aim stick: it must never pop tooltips over the fight
   if(!$('#pick').hidden||!$('#pause').hidden||!$('#end').hidden||!$('#menu').hidden)return;
-  const hit=chipAt(mouse.x,mouse.y);if(!hit)return;hoverChip=hit;const{p,c,cx,cy}=hit,col=CAT[c.k],TW=300,pad=16;
+  const hit=chipAt(mouse.sx??mouse.x,mouse.sy??mouse.y);if(!hit)return;hoverChip=hit;const{p,c,cx,cy}=hit,col=CAT[c.k],TW=300,pad=16;
   ctx.save();ctx.font='700 15px Nunito, sans-serif';const desc=wrapLines(c.d,TW-pad*2);
-  const TH=pad+34+18+desc.length*20+8+c.st.length*20+14+18+pad,x=Math.min(cx+17,W-14)-TW,y=cy+26,cut=14;
+  const TH=pad+34+18+desc.length*20+8+c.st.length*20+14+18+pad,x=Math.min(cx+17,VW-14)-TW,y=cy+26,cut=14;
   // panel: cut corners, type-colored top stripe, like the cards themselves
   ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;
   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+TW-cut,y);ctx.lineTo(x+TW,y+cut);ctx.lineTo(x+TW,y+TH);ctx.lineTo(x+cut,y+TH);ctx.lineTo(x,y+TH-cut);ctx.closePath();
@@ -2280,16 +2297,16 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
     if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
-    list.forEach((c,i)=>{const x=W-24-17-(list.length-1-i)*40;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,y-2+p.id*14-15,34,34);
+    list.forEach((c,i)=>{const x=VW-24-17-(list.length-1-i)*40;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,y-2+p.id*14-15,34,34);
       const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);drawIcon(ctx,c.n,x,y-2+p.id*14+2,24,hov?'#ffffff':p.glow,2)});
     ctx.textAlign='left'}
   ctx.textAlign='center';
-  if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,W/2,120)}
-  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
+  if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
+  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
-    ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=C.text;ctx.fillText(t,W/2,H/2-40)}
+    ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=C.text;ctx.fillText(t,VW/2,VH/2-40)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='survival'?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
-    ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,W/2,H/2-40)}
+    ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,VW/2,VH/2-40)}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
@@ -2301,8 +2318,10 @@ function render(){const saved=[],a=clamp(game.alpha||0,0,1),lerp=o=>{if(o.lx!=nu
 function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.fillRect(0,0,cv.width,cv.height);
   if(view.ox>1||view.oy>1){const k=Math.max(cv.width/W,cv.height/H);   // screen wider or taller than the arena: extend its sky to the edges
     ctx.drawImage(bgC,(cv.width-W*k)/2,(cv.height-H*k)/2,W*k,H*k);ctx.fillStyle='rgba(12,7,19,.22)';ctx.fillRect(0,0,cv.width,cv.height)}
-  const sh=game.shake,sx=(Math.random()-.5)*sh,sy=(Math.random()-.5)*sh;
-  ctx.setTransform(view.s,0,0,view.s,view.ox+sx*view.s,view.oy+sy*view.s);
+  const sh=game.shake,sx=(Math.random()-.5)*sh,sy=(Math.random()-.5)*sh;camUpdate();
+  const worldT=()=>ctx.setTransform(view.s*cam.z,0,0,view.s*cam.z,view.ox+(sx-cam.x*cam.z)*view.s,view.oy+(sy-cam.y*cam.z)*view.s),
+    viewT=()=>ctx.setTransform(view.s,0,0,view.s,view.ox+sx*view.s,view.oy+sy*view.s);
+  worldT();
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
   ctx.drawImage(bgC,0,0);
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
@@ -2349,16 +2368,42 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     ctx.fillStyle=q.color;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
-  const vg=ctx.createRadialGradient(W/2,H/2,H*.45,W/2,H/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  ctx.restore();ctx.save();viewT();
+  const ov=W>VW||H>VH?(()=>{const{ex,ey}=scrExtra();return[-ex,-ey,VW+2*ex,VH+2*ey]})():[0,0,VW,VH];
+  const vg=ctx.createRadialGradient(VW/2,VH/2,VH*.45,VW/2,VH/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(...ov);
   {const me=game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse');   // your health is low: the screen edges pulse red
     if(me&&me.alive&&!game.bg&&me.s&&me.hp<me.s.maxHp*.35&&['play','ready','pointEnd'].includes(game.state)){const k=1-clamp(me.hp/(me.s.maxHp*.35),0,1),pu=RM?.5:.5+.5*Math.sin(performance.now()/180);
-      const rg=ctx.createRadialGradient(W/2,H/2,H*.38,W/2,H/2,H*.95);rg.addColorStop(0,'rgba(255,40,50,0)');rg.addColorStop(1,`rgba(255,40,50,${(.16+.18*k)*(.6+.4*pu)})`);ctx.fillStyle=rg;ctx.fillRect(0,0,W,H)}}
-  if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
-  ctx.restore();drawHUD();
-  drawCardTip();
+      const rg=ctx.createRadialGradient(VW/2,VH/2,VH*.38,VW/2,VH/2,VH*.95);rg.addColorStop(0,'rgba(255,40,50,0)');rg.addColorStop(1,`rgba(255,40,50,${(.16+.18*k)*(.6+.4*pu)})`);ctx.fillStyle=rg;ctx.fillRect(...ov)}}
+  if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(...ov);ctx.globalAlpha=1}
+  ctx.restore();viewT();drawOffscreen();drawHUD();
+  drawCardTip();worldT();
   if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden){
     // on a phone the arc shows only while the aim stick is dragged out (not in its cancel zone), and there's no pointer to draw
     if(touch.on){if(settings.aim&&touchAiming())drawAimGuide()}else{if(settings.aim)drawAimGuide();drawCrosshair()}}}
+/* the camera: arenas that fit the screen are shown whole (z 1, no motion). A big arena is followed: the view centres on the
+   heroes (leaning a little toward where you aim), eased so it never jerks, and clamped to the arena. Phones sit a bit closer */
+const cam={x:0,y:0,z:1,t:0};
+function camGoal(){const big=W>VW||H>VH;if(!big)return{x:0,y:0,z:1};
+  const z=Math.max(VW/W,VH/H,touch.on?1.2:.92),vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
+  let fs=game.mode==='survival'?players.filter(p=>p.team===0&&p.alive):[game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')].filter(p=>p&&p.alive);
+  if(!fs.length)fs=players.filter(p=>p.alive);if(!fs.length)return{x:cam.x,y:cam.y,z};
+  let fx=0,fy=0;for(const p of fs){fx+=p.x;fy+=p.y}fx/=fs.length;fy/=fs.length;
+  if(!touch.on&&mouse.sx!=null){fx+=clamp((mouse.sx-VW/2)*.18,-160,160)/z;fy+=clamp((mouse.sy-VH/2)*.14,-90,90)/z}
+  // the whole screen shows arena (not just the 16:9 box the HUD sits in), so clamp the screen's edges to the arena's
+  const fit=(f,v,e,L)=>v+2*e/z>=L?(L-v)/2:clamp(f,e/z,L-v-e/z);
+  return{x:fit(fx-vw/2,vw,ex,W),y:fit(fy-vh*.55,vh,ey,H),z}}
+// how far the screen reaches past the 16:9 view box on each side, in view units
+function scrExtra(){return{ex:Math.max(0,view.ox/view.s),ey:Math.max(0,view.oy/view.s)}}
+function camSnap(){const g=camGoal();cam.x=g.x;cam.y=g.y;cam.z=g.z;cam.t=performance.now()}
+function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1);cam.t=now;const g=camGoal(),k=1-Math.exp(-dt*(RM?12:6));
+  cam.z+=(g.z-cam.z)*k;cam.x+=(g.x-cam.x)*k;cam.y+=(g.y-cam.y)*k;
+  if(!touch.on&&mouse.sx!=null){mouse.x=mouse.sx/cam.z+cam.x;mouse.y=mouse.sy/cam.z+cam.y}}
+// someone off the edge of a followed view: an arrow on that edge, in their colour, so no enemy is ever out of mind
+function drawOffscreen(){if(W<=VW&&H<=VH||game.bg)return;const{ex,ey}=scrExtra();
+  for(const p of players){if(!p.alive||!Number.isFinite(p.x))continue;const px=(p.x-cam.x)*cam.z,py=(p.y-cam.y)*cam.z,m=p.r*cam.z;
+    if(px>-ex-m&&px<VW+ex+m&&py>-ey-m&&py<VH+ey+m)continue;const x=clamp(px,28-ex,VW+ex-28),y=clamp(py,28-ey,VH+ey-28);
+    ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(py-y,px-x));ctx.globalAlpha=.9;ctx.fillStyle=p.color;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-11);ctx.lineTo(-3,0);ctx.lineTo(-8,11);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore()}}
 // the hazard border: a glowing energy line around the arena that flares when someone hits it
 function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Math.sin(performance.now()/260)+fl*.45;ctx.save();
   ctx.fillStyle='rgba(14,8,22,.55)';ctx.fillRect(0,0,W,FRAME);ctx.fillRect(0,0,FRAME,H);ctx.fillRect(W-FRAME,0,FRAME,H);ctx.fillRect(0,H-4,W,4);
@@ -2445,7 +2490,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-stage2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-stage3';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
