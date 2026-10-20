@@ -16,6 +16,7 @@ const root = path.join(__dirname, '..');
 
 // a copy of the page that exposes a few internals, so a scenario can hand out cards
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-perf-'));
+process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // the Chrome profile is ~100 MB: never leave it behind
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,CARDS,recompute,startMatch,loadMap,buildBg,MAPS,get players(){return players},get bullets(){return bullets}};})();</script>');
 html = html.replace('<head>', '<head><script>try{localStorage.setItem("cuued.name","Perf")}catch(e){}</script>');

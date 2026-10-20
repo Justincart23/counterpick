@@ -13,6 +13,7 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const LIVE = process.env.LIVE_URL || 'https://www.cuued.com/';
 const root = path.join(__dirname, '..');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-flow-'));
+process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // the Chrome profile is ~100 MB: never leave it behind
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,die,sandbox,get players(){return players}};})();</script>');
 fs.writeFileSync(path.join(dir, 'index.html'), html);
@@ -48,7 +49,7 @@ async function tab(port, url) {
   ok(await A.until(shown('#nameScreen'), 6000), 'a first visit asks for a name');   // boot waits up to 1.5 s for fonts
   await A.ev(`document.querySelector('#nameInput').focus()`); await A.cdp('Input.insertText', { text: 'Tester' }); await A.key('Enter');
   ok(await A.until(`document.querySelector('#nameScreen').hidden`) && await A.until(`document.querySelector('[data-myname]').textContent==='Tester'`), 'the name is saved and shown on the menu');
-  ok(await A.ev(`[...document.querySelectorAll('[data-sub="main"] .mlist button')].map(b=>b.textContent).join('|')`) === 'Duel a friend|Practice vs CPU|Sandbox|Shop|How to play|Settings', 'the menu lists Duel a friend, Practice vs CPU, Sandbox, Shop, How to play, Settings');
+  ok(await A.ev(`[...document.querySelectorAll('[data-sub="main"] .mlist button')].map(b=>b.textContent).join('|')`) === 'Duel a friend|Practice vs CPU|Boss Rush|Sandbox|Shop|How to play|Settings', 'the menu lists Duel a friend, Practice vs CPU, Boss Rush, Sandbox, Shop, How to play, Settings');
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');
   await sleep(900); await A.ev(`document.querySelector('#pick .card').click()`);

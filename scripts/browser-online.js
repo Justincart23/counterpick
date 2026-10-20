@@ -17,6 +17,7 @@ const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]
 
 async function browser(port, name) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-ol-'));
+  process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // each browser's ~100 MB profile
   const proc = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${dir}`, '--window-size=1600,900', '--autoplay-policy=no-user-gesture-required',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', 'about:blank'], { stdio: 'ignore' });
   let tabs; for (let i = 0; i < 80; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); break } catch { await sleep(100) } }

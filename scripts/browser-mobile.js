@@ -5,6 +5,7 @@ const { spawn } = require('child_process'); const fs = require('fs'), os = requi
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const OUT = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mobile-'));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mob-'));
+process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // the Chrome profile is ~100 MB: never leave it behind
 let html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8').replace('<head>', '<head><script>try{localStorage.setItem("cuued.name","Phone")}catch(e){}</script>');
 html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,keys,mouse,recompute,get players(){return players},get bullets(){return bullets}};})();</script>');
 fs.writeFileSync(path.join(dir, 'm.html'), html);

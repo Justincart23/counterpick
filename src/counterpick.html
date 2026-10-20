@@ -356,13 +356,19 @@ body.touch .menu-foot .touchnote{display:inline}
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="online" data-hint="Play a friend online. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="cpu" data-hint="Warm up against the computer. Pick its skill in Settings." style="--i:1">Practice vs CPU</button>
-        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:2">Sandbox</button>
-        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:3">Shop</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:4">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:5">Settings</button>
+        <button type="button" data-act="boss" data-hint="Fight bosses with signature builds and special attacks. Beat one to unlock the next." style="--i:2">Boss Rush</button>
+        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3">Sandbox</button>
+        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:4">Shop</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:5">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:6">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
+    </div>
+    <div data-sub="boss" hidden>
+      <div class="lbl" style="margin:0 0 4px 40px">Boss Rush · 3 lives</div>
+      <nav class="mlist" id="bossList" aria-label="Boss Rush"></nav>
+      <p class="menu-hint" id="bossHint" aria-live="polite"></p>
     </div>
     <div data-sub="online" hidden>
       <nav class="mlist" aria-label="Duel a friend">
@@ -409,6 +415,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
+            <li>Boss Rush: fight bosses with signature builds and special attacks. Each one warns you first (a red laser, a wind-up), so dodge, then punish. 3 lives; at each new phase you draft a card.</li>
           </ol>
         </div>
         <div>
@@ -868,7 +875,7 @@ let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, whic
 function makePlayer(id,ctrl,name){return{id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
-function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+function recompute(p){const s={...BASE};for(const c of p.cards)c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
@@ -878,17 +885,18 @@ function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:
   dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 const other=p=>players[1-p.id];
-const playerLabel=p=>p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
+const playerLabel=p=>p.boss?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function startMatch(mode){
   game.token++;game.awarded=false;game.mode=mode;game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.target=game.bg||mode==='sandbox'?99:settings.len;
-  game.diff=settings.diff;
+  game.target=game.bg||mode==='sandbox'||mode==='boss'?99:settings.len;
+  game.diff=mode==='boss'?'normal':settings.diff;game.lives=BOSS_LIVES;game.bossT=0;
   const you=myName||'You';
-  const ctrls={sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
-  const names={sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
+  const ctrls={boss:['mouse','cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
+  const names={boss:[you,BOSSES[game.bossIdx||0].n],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
   {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||[mine,{}];players.forEach((p,k)=>p.cos=cos[k]||{})}
+  if(mode==='boss')makeBoss(players[1],BOSSES[game.bossIdx||0]);
   players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
@@ -896,6 +904,7 @@ function startMatch(mode){
   newPoint(true);
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
+  if(mode==='boss'){const B=BOSSES[game.bossIdx||0];beginPick([0],`${B.n} · pick a card for the fight`,()=>{game.state='ready';game.stT=1.8;game.banner=B.n.toUpperCase();game.bannerT=1.8});if(!game.bg)cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -908,7 +917,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
 function newPoint(fresh){
-  let i;if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
+  let i;if(game.mode==='boss')i=Math.max(0,MAPS.findIndex(m=>m.name===BOSSES[game.bossIdx||0].map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);
   players.forEach((p,k)=>resetPlayer(p,game.map.sp[k]));
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -917,6 +926,7 @@ function newPoint(fresh){
 }
 function resolvePoint(){
   const w=game.lastWinner;
+  if(game.mode==='boss'){bossResolve();return}
   if(game.mode==='sandbox'){if(w>=0)game.wins[w]++;newPoint();return}   // sandbox: just a running tally, no drafts, no end
   if(w<0){newPoint();return}
   game.points[w]++;sfx(game.points[w]>=2?'round':'point');
@@ -931,7 +941,7 @@ function endMatch(w){
   game.state='over';
   if(game.bg){setTimeout(()=>{if(game.bg)startMatch('demo')},1500);return}
   netSend({t:'end',w});showEnd(w)}
-function showEnd(w){game.state='over';awardMatch(w);
+function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=again]');if(a)a.textContent='Rematch'}
   const L=players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
   $('#endScore').textContent=`Rounds ${game.wins[0]}–${game.wins[1]}. ${L.name} finished with ${L.cards.length} cards.`;
   [0,1].forEach(k=>{$('#deckName'+k).textContent=players[k].name+"'s deck";const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
@@ -1055,6 +1065,109 @@ function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color
   root.addEventListener('contextmenu',e=>{const c=card(e.target);if(c){e.preventDefault();sbRemove(c);setSbInfo(c)}});
   root.addEventListener('mouseover',e=>{const c=card(e.target);if(c)setSbInfo(c)});
   root.addEventListener('focusin',e=>{const c=card(e.target);if(c)setSbInfo(c)})}
+
+/* ---------- Boss Rush: solo fights against bosses with signature builds. A boss is a CPU fighter with its own deck and
+   much more health, plus a special attack it always warns you about first (a laser, a wind-up), so the fight is about
+   reading and punishing it. You have 3 lives; the boss keeps its damage. At 66% and 33% health it slams down a new card,
+   and you draft one and get a breather. Beat a boss to unlock the next ---------- */
+const BOSSES=[
+ {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Divider',
+  hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe',reward:4},
+ {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Yard',
+  hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge',reward:4},
+];
+const BOSS_LIVES=3,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6;
+wallet.boss=wallet.boss&&typeof wallet.boss==='object'?wallet.boss:{};
+const bossBeat=id=>!!(wallet.boss[id]&&wallet.boss[id].beat);
+const bossOpen=i=>i===0||bossBeat(BOSSES[i-1].id);
+const bossOf=()=>players.find(p=>p.boss);
+const cardsNamed=names=>names.map(n=>CARDS.find(c=>c.n===n)).filter(Boolean);
+function startBoss(i){game.bossIdx=i;startMatch('boss')}
+// set up the boss fighter: its look, its deck and its special-attack brain
+function makeBoss(p,B){p.boss=B;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;
+  p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0};recompute(p)}
+// the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
+function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
+  p.stunT=(p.stunT||0)-h;
+  if(p.stunT>0){inp.move=0;inp.fire=false;inp.jumpP=false;inp.jumpH=false;inp.blockP=false;S.state='idle';return}
+  if(game.state!=='play'||!e||!e.alive){if(S.state!=='idle'){S.state='idle';S.t=1.5}return}
+  S.t-=h;const late=p.phase>=2;
+  if(B.special==='snipe'){
+    if(S.state==='idle'&&S.t<=0&&losClear(p.x,p.y,e.x,e.y)){S.state='aim';S.at=SNIPE_AIM;S.lock=Math.atan2(e.y-p.y,e.x-p.x);sfx('arm')}
+    if(S.state==='aim'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.blockP=false;
+      // the laser tracks you slowly, then holds still for the last moment: move out of the line to dodge
+      if(S.at>SNIPE_LOCK){const want=Math.atan2(e.y-p.y,e.x-p.x);S.lock+=clamp(wrapA(want-S.lock),-1.3*h,1.3*h)}
+      inp.aim=S.lock;p.aim=S.lock;
+      if(S.at<=0){const m=safeSpawn(p,S.lock,p.r+30,6,false);
+        if(!m.smothered){spawnBullet(p,m.x,m.y,S.lock,{plain:true,dmg:44,r:6.5,speed:2700,life:2});const b=bullets[bullets.length-1];b.grav=.12;b.snipe=true}
+        S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,SNIPE_AIM-S.at);flashFx(m.x,m.y,70,.12,B.glow);addShake(9);sfx('shotRail');p.vx-=Math.cos(S.lock)*260;S.state='idle';S.t=late?rand(2.4,3.4):rand(3.6,5)}}}
+  else if(B.special==='charge'){const dx=e.x-p.x;
+    if(S.state==='idle'&&S.t<=0&&p.grounded&&Math.abs(e.y-p.y)<140&&Math.abs(dx)>180){S.state='wind';S.at=CHARGE_WIND;S.dir=Math.sign(dx)||1;sfx('horn')}
+    if(S.state==='wind'){S.at-=h;inp.move=0;inp.fire=false;inp.jumpP=false;inp.jumpH=false;inp.blockP=false;p.squash=.82;inp.aim=S.dir>0?0:Math.PI;
+      if(S.at<=0){S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,CHARGE_WIND-S.at);S.state='charge';S.at=CHARGE_MAX;p.vx=S.dir*CHARGE_SPEED;p.chargeT=.05;sfx('boing');addShake(5)}}
+    else if(S.state==='charge'){S.at-=h;inp.move=S.dir;inp.fire=false;inp.jumpP=false;inp.blockP=false;p.vx=S.dir*CHARGE_SPEED*(late?1.12:1);p.chargeT=.05;
+      if(Math.random()<h*30)burst(p.x-S.dir*p.r,p.y+p.r*.6,'#cfd8e3',2,140,4,.3,0);
+      // contact: a block at the last moment staggers the Brute; otherwise it hits hard and throws you
+      if(Math.hypot(e.x-p.x,e.y-p.y)<p.r+e.r+8&&!(e.ramT>0)){e.ramT=.5;
+        if(e.blockT>0){bossStun(p);ring(e.x,e.y,'#ffffff',80);sfx('parry');popText(e.x,e.y-e.r-30);e.vx+=S.dir*300}
+        else{damage(e,30,p);e.vx=S.dir*1300;e.vy=-650;e.ground=null;e.kT=.35;burst(e.x,e.y,'#ffffff',18,560,5,.35,0,true);addShake(14);sfx('crush');S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}
+      if(S.at<=0&&S.state==='charge'){S.state='idle';S.t=late?rand(2.2,3):rand(3,4.5)}}}}
+// after physics: a charging Brute that hits a wall or the arena edge is stunned
+function bossPost(p){const S=p.bs;if(!p.boss||!S||S.state!=='charge'||S.at>CHARGE_MAX-.05)return;   // (give the launch a few steps)
+  if(p.wallDir===S.dir||p.edgeHit==='left'||p.edgeHit==='right'||Math.abs(p.vx)<CHARGE_SPEED*.4){bossStun(p);addShake(12);burst(p.x+S.dir*p.r,p.y,'#cfd8e3',16,420,5,.4,0);sfx('crush')}}
+function bossStun(p){p.stunT=STUN_T;p.bs.state='idle';p.bs.t=STUN_T+rand(1.5,2.5);p.vx*=.2;ring(p.x,p.y-p.r,'#ffd36b',60)}
+// phases: at 66% and 33% the boss adds its next cards; you draft one and both of you reset to your corners
+function bossPhaseCheck(){const p=bossOf(),me=players[0];if(!p||!p.alive||game.state!=='play')return;
+  const f=p.hp/p.s.maxHp,next=p.phase===0&&f<=.66?1:p.phase===1&&f<=.33?2:0;if(!next)return;
+  p.phase=next;p.cards.push(...cardsNamed(p.boss.phases[next-1]||[]));recompute(p);p.hp=f*p.s.maxHp;
+  const sp=game.map.sp;p.x=sp[1][0];p.y=sp[1][1];p.vx=p.vy=0;p.lx=p.x;p.ly=p.y;p.bs.state='idle';p.bs.t=2.5;p.stunT=0;bullets=[];
+  ring(p.x,p.y,p.glow,160);burst(p.x,p.y,p.glow,30,600,6,.6,0,true);addShake(16);sfx('round');
+  const added=(p.boss.phases[next-1]||[]).join(' + ');game.banner=`PHASE ${next+1}`;game.bannerT=1.6;
+  beginPick([0],`${p.boss.n} adds ${added} · your turn`,()=>{game.state='ready';game.stT=1.4;game.banner=`PHASE ${next+1}`})}
+// a point in Boss Rush: you dying costs a life (the boss keeps its damage); the boss dying wins
+function bossResolve(){const p=bossOf(),me=players[0];
+  if(!p||!p.alive){bossEnd(true);return}
+  game.lives--;if(game.lives<=0){bossEnd(false);return}
+  const sp=game.map.sp,hp=p.hp;resetPlayer(me,sp[0]);p.x=sp[1][0];p.y=sp[1][1];p.vx=p.vy=0;p.lx=p.x;p.ly=p.y;p.hp=hp;p.bs.state='idle';p.bs.t=2.5;p.stunT=0;
+  bullets=[];shields=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
+function bossEnd(win){const p=bossOf(),B=p.boss,secs=Math.round(game.bossT||0),rec=wallet.boss[B.id]||{};game.state='over';
+  let coins=0;if(win){coins=rec.beat?1:B.reward;rec.beat=true;rec.best=rec.best?Math.min(rec.best,secs):secs;wallet.boss[B.id]=rec;wallet.coins+=coins;wallet.earned+=coins;saveWallet();refreshWallet()}
+  const t=`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+  $('#endTitle').textContent=win?`${B.n} defeated`:`${B.n} wins`;$('#endTitle').style.color=win?players[0].color:B.color;
+  $('#endScore').textContent=win?`Beaten in ${t} with ${game.lives} ${game.lives===1?'life':'lives'} left.${rec.best===secs?' Your best time.':` Best ${Math.floor(rec.best/60)}:${String(rec.best%60).padStart(2,'0')}.`}${BOSSES[game.bossIdx+1]?` ${BOSSES[game.bossIdx+1].n} is unlocked.`:''}`
+    :`It had ${Math.max(1,Math.round(100*p.hp/p.s.maxHp))}% health left. Pick different cards and try again.`;
+  [0,1].forEach(k=>{$('#deckName'+k).textContent=players[k].name+"'s deck";const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
+  const el=$('#endCoins');if(el){el.hidden=!win;if(win){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''}${coins>1?' (first win)':''} · you have ${wallet.coins}`}}
+  const again=$('#end [data-act=again]');if(again)again.textContent=win?'Fight again':'Try again';
+  $('#end').hidden=false;showSub($('#end'),'main');sfx(win?'round':'die',true)}
+// the boss list on the menu: beaten, open or locked
+function renderBossMenu(){const nav=$('#bossList');if(!nav)return;nav.innerHTML='';
+  BOSSES.forEach((B,i)=>{const b=document.createElement('button');b.type='button';b.style.setProperty('--i',i);const open=bossOpen(i),rec=wallet.boss[B.id];
+    b.dataset.hint=open?B.sub:`Beat ${BOSSES[i-1].n} to unlock.`;if(open){b.dataset.act='bossgo';b.dataset.boss=i}else b.setAttribute('aria-disabled','true');
+    b.innerHTML=`${B.n} <span class="val edit">${!open?'Locked':rec&&rec.beat?`Beaten · ${Math.floor(rec.best/60)}:${String(rec.best%60).padStart(2,'0')}`:'New'}</span>`;nav.appendChild(b)});
+  const back=document.createElement('button');back.type='button';back.dataset.act='back';back.dataset.hint='Back to the main menu.';back.textContent='Back';back.style.setProperty('--i',BOSSES.length);nav.appendChild(back);
+  const h=$('#bossHint');if(h)h.textContent=BOSSES[0].sub}
+// telegraphs, drawn over the arena: the Sniper's laser, the Brute's wind-up lane, stun stars
+function drawBossFx(){const p=bossOf();if(!p||!p.alive)return;const S=p.bs;ctx.save();
+  if(S.state==='aim'){const a=S.lock,c=Math.cos(a),s=Math.sin(a),x0=p.x+c*(p.r+30),y0=p.y+s*(p.r+30),L=2400,t=rayHit(x0,y0,x0+c*L,y0+s*L,2,true)*L,k=1-S.at/SNIPE_AIM,locked=S.at<=SNIPE_LOCK;
+    ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+    ctx.strokeStyle='#ff2a44';ctx.globalAlpha=.18+.3*k;ctx.lineWidth=10+8*k;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+c*t,y0+s*t);ctx.stroke();
+    ctx.strokeStyle=locked?'#ffffff':'#ff5a6a';ctx.globalAlpha=locked?1:.55+.45*k;ctx.lineWidth=locked?4:2+2*k;
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+c*t,y0+s*t);ctx.stroke();ctx.globalAlpha*=.6;ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.arc(x0+c*t,y0+s*t,6+6*k,0,TAU);ctx.fill()}
+  if(S.state==='wind'){const k=1-S.at/CHARGE_WIND,y=p.y-p.r,hh=p.r*2,x0=S.dir>0?p.x:0,x1=S.dir>0?W:p.x;
+    ctx.fillStyle=`rgba(255,70,60,${.08+.14*k})`;ctx.fillRect(x0,y,x1-x0,hh);ctx.strokeStyle=`rgba(255,110,90,${.4+.4*k})`;ctx.lineWidth=2;ctx.setLineDash([14,10]);ctx.strokeRect(x0,y,x1-x0,hh);ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(255,140,110,${.5+.4*k})`;for(let i=1;i<=3;i++){const ax=p.x+S.dir*(p.r+30+i*36+k*20);ctx.beginPath();ctx.moveTo(ax+S.dir*14,p.y);ctx.lineTo(ax-S.dir*6,p.y-14);ctx.lineTo(ax-S.dir*6,p.y+14);ctx.closePath();ctx.fill()}}
+  if(p.stunT>0){ctx.fillStyle='#ffd36b';for(let i=0;i<3;i++){const a=performance.now()/220+i*TAU/3,sx=p.x+Math.cos(a)*p.r*.9,sy=p.y-p.r-16+Math.sin(a)*6;
+    ctx.beginPath();for(let j=0;j<10;j++){const b=j/10*TAU-Math.PI/2,rr=j%2?3:7;ctx.lineTo(sx+Math.cos(b)*rr,sy+Math.sin(b)*rr)}ctx.fill()}}
+  ctx.restore()}
+// the boss bar across the top and your lives
+function drawBossHud(){const p=bossOf();if(!p)return;const bw=640,x=W/2-bw/2,y=40,f=clamp(p.hp/p.s.maxHp,0,1);
+  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=p.color;ctx.fillText(p.boss.n.toUpperCase(),W/2,22);
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=p.stunT>0?'#ffd36b':p.color;ctx.fillRect(x,y,bw*f,14);
+  ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
+  ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22);
+  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);
+  for(let i=0;i<BOSS_LIVES;i++){ctx.fillStyle=i<game.lives?players[0].color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}}
 
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
@@ -1397,7 +1510,7 @@ const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
    after that the survivor can't be hurt and can't die from a fall while the point wraps up */
 const POINT_END=1.7,TRADE_WINDOW=.12;
 const pointDecided=()=>game.state==='pointEnd'&&POINT_END-game.endT>TRADE_WINDOW;
-function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();p.hp-=amt;p.hurtT=.12;
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;p.hp-=amt;p.hurtT=.12;
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
 function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
@@ -1750,10 +1863,10 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[game.bg?'no
 /* physics advances in fixed 1/120 s steps on every device, so jumps, speed and timing match on 60, 120 or 144 Hz screens */
 const FIXED=1/120;
 function step(h){
-  for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p)}
+  for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
-  updateSwings(h);for(const p of players)updatePlayer(p,h);separate();
+  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
   if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
@@ -1763,7 +1876,7 @@ function simTick(h){const st=game.state;
   if(st==='ready'&&game.dropT>0){game.dropT-=h;const e=clamp(1-game.dropT/.6,0,1),c1=1.70158,c3=c1+1,eb=1+c3*Math.pow(e-1,3)+c1*Math.pow(e-1,2);
     game.dropOff=-(1-eb)*H*.85;if(game.dropT<=0){game.dropOff=0;addShake(9);sfx('thud')}}
   if(st==='ready'){game.stT-=h;step(h);if(game.stT<=0){game.state='play';sfx('go')}return true}
-  if(st==='play'){step(h);game.pointT+=h;
+  if(st==='play'){step(h);game.pointT+=h;if(game.mode==='boss'){game.bossT=(game.bossT||0)+h;bossPhaseCheck();game.pointT=0}
     // overtime: a point that drags past 45s makes every bullet seek, so nobody can camp behind cover forever
     if(!game.overtime&&game.pointT>45){game.overtime=true;game.banner='OVERTIME';game.bannerT=1.4;sfx('horn')}return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
@@ -1882,8 +1995,9 @@ function drawCardTip(){hoverChip=null;
   ctx.restore()}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
-  const sb=game.mode==='sandbox';
-  if(sb){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
+  if(game.mode==='boss'){drawBossHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
+  const sb=game.mode==='sandbox'||game.mode==='boss';
+  if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
   for(const p of players){const y=24+p.id*24;
     if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
@@ -1896,7 +2010,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,W/2,26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=C.text;ctx.fillText(t,W/2,H/2-40)}
-  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
+  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='boss'?(w===0?'BOSS DOWN!':'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
     ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,W/2+4,H/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,W/2,H/2-40)}
   ctx.restore()}
 function render(){const saved=[];
@@ -1920,6 +2034,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
   for(const p of players)drawPlayer(p);
+  drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
   for(const b of bullets){let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
     {const ct=b.cosT??(b.owner&&b.owner.cos&&b.owner.cos.trail);if(ct&&tc===b.glow)tc=trailColor(ct,tc,b.id||0)}   // cosmetic trail (plain bullets only: effect colours stay readable)
@@ -2048,7 +2163,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-20-netfeel';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-21-bossrush';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2489,6 +2604,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openShop();
   else if(a==='fullscreen')toggleFull();
   else if(a==='online')showSub(ov,'online');
+  else if(a==='boss'){renderBossMenu();showSub(ov,'boss')}
+  else if(a==='bossgo')startBoss(+b.dataset.boss||0);
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,'online')}

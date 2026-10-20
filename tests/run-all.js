@@ -24,6 +24,7 @@ const suite = [
   withEnv(run('net.js'), { NET_LOSS: 2 }, 'loss2%'),
   withEnv(run('net.js', 90, 45), { NET_LOSS: 2 }, 'loss2%'),
   run('turn.js'),
+  run('boss.js', 6),   // Boss Rush: a CPU stand-in fights each boss to the end
   // 4 seeds x 5 game-minutes of CPU vs CPU
   ...[1, 5150, 9001, 2026].map((seed) => run('audit.js', 300, seed)),
 ];
