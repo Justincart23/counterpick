@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- CUUED: the orange fighter with its crown, simplified to read at 16px in a browser tab -->
+  <path d="M15 22 L13 6 L23 13 L32 3 L41 13 L51 6 L49 22 Z" fill="#ffd36b" stroke="#b8730a" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="32" cy="40" r="22" fill="#ff7a1a"/>
+  <path d="M14 34 A22 22 0 0 1 40 19 L18 44 Z" fill="#ffffff" opacity=".16"/>
+  <rect x="21" y="31" width="7" height="12" rx="3.5" fill="#121820"/>
+  <rect x="36" y="31" width="7" height="12" rx="3.5" fill="#121820"/>
+  <rect x="25" y="49" width="14" height="3.5" rx="1.75" fill="#121820"/>
+</svg>
