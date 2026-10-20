@@ -112,7 +112,7 @@ const DT = 1 / 60;
   const actors = [H, G];   // every loaded copy gets a frame, like separate browser tabs
   // like a browser, let pending promise callbacks run between frames (the relay client is promise-based)
   const frameA = async (n = 1) => { for (let i = 0; i < n; i++) { frame(); await new Promise((r) => setImmediate(r)) } };
-  let fcount = 0;
+  let fcount = 0; const ex = { seen: new WeakSet(), spawn: [], gapH: [], gapG: [] };
   // NET_REAL=1: each screen runs at its own refresh rate with frame-time jitter and occasional hitches, like real
   // devices (NET_HFPS / NET_GFPS, default 60; NET_FJIT ms of jitter per frame; NET_HITCH='ms@seconds' a stall every so
   // often), and the drawn positions are scored for judder on both screens. Otherwise both screens step in lockstep.
@@ -153,15 +153,22 @@ const DT = 1 / 60;
         if (smOk && dt < .05 && ev.lx != null && ev.lmap === G.game.mapIdx && now - ev.knock1 > 400 && now - ev.blinkAt > 200 && Math.hypot(x - ev.lx - ex, y - ev.ly - ey) > 60) { visJumps++; if (process.env.JDBG) console.log('JUMP', Math.round(Math.hypot(x - ev.lx - me.vx * dt, y - ev.ly - me.vy * dt)), 'dt', Math.round(dt * 1000), 'hostLag', H.net.lagSteps, 'Q', (H.net.inQ || []).length, 'offX', Math.round(G.net.offX), 'offY', Math.round(G.net.offY), 'ackGap', G.net.inSeq - (H.players[1].ackSeq || 0), 'grounded', me.grounded, 'vy', Math.round(me.vy)) }
         ev.lx = x; ev.ly = y; ev.lvx = me.vx; ev.lvy = me.vy; ev.lmap = G.game.mapIdx } else ev.lx = null } if (A === H) { const a = H.game.alpha || 0; for (const p of H.players) if (p.lx != null) track(p.id === 0 ? 'hostSelf' : 'hostSeesGuest', H, p, p.lx + (p.x - p.lx) * a, dt) }
     else if (A === G) { const me = G.players[1], o = G.players[0]; if (me) track('guestSelf', G, me, (me.lx != null ? me.lx + (me.x - me.lx) * (G.game.alpha || 0) : me.x) + G.net.offX, dt); if (o) track('guestSeesHost', G, o, o.x, dt) } };
+  // exactness between the two screens, sampled right after the visitor's frame (what it draws)
+  const sampleExact = () => { try { ex } catch (e) { return }
+    if (H.game.state === 'play' && G.game.state === 'play' && G.game.mapIdx === H.game.mapIdx) { const o = G.players[0], hf = H.players[0], gf = H.players[1], me = G.players[1];
+      for (const b of G.bullets) if (!b.ghost && !b.hide && b.gun && b.own === 0 && !ex.seen.has(b)) { ex.seen.add(b); if (process.env.SPDBG && o.alive && ex.spawn.length < 25) console.log('SPAWN', Math.round(Math.hypot(b.x - (o.x + Math.cos(o.aim) * (o.r + 30)), b.y - (o.y + Math.sin(o.aim) * (o.r + 30)))), 'ag', b.ag, 'spd', Math.round(Math.hypot(b.vx, b.vy)), 'dirVsAim', (Math.atan2(b.vy, b.vx) - o.aim).toFixed(2), 'b', Math.round(b.x), Math.round(b.y), 'o', Math.round(o.x), Math.round(o.y), 'hostF', Math.round(hf.x), Math.round(hf.y), 'seenAgo', Math.round(performance.now() - (b.seen || 0)), 'own', b.own, 'sx', Math.round(b.sx), Math.round(b.sy), 'rx', b.rx && Math.round(b.rx), 'trail', b.trail.length, 'lead', b.lead, 'tag', b.tag); if (o.alive && hf.alive) ex.spawn.push(Math.hypot(b.x - (o.x + Math.cos(o.aim) * (o.r + 30)), b.y - (o.y + Math.sin(o.aim) * (o.r + 30)))) }
+      if (o.alive && hf.alive && Number.isFinite(o.x)) ex.gapH.push(Math.hypot(o.x - hf.x, o.y - hf.y));
+      if (me.alive && gf.alive && Number.isFinite(me.x)) ex.gapG.push(Math.hypot(me.x + G.net.offX - gf.x, me.y + G.net.offY - gf.y)) }
+  };
   const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++;
-    if (!REAL) { for (const A of actors) { try { A.update(DT); if (fcount % 6 === 0) A.render() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000); continue }
+    if (!REAL) { for (const A of actors) { try { A.update(DT); if (A === G) sampleExact(); if (fcount % 6 === 0) A.render() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000); continue }
     const end = require('./env').clock.t + DT * 1000;
     while (require('./env').clock.t < end) { const now = require('./env').clock.t;
       for (const A of actors) { const k = actors.indexOf(A), fps = FPS[k] || 60; let s = sched.get(A); if (!s) { s = { next: now, last: now }; sched.set(A, s) }
         if (now >= s.next) { const dt = Math.max(.001, (now - s.last) / 1000); s.last = now;
           let per = 1000 / fps * (1 + (jr2() * 2 - 1) * FJIT / (1000 / fps)); if (HITCH_EVERY && jr2() < (1000 / fps) / (HITCH_EVERY * 1000)) per += HITCH_MS;
           s.next = now + Math.max(1, per);
-          try { A.update(Math.min(dt, .25)); if (A === H || A === G) drawn(A, dt) } catch (e) { if (errors++ < 3) console.error(e) } } }
+          try { A.update(Math.min(dt, .25)); if (A === H || A === G) drawn(A, dt); if (A === G) sampleExact() } catch (e) { if (errors++ < 3) console.error(e) } } }
       advance(1) } } };
 
   // --- a wrong code fails cleanly
@@ -215,7 +222,7 @@ const DT = 1 / 60;
       if (f % 300 >= 200 && f % 300 < 230) { for (const k of ['KeyA', 'KeyD']) A.keys.delete(k); A.keys.add(me.x < 800 ? 'KeyA' : 'KeyD') }   // run at walls / edges
     }
   };
-  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard', 'Blink Guard'];
+  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard', 'Blink Guard', 'Gravity Well'];
   const giveDecks = () => { for (const p of H.players) { const want = FEATURE_DECK.map((n) => H.CARDS.find((c) => c.n === n)); if (p.cards.length < want.length || !want.every((c) => p.cards.includes(c))) { p.cards = [...want, ...p.cards.filter((c) => !want.includes(c))]; H.recompute(p) } } };
   const sg = { dropRun: 0, hj: [], last: null, gaps: [], n: 0, stutter: 0, o1: null, o2: null, h1: null, h2: null };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
@@ -286,7 +293,7 @@ const DT = 1 / 60;
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) { const onSwing = G.solids.some((r) => r.swing && me.x > r.x + 2 && me.x < r.x + r.w - 2 && me.y > r.y + 2 && me.y < r.y + r.h - 2); if (onSwing) swingClip++; else embedded++; if (process.env.CLIPDBG) { const r = G.solids.find((r) => !r.bound && !r.oneway && me.x > r.x + 2 && me.x < r.x + r.w - 2 && me.y > r.y + 2 && me.y < r.y + r.h - 2); console.log('CLIP', G.game.map.name, 'me', Math.round(me.x), Math.round(me.y), 'r', me.r.toFixed(1), 'v', Math.round(me.vx), Math.round(me.vy), 'wall', r && [r.x, r.y, r.w, r.h, r.swing ? 'swing' : r.mover ? 'mover' : 'static'], 'host', Math.round(H.players[1].x), Math.round(H.players[1].y), 'blinkN', me.blinkN, 'charge', (me.chargeT || 0).toFixed(2), 'off', Math.round(G.net.offX), Math.round(G.net.offY), 'cards', me.cards.map((c) => c.n).join('/')) } }
-      else if (lastMe && !blinked && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; break } }
+      else if (lastMe && !blinked && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; if (process.env.CLIPDBG) console.log('TUNNEL', G.game.map.name, 'from', Math.round(lastMe[0]), Math.round(lastMe[1]), 'to', Math.round(me.x), Math.round(me.y), 'v', Math.round(me.vx), Math.round(me.vy), 'blinkN', me.blinkN, 'wells', G.wells ? G.wells.length : '?', 'off', Math.round(G.net.offX), Math.round(G.net.offY), 'hurt', me.hurtT, 'host', Math.round(H.players[1].x), Math.round(H.players[1].y)); break } }
       lastMe = [me.x, me.y, G.game.mapIdx, G.net.snapN] } else lastMe = null;
     const hp = H.players[1];
     if (H.game.state === 'play' && hp.alive) { if (lastX.v != null) guestMoved += Math.abs(hp.x - lastX.v); lastX.v = hp.x } else lastX.v = null;
@@ -368,6 +375,9 @@ const DT = 1 / 60;
   { const ok = G.net.gMerged || 0, lost = G.net.gLost || 0; check(ok + lost < 10 || lost / (ok + lost) < 0.25, `the guest's instant shots should be confirmed by the host (${ok} confirmed, ${lost} never fired there)`) }
   const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ownShotFrames: bm.lat.length ? bm.lat.slice().sort((a, b) => a - b)[bm.lat.length >> 1] : null, bulletJerkPct: bm.n ? +(100 * bm.jerk / bm.n).toFixed(2) : null, ghostShotsConfirmed: G.net.gMerged || 0, ghostShotsPhantom: G.net.gLost || 0, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
   if (REAL) for (const [k, [n, d]] of Object.entries(judder)) check(d < 300 || n / d < 0.025, `${k}: drawn movement should be smooth (${n} of ${d} frames juddered)`);
+  { const med = (a) => { const v = a.slice().sort((x, y) => x - y); return v.length ? Math.round(v[v.length >> 1]) : null }, p90 = (a) => { const v = a.slice().sort((x, y) => x - y); return v.length ? Math.round(v[Math.floor(v.length * .9)]) : null };
+    if (ex.spawn.length > 20) check(med(ex.spawn) < 40, `the host's shots should leave its gun on the visitor's screen (median ${med(ex.spawn)} px from the muzzle)`);
+    result.exact = { hostShotFromGunPx: [med(ex.spawn), p90(ex.spawn)], hostFighterGapPx: [med(ex.gapH), p90(ex.gapH)], guestFighterGapPx: [med(ex.gapG), p90(ex.gapG)] } }
   if (REAL) result.bulletJudderPct = ev.bn2 ? +(100 * ev.bj / ev.bn2).toFixed(2) : null;
   if (REAL) result.judderPct = Object.fromEntries(Object.entries(judder).map(([k, [n, d]]) => [k, d ? +(100 * n / d).toFixed(2) : null]));
   { const g = sg.gaps.slice().sort((a, b) => a - b); Object.assign(result, { hitsByHost: (H.game.hitsBy || [0, 0])[0], hitsByGuest: (H.game.hitsBy || [0, 0])[1], snapBytes: Math.round((globalThis.__snapB || 0) / (globalThis.__snapN || 1)), guestBlinks: sg.blinks || 0, snapGapP99Ms: g.length ? Math.round(g[Math.floor(g.length * .99)]) : null, snapGapMaxMs: g.length ? Math.round(g[g.length - 1]) : null, otherStutterPct: sg.n ? +(100 * sg.stutter / sg.n).toFixed(2) : null, lossPct: LOSS * 100, fast: FAST }) }

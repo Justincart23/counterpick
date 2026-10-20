@@ -599,7 +599,7 @@ const CARDS=[
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+15%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.15}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
- {n:'Gravity Well',k:'shot',r:2,d:'Your bullets drag your rival toward them as they pass.',st:[['On','Pull',1],['-10%','Bullet speed',0]],a:s=>{s.well+=1;s.bulletSpeed*=.9},u:1},
+ {n:'Gravity Well',k:'shot',r:2,d:'A shot that misses collapses into a gravity well that drags your rival in and burns them at its core. Pull them into pits and edges.',st:[['1.6s','Well',1],['Strong','Pull',1],['24/s','Core burn',1],['Stacks','Bigger, longer',1]],a:s=>{s.well+=1}},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
@@ -846,6 +846,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
+  case'well':tone('sine',220*v,46,t,.5,.32,room);noise(t,.45,.2,'lowpass',900,120,1,crunch);tone('triangle',660*v,180,t,.25,.05);break;   // a gravity well opens
   case'grab':[880,1320,1760].forEach((f,i)=>tone('triangle',f*v,f*v,t+i*.05,.14,.08));noise(t,.08,.06,'highpass',6000);break;   // power-up taken
   case'blink':noise(t,.12,.14,'bandpass',700*v,5200,2.5,room);tone('sine',380*v,1700*v,t,.11,.1,room);tone('triangle',1900*v,2600,t+.08,.09,.05);break;   // teleport: a rising zip
   }}catch(e){}}
@@ -930,7 +931,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
-  buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
+  buildBg(game.map);bullets=[];parts=[];shields=[];wells=[];net.h0=[]}
 function newPoint(fresh){
   let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);drops=[];
@@ -1432,8 +1433,9 @@ const ART={
      g.beginPath();g.arc(x,0,14+heat*22,0,TAU);g.fill();g.restore();AH.trail(g,x,0,0,40+q*160,8,heat>.6?'255,236,170':'255,245,215');AH.bullet(g,x,0,0,.8);
      g.fillStyle='rgba(255,255,255,.8)';g.font='bold 22px "JetBrains Mono", monospace';g.textAlign='center';g.fillText('x'+(1+q*3).toFixed(1),x,-34)}
    else{const q=(k-.8)/.2;for(let i=0;i<3;i++)AH.ring(g,150,0,20+q*(90+i*40),8*(1-q),1-q*(.6+i*.15))}},
- 'Gravity Well':(g,t)=>{const k=t*.5%1,x=-180+k*360,y=-40;for(let i=0;i<3;i++){const ph=(t*1.2+i/3)%1;AH.ring(g,x,y,40-ph*34,2,ph*.8)}
-   AH.trail(g,x,y,0,60,6);AH.bullet(g,x,y,0,.8);const pull=Math.max(0,1-Math.abs(x)/160);AH.blob(g,0,70-pull*55,24,{look:Math.sign(x),ouch:pull>.6})},
+ 'Gravity Well':(g,t)=>{const ph=t*.6%1,wx=110,wy=-20;if(ph<.3){const k=ph/.3,x=-170+k*280,y=-60+k*40;AH.trail(g,x,y,.14,60,6);AH.bullet(g,x,y,.14,.8)}
+   else{const k=(ph-.3)/.7;for(let i=0;i<3;i++){const q=(t*1.6+i/3)%1;AH.ring(g,wx,wy,70-q*58,2.5,q*.9)}g.save();g.fillStyle='rgba(20,6,34,.9)';g.beginPath();g.arc(wx,wy,12,0,TAU);g.fill();g.restore();
+     const bx=-120+k*170,by=70-k*70;AH.blob(g,bx,by,24,{look:1,ouch:k>.6})}g.fillStyle='rgba(255,255,255,.35)';g.fillRect(wx+30,-120,14,240)},
  'Limpet Mines':(g,t)=>{const k=t*.6%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(122,-100,10,200);
    if(k<.3){const x=-170+k/.3*282;AH.trail(g,x,0,0,70,7);AH.bullet(g,x,0,0,.9)}
    else if(k<.7){const q=(k-.3)/.4,blink=Math.floor(q*(4+q*10))%2;g.fillStyle=blink?'#ff5a4f':'#fff';g.beginPath();g.arc(112,0,10,0,TAU);g.fill();AH.ring(g,112,0,16+q*6,2,.6)}
@@ -1587,8 +1589,11 @@ function blockFx(p){const s=p.s;
   if(s.staticGuard)p.staticReady=true;
   // Blink never lands past an edge (below the bottom you'd end up under the floor)
   if(s.blink)blinkMove(p)}
+// the landing spot is judged against fixed walls only: each screen swings its own copy of a hanging block, so both screens
+// always pick the same spot (a teleport into a swinging block is pushed out like any other overlap)
+const staticBox=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&!r.swing&&boxHit(x,y,hw,hh,r));
 function blinkMove(p){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
-    if(!solidBoxP(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){const ox=p.x,oy=p.y;p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;p.grounded=false;p.squash=1.3;
+    if(!staticBox(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){const ox=p.x,oy=p.y;p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;p.grounded=false;p.squash=1.3;
       p.blinkN=(p.blinkN||0)+1;moveFx(p,()=>blinkFx(ox,oy,tx,ty,p.r,p.color,p.glow));return true}}return false}
 /* Blink Guard's teleport, readable at a glance: the body collapses into a ring where it was, a bright streak and fading
    afterimages trace the jump, and it pops back out with a flash and a ring where it lands. A rising zip plays */
@@ -1626,7 +1631,7 @@ const MINE_FUSE=.5,INTERP_MS=55,INTERP_FAST=38,OUT_X=400;   // OUT_X: past this 
 function killBullet(b,impact,wall,n){
   if(wall&&b.mines&&!b.stuck){if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45);b.mineN=n}
     b.stuck=true;b.vx=0;b.vy=0;b.grav=0;b.trail=[];b.fuse=MINE_FUSE;b.stuckAt=performance.now();b.bounces=0;b.life=5;sfx('arm');return}
-  b.dead=true;if(b.grow)longShock(b,null);   // Long Haul: a long shot lands with its shockwave wherever it ends (wall, floor, mid-air)
+  b.dead=true;if(b.well)openWell(b);if(b.grow)longShock(b,null);   // Long Haul: a long shot lands with its shockwave wherever it ends (wall, floor, mid-air)
   if(!impact)return;
   if(wall){const o=b.owner;
     if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45)}
@@ -1634,6 +1639,29 @@ function killBullet(b,impact,wall,n){
     sparks(b.x,b.y,'#fff6e8',6,420+sp*.15,ang,1.05);sparks(b.x,b.y,b.glow,4,300,ang,1.4)}
   burst(b.x,b.y,b.glow,4,240,3,.25,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 /* Long Haul: +25% damage per 100 px flown, up to x4; hits past x2 land with a shockwave that shoves everyone nearby */
+/* Gravity Well: a shot that misses (hits a wall or runs out of time) collapses into a well where it ends. For a moment
+   it drags the shooter's rival toward its centre (much harder in the air) and burns them at the core. Each copy makes
+   wells bigger, stronger and longer. A fighter holds at most 3 wells; the oldest closes first */
+const WELL_T=1.6,WELL_R=170,WELL_PULL=1900,WELL_CORE=34,WELL_DPS=24;
+let wells=[];
+function openWell(b){const n=b.well,o=b.owner;if(!n||!o||b.shard||b.plainRing)return;const mine=wells.filter(w=>w.owner===o);if(mine.length>=3)wells.splice(wells.indexOf(mine[0]),1);
+  const k=1+.35*(n-1),t=WELL_T+.35*(n-1);wells.push({x:b.x,y:b.y,t,max:t,R:Math.min(320,WELL_R*k),pull:WELL_PULL*k,owner:o});moveFx(o,()=>sfx('well'))}
+// the pull on one fighter this step (the visitor runs this on its own fighter too, so being pulled never needs correcting)
+function wellPull(p,h){if(!p||!p.alive)return;for(const w of wells){if(w.owner===p)continue;const dx=w.x-p.x,dy=w.y-p.y,d=Math.hypot(dx,dy);if(d>=w.R||d<1)continue;
+  // a well forms over its first 0.3 s, pulling gently at first: the other screen hears of it a moment later, so the part
+  // it can't know about yet stays small
+  const form=Math.min(1,(w.max-w.t)/.3),f=w.pull*form*form*Math.sqrt(1-d/w.R)*h;p.vx+=dx/d*f;p.vy+=dy/d*f*.85}}
+function wellTick(h){for(const w of wells)w.t-=h;wells=wells.filter(w=>w.t>0);
+  for(const w of wells)for(const p of players)if(p!==w.owner&&p.alive&&Math.hypot(w.x-p.x,w.y-p.y)<WELL_CORE+p.r*.5)damage(p,WELL_DPS*h,w.owner)}
+function drawWells(){if(!wells.length)return;const now=performance.now()/1000;ctx.save();
+  for(const w of wells){const age=w.max-w.t,k=Math.min(1,age/.3,w.t/.25),c=w.owner.glow;
+    const g=ctx.createRadialGradient(w.x,w.y,4,w.x,w.y,w.R*k);g.addColorStop(0,'rgba(20,6,34,.85)');g.addColorStop(.25,'rgba(70,30,110,.35)');g.addColorStop(1,'rgba(70,30,110,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(w.x,w.y,w.R*k,0,TAU);ctx.fill();
+    ctx.globalCompositeOperation='lighter';ctx.strokeStyle=c;ctx.lineCap='round';
+    for(let i=0;i<3;i++){const a0=now*4+i*TAU/3,r=w.R*k*(.35+.2*i);ctx.globalAlpha=.55-.12*i;ctx.lineWidth=3-i*.6;ctx.beginPath();ctx.arc(w.x,w.y,r,a0,a0+1.6);ctx.stroke()}
+    ctx.globalAlpha=.9;ctx.fillStyle='#120818';ctx.globalCompositeOperation='source-over';ctx.beginPath();ctx.arc(w.x,w.y,WELL_CORE*.55*k,0,TAU);ctx.fill();
+    ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(w.x,w.y,WELL_CORE*.55*k+3,0,TAU);ctx.stroke();ctx.globalAlpha=1}
+  ctx.restore()}
 const rangeMult=b=>Math.min(3,1+b.dist*.002);
 function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);sfx('boom');
@@ -1672,7 +1700,6 @@ const segDist=(x,y,w)=>{const dx=w.x2-w.x1,dy=w.y2-w.y1,u=clamp(((x-w.x1)*dx+(y-
 function updateBullets(dt){
   for(const w of shields)w.t-=dt;shields=shields.filter(w=>w.t>0&&w.owner.alive);
   for(const b of bullets){if(b.dead)continue;
-    if(b.well){const t=other(b.owner);if(t&&t.alive){const dx=b.x-t.x,dy=b.y-t.y,d=Math.hypot(dx,dy);if(d<200&&d>1){const f=(1-d/200)*1500*b.well*dt;t.vx+=dx/d*f;t.vy+=dy/d*f*.7}}}
     if(b.stuck){const f0=b.fuse;b.fuse-=dt;if(Math.floor(f0*12)!==Math.floor(b.fuse*12)&&b.fuse>.05&&b.fuse<.42)sfx('fuse');
       if(b.fuse<=0){b.dead=true;explode(b,null);if(b.split>0){const n=b.mineN;splinter(b,n?Math.atan2(n.ny,n.nx):-Math.PI/2,Math.PI*.9/Math.max(1,b.split-1))}}continue}
     b.age+=dt;b.life-=dt;if(b.life<=0){killBullet(b,b.explode>0);continue}
@@ -1967,7 +1994,8 @@ function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
-  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
+  if(wells.length&&game.state!=='ready')for(const p of players)wellPull(p,h);
+  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();wellTick(h);
   dropTick(h);
   if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
   updateBullets(h);
@@ -2142,11 +2170,11 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
-  drawDrops();
+  drawWells();drawDrops();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
-  for(const b of bullets){let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
+  for(const b of bullets){if(b.hide)continue;let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
     {const ct=b.cosT??(b.owner&&b.owner.cos&&b.owner.cos.trail);if(ct&&tc===b.glow)tc=trailColor(ct,tc,b.id||0)}   // cosmetic trail (plain bullets only: effect colours stay readable)
     // tracer: a long thin trail that tapers to nothing, brightest at the head (ROUNDS-style)
     const n=t.length>>1;if(n>=3){ctx.strokeStyle=tc;
@@ -2273,7 +2301,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-21-survival';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-exact';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2477,11 +2505,12 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.c
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
+  wl:wells.map(w=>[r1(w.x),r1(w.y),r2(w.t),r2(w.max),Math.round(w.R),Math.round(w.pull),w.owner.id]),
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
-  b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1]),
+  b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
@@ -2493,6 +2522,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}
+  wells=(s.wl||[]).map(a=>({x:a[0],y:a[1],t:a[2],max:a[3],R:a[4],pull:a[5],owner:players[a[6]]})).filter(w=>w.owner);
   drops=(s.dr||[]).map(a=>({id:a[0],kind:DROP_KINDS[a[1]]||'heal',x:a[2],y:a[3],state:a[4]===0?'warn':a[4]===1?'fall':'ready',t:a[5],ty:a[6]}));
   shields=(s.sh||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
@@ -2510,8 +2540,8 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
     p.aim=a[4]});
   const seen=new Set();
   for(const a of s.b){seen.add(a[0]);let b=net.bmap.get(a[0]);const o=players[a[6]]||players[0];
-    let fresh=false;if(!b){b={id:a[0],trail:[],x:a[1],y:a[2]};net.bmap.set(a[0],b);fresh=true}
-    Object.assign(b,{sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1});b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===1&&(a[7]&256))adoptGhost(b,a[10]??-1)}
+    let fresh=false;if(!b){b={id:a[0],trail:[],x:a[1],y:a[2],seen:performance.now()};net.bmap.set(a[0],b);fresh=true}
+    Object.assign(b,{own:a[6],gun:!!(a[7]&256),ag:a[11]||0,sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1});b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===1&&(a[7]&256))adoptGhost(b,a[10]??-1)}
   for(const id of[...net.bmap.keys()])if(!seen.has(id))net.bmap.delete(id);
   bullets=net.ghosts.length?[...net.bmap.values(),...net.ghosts]:[...net.bmap.values()];   // keep this screen's own instant shots in the list
   // hanging blocks and moving platforms: the guest runs their motion itself every step (guestSwings) and steers toward
@@ -2587,7 +2617,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
     me.localBlockT=(me.localBlockT||0)-h;me.gCd=Math.max(0,(me.gCd||0)-h);
     if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me);if(me.s.blink){blinkMove(me);net.offX=net.offY=0}}}
-    moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
+    if(live)wellPull(me,h);moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
     if((me.blinkN|0)!==(me.gBn|0)){me.gBn=me.blinkN|0;me.gBs=seq}   // the step of this screen's latest teleport
@@ -2633,7 +2663,8 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     // made them stutter), and each one glides: it flies on its own velocity every frame and is steered onto the host's path
     const hAge=net.clkS!=null&&net.snap.ht!=null?clamp((performance.now()-net.clkS-net.snap.ht)/1000,0,.25):age;
     for(const b of net.bmap.values()){if(b.stuck){b.x=b.sx;b.y=b.sy;b.rx=null;b.trail.length=0;if(!b.stuckAt)b.stuckAt=performance.now();continue}
-      const A=hAge+(b.lead||0),tx=b.sx+b.vx*A,ty=b.sy+b.vy*A+.5*BGRAV*b.g*A*A;
+      const late=b.own===0&&b.lead==null?(net.interpMs||INTERP_MS)/1000*clamp(1-(performance.now()-(b.seen||0))/200,0,1):0,A=hAge+(b.lead||0)-late,tx=b.sx+b.vx*A,ty=b.sy+b.vy*A+.5*BGRAV*b.g*A*A;
+      b.hide=b.ag+A<0;if(b.hide){b.rx=null;continue}
       if(b.rx==null){b.rx=tx;b.ry=ty}else{b.rx+=b.vx*dt;b.ry+=(b.vy+BGRAV*b.g*A)*dt;const d=Math.hypot(tx-b.rx,ty-b.ry);
         if(d>(b.lead!=null?220:90)){b.rx=tx;b.ry=ty}else{const kk=Math.min(1,dt*(b.lead!=null?5:12));b.rx+=(tx-b.rx)*kk;b.ry+=(ty-b.ry)*kk}}   // an adopted shot steers onto the host's path rather than jumping
       if(b.lead>0)b.lead=Math.max(0,b.lead-dt*.2);   // a merged own shot eases from its predicted lead onto the host's timeline
