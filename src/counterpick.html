@@ -213,8 +213,25 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .shop-item canvas{width:110px;height:82px}
 .shop-item .nm{font-weight:800;font-size:15px}
 .shop-item .pr,.sb-card .pr{font-family:var(--mono);font-size:12px;font-weight:700;color:#ffd36b}.shop-item .pr.own,.sb-card .pr.own{color:var(--good)}.shop-item .pr.poor,.sb-card .pr.poor{color:var(--muted)}
-#survShop{z-index:2}.sv-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-height:none}.sv-grid .sb-card{padding:12px 8px 10px}.sv-grid .sb-card canvas{width:56px;height:56px}.sv-grid .sb-card:disabled{opacity:.55;cursor:default}
-.scrapchip{color:#9be15d;cursor:default}@media (max-width:640px){.sv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Survival's shop: the draft fan itself, with a price under each card, a lock, and a bar for scrap, your build (click a card
+   to sell it), reroll and the next round */
+#pick.shopmode #face{display:none}
+.card .shoprow{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:12px}
+.card .price{font:700 13px var(--mono);color:#ffd36b;background:rgba(14,8,22,.88);border:1px solid var(--line);border-radius:12px;padding:3px 10px}
+.card .price.poor{color:var(--muted)}
+.card .lockbtn{font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(14,8,22,.88);border:1px solid var(--line);border-radius:12px;padding:3px 9px;cursor:pointer}
+.card .lockbtn:hover{color:var(--text);border-color:var(--text)}
+.card.locked .lockbtn{color:#ffd36b;border-color:#ffd36b}.card.locked .tilt{box-shadow:inset 0 0 0 2px #ffd36b}
+.card.sold{opacity:.3;pointer-events:none;transform:translate(-50%,-50%) translate(var(--x),calc(var(--y) - 40px)) rotate(var(--r)) scale(.92)}
+.pick-shop{position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:0 max(24px,env(safe-area-inset-left,0px));justify-content:space-between}
+.pick-shop .scrapchip{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border:1px solid var(--line);border-radius:20px;background:rgba(18,12,28,.85);color:#9be15d;font:800 20px var(--body)}
+.pick-shop .build{flex:1 1 300px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.pick-shop .build .lbl{margin:0 6px 0 0}
+.pick-shop .chip{cursor:pointer;color:var(--text)}.pick-shop .chip:hover,.pick-shop .chip:focus-visible{border-color:var(--bad);color:var(--bad);outline:none}
+.pick-shop .acts{display:flex;gap:10px}
+.pick-shop .msg{flex-basis:100%;margin:0;font-size:14px;color:var(--muted);min-height:1.3em}
+@media (max-width:760px),(max-height:560px){#pick.shopmode .pick-head p{display:none}#pick.shopmode #fan{padding:70px 12px 16px;gap:30px 10px}#pick.shopmode .card{width:148px}#pick.shopmode .card .ds,#pick.shopmode .card ul,#pick.shopmode .card .meta{display:none}#pick.shopmode .card .tilt{padding-bottom:8px}
+  .pick-shop{position:sticky;bottom:0;background:rgba(14,8,22,.92);padding:10px 16px;margin-top:8px}.pick-shop .scrapchip{font-size:16px}.pick-shop .btn{font-size:14px;padding:7px 12px}}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
 /* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
 body:not(.touch) .touch-only{display:none!important}
@@ -328,9 +345,6 @@ body.touch .menu-foot .touchnote{display:inline}
   .mlist.opts button{font-size:clamp(15px,4.6vh,21px);padding-top:0;padding-bottom:0}.mlist.centered.opts button{padding-left:34px;padding-right:34px}
   .mlist.opts{width:min(400px,100%)}.opts-wrap>.lbl{margin:0 0 2px 34px}.opts-wrap .menu-hint{margin-top:2px}
   .pause-screen .screen-title{font-size:clamp(30px,9vh,44px)}
-  #survShop .panel{gap:8px;padding:14px 18px}#survShop .screen-title{font-size:clamp(26px,8vh,36px)}#survShop .shop-stats{font-size:11px}
-  .sv-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.sv-grid .sb-card{padding:6px 4px 5px}.sv-grid .sb-card canvas{width:30px;height:30px}.sv-grid .sb-card .nm{font-size:12px}
-  #survShop .sb-info{min-height:0;font-size:12px}#survShop .sb-foot .btn{font-size:14px;padding:6px 12px}#svDeck .chip{font-size:10px;padding:1px 5px}
   .mlist button::before{border-left-width:13px;border-top-width:9px;border-bottom-width:9px}
   .menu-hint{margin-top:4px;font-size:13px;height:2.8em}
   .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
@@ -359,22 +373,38 @@ body.touch .menu-foot .touchnote{display:inline}
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
       <nav class="mlist" aria-label="Main menu">
-        <button type="button" data-act="online" data-hint="Play a friend online. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
-        <button type="button" data-act="cpu" data-hint="Warm up against the computer. Pick its skill in Settings." style="--i:1">Practice vs CPU</button>
-        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2">Survival</button>
-        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3">Sandbox</button>
-        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:4">Shop</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:5">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:6">Settings</button>
+        <button type="button" data-act="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0">Single player</button>
+        <button type="button" data-act="multi" data-hint="Play with friends online: duel one-on-one, or team up against Survival's waves and bosses." style="--i:1">Multiplayer</button>
+        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:2">Shop</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4">Settings</button>
       </nav>
-      <p class="menu-hint" id="menuHint" aria-live="polite">Play a friend online. One of you hosts, the other joins with a code.</p>
+      <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
+    </div>
+    <div data-sub="solo" hidden>
+      <div class="lbl" style="margin:0 0 4px 40px">Single player</div>
+      <nav class="mlist" aria-label="Single player">
+        <button type="button" data-act="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0">Practice vs CPU</button>
+        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:1">Survival</button>
+        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:2">Sandbox</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:3">Back</button>
+      </nav>
+      <p class="menu-hint" aria-live="polite">A duel against the computer. Pick its skill in Settings.</p>
+    </div>
+    <div data-sub="multi" hidden>
+      <div class="lbl" style="margin:0 0 4px 40px">Multiplayer</div>
+      <nav class="mlist" aria-label="Multiplayer">
+        <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:1">Back</button>
+      </nav>
+      <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
     </div>
     <div data-sub="online" hidden>
       <nav class="mlist" aria-label="Duel a friend">
         <button type="button" data-act="host" data-hint="Get a 4-letter code and a link to send your friend." style="--i:0">Host a game</button>
         <button type="button" data-act="join" data-hint="Type the code your friend sent you." style="--i:1">Join with a code</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:2">Back</button>
+        <button type="button" data-act="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">Get a 4-letter code and a link to send your friend.</p>
     </div>
@@ -447,6 +477,12 @@ body.touch .menu-foot .touchnote{display:inline}
   <div class="pick-head"><h2 id="pickTitle">Orange drafts</h2><p id="pickSub">Lost the round · choose one</p></div>
   <canvas id="face" width="560" height="560"></canvas>
   <div id="fan"></div>
+  <div class="pick-shop" id="pickShop" hidden>
+    <span class="scrapchip"><b id="psScrap">0</b>&nbsp;scrap</span>
+    <div class="build" id="psBuild"></div>
+    <div class="acts"><button type="button" class="btn" data-ps="reroll">Reroll</button><button type="button" class="btn primary" data-ps="next">Next round</button></div>
+    <p class="msg" id="psMsg" aria-live="polite"></p>
+  </div>
 </div>
 
 <div id="sandbox" class="overlay" hidden>
@@ -481,19 +517,6 @@ body.touch .menu-foot .touchnote{display:inline}
     <div class="shop-grid" id="shopGrid"></div>
     <p class="sb-info" id="shopMsg" aria-live="polite">&nbsp;</p>
     <div class="sb-foot"><button type="button" class="btn primary" data-shopact="close">Back · Esc</button></div>
-  </div>
-</div>
-
-<div id="survShop" class="overlay" hidden>
-  <div class="panel sb-panel shop-panel" role="dialog" aria-labelledby="svTitle">
-    <div class="sb-head">
-      <h2 class="screen-title" id="svTitle">Round cleared</h2>
-      <div class="shop-bal"><span class="coinchip big scrapchip"><b id="svScrap">0</b>&nbsp;scrap</span><span class="shop-stats" id="svPay"></span></div>
-    </div>
-    <div class="sb-grid sv-grid" id="svGrid"></div>
-    <p class="sb-info" id="svMsg" aria-live="polite">&nbsp;</p>
-    <div class="lbl">Your build</div><div class="deck" id="svDeck"></div>
-    <div class="sb-foot"><button type="button" class="btn" data-sv="reroll">Reroll</button><button type="button" class="btn primary" data-sv="next">Next round</button></div>
   </div>
 </div>
 
@@ -599,7 +622,7 @@ const CARDS=[
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+15%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.15}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
- {n:'Gravity Well',k:'shot',r:2,d:'A shot that misses collapses into a gravity well that drags your rival in and burns them at its core. Pull them into pits and edges.',st:[['1.6s','Well',1],['Strong','Pull',1],['24/s','Core burn',1],['Stacks','Bigger, longer',1]],a:s=>{s.well+=1}},
+ {n:'Gravity Well',k:'shot',r:2,d:'Your bullets have their own gravity: shots that pass close to your rival bend into them, and hits slam an airborne rival to the ground.',st:[['130px','Pull range',1],['Slam','Airborne hits',1],['+40% range','Per copy',1]],a:s=>{s.well+=1}},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
@@ -864,7 +887,7 @@ addEventListener('keydown',e=>{initAudio();
   if(e.code==='Escape'&&!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause();
   if(e.code==='KeyM')toggleMute();
   if(e.code==='KeyF'&&game.state!=='pick')toggleFull();
-  if(game.state==='pick')pickKey(e)});
+  if(game.state==='pick'||game.state==='shop')pickKey(e)});
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();mouse.down=false});
 // online: tell the other player when this tab goes to the background (browsers pause a hidden tab's game loop)
@@ -920,7 +943,7 @@ function startMatch(mode){
   newPoint(true);
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
-  if(mode==='survival'){players[0].nextHand=cardsNamed(STARTERS);beginPick([0],'Survival · pick a card to build your run on',()=>{const me=players[0];game.starter=me.cards[me.cards.length-1];survRound(1)});cv.focus();return}
+  if(mode==='survival'){beginPick([0],'Survival · pick a card to start your run',()=>{const me=players[0];game.starter=me.cards[me.cards.length-1];survRound(1)});cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -931,7 +954,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
-  buildBg(game.map);bullets=[];parts=[];shields=[];wells=[];net.h0=[]}
+  buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[]}
 function newPoint(fresh){
   let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else do{i=Math.floor(Math.random()*MAPS.length)}while(i===game.mapIdx&&MAPS.length>1);
   loadMap(i);drops=[];
@@ -1146,8 +1169,6 @@ const BOSSES=[
   hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge'},
 ];
 const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6;
-// the opening pick: one card of each kind to base the run on (the shop leans toward the same kind)
-const STARTERS=['Triple Tap','Ricochet','Quick Guard','Thick Skin'];
 // ordinary enemies: a name, a look, and a growing random deck
 const RAIDERS=[{n:'Raider',color:'#4fb3a9',glow:'#9ff0e6',hat:'antenna'},{n:'Hunter',color:'#9a6bd8',glow:'#d2b4ff',hat:'tophat'},{n:'Gunner',color:'#d8b04f',glow:'#ffe7a0',hat:'party'},{n:'Shade',color:'#5a6a8c',glow:'#aebddc',hat:'halo'}];
 const bossOf=()=>players.find(p=>p.boss);
@@ -1220,35 +1241,44 @@ function survResolve(){const e=players[1],me=players[0];
   game.lives--;if(game.lives<=0){survEnd();return}
   const sp=game.map.sp,hp=e.hp;resetPlayer(me,sp[0]);e.x=sp[1][0];e.y=sp[1][1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;
   bullets=[];shields=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
-// ---- the shop between rounds: scrap buys cards (4 offers, leaning toward your starting kind), a reroll gets 4 new ones
-const SHOP_PRICE=[6,10,16];
-function survOffers(){const me=players[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,out=[],luck=Math.min(.25,game.round*.012);
-  for(let g=0;out.length<4&&g<200;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
-    let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.4){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
+// ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
+// started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
+// or sell a card from your build for half its price
+const SHOP_PRICE=[6,10,16],SHOP_N=5;
+const cardPrice=c=>SHOP_PRICE[c.r]+Math.floor((game.round||1)/2);
+function survOffers(){const me=players[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,luck=Math.min(.25,game.round*.012);
+  const keep=(game.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
+  for(let g=0;out.length<SHOP_N&&g<300;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
+    let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.35){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
     if(pool.length)out.push(pick(pool))}
-  game.offers=out.map(c=>({c,price:SHOP_PRICE[c.r]+Math.floor(game.round/2),sold:false}))}
-function openSurvShop(){game.state='shop';game.reroll=2+Math.floor(game.round/4);survOffers();$('#survShop').hidden=false;renderSurvShop();sfx('round',true);
-  const b=$('#survShop [data-sv=next]');b&&b.focus({preventScroll:true})}
-function renderSurvShop(msg){const me=players[0],grid=$('#svGrid');if(!grid)return;
-  setText('#svTitle',`Round ${game.round} cleared`);setText('#svScrap',game.scrap);
-  setText('#svPay',`+${game.lastPay} scrap${game.lastPay>10+2*game.round?' (no damage taken: +5)':''} · next: ${survBossFor(game.round+1)?survBossFor(game.round+1).n:`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} left`);
-  grid.innerHTML='';
-  game.offers.forEach((o,i)=>{const c=o.c,b=document.createElement('button');b.type='button';b.className='sb-card r'+c.r+(o.sold?' has':'');b.dataset.svbuy=i;b.style.setProperty('--cat',CAT[c.k]);b.style.setProperty('--pc',me.color);
-    b.disabled=o.sold;b.innerHTML=`<canvas width="80" height="80" aria-hidden="true"></canvas><span class="nm">${c.n}</span><span class="rar">${RAR[c.r]}</span><span class="pr${o.sold?' own':game.scrap<o.price?' poor':''}">${o.sold?'Bought':`${o.price} scrap`}</span>`;
-    const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,40,40,48,'#ffffff',4);grid.appendChild(b)});
-  const rr=$('#survShop [data-sv=reroll]');if(rr)rr.textContent=`Reroll · ${game.reroll} scrap`;
-  const deck=$('#svDeck');if(deck)deck.innerHTML=me.cards.map(c=>`<span class="chip">${c.n}</span>`).join('');
-  const m=$('#svMsg');if(m)m.innerHTML=msg||'&nbsp;'}
-function survBuy(i){const o=game.offers[i],me=players[0];if(!o||o.sold)return;
-  if(game.scrap<o.price){sfx('empty',true);renderSurvShop(`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${game.scrap}.`);return}
-  game.scrap-=o.price;o.sold=true;me.cards.push(o.c);recompute(me);sfx('pick',true);renderSurvShop(`Bought <b>${o.c.n}</b>.`)}
-function survReroll(){if(game.scrap<game.reroll){sfx('empty',true);renderSurvShop(`A reroll costs ${game.reroll} scrap.`);return}
-  game.scrap-=game.reroll;game.reroll+=2;survOffers();sfx('deal',true);renderSurvShop()}
-function survNext(){$('#survShop').hidden=true;sfx('go',true);survRound(game.round+1);cv.focus()}
-{const root=$('#survShop');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
-  if((b=t.closest('[data-svbuy]'))){survBuy(+b.dataset.svbuy);return}
-  if((b=t.closest('[data-sv]'))){const a=b.dataset.sv;if(a==='reroll')survReroll();else if(a==='next')survNext()}});
-  root.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('[data-svbuy]');const o=b&&game.offers&&game.offers[+b.dataset.svbuy];if(o){const m=$('#svMsg');if(m)m.innerHTML=`<b>${o.c.n}</b> · ${CATNAME[o.c.k]} · ${RAR[o.c.r]}. ${o.c.d}`}})}
+  game.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c)}:{c,price:cardPrice(c),sold:false,locked:false}})}
+function openSurvShop(){game.state='shop';game.reroll=2+Math.floor(game.round/4);survOffers();showSurvShop();sfx('round',true)}
+function showSurvShop(){const me=players[0],nx=survBossFor(game.round+1);
+  showHand(me,game.offers.map(o=>o.c),'','shop');$('#pick').classList.add('shopmode');$('#pickShop').hidden=false;
+  $('#pickTitle').textContent=`Round ${game.round} cleared`;
+  $('#pickSub').textContent=`+${game.lastPay} scrap${game.lastPay>10+2*game.round?' (no damage taken)':''} · next: ${nx?nx.n:`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
+  decorateShop();renderShopBar()}
+function decorateShop(){[...$('#fan').children].forEach((b,i)=>{const o=game.offers[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
+  let row=b.querySelector('.shoprow');if(!row){row=document.createElement('span');row.className='shoprow';row.innerHTML='<span class="price"></span><span class="lockbtn" role="button" tabindex="-1"></span>';
+    row.querySelector('.lockbtn').addEventListener('click',ev=>{ev.stopPropagation();survLock(i)});b.querySelector('.float').appendChild(row)}
+  const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&game.scrap<o.price);
+  const lk=row.querySelector('.lockbtn');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold})}
+function renderShopBar(msg){const me=players[0];setText('#psScrap',game.scrap);
+  const rr=$('#pickShop [data-ps=reroll]');if(rr)rr.textContent=`Reroll · ${game.reroll}`;
+  const el=$('#psBuild');if(el)el.innerHTML='<span class="lbl">Your build</span>'+me.cards.map((c,i)=>`<button type="button" class="chip" data-sell="${i}" title="Sell ${c.n} for ${Math.floor(cardPrice(c)/2)} scrap">${c.n}</button>`).join('');
+  const m=$('#psMsg');if(m)m.innerHTML=msg||'Click a card in your build to sell it for half price.'}
+function survBuy(i){const o=game.offers[i],me=players[0];if(!o||o.sold||game.state!=='shop')return;
+  if(game.scrap<o.price){sfx('empty',true);renderShopBar(`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${game.scrap}.`);return}
+  game.scrap-=o.price;o.sold=true;o.locked=false;me.cards.push(o.c);recompute(me);sfx('pick',true);drawBigFace(me,'happy');decorateShop();renderShopBar(`Bought <b>${o.c.n}</b>.`)}
+function survLock(i){const o=game.offers[i];if(!o||o.sold)return;o.locked=!o.locked;sfx('tick',true);decorateShop();renderShopBar(o.locked?`<b>${o.c.n}</b> will wait for you in the next shop.`:null)}
+function survReroll(){if(game.state!=='shop')return;if(game.scrap<game.reroll){sfx('empty',true);renderShopBar(`A reroll costs ${game.reroll} scrap.`);return}
+  game.scrap-=game.reroll;game.reroll+=2;survOffers();showSurvShop()}
+function survSell(i){const me=players[0],c=me.cards[i];if(!c||game.state!=='shop')return;const back=Math.floor(cardPrice(c)/2);
+  me.cards.splice(i,1);recompute(me);game.scrap+=back;sfx('thud',true);decorateShop();renderShopBar(`Sold <b>${c.n}</b> for ${back} scrap.`)}
+function survNext(){if(game.state!=='shop')return;$('#pick').hidden=true;$('#pick').classList.toggle('shopmode',false);$('#pickShop').hidden=true;pickFor=null;sfx('go',true);survRound(game.round+1);cv.focus()}
+{const bar=$('#pickShop');bar.addEventListener('click',e=>{const t=e.target;let b;initAudio();
+  if((b=t.closest('[data-sell]'))){survSell(+b.dataset.sell);return}
+  if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best, and CUUED coins for the rounds you cleared
 function survEnd(){const n=game.cleared||0,best=wallet.survBest||0,coins=Math.floor(n/2);game.state='over';
   if(n>best)wallet.survBest=n;if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
@@ -1304,7 +1334,7 @@ function nextPick(){
     setTimeout(()=>{if(tk!==game.token)return;hl=i;markHl()},700);
     setTimeout(()=>{if(tk!==game.token)return;choose(hand[i],i)},1500)}
 }
-function pickNow(i){if(!hand[i])return;if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i)}
+function pickNow(i){if(!hand[i])return;if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
 function animChosen(i){const b=$('#fan').children[i];b&&b.classList.add('chosen');[...$('#fan').children].forEach((o,k)=>{if(k!==i)o.classList.add('away')});sfx('pick',false,true);pickFor&&drawBigFace(pickFor,'happy')}
 /* CPU drafts by usefulness, not rarity, so it stops hoarding wall-phasing rares */
 const CPU_PREF={'Ghost Rounds':.45,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
@@ -1318,6 +1348,7 @@ function pickKey(e){if(!pickFor||game.bg||pickMode==='watch')return;
   const n=parseInt(e.key,10),L=hand.length||5;if(n>=1&&n<=L){pickNow(n-1);return}
   if(['ArrowLeft','KeyA'].includes(e.code)){hl=(hl+L-1)%L;markHl()}
   if(['ArrowRight','KeyD'].includes(e.code)){hl=(hl+1)%L;markHl()}
+  if(pickMode==='shop'){if(e.code==='KeyR'){survReroll();return}if(e.code==='KeyN'){survNext();return}}
   if(['Enter','Space','KeyF','Period'].includes(e.code)){e.preventDefault();pickNow(hl)}}
 
 
@@ -1433,9 +1464,10 @@ const ART={
      g.beginPath();g.arc(x,0,14+heat*22,0,TAU);g.fill();g.restore();AH.trail(g,x,0,0,40+q*160,8,heat>.6?'255,236,170':'255,245,215');AH.bullet(g,x,0,0,.8);
      g.fillStyle='rgba(255,255,255,.8)';g.font='bold 22px "JetBrains Mono", monospace';g.textAlign='center';g.fillText('x'+(1+q*3).toFixed(1),x,-34)}
    else{const q=(k-.8)/.2;for(let i=0;i<3;i++)AH.ring(g,150,0,20+q*(90+i*40),8*(1-q),1-q*(.6+i*.15))}},
- 'Gravity Well':(g,t)=>{const ph=t*.6%1,wx=110,wy=-20;if(ph<.3){const k=ph/.3,x=-170+k*280,y=-60+k*40;AH.trail(g,x,y,.14,60,6);AH.bullet(g,x,y,.14,.8)}
-   else{const k=(ph-.3)/.7;for(let i=0;i<3;i++){const q=(t*1.6+i/3)%1;AH.ring(g,wx,wy,70-q*58,2.5,q*.9)}g.save();g.fillStyle='rgba(20,6,34,.9)';g.beginPath();g.arc(wx,wy,12,0,TAU);g.fill();g.restore();
-     const bx=-120+k*170,by=70-k*70;AH.blob(g,bx,by,24,{look:1,ouch:k>.6})}g.fillStyle='rgba(255,255,255,.35)';g.fillRect(wx+30,-120,14,240)},
+ 'Gravity Well':(g,t)=>{const ph=t*.55%1,bx=90,by0=-30;const jump=ph<.55?Math.sin(ph/.55*Math.PI)*60:0;let by=by0-jump;
+   if(ph<.45){const k=ph/.45,x=-180+k*250,bend=Math.max(0,(k-.55)/.45),y=-90+bend*bend*50;AH.ring(g,bx,by,130*(.6+.4*Math.sin(t*6)),1.5,.25);AH.trail(g,x,y,bend*.5,60,6);AH.bullet(g,x,y,bend*.5,.8)}
+   else if(ph<.75){const k=(ph-.45)/.3;by=by0-60+k*k*150;AH.ring(g,bx,by,30+k*30,3,1-k)}else by=by0+90;
+   AH.blob(g,bx,Math.min(by,by0+90),24,{look:-1,ouch:ph>.45&&ph<.85});g.fillStyle='rgba(255,255,255,.25)';g.fillRect(20,by0+116,160,6)},
  'Limpet Mines':(g,t)=>{const k=t*.6%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(122,-100,10,200);
    if(k<.3){const x=-170+k/.3*282;AH.trail(g,x,0,0,70,7);AH.bullet(g,x,0,0,.9)}
    else if(k<.7){const q=(k-.3)/.4,blink=Math.floor(q*(4+q*10))%2;g.fillStyle=blink?'#ff5a4f':'#fff';g.beginPath();g.arc(112,0,10,0,TAU);g.fill();AH.ring(g,112,0,16+q*6,2,.6)}
@@ -1631,7 +1663,7 @@ const MINE_FUSE=.5,INTERP_MS=55,INTERP_FAST=38,OUT_X=400;   // OUT_X: past this 
 function killBullet(b,impact,wall,n){
   if(wall&&b.mines&&!b.stuck){if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45);b.mineN=n}
     b.stuck=true;b.vx=0;b.vy=0;b.grav=0;b.trail=[];b.fuse=MINE_FUSE;b.stuckAt=performance.now();b.bounces=0;b.life=5;sfx('arm');return}
-  b.dead=true;if(b.well)openWell(b);if(b.grow)longShock(b,null);   // Long Haul: a long shot lands with its shockwave wherever it ends (wall, floor, mid-air)
+  b.dead=true;if(b.grow)longShock(b,null);   // Long Haul: a long shot lands with its shockwave wherever it ends (wall, floor, mid-air)
   if(!impact)return;
   if(wall){const o=b.owner;
     if(b.split>0&&n){const d=b.vx*n.nx+b.vy*n.ny;splinter(b,Math.atan2(b.vy-2*d*n.ny,b.vx-2*d*n.nx),.45)}
@@ -1639,29 +1671,13 @@ function killBullet(b,impact,wall,n){
     sparks(b.x,b.y,'#fff6e8',6,420+sp*.15,ang,1.05);sparks(b.x,b.y,b.glow,4,300,ang,1.4)}
   burst(b.x,b.y,b.glow,4,240,3,.25,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 /* Long Haul: +25% damage per 100 px flown, up to x4; hits past x2 land with a shockwave that shoves everyone nearby */
-/* Gravity Well: a shot that misses (hits a wall or runs out of time) collapses into a well where it ends. For a moment
-   it drags the shooter's rival toward its centre (much harder in the air) and burns them at the core. Each copy makes
-   wells bigger, stronger and longer. A fighter holds at most 3 wells; the oldest closes first */
-const WELL_T=1.6,WELL_R=170,WELL_PULL=1900,WELL_CORE=34,WELL_DPS=24;
-let wells=[];
-function openWell(b){const n=b.well,o=b.owner;if(!n||!o||b.shard||b.plainRing)return;const mine=wells.filter(w=>w.owner===o);if(mine.length>=3)wells.splice(wells.indexOf(mine[0]),1);
-  const k=1+.35*(n-1),t=WELL_T+.35*(n-1);wells.push({x:b.x,y:b.y,t,max:t,R:Math.min(320,WELL_R*k),pull:WELL_PULL*k,owner:o});moveFx(o,()=>sfx('well'))}
-// the pull on one fighter this step (the visitor runs this on its own fighter too, so being pulled never needs correcting)
-function wellPull(p,h){if(!p||!p.alive)return;for(const w of wells){if(w.owner===p)continue;const dx=w.x-p.x,dy=w.y-p.y,d=Math.hypot(dx,dy);if(d>=w.R||d<1)continue;
-  // a well forms over its first 0.3 s, pulling gently at first: the other screen hears of it a moment later, so the part
-  // it can't know about yet stays small
-  const form=Math.min(1,(w.max-w.t)/.3),f=w.pull*form*form*Math.sqrt(1-d/w.R)*h;p.vx+=dx/d*f;p.vy+=dy/d*f*.85}}
-function wellTick(h){for(const w of wells)w.t-=h;wells=wells.filter(w=>w.t>0);
-  for(const w of wells)for(const p of players)if(p!==w.owner&&p.alive&&Math.hypot(w.x-p.x,w.y-p.y)<WELL_CORE+p.r*.5)damage(p,WELL_DPS*h,w.owner)}
-function drawWells(){if(!wells.length)return;const now=performance.now()/1000;ctx.save();
-  for(const w of wells){const age=w.max-w.t,k=Math.min(1,age/.3,w.t/.25),c=w.owner.glow;
-    const g=ctx.createRadialGradient(w.x,w.y,4,w.x,w.y,w.R*k);g.addColorStop(0,'rgba(20,6,34,.85)');g.addColorStop(.25,'rgba(70,30,110,.35)');g.addColorStop(1,'rgba(70,30,110,0)');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(w.x,w.y,w.R*k,0,TAU);ctx.fill();
-    ctx.globalCompositeOperation='lighter';ctx.strokeStyle=c;ctx.lineCap='round';
-    for(let i=0;i<3;i++){const a0=now*4+i*TAU/3,r=w.R*k*(.35+.2*i);ctx.globalAlpha=.55-.12*i;ctx.lineWidth=3-i*.6;ctx.beginPath();ctx.arc(w.x,w.y,r,a0,a0+1.6);ctx.stroke()}
-    ctx.globalAlpha=.9;ctx.fillStyle='#120818';ctx.globalCompositeOperation='source-over';ctx.beginPath();ctx.arc(w.x,w.y,WELL_CORE*.55*k,0,TAU);ctx.fill();
-    ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(w.x,w.y,WELL_CORE*.55*k+3,0,TAU);ctx.stroke();ctx.globalAlpha=1}
-  ctx.restore()}
+/* Gravity Well: bullets with their own gravity. A shot passing close to the rival bends into them (stronger the closer
+   it passes; it never turns back around), and a hit slams an airborne rival to the ground and takes its air jump until it
+   lands. Each copy widens and strengthens the pull */
+const WELL_R=130;
+function wellBend(b,t,dt){if(!t||!t.alive)return;const dx=t.x-b.x,dy=t.y-b.y,d=Math.hypot(dx,dy),R=Math.min(300,WELL_R*(1+.4*(b.well-1)));if(d>=R)return;
+  const cur=Math.atan2(b.vy,b.vx),off=wrapA(Math.atan2(dy,dx)-cur);if(Math.abs(off)>1.6)return;
+  const turn=9*(1-d/R)*(1+.25*(b.well-1))*dt,na=cur+clamp(off,-turn,turn),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}
 const rangeMult=b=>Math.min(3,1+b.dist*.002);
 function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);sfx('boom');
@@ -1677,6 +1693,7 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   if(b.slow){p.slowT=1.6;p.slowAmt=Math.max(p.slowAmt,Math.min(.8,b.slow));
     if(b.owner&&b.owner.s.freeze&&p.alive){p.chill=(p.chillT>0?p.chill||0:0)+1;p.chillT=2;
       if(p.chill>=3){p.chill=0;p.frozenT=1;p.vx*=.2;ring(p.x,p.y,'#d8f4ff',60);burst(p.x,p.y,'#e6f8ff',18,320,4,.5,0,true);sfx('freeze')}}}
+  if(b.well&&p.alive&&!p.grounded){p.vy=Math.max(p.vy,1150);p.vx*=.4;p.airJumps=0;ring(p.x,p.y,b.glow,60);burst(p.x,p.y,b.glow,12,380,4,.35,0,true);moveFx(p,()=>sfx('well'))}   // Gravity Well: slammed down
   if(p.alive&&p.s.spite>0){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
   burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;sfx('hit');
   b.dead=true;if(b.explode>0)explode(b,p)}
@@ -1706,6 +1723,7 @@ function updateBullets(dt){
     const hom=Math.max(b.homing,game.overtime&&!b.plainRing?.6:0);
     if(hom>0){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx),des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,
       na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
+    if(b.well)wellBend(b,other(b.owner),dt);
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
     if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*dt;
@@ -1994,8 +2012,7 @@ function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
-  if(wells.length&&game.state!=='ready')for(const p of players)wellPull(p,h);
-  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();wellTick(h);
+  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
   dropTick(h);
   if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
   updateBullets(h);
@@ -2170,7 +2187,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
-  drawWells();drawDrops();
+  drawDrops();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -2301,7 +2318,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-exact';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-stage1';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2505,7 +2522,6 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.c
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
-  wl:wells.map(w=>[r1(w.x),r1(w.y),r2(w.t),r2(w.max),Math.round(w.R),Math.round(w.pull),w.owner.id]),
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
@@ -2522,7 +2538,6 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}
-  wells=(s.wl||[]).map(a=>({x:a[0],y:a[1],t:a[2],max:a[3],R:a[4],pull:a[5],owner:players[a[6]]})).filter(w=>w.owner);
   drops=(s.dr||[]).map(a=>({id:a[0],kind:DROP_KINDS[a[1]]||'heal',x:a[2],y:a[3],state:a[4]===0?'warn':a[4]===1?'fall':'ready',t:a[5],ty:a[6]}));
   shields=(s.sh||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
@@ -2617,7 +2632,7 @@ function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state===
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
     me.localBlockT=(me.localBlockT||0)-h;me.gCd=Math.max(0,(me.gCd||0)-h);
     if(me.gEcho&&me.gEcho.length){for(let k=0;k<me.gEcho.length;k++)me.gEcho[k]-=h;if(me.gEcho[0]<=0){me.gEcho.shift();me.localBlockT=.3;if(me.s.charge)chargeKick(me);if(me.s.blink){blinkMove(me);net.offX=net.offY=0}}}
-    if(live)wellPull(me,h);moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
+    moveIntent(me,h);if(me.jk){const st=net.steps[net.steps.length-1];if(st&&st[0]===seq)st[8]=me.jk}   // tell the host which jump this was
     if(me.gBurst>0){me.gBurstT-=h;if(me.gBurstT<=0){ghostShot(me);me.gBurst--;me.gBurstT=.07}}   // same place in the step as the host's spawnShot
     moveCollide(me,h);
     if((me.blinkN|0)!==(me.gBn|0)){me.gBn=me.blinkN|0;me.gBs=seq}   // the step of this screen's latest teleport
@@ -2682,7 +2697,7 @@ function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
   const now=performance.now();
   // a ghost the host never confirms within 0.7 s was a phantom shot (counted, so tests can catch prediction drift); past
   // 0.45 s an unconfirmed ghost turns faint so it fades rather than pops
-  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
+  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;if(b.well)wellBend(b,players[0],dt);const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
     for(let k=0;k<st&&!b.dead;k++){b.x+=b.vx*dt/st;b.y+=b.vy*dt/st;
       for(const r of solids){if(r.bound||b.phase)continue;const n=bulletRect(b,r);if(!n)continue;
         if(b.bounces>0){const d=b.vx*n.nx+b.vy*n.ny;if(d<0){b.vx-=2*d*n.nx;b.vy-=2*d*n.ny}b.bounces--}else b.dead=true;break}}
@@ -2691,7 +2706,7 @@ function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
 function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
-      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
+      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,well:s.well,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
 // a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
 function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV*b.g;let best=-1,bs=1e9,bt=0;
@@ -2752,6 +2767,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openShop();
   else if(a==='fullscreen')toggleFull();
   else if(a==='online')showSub(ov,'online');
+  else if(a==='solo')showSub(ov,'solo');
+  else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
@@ -2762,7 +2779,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='name')openNameScreen();
   else if(a==='settings')showSub(ov,'settings');
   else if(a==='help')showSub(ov,'help');
-  else if(a==='back')showSub(ov,'main');
+  else if(a==='back')showSub(ov,b.dataset.back||'main');
   else if(a==='resume')togglePause();
   else if(a==='again')requestRematch();
   else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.role==='host'){startMatch('online-host');netSend({t:'restart'})}else startMatch(game.mode)}

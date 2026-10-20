@@ -8,7 +8,7 @@ const SOURCE = path.join(__dirname, '..', 'src', 'counterpick.html');
 
 const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, spawnBullet, updateBullets,
   drawCardArt, drawIcon, ICONS, sfx, initAudio, aimSolution, bulletG, keys, edges, mouse, settings,
-  loadMap, resetPlayer, recompute, clearShot, aimSolutionAt, BOSSES, startSurvival, survNext, survBuy, survReroll, survBossFor, STARTERS, beginPick, DROPS, dropTick, get drops() { return drops }, set drops(v) { drops = v }, die, damage, matchProgress, newPoint, chipAt, dealHand, shotSound, BASE, doBlock, render, sandbox, applySandbox, shieldsLen: () => shields.length, wallet, awardMatch, shopClick, cleanCos, COS, showEnd, updateSwings, get swings() { return swings },
+  loadMap, resetPlayer, recompute, clearShot, aimSolutionAt, BOSSES, startSurvival, survNext, survBuy, survReroll, survBossFor, survSell, survLock, beginPick, DROPS, dropTick, get drops() { return drops }, set drops(v) { drops = v }, die, damage, matchProgress, newPoint, chipAt, dealHand, shotSound, BASE, doBlock, render, sandbox, applySandbox, shieldsLen: () => shields.length, wallet, awardMatch, shopClick, cleanCos, COS, showEnd, updateSwings, get swings() { return swings },
   net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch, MiniMqtt, RelayConn, RELAY_BROKERS,
   get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
   get hand() { return hand }, get pickFor() { return pickFor }, get pickMode() { return pickMode }, get pickLock() { return pickLock }`;

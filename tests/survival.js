@@ -14,7 +14,7 @@ const RUNS = +(process.argv[2] || 6);
     let lastK = -1, round = 0;
     for (let f = 0; f < 60 * 60 * 25 && A.game.state !== 'over'; f++) {
       if (A.game.state === 'pick' && A.pickFor && !A.pickLock) A.choose(A.hand[0], null);
-      if (A.game.state === 'shop') { shops++; const s0 = A.game.scrap; for (let i = 0; i < 4; i++) A.survBuy(i); spent += s0 - A.game.scrap; A.survNext(); }
+      if (A.game.state === 'shop') { shops++; const s0 = A.game.scrap; for (let i = 0; i < 5; i++) A.survBuy(i); spent += s0 - A.game.scrap; A.survNext(); }
       try { A.update(1 / 60) } catch (e) { if (errors++ < 2) console.error(e) }
       flushTimers();
       if (A.game.round !== round) { round = A.game.round; const e = A.players[1];
