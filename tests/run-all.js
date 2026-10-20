@@ -23,6 +23,9 @@ const suite = [
   // 2% packet loss (home Wi-Fi): snapshots and inputs must never stall behind a lost packet
   withEnv(run('net.js'), { NET_LOSS: 2 }, 'loss2%'),
   withEnv(run('net.js', 90, 45), { NET_LOSS: 2 }, 'loss2%'),
+  // real devices: 144 Hz screens with frame jitter; a 30 fps visitor with jitter and a 150 ms stall every few seconds
+  withEnv(run('net.js'), { NET_REAL: 1, NET_HFPS: 144, NET_GFPS: 144, NET_FJIT: 1 }, '144Hz'),
+  withEnv(run('net.js', 90, 45), { NET_REAL: 1, NET_GFPS: 30, NET_FJIT: 3, NET_HITCH: '150@5' }, '30fps+hitches'),
   run('turn.js'),
   run('boss.js', 6),   // Boss Rush: a CPU stand-in fights each boss to the end
   // 4 seeds x 5 game-minutes of CPU vs CPU

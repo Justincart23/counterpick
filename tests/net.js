@@ -112,7 +112,56 @@ const DT = 1 / 60;
   // like a browser, let pending promise callbacks run between frames (the relay client is promise-based)
   const frameA = async (n = 1) => { for (let i = 0; i < n; i++) { frame(); await new Promise((r) => setImmediate(r)) } };
   let fcount = 0;
-  const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++; for (const A of actors) { try { A.update(DT); if (fcount % 6 === 0) A.render() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };   // both screens draw too
+  // NET_REAL=1: each screen runs at its own refresh rate with frame-time jitter and occasional hitches, like real
+  // devices (NET_HFPS / NET_GFPS, default 60; NET_FJIT ms of jitter per frame; NET_HITCH='ms@seconds' a stall every so
+  // often), and the drawn positions are scored for judder on both screens. Otherwise both screens step in lockstep.
+  const REAL = !!process.env.NET_REAL, FPS = [+(process.env.NET_HFPS || 60), +(process.env.NET_GFPS || 60)], FJIT = +(process.env.NET_FJIT || 0);
+  const [HITCH_MS, HITCH_EVERY] = (process.env.NET_HITCH || '0@0').split('@').map(Number);
+  let jseed2 = 5; const jr2 = () => ((jseed2 = (jseed2 * 1103515245 + 12345) >>> 0) / 2 ** 32);
+  const sched = new Map(), judder = { hostSelf: [0, 0], hostSeesGuest: [0, 0], guestSelf: [0, 0], guestSeesHost: [0, 0], hostPlatforms: [0, 0], guestPlatforms: [0, 0] };
+  const track = (key, A, p, x, dt) => { const k = key + p.id, st = track[k] || (track[k] = {});
+    const ok = A.game.state === 'play' && p.alive && Number.isFinite(x) && dt > 0 && st.map === A.game.mapIdx && !(p.hurtT > -.25) && !(p.kT > -.25) && !(p.chargeT > -.25) && !(key === 'guestSeesHost' && require('./env').clock.t - ev.knock0 < 450);
+    const v = ok && st.x != null ? (x - st.x) / dt : null;
+    // a judder: the drawn speed jumps by over 300 px/s AND the body lands more than 3 px off its course that frame
+    if (v != null && st.v != null) { judder[key][1]++; if (Math.abs(v - st.v) > 300 && Math.abs(v - st.v) * dt > 3) judder[key][0]++ }
+    st.v = v; st.x = x; st.map = A.game.mapIdx };
+  const plat = (key, A, dt) => { const a = A.game.alpha || 0; for (const w of A.solids) if (w.swing && w.lx != null) {
+      const x = w.lx + (w.x - w.lx) * a, st = w['_j' + key] || (w['_j' + key] = {});
+      const v = st.map === A.game.mapIdx && A.game.state === 'play' && st.x != null ? (x - st.x) / dt : null;
+      if (v != null && st.v != null) { judder[key][1]++; if (Math.abs(v - st.v) > 300 && Math.abs(v - st.v) * dt > 3) judder[key][0]++ }
+      st.v = v; st.x = x; st.map = A.game.mapIdx } };
+  const ev = { knock0: -1e9, knock1: -1e9, bn: 0, blinkAt: -1e9, bj: 0, bn2: 0, prevB: new WeakMap() };
+  const drawn = (A, dt) => { if (H.game.mode !== 'online-host' || G.game.mode !== 'online-guest') return;   // only while the two are in a match together
+    plat(A === H ? 'hostPlatforms' : 'guestPlatforms', A, dt); const now = require('./env').clock.t;
+    let smOk = true; try { sm } catch (e) { smOk = false }   // set up once the match starts
+    if (smOk && A === H && H.players[0]) { const h = H.players[0]; sm.hist.push([H.game.stepAt ?? now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 900) sm.hist.shift() }
+    for (const k of [0, 1]) { const q = H.players[k]; if (q && (q.hurtT > 0 || q.kT > 0 || q.chargeT > 0 || q.frozenT > 0)) ev['knock' + k] = now }
+    if (A === G) { const me = G.players[1], o = G.players[0];
+      if (smOk && o && o.alive && G.game.state === 'play' && H.game.state === 'play' && G.net.clk != null && now - ev.knock0 > 450) { const rt = now - (G.net.clkS ?? G.net.clk) - (G.net.interpMs || 55); let best = null;
+        for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
+        if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); if (process.env.PATHDBG && d > 40) console.log('PATH', Math.round(d), 'o', Math.round(o.x), Math.round(o.y), 'true', Math.round(best[1]), Math.round(best[2]), 'buf', (o.buf || []).length, 'rt-newest', o.buf && o.buf.length ? Math.round(rt - o.buf[o.buf.length - 1][0]) : null, 'st', G.game.state, H.game.state, 'stale', G.net.staleN || 0, 'snapHt', G.net.snap && G.net.snap.ht, 'hostStepAt', Math.round(H.game.stepAt), 'snaps', G.net.snapN, 'bufIsArr', Array.isArray(o.buf)); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } }
+      if (me && (me.blinkN || 0) !== ev.bn) { ev.bn = me.blinkN || 0; ev.blinkAt = now }
+      for (const b of G.bullets) { if (b.stuck) continue; const pv = ev.prevB.get(b);
+        if (pv && dt > 0) { const vx = (b.x - pv.x) / dt, vy = (b.y - pv.y) / dt;
+          if (pv.vx != null) { const dot = vx * pv.vx + vy * pv.vy, m = Math.hypot(vx, vy) * Math.hypot(pv.vx, pv.vy);
+            if (m > 0 && dot > 0.5 * m) { ev.bn2++; if (Math.hypot(vx - pv.vx, vy - pv.vy) - 1650 * (b.g || 1) * dt * 1.5 > 300) ev.bj++ } }
+          ev.prevB.set(b, { x: b.x, y: b.y, vx, vy }) } else ev.prevB.set(b, { x: b.x, y: b.y }) }
+      if (me && me.alive && G.game.state === 'play' && Number.isFinite(me.x)) { const x = (me.lx != null ? me.lx + (me.x - me.lx) * (G.game.alpha || 0) : me.x) + G.net.offX, y = (me.ly != null ? me.ly + (me.y - me.ly) * (G.game.alpha || 0) : me.y) + G.net.offY;
+        // unexplained by how it was moving (average of this frame's start and end velocity); a hitch frame itself is excluded
+        const ex = (me.vx + (ev.lvx ?? me.vx)) / 2 * dt, ey = (me.vy + (ev.lvy ?? me.vy)) / 2 * dt;
+        if (smOk && dt < .05 && ev.lx != null && ev.lmap === G.game.mapIdx && now - ev.knock1 > 400 && now - ev.blinkAt > 200 && Math.hypot(x - ev.lx - ex, y - ev.ly - ey) > 60) { visJumps++; if (process.env.JDBG) console.log('JUMP', Math.round(Math.hypot(x - ev.lx - me.vx * dt, y - ev.ly - me.vy * dt)), 'dt', Math.round(dt * 1000), 'hostLag', H.net.lagSteps, 'Q', (H.net.inQ || []).length, 'offX', Math.round(G.net.offX), 'offY', Math.round(G.net.offY), 'ackGap', G.net.inSeq - (H.players[1].ackSeq || 0), 'grounded', me.grounded, 'vy', Math.round(me.vy)) }
+        ev.lx = x; ev.ly = y; ev.lvx = me.vx; ev.lvy = me.vy; ev.lmap = G.game.mapIdx } else ev.lx = null } if (A === H) { const a = H.game.alpha || 0; for (const p of H.players) if (p.lx != null) track(p.id === 0 ? 'hostSelf' : 'hostSeesGuest', H, p, p.lx + (p.x - p.lx) * a, dt) }
+    else if (A === G) { const me = G.players[1], o = G.players[0]; if (me) track('guestSelf', G, me, (me.lx != null ? me.lx + (me.x - me.lx) * (G.game.alpha || 0) : me.x) + G.net.offX, dt); if (o) track('guestSeesHost', G, o, o.x, dt) } };
+  const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++;
+    if (!REAL) { for (const A of actors) { try { A.update(DT); if (fcount % 6 === 0) A.render() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000); continue }
+    const end = require('./env').clock.t + DT * 1000;
+    while (require('./env').clock.t < end) { const now = require('./env').clock.t;
+      for (const A of actors) { const k = actors.indexOf(A), fps = FPS[k] || 60; let s = sched.get(A); if (!s) { s = { next: now, last: now }; sched.set(A, s) }
+        if (now >= s.next) { const dt = Math.max(.001, (now - s.last) / 1000); s.last = now;
+          let per = 1000 / fps * (1 + (jr2() * 2 - 1) * FJIT / (1000 / fps)); if (HITCH_EVERY && jr2() < (1000 / fps) / (HITCH_EVERY * 1000)) per += HITCH_MS;
+          s.next = now + Math.max(1, per);
+          try { A.update(Math.min(dt, .25)); if (A === H || A === G) drawn(A, dt) } catch (e) { if (errors++ < 3) console.error(e) } } }
+      advance(1) } } };
 
   // --- a wrong code fails cleanly
   const X = (await load({ seed: 33, virtualTime: true })).api; X.setName('Lost');
@@ -203,15 +252,15 @@ const DT = 1 / 60;
     if (process.env.BLINKDBG) { const hb = H.players[1].blinkN || 0; if (hb !== (sg.hbn || 0)) { sg.hbn = hb; console.log('HOST  blink', hb, Math.round(H.players[1].x), Math.round(H.players[1].y), 'guestNow', Math.round(me.x), Math.round(me.y), 'aim', H.players[1].aim.toFixed(2), 'ack', H.players[1].ackSeq, 'gseq', G.net.inSeq, 'st', H.game.state, 'cd', H.players[1].blockCd.toFixed(2), 'stock', H.players[1].blockStock) }
       if ((me.blinkN || 0) !== (sg.bn || 0)) console.log('GUEST blink', me.blinkN, Math.round(me.x), Math.round(me.y), 'aim', me.aim.toFixed(2), 'hostNow', Math.round(H.players[1].x), Math.round(H.players[1].y), 'gseq', G.net.inSeq, 'gst', G.game.state, 'cd', (me.blockCd || 0).toFixed(2), 'stock', me.blockStock) }
     const blinked = (me.blinkN || 0) !== (sg.bn || 0); sg.bn = me.blinkN || 0; if (blinked) { sg.blinks = (sg.blinks || 0) + 1; sg.lastBlinkF = frames }   // Blink Guard: a teleport is meant to jump
-    if (vis && lastVis && !blinked && G.game.mapIdx === lastMap && G.game.state === 'play' && frames - hitAt > 24 && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) { visJumps++; if (process.env.BLINKDBG) console.log('JUMP', Math.round(Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1])), 'fsb', frames - (sg.lastBlinkF || -999), 'gseq', G.net.inSeq, 'snapAck', G.net.snap && G.net.snap.p[1][18], 'snapBlinkN', G.net.snap && G.net.snap.p[1][23], 'guestBlinkN', me.blinkN, 'hostBlinkN', H.players[1].blinkN, 'hostAck', H.players[1].ackSeq, 'lag', H.net.lagSteps) }
+    if (!REAL && vis && lastVis && !blinked && G.game.mapIdx === lastMap && G.game.state === 'play' && frames - hitAt > 24 && Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1]) > 60) { visJumps++; if (process.env.BLINKDBG) console.log('JUMP', Math.round(Math.hypot(vis[0] - lastVis[0], vis[1] - lastVis[1])), 'fsb', frames - (sg.lastBlinkF || -999), 'gseq', G.net.inSeq, 'snapAck', G.net.snap && G.net.snap.p[1][18], 'snapBlinkN', G.net.snap && G.net.snap.p[1][23], 'guestBlinkN', me.blinkN, 'hostBlinkN', H.players[1].blinkN, 'hostAck', H.players[1].ackSeq, 'lag', H.net.lagSteps) }
     // smoothness on the guest's screen: hanging blocks / moving platforms must glide (no frame-to-frame shake), and the
     // host's fighter must follow its true path (drawn INTERP ms in the past, so compare with where it really was then)
     if (G.game.state === 'play' && G.game.mapIdx === lastMap) for (const w of G.solids.filter((r) => r.swing)) {
       if (w._p1) { sm.sw++; if (Math.hypot(w.x - 2 * w._p1[0] + w._p2[0], w.y - 2 * w._p1[1] + w._p2[1]) > 3) sm.swShake++ } w._p2 = w._p1 || [w.x, w.y]; w._p1 = [w.x, w.y] }
-    { const h = H.players[0], now = vnow(); sm.hist.push([now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 400) sm.hist.shift();
+    { const h = H.players[0], now = vnow(); if (!REAL) { sm.hist.push([H.game.stepAt ?? now, h.x, h.y, H.game.mapIdx]); if (sm.hist.length > 400) sm.hist.shift() }
       const o = G.players[0];
       const hb0 = H.players[0].blinkN || 0; if (hb0 !== sm.hb0) { sm.hb0 = hb0; sm.hbF = frames }
-      if (G.game.state === 'play' && o.alive && G.net.clk != null && frames - (sm.hbF ?? -999) > 20) { const rt = now - G.net.clk - (G.net.interpMs || 55); let best = null;   // the guest's own interpolation delay let best = null;
+      if (!REAL && G.game.state === 'play' && o.alive && G.net.clk != null && frames - (sm.hbF ?? -999) > 20) { const rt = now - DT * 1000 - (G.net.clkS ?? G.net.clk) - (G.net.interpMs || 55);   /* the guest drew one frame ago: the clock has since advanced */ let best = null;   // the guest's own interpolation delay let best = null;
         for (const e of sm.hist) if (e[3] === G.game.mapIdx && (!best || Math.abs(e[0] - rt) < Math.abs(best[0] - rt))) best = e;
         if (best && Math.abs(best[0] - rt) < 20) { const d = Math.hypot(o.x - best[1], o.y - best[2]); sm.path++; sm.pathSum += d; if (d > 12) sm.pathOff++ } } }
     // bullets on the guest's screen: how soon its own shot appears after a click, and whether bullets fly smoothly
@@ -306,11 +355,14 @@ const DT = 1 / 60;
     check(cons.charges > 0 && cons.ducks > 0, `the features run should exercise dashes and ducks (charges ${cons.charges}, ducks ${cons.ducks})`);
   }
 
-  check(sm.sw < 200 || sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
+  check(REAL || sm.sw < 200 || sm.swShake / sm.sw < 0.01, `moving platforms should glide on the guest's screen (${sm.swShake} of ${sm.sw} frames shook more than 3px)`);
   check(sm.path > 300 && sm.pathOff / sm.path < 0.03 && sm.pathSum / sm.path < 6, `the host's fighter should follow its true path on the guest's screen (mean ${(sm.pathSum / sm.path).toFixed(1)}px off, ${sm.pathOff} of ${sm.path} frames over 12px)`);
-  check(bm.n < 500 || bm.jerk / bm.n < 0.05, `bullets should fly smoothly on the guest's screen (${(100 * bm.jerk / bm.n).toFixed(1)}% of bullet-frames jerked >4px)`);
+  check(REAL ? !(ev.bn2 > 500 && ev.bj / ev.bn2 > 0.03) : bm.n < 500 || bm.jerk / bm.n < 0.05, `bullets should fly smoothly on the guest's screen (${(100 * bm.jerk / bm.n).toFixed(1)}% of bullet-frames jerked >4px)`);
   { const ok = G.net.gMerged || 0, lost = G.net.gLost || 0; check(ok + lost < 10 || lost / (ok + lost) < 0.25, `the guest's instant shots should be confirmed by the host (${ok} confirmed, ${lost} never fired there)`) }
   const result = { matchSeconds: Math.round(frames / 60), score: finalScore, guestResponsePx: responsive && +responsive.toFixed(1), guestVisibleJumps: visJumps, ownShotFrames: bm.lat.length ? bm.lat.slice().sort((a, b) => a - b)[bm.lat.length >> 1] : null, bulletJerkPct: bm.n ? +(100 * bm.jerk / bm.n).toFixed(2) : null, ghostShotsConfirmed: G.net.gMerged || 0, ghostShotsPhantom: G.net.gLost || 0, ...(FEATURES ? { parries: cons.parries, dashFrames: cons.charges, duckFrames: cons.ducks, consistencyFrames: cons.n } : {}), platformShakeFrames: sm.swShake, otherFighterOffPathPx: +(sm.pathSum / sm.path).toFixed(1), guestClipFrames: embedded, guestPassThroughs: tunnels, relayMeanSyncPx: +relayMean.toFixed(1), hostDrafts, guestDrafts, guestMovedPx: Math.round(guestMoved), meanSyncErrorPx: +meanSync.toFixed(1), errors, failures: fail.length };
+  if (REAL) for (const [k, [n, d]] of Object.entries(judder)) check(d < 300 || n / d < 0.025, `${k}: drawn movement should be smooth (${n} of ${d} frames juddered)`);
+  if (REAL) result.bulletJudderPct = ev.bn2 ? +(100 * ev.bj / ev.bn2).toFixed(2) : null;
+  if (REAL) result.judderPct = Object.fromEntries(Object.entries(judder).map(([k, [n, d]]) => [k, d ? +(100 * n / d).toFixed(2) : null]));
   { const g = sg.gaps.slice().sort((a, b) => a - b); Object.assign(result, { hitsByHost: (H.game.hitsBy || [0, 0])[0], hitsByGuest: (H.game.hitsBy || [0, 0])[1], snapBytes: Math.round((globalThis.__snapB || 0) / (globalThis.__snapN || 1)), guestBlinks: sg.blinks || 0, snapGapP99Ms: g.length ? Math.round(g[Math.floor(g.length * .99)]) : null, snapGapMaxMs: g.length ? Math.round(g[g.length - 1]) : null, otherStutterPct: sg.n ? +(100 * sg.stutter / sg.n).toFixed(2) : null, lossPct: LOSS * 100, fast: FAST }) }
   if (LOSS && FAST) { const g = sg.gaps.slice().sort((a, b) => a - b); check(!g.length || g[g.length - 1] < 160, `a lost packet must not stall the guest's view (longest gap between snapshots ${Math.round(g[g.length - 1])} ms)`) }
   check(sg.n < 500 || sg.stutter / sg.n < 0.03, `the host's fighter should move smoothly on the guest's screen (${sg.stutter} of ${sg.n} frames stuttered)`);
