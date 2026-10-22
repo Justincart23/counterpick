@@ -1,4 +1,5 @@
-// Crates and rope drops: walking into a crate pushes it at a slower walk; a crate shoved off a ledge lands hard on whoever
+// Crates and rope drops: walking into a crate pushes it at a slower walk, and pushed off a ledge it lands on whoever is
+// below; three hits break a crate and leave a small health orb; a crate that falls lands hard on whoever
 // is below; one that falls out of the arena comes back; shooting a rope's red target drops its platform, which hurts the
 // fighter it lands on and stays where it lands; and every crate and rope is back in place at the next point.
 //   node tests/rides.js
@@ -17,7 +18,19 @@ const { load } = require('./env');
     check(c.x - x0 > 150, `walking into a crate should push it (moved ${Math.round(c.x - x0)} px)`);
     check(top <= A.CRATE_PUSH + 1, `pushing should be a slower walk (${Math.round(top)} px/s)`);
     check(Math.abs(P.x + P.r - c.x) < 3, 'the pusher should stay against the crate') }
-  // crush: the crate on Quarry's middle ledge, shoved off onto a fighter standing below
+  // a reason to push: shove the middle-ledge crate off the edge onto a rival standing below
+  { const [P, E] = setup('Quarry'); const c = A.rides.find((r) => r.crate && r.y < 500); A.resetPlayer(P, [c.x - 40, c.y + c.h - 20]); A.resetPlayer(E, [1075, 760]); E.ctrl = 'idle'; for (const o of A.rides) if (o.crate && o !== c && o.x > 1000) o.x = 1400; run(.3);
+    const hp = E.hp; A.keys.add('KeyD'); run(2.5); A.keys.clear(); out.pushedOntoRival = Math.round(hp - E.hp);
+    check(E.hp < hp, 'pushing a crate off a ledge should land it on the rival below') }
+  // break: three shots crack a crate apart and leave a health orb; walking into it heals a little, once
+  { const [P, E] = setup('Quarry'); E.alive = false; E.x = -999; const c = A.rides.find((r) => r.crate && r.y > 700 && r.x > 700 && r.x < 900);
+    A.resetPlayer(P, [c.x - 220, 760]); run(.2); const cy = c.y + c.h / 2;
+    for (let k = 0; k < A.CRATE_HITS; k++) { A.spawnBullet(P, c.x - 30, cy, 0, { plain: true, dmg: 10, r: 6, speed: 1800 }); run(.12); if (k < A.CRATE_HITS - 1) check(!c.broken, `a crate should take ${A.CRATE_HITS} hits (broke after ${k + 1})`) }
+    check(c.broken === 1, 'the third hit should break the crate and leave a health orb');
+    check(!A.solids.some((r) => r === c && r.y < 900), 'a broken crate should no longer block anything');
+    P.hp = P.s.maxHp * .5; const hp = P.hp; A.keys.add('KeyD'); run(1.2, () => {}); A.keys.clear(); out.orbHeal = Math.round(P.hp - hp);
+    check(c.broken === 2 && P.hp > hp, 'walking into the orb should heal a little'); check(P.hp - hp < P.s.maxHp * .2, 'the orb heal should be small') }
+  // crush: the crate on Quarry's middle ledge, knocked off onto a fighter standing below
   { const [P, E] = setup('Quarry'); const c = A.rides.find((r) => r.crate && r.y < 500);
     A.resetPlayer(E, [1015, 760]); A.resetPlayer(P, [-999, -999]); P.alive = false; const hp = E.hp;
     c.x = 985; c.vx = 0; run(1.2); out.crateHit = Math.round(hp - E.hp);
