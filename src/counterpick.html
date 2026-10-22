@@ -87,12 +87,6 @@ legend,.lbl{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-tra
 .seg span{display:block;padding:8px 14px;font-weight:800;font-size:14px;border-left:2px solid var(--line)}
 .seg label:first-child span{border-left:0}
 .seg input:checked+span{background:var(--text);color:var(--night)}
-.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px}
-.info>div{min-width:0}
-.info ol{margin:0;padding-left:22px;display:grid;gap:6px;line-height:1.45}
-.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px;line-height:1.5;align-items:baseline}
-.keys b{font-family:var(--mono);font-size:12px;letter-spacing:.08em}
-.keys .p1{color:var(--orange)} .keys .p2{color:var(--blue)}
 kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-bottom-width:3px;border-radius:4px;padding:0 5px;background:var(--night)}
 .foot{margin:0;font-size:13px;color:var(--muted);max-width:72ch}
 .touchnote{display:none;font-weight:800;color:var(--hot)}
@@ -348,7 +342,35 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
 @keyframes slideIn{from{opacity:0;transform:translateX(-46px)}}
 .mlist.centered button{animation-name:dropIn}
 @keyframes dropIn{from{opacity:0;transform:translateY(-22px)}}
-.help{display:grid;gap:16px;background:rgba(14,8,22,.72);border-left:4px solid var(--orange);padding:18px 20px;max-width:640px}
+/* How to play: one panel like the pause menu, a tab per topic, one short line per point */
+.help{display:grid;gap:14px;max-width:600px;width:100%}
+.hp-panel{background:rgba(33,21,47,.94);border:2px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45)}
+.hp-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.hp-tabs button{font-family:var(--display);font-size:18px;letter-spacing:.04em;color:var(--muted);background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;padding:7px 4px;cursor:pointer}
+.hp-tabs button:hover,.hp-tabs button:focus-visible{outline:none;border-color:var(--orange);color:var(--text)}
+.hp-tabs button.on{background:var(--orange);color:#1a0e05;box-shadow:0 3px 0 #a5520f}
+.hp-page{display:grid;gap:12px;padding:0 4px 2px}
+.hp-page[hidden]{display:none}
+.hp-steps,.hp-tips{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:st}
+.hp-steps li,.hp-tips li{display:grid;grid-template-columns:30px 92px 1fr;align-items:center;gap:10px;font-size:15px;line-height:1.35}
+.hp-tips li{grid-template-columns:92px 1fr}
+.hp-steps li::before{counter-increment:st;content:counter(st);display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--orange);color:#1a0e05;font-family:var(--display);font-size:16px}
+.hp-steps b,.hp-tips b{font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.03em;color:var(--hot)}
+.hp-note{margin:0;font-size:14px;line-height:1.4;color:var(--muted)}
+.hp-note b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--text);margin-right:6px}
+.hp-keys{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;margin:0;align-items:center;font-size:15px}
+.hp-keys dt{font-family:var(--display);font-size:18px;color:var(--hot)}
+.hp-keys dd{margin:0}
+.hp-keys kbd{font-size:13px;padding:1px 7px;margin-right:3px}
+.hp-dim{color:var(--muted);margin:0 4px}
+body.touch .desk-only{display:none!important}
+.hp-wheel{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;background:rgba(0,0,0,.22)}
+.hp-wheel span{font-family:var(--display);font-size:16px;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.07)}
+.hp-wheel i{font-style:normal;color:var(--muted)}
+.hp-wheel .gold{color:#ffe39a;background:rgba(230,181,60,.18)}
+.hp-wheel .boss{color:#1a0e05;background:var(--orange)}
+@media (max-height:520px){.help{gap:8px}.hp-panel{padding:10px}.hp-tabs{margin-bottom:8px}.hp-tabs button{font-size:15px;padding:5px 4px}.hp-page{gap:7px}.hp-steps,.hp-tips{gap:5px}.hp-keys{gap:4px 10px}.hp-steps li,.hp-tips li,.hp-keys,.hp-note{font-size:13px}.hp-steps b,.hp-tips b,.hp-keys dt{font-size:16px}.hp-steps li::before{width:22px;height:22px;font-size:13px}.hp-wheel{padding:6px}.hp-wheel span{font-size:14px;padding:2px 8px}}
+@media (max-width:560px){.hp-steps li{grid-template-columns:28px 1fr}.hp-steps li span{grid-column:2}.hp-tips li,.hp-keys{grid-template-columns:86px 1fr}.hp-tabs button{font-size:15px}}
 .menu-foot{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));margin:0;font-size:12px;line-height:1.6;color:var(--muted);max-width:min(560px,calc(100% - 200px))}
 .menu-foot .touchnote{display:none;color:var(--hot);font-weight:800}
 @media (hover:none) and (pointer:coarse){.menu-foot .touchnote{display:inline}}
@@ -517,26 +539,55 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
       <p class="menu-hint" aria-live="polite">The name your opponent sees. Change it whenever you like.</p>
     </div>
     <div class="help" data-sub="help" hidden>
-      <div class="info">
-        <div>
-          <div class="lbl">How a match works</div>
-          <ol>
-            <li>Both players draft one card before the first shot.</li>
-            <li>A point ends when one fighter dies. Two points win a round.</li>
-            <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
-            <li>Win the set number of rounds to take the match.</li>
-            <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. From round 7 every five rounds turn the same wheel: a wave, a <b>swarm</b> (more enemies, each weaker), a <b>twist</b> (low gravity, fast bullets...), an <b>elite</b> (a gold leader with extra cards and health, worth a bonus), then the boss. Bosses get tougher every time: more health each boss round, and an extra card from round 20. After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap: more for kills, no damage and bosses, plus interest (1 per 10 scrap saved, up to 5). Spend it in the shop on cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
-            <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
+      <div class="hp-panel">
+        <div class="hp-tabs" role="tablist"><button type="button" data-htab="basics" class="on">Basics</button><button type="button" data-htab="controls">Controls</button><button type="button" data-htab="survival">Survival</button><button type="button" data-htab="tricks">Tricks</button></div>
+        <div class="hp-page" data-hpage="basics">
+          <ol class="hp-steps">
+            <li><b>Draft</b><span>Both players pick a card before the first shot.</span></li>
+            <li><b>Fight</b><span>Take out your rival to win a point. Two points win the round.</span></li>
+            <li><b>Counter</b><span>The round's loser picks 1 of 5 cards. Cards stack.</span></li>
+            <li><b>Win</b><span>First to the set number of rounds takes the match.</span></li>
           </ol>
+          <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
         </div>
-        <div>
-          <div class="lbl">Controls</div>
-          <div class="keys">
-            <b class="p1">MOVE</b><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> move · <kbd>W</kbd>/<kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>S</kbd>/<kbd>↓</kbd> duck, drop through planks, fall fast · mouse aims · click shoots · right-click or <kbd>Shift</kbd> blocks</span>
-            <b class="touch-only">PHONE</b><span class="touch-only">Hold it sideways. Left thumb: a stick appears where you touch (run, flick up to jump, pull down to duck or drop). Right thumb: tap to auto-aim and fire, or drag to aim and let go to fire (drag back to the middle to cancel). Buttons for Jump and Block. Full screen is on the menu (on iPhone: Share, then Add to Home Screen).</span>
-            <b>ALL</b><span>Bright-lipped planks are one-way. Pink pads launch you, and some platforms move. The glowing arena edge isn't a wall: touching it hurts and knocks you back, and falling to the bottom bounces you up with damage. Bullets fly right over it, so a high lob comes back down. Hold toward a wall to grip it, and jump off it. <b>Tricks:</b> block just as a bullet arrives to <b>parry</b> it back at the shooter; block as you hit the arena edge to launch off it unhurt; shoot a hanging block into your rival to smash them (a block knocks it back). Shoot hanging blocks to swing them. White orb in hand = block ready. <kbd>Esc</kbd> pause · <kbd>M</kbd> mute</span>
-          </div>
+        <div class="hp-page" data-hpage="controls" hidden>
+          <dl class="hp-keys desk-only">
+            <dt>Move</dt><dd><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd></dd>
+            <dt>Jump</dt><dd><kbd>W</kbd> <kbd>Space</kbd> or <kbd>↑</kbd></dd>
+            <dt>Duck / drop</dt><dd><kbd>S</kbd> or <kbd>↓</kbd></dd>
+            <dt>Aim</dt><dd>Mouse</dd>
+            <dt>Shoot</dt><dd>Click</dd>
+            <dt>Block</dt><dd>Right-click or <kbd>Shift</kbd></dd>
+            <dt>Pause</dt><dd><kbd>Esc</kbd> <span class="hp-dim">·</span> mute <kbd>M</kbd></dd>
+          </dl>
+          <dl class="hp-keys touch-only">
+            <dt>Move</dt><dd>Left thumb, anywhere</dd>
+            <dt>Jump</dt><dd>Flick up, or the Jump button</dd>
+            <dt>Duck / drop</dt><dd>Pull the stick down</dd>
+            <dt>Shoot</dt><dd>Right thumb: tap, or drag and let go</dd>
+            <dt>Block</dt><dd>The Block button</dd>
+            <dt>Full screen</dt><dd>iPhone: Share, Add to Home Screen</dd>
+          </dl>
+        </div>
+        <div class="hp-page" data-hpage="survival" hidden>
+          <ol class="hp-steps">
+            <li><b>Start</b><span>Choose a character and one free card or power-up.</span></li>
+            <li><b>Survive</b><span>Clear each round. 3 lives for the whole run.</span></li>
+            <li><b>Shop</b><span>Rounds pay scrap. Spend it in the shop.</span></li>
+          </ol>
+          <div class="hp-wheel" aria-label="Every five rounds"><span>Wave</span><i>›</i><span>Swarm</span><i>›</i><span>Twist</span><i>›</i><span class="gold">Elite</span><i>›</i><span class="boss">Boss</span></div>
+          <p class="hp-note"><b>Bosses</b> Every 5th round, tougher each time. They warn before big attacks.</p>
+          <p class="hp-note"><b>Co-op</b> If your friend goes down, stand next to them for 2 seconds to revive them.</p>
+        </div>
+        <div class="hp-page" data-hpage="tricks" hidden>
+          <ul class="hp-tips">
+            <li><b>Parry</b><span>Block just as a bullet arrives to send it back.</span></li>
+            <li><b>Edges</b><span>The glowing edge hurts. Block as you hit it to bounce off safely.</span></li>
+            <li><b>Walls</b><span>Hold toward a wall to grip it, then jump off.</span></li>
+            <li><b>Planks</b><span>Bright-edged planks are one-way. Press down to drop through.</span></li>
+            <li><b>Pads</b><span>Pink pads launch you into the air.</span></li>
+            <li><b>Blocks</b><span>Shoot hanging blocks to swing them into your rival.</span></li>
+          </ul>
         </div>
       </div>
       <nav class="mlist"><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
@@ -2784,7 +2835,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-rotation';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-howto';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3242,6 +3293,9 @@ const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.sli
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true)}
+function helpTab(t){const h=$('[data-sub=help]');if(!h)return;const tabs=[...h.querySelectorAll('[data-htab]')];if(typeof t==='number'){const i=tabs.findIndex(b=>b.classList.contains('on'));t=tabs[(i+t+tabs.length)%tabs.length].dataset.htab}
+  tabs.forEach(b=>{const on=b.dataset.htab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});h.querySelectorAll('[data-hpage]').forEach(p=>p.hidden=p.dataset.hpage!==t)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-htab]');if(b){helpTab(b.dataset.htab);sfx('tick',true)}});
 function showSub(ov,which){ov.querySelectorAll('[data-sub]').forEach(n=>n.hidden=n.dataset.sub!==which);focusFirst(ov)}
 function focusFirst(ov){const l=ov.querySelector('[data-sub]:not([hidden])')||ov;const b=l.querySelector('input:not([readonly]),button');b&&b.focus({preventScroll:true})}
 function visibleList(){for(const id of['#pause','#end','#menu']){const o=$(id);if(o&&!o.hidden)return o.querySelector('[data-sub]:not([hidden])')}return null}
@@ -3249,6 +3303,7 @@ function visibleList(){for(const id of['#pause','#end','#menu']){const o=$(id);i
 function menuKey(e){if(!$('#pick').hidden)return false;const l=visibleList();if(!l)return false;const items=[...l.querySelectorAll('button')];if(!items.length)return false;
   let i=items.indexOf(document.activeElement);const c=e.code;
   if(['ArrowUp','KeyW','ArrowDown','KeyS'].includes(c)){e.preventDefault();const d=c==='ArrowDown'||c==='KeyS'?1:-1;i=i<0?0:(i+d+items.length)%items.length;items[i].focus();sfx('tick',true);return true}
+  if(['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)&&l.dataset.sub==='help'){e.preventDefault();helpTab(c==='ArrowRight'||c==='KeyD'?1:-1);const t=l.querySelector('[data-htab].on');t&&t.focus();sfx('tick',true);return true}
   if(['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)&&i>=0&&items[i].dataset.opt){e.preventDefault();cycleOpt(items[i].dataset.opt,c==='ArrowRight'||c==='KeyD'?1:-1);return true}
   if(c==='Enter'||c==='Space'){e.preventDefault();(items[i>=0?i:0]).click();return true}
   if(c==='Escape'){const back=l.querySelector('[data-act=back]');if(back){back.click();return true}if(!$('#pause').hidden){togglePause();return true}}
@@ -3274,7 +3329,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
     try{navigator.clipboard.writeText(v).then(done,()=>{inp.select();b.textContent='Press Ctrl+C'})}catch(err){inp.select();b.textContent='Press Ctrl+C'}}
   else if(a==='name')openNameScreen();
   else if(a==='settings')showSub(ov,'settings');
-  else if(a==='help')showSub(ov,'help');
+  else if(a==='help'){helpTab('basics');showSub(ov,'help')}
   else if(a==='back')showSub(ov,b.dataset.back||'main');
   else if(a==='resume')togglePause();
   else if(a==='again')requestRematch();
