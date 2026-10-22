@@ -533,7 +533,7 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap for the shop: cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
+            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap: more for kills, no damage and bosses, plus interest (1 per 10 scrap saved, up to 5). Spend it in the shop on cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
             <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
           </ol>
         </div>
@@ -1399,10 +1399,10 @@ function startSurvival(){startMatch('survival')}
 function makeBoss(p,B,cycle){p.boss=B;p.name=B.n;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;p.hpMul=1+.35*(cycle||0);
   p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0}}
 function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
-  const k=Math.min(14,n-1+Math.floor(n/3)-(count-1)),pool=CARDS.filter(c=>(c.r<2||n>=6)&&!['Second Wind','Aegis'].includes(c.n)),out=[];
+  const k=Math.min(10,Math.round(.55*(n-1))+Math.floor(n/6)-(count>2?1:0)),pool=CARDS.filter(c=>(c.r<2||n>=10)&&!['Second Wind','Aegis'].includes(c.n)),out=[];   // a gentle climb: about one card every two rounds, rares from round 10
   for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
   // a bigger wave splits the strength: more enemies, each a little weaker
-  p.hpMul=(1+.09*(n-1))*(count>1?.62:1)}
+  p.hpMul=(1+.07*(n-1))*(count>1?.62:1)}
 // set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
 /* ---------- Co-op Survival: two heroes, one run. The host simulates everything; each hero picks and shops on their own
    screen at the same time, and the run carries on when both are done. A downed hero comes back after 8, 12 then 16 s, or
@@ -1469,9 +1469,9 @@ function survRound(n){game.round=n;const B=survBossFor(n);
   const hs=heroes(),count=B?(n>=15?2:1):Math.min(5,survWave(n)+(hs.length>1&&n>=4?1:0));   // co-op: one more enemy from round 4
   const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
-  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));if(n===5)e.hpMul*=.85}else makeRaider(e,n,i,B?3:count);if(hs.length>1)e.hpMul*=1.45;recompute(e)});   // two heroes: tougher enemies
-  for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0}game.waitMsg='';
-  game.diff=n<=2?'easy':n<=6?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
+  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));if(n===5)e.hpMul*=.85}else makeRaider(e,n,i,B?3:count);if(hs.length>1)e.hpMul*=e.boss?1.75:1.3;recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
+  for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0;h.roundKills=0}game.waitMsg='';
+  game.diff=n<=3?'easy':n<=9?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;
   if(n<=1)game.newBest=false;{const best=wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
@@ -1561,8 +1561,11 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
 // a point in Survival: every enemy down clears the round (then the shop); every hero down costs a life, and the
 // enemies keep their damage. No lives left ends the run
 function survResolve(){const hs=heroes();
-  if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?15:0;   /* a beaten boss pays a bonus: that's how power-ups are earned now */
-    for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?5:0,pay=Math.round((13+2*game.round+bb+nd)*mul);h.scrap=(h.scrap||0)+pay;h.lastPay=pay;h.payNote=[bb?'boss bonus':'',nd?'no damage taken':''].filter(Boolean).join(', ')}
+  if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?12:0;   /* a beaten boss pays a bonus: that's how power-ups are earned */
+    // pay = a base that grows slowly + 2 per kill + 4 for no damage + the boss bonus (x the character's bonus), then interest: 1 per 10 scrap saved (up to 5)
+    for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?4:0,kills=h.roundKills|0,int=Math.min(5,Math.floor((h.scrap|0)/10)),
+      team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((7+game.round+2*kills+bb+nd+team)*mul)+int;h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
+      h.payNote=[kills?`${kills} kill${kills>1?'s':''}`:'',bb?'boss bonus':'',nd?'no damage':'',team?'teamwork':'',int?`+${int} interest`:''].filter(Boolean).join(', ')}
     game.cleared=game.round;game.state='shop';
     // every hero shops (in co-op both at once, each on their own screen); then the next round
     heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
@@ -1571,7 +1574,7 @@ function survResolve(){const hs=heroes();
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
   bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
 // XP from damage you deal; each level waits for the end of the round
-function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);
+function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);if(killed)src.roundKills=(src.roundKills|0)+1;
   while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;const m0=src.s.maxHp;recompute(src);src.hp+=src.s.maxHp-m0;   // the new health arrives at once
     parts.push({text:`LEVEL ${src.lvl} · +HP +DMG`,x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1.2,max:1.2,color:'#9be15d'});sfx('point')}}
 // the run's one free pick: three cards and two power-ups in one hand
@@ -1580,7 +1583,7 @@ function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),up
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
 const SHOP_PRICE=[6,10,16],SHOP_N=5;
-const cardPrice=c=>(c.up?8:SHOP_PRICE[c.r])+Math.floor((game.round||1)/2);   // a power-up costs a bit more than a common card
+const cardPrice=c=>(c.up?9:SHOP_PRICE[c.r])+Math.floor((game.round||1)/3);   // a power-up costs a bit more than a common card
 function survOffers(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
   const keep=(p.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
   for(let g=0;out.length<SHOP_N&&g<300;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
@@ -2638,7 +2641,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
       ctx.globalAlpha=a;ctx.strokeStyle=gr;ctx.lineWidth=q.r*1.6*a+2;ctx.beginPath();ctx.moveTo(q.x+dx*(1-a)*.5,q.y+dy*(1-a)*.5);ctx.lineTo(q.x1,q.y1);ctx.stroke();continue}
     if(q.implode){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=3+3*a;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*a,0,TAU);ctx.stroke();continue}
-    if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;ctx.fillText(q.text,q.x,q.y);ctx.textAlign='left';continue}
+    if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;
+      const hw=ctx.measureText(q.text).width/2+12,x0=Math.max(0,cam.x),x1=Math.min(W,cam.x+VW/cam.z),y0=Math.max(0,cam.y)+40;   // kept on screen, never cut off at an edge
+      ctx.fillText(q.text,x1-x0>hw*2?clamp(q.x,x0+hw,x1-hw):(x0+x1)/2,Math.max(y0,q.y));ctx.textAlign='left';continue}
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
@@ -2770,12 +2775,12 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame();chatSync();update(dt);render();requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-chat';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-balance';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3294,7 +3299,10 @@ function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFulls
     Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 {const d=document,ok=!!(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen),pf=$('#pFull');if(!ok&&pf)pf.hidden=true;
   const sync=()=>{const t=d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen';for(const id of['#mFull','#pFull']){const m=$(id);if(m)m.textContent=t}};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
-const boot=()=>{setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
+let updReady=false,updAt=0;
+function checkUpdate(){try{if(!/^https?:/.test(location.protocol)||updReady)return;fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='([^']+)'/.exec(t||'');if(m&&m[1]!==BUILD)updReady=true}).catch(()=>{})}catch(e){}}
+function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#nameScreen').hidden){updReady=false;location.reload()}}
+const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);
