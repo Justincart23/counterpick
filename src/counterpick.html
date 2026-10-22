@@ -276,6 +276,12 @@ body.touch.ingame #touchUI{display:block}
 .tbtn.down{background:rgba(255,255,255,.3)}
 #tJump{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 #tBlock{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));border-color:rgba(255,255,255,.6)}
+/* Thumb room: the aim thumb rests in the bottom of the right lane; Jump and Block sit smaller, stacked above it */
+body.room #tsAim{left:calc(100% - max(var(--gut,110px) * .5,62px) - env(safe-area-inset-right,0px))}
+body.room .tbtn{width:56px;height:56px;font-size:12px}
+body.room #tJump,body.room #tBlock{right:calc(max(var(--gut,110px) * .5 - 28px,6px) + env(safe-area-inset-right,0px))}
+body.room #tBlock{bottom:calc(146px + env(safe-area-inset-bottom,0px))}
+body.room #tJump{bottom:calc(210px + env(safe-area-inset-bottom,0px))}
 #rotate{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;background:rgba(14,8,22,.94);color:var(--text);font:800 20px var(--body);text-align:center;padding:24px}
 @media (orientation:portrait){body.touch.ingame #rotate{display:flex}}
 .rot-ic{width:46px;height:76px;margin:0 auto 16px;border:4px solid #ffd36b;border-radius:10px;animation:rot 1.6s ease-in-out infinite}
@@ -796,7 +802,7 @@ let view={s:1,ox:0,oy:0,cs:1,cox:0,coy:0};
 /* Phone view. 'Thumb room' (the default on touch screens): the arena sits between two side lanes where the thumbs and the
    controls live, so a thumb never covers the fight. 'Fill screen': the arena runs edge to edge (zoomed in a little) */
 let thumbRoom=false;
-function phoneView(){let pv='room';try{pv=settings.pview||'room'}catch(e){}let on=false;try{on=touch.on}catch(e){}thumbRoom=on&&pv!=='fill';resize()}
+function phoneView(){let pv='room';try{pv=settings.pview||'room'}catch(e){}let on=false;try{on=touch.on}catch(e){}thumbRoom=on&&pv!=='fill';try{document.body.classList.toggle('room',thumbRoom)}catch(e){}resize()}
 function resize(){const dpr=Math.min(2,devicePixelRatio||1),vv=window.visualViewport,ww=Math.round(vv&&vv.width||innerWidth),wh=Math.round(vv&&vv.height||innerHeight);   // the part actually on screen (phone browser bars come and go)
   if(typeof scrollTo==='function'&&(scrollX||scrollY))scrollTo(0,0);cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
   cv.style.width=ww+'px';cv.style.height=wh+'px';const gut=thumbRoom?clamp(ww*.1,64,120):0,s=Math.min((ww-2*gut)/VW,wh/VH);{const st=document.documentElement&&document.documentElement.style;if(st&&st.setProperty)st.setProperty('--gut',gut+'px')}view={s:s*dpr,ox:(ww-VW*s)/2*dpr,oy:(wh-VH*s)/2*dpr,cs:s,cox:(ww-VW*s)/2,coy:(wh-VH*s)/2}}
@@ -2646,7 +2652,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-thumbs';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-thumbs2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
