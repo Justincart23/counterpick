@@ -91,7 +91,7 @@ async function tab(port, url) {
   await A.ev(`document.querySelector('[data-act="help"]').click()`);
   ok(await A.until(shown('[data-sub="help"]'), 2000), 'How to play opens');
   await A.key('Escape', 'Escape');
-  ok(await A.ev(`!!document.querySelector('#bFull')&&!document.querySelector('#bFull').hidden`), 'the Full screen button is there');
+  ok(await A.ev(`!!document.querySelector('#bPause')&&!!document.querySelector('#pFull')&&!document.querySelector('#pFull').hidden`), 'the pause button is there, with Full screen in the pause menu');
   ok(A.errors.length === 0, `no page errors on the local build${A.errors.length ? ': ' + A.errors.slice(0, 3).join(' | ') : ''}`);
 
   // ---- live site: a real online match between two tabs ----
