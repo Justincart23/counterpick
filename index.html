@@ -2054,7 +2054,7 @@ function updateBullets(dt){
   bullets=bullets.filter(b=>!b.dead)}
 
 function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps;
-  if(r.kind===3){p.vy=-1750;p.padT=.6;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad
+  if(r.kind===3){p.vy=-Math.min(1750,Math.sqrt(2*PG*gMul()*Math.max(60,p.y-p.r-FRAME-36)));p.padT=.6;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad: a high pad throws you only as far as the arena top allows
   if(!wasG){if(r.swing)pushSwing(r,p.vx*.25+vyIn*.05*Math.sign(p.x-(r.x+r.w/2)));if(vyIn>700){p.squash=.72;moveFx(p,()=>{sfx('land');burst(p.x,p.y+p.r,'#cfd8e3',6,200,3,.3,0)})}}}
 function pushOut(p,r){const R=p.r,l=p.x+R-r.x,rr=r.x+r.w-(p.x-R),t=p.y+R-r.y,bt=r.y+r.h-(p.y-R),m=Math.min(l,rr,t,bt);
   if(m===t){p.y=r.y-R;if(p.vy>0)p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps}else if(m===bt){p.y=r.y+r.h+R;if(p.vy<0)p.vy=0}
@@ -2659,7 +2659,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-stats';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-pads';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
