@@ -293,9 +293,13 @@ body.touch button{touch-action:manipulation}
 body.touch .kh{display:none}
 body.touch #hudbtns{top:calc(6px + env(safe-area-inset-top,0px));bottom:auto;left:50%;right:auto;transform:translateX(-50%);gap:6px}
 body.touch:not(.ingame) #hudbtns{display:none}
-body.touch #hudbtns button{font-size:12px;padding:6px 10px}
+body.touch #hudbtns button{font-size:13px;padding:5px 11px 6px}
 body.touch .menu-foot .touchnote{display:inline}
-#hudbtns button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:4px;background:rgba(18,29,42,.8);color:var(--muted);padding:5px 9px;cursor:pointer}
+#hudbtns button{font-family:var(--display);font-size:15px;letter-spacing:.03em;border:2px solid var(--line);border-radius:6px;background:rgba(33,21,47,.86);color:var(--text);padding:5px 12px 6px;cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.35);transition:transform .08s,filter .08s,border-color .08s;display:inline-flex;align-items:center;gap:7px}   /* the menu buttons' look, a size down */
+#hudbtns button:hover{transform:translateY(-2px);filter:brightness(1.15);border-color:var(--orange)}
+#hudbtns button:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+#hudbtns .kh{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px;line-height:15px}   /* the shortcut as a small keycap */
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
 .menu-screen{justify-content:flex-start;align-items:center;flex-direction:column;background:linear-gradient(90deg,rgba(14,8,22,.86) 0%,rgba(14,8,22,.6) 38%,rgba(14,8,22,.12) 72%,rgba(14,8,22,0));backdrop-filter:none}
@@ -395,7 +399,7 @@ body.touch .menu-foot .touchnote{display:inline}
   <button type="button" class="tbtn block" id="tBlock">Block</button>
 </div>
 <div id="rotate" class="touch-only"><div><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways to play</div></div>
-<div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh"> · Tab</span></button><button id="bPause" type="button">Pause<span class="kh"> · Esc</span></button><button id="bMute" type="button">Sound on<span class="kh"> · M</span></button><button id="bFull" type="button">Full screen<span class="kh"> · F</span></button></div>
+<div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh">Tab</span></button><button id="bPause" type="button">Pause<span class="kh">Esc</span></button><button id="bMute" type="button">Sound on<span class="kh">M</span></button><button id="bFull" type="button">Full screen<span class="kh">F</span></button></div>
 
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
@@ -2657,7 +2661,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-look';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-hud';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3143,7 +3147,7 @@ function togglePause(){
     if(show){refreshOpts();$('#pLoadout').hidden=true;$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
-function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').innerHTML=(muted?'Sound off':'Sound on')+'<span class="kh"> · M</span>';if(!fromSetting){saveSettings();refreshOpts()}}
+function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;$('#bMute').innerHTML=(muted?'Sound off':'Sound on')+'<span class="kh">M</span>';if(!fromSetting){saveSettings();refreshOpts()}}
 function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#shop').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
@@ -3155,7 +3159,7 @@ function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFulls
   else{const el=d.documentElement,r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);   // phones: also hold it sideways
     Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 {const b=$('#bFull'),d=document,ok=!!(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen);if(!ok)b.hidden=true;b.onclick=()=>{b.blur();toggleFull()};
-  const sync=()=>{b.innerHTML=(d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen')+'<span class="kh"> · F</span>';const m=$('#mFull');if(m)m.textContent=d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen'};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
+  const sync=()=>{b.innerHTML=(d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen')+'<span class="kh">F</span>';const m=$('#mFull');if(m)m.textContent=d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen'};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
 const boot=()=>{setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
