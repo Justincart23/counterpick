@@ -58,12 +58,13 @@
   --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
   color-scheme:dark;
 }
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior:none}
+html{position:fixed;inset:0;overflow:hidden}   /* a game, not a page: nothing to scroll, no rubber-banding, nothing to knock it off centre */
 body{margin:0}
 [hidden]{display:none!important}
 body{background:var(--night);color:var(--text);font-family:var(--body);overflow:hidden;user-select:none;-webkit-user-select:none}
 #game{position:fixed;inset:0;display:block;outline:none;cursor:crosshair}
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:auto;
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:auto;overscroll-behavior:contain;
   padding-block:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.7);backdrop-filter:blur(2px)}
@@ -173,6 +174,22 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
   .card.away{transform:none;opacity:.25}
   #face{display:none}
 }
+/* a phone held sideways: every card in one row, sized to fit the screen; nothing scrolls */
+@media (max-height:560px) and (orientation:landscape){
+  #pick{overflow:hidden}
+  #fan{position:absolute;left:0;right:0;top:calc(58px + env(safe-area-inset-top,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;height:auto;
+    display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:10px;padding:18px max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px))}
+  .card{width:min(176px,calc((100vw - 48px - (var(--n,5) - 1) * 10px) / var(--n,5)))}
+  .card .nm{font-size:13px;margin-bottom:6px}
+  .card .medal{width:34px;height:34px;margin-top:-17px}
+  .card .meta{margin-top:4px;font-size:8px;letter-spacing:.1em}
+  .card .ds{font-size:11px;line-height:1.25;padding:4px 8px 5px}
+  .card ul{margin:0 8px;padding-top:5px}.card li{font-size:11px}.card .tilt{padding-bottom:8px}
+  .pick-head{top:calc(8px + env(safe-area-inset-top,0px))}.pick-head h2{font-size:26px}.pick-head p{font-size:10px;letter-spacing:.05em}
+  #pick.shopmode #fan{bottom:calc(64px + env(safe-area-inset-bottom,0px));padding-top:14px}
+  #pick.shopmode .card{width:min(150px,calc((100vw - 48px - (var(--n,5) - 1) * 10px) / var(--n,5)))}
+}
+@media (max-height:400px) and (orientation:landscape){.card .ds{display:none}}
 @media (prefers-reduced-motion:reduce){.card,.card .float,.card .shine{animation:none!important}}
 .deck{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:3px;padding:3px 8px;background:var(--night)}
@@ -238,6 +255,16 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .pick-shop .msg{flex-basis:100%;margin:0;font-size:14px;color:var(--muted);min-height:1.3em}
 @media (max-width:760px),(max-height:560px){#pick.shopmode .pick-head p{display:none}#pick.shopmode #fan{padding:70px 12px 16px;gap:30px 10px}#pick.shopmode .card{width:148px}#pick.shopmode .card .ds,#pick.shopmode .card ul,#pick.shopmode .card .meta{display:none}#pick.shopmode .card .tilt{padding-bottom:8px}
   .pick-shop{position:sticky;bottom:0;background:rgba(14,8,22,.92);padding:10px 16px;margin-top:8px}.pick-shop .scrapchip{font-size:16px}.pick-shop .btn{font-size:14px;padding:7px 12px}}
+/* the shop on a phone held sideways: title on top, one row of cards (with their stats), a one-line bar along the bottom */
+@media (max-height:560px) and (orientation:landscape){
+  #pick.shopmode #fan{padding:18px max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));gap:10px}
+  #pick.shopmode .card{width:min(150px,calc((100vw - 48px - (var(--n,5) - 1) * 10px) / var(--n,5)))}
+  #pick.shopmode .card ul{display:grid}
+  .pick-shop{position:absolute;top:auto;bottom:calc(6px + env(safe-area-inset-bottom,0px));margin:0;padding:6px max(12px,env(safe-area-inset-left,0px));background:rgba(14,8,22,.9);flex-wrap:nowrap;gap:10px}
+  .pick-shop .build{flex:1 1 0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.pick-shop .build::-webkit-scrollbar{display:none}
+  .pick-shop .build .lbl,.pick-shop .msg{display:none}
+  .pick-shop .chip{white-space:nowrap}
+}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
 /* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
 body:not(.touch) .touch-only{display:none!important}
@@ -771,9 +798,12 @@ let solids=[],swings=[];
 /* ---------- canvas & art ---------- */
 const cv=$('#game'),ctx=cv.getContext('2d');
 let view={s:1,ox:0,oy:0,cs:1,cox:0,coy:0};
-function resize(){const dpr=Math.min(2,devicePixelRatio||1),ww=innerWidth,wh=innerHeight;cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
+function resize(){const dpr=Math.min(2,devicePixelRatio||1),vv=window.visualViewport,ww=Math.round(vv&&vv.width||innerWidth),wh=Math.round(vv&&vv.height||innerHeight);   // the part actually on screen (phone browser bars come and go)
+  if(typeof scrollTo==='function'&&(scrollX||scrollY))scrollTo(0,0);cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
   cv.style.width=ww+'px';cv.style.height=wh+'px';const s=Math.min(ww/VW,wh/VH);view={s:s*dpr,ox:(ww-VW*s)/2*dpr,oy:(wh-VH*s)/2*dpr,cs:s,cox:(ww-VW*s)/2,coy:(wh-VH*s)/2}}
 addEventListener('resize',resize);resize();
+if(window.visualViewport)visualViewport.addEventListener('resize',resize);
+addEventListener('orientationchange',()=>{resize();setTimeout(resize,250);setTimeout(resize,700)});   // phones report the new size a moment after turning
 const bgC=document.createElement('canvas');bgC.width=W;bgC.height=H;const bgx=bgC.getContext('2d');
 const platC=document.createElement('canvas');platC.width=W;platC.height=H;const platx=platC.getContext('2d');
 const decC=document.createElement('canvas');decC.width=W;decC.height=H;const dec=decC.getContext('2d');
@@ -1542,7 +1572,7 @@ let pickMode='local';   // local: this screen picks · remote: this guest picks,
 function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
   $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
   $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
-  const el=$('#fan');el.innerHTML='';
+  const el=$('#fan');el.innerHTML='';el.style.setProperty('--n',h.length);
   hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-(hand.length-1)/2;
     b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
     b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
@@ -2474,7 +2504,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
-    const x=clamp(b.x,FRAME+8,W-FRAME-8),y=FRAME+5,s=5+4*k;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s,y+s*1.4);ctx.lineTo(x+s,y+s*1.4);ctx.closePath();ctx.fill()}
+    const x=clamp(b.x,FRAME+8,W-FRAME-8),y=Math.max(FRAME,cam.y)+5,s=5+4*k;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s,y+s*1.4);ctx.lineTo(x+s,y+s*1.4);ctx.closePath();ctx.fill()}
   for(const q of parts){if(q.blob)continue;const a=clamp(q.life/q.max,0,1);
     if(q.ghost){ctx.globalAlpha=a*.45;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.r*(.7+.3*a),0,TAU);ctx.fill();continue}
     if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
@@ -2491,7 +2521,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
   ctx.restore();ctx.save();viewT();
-  const ov=W>VW||H>VH?(()=>{const{ex,ey}=scrExtra();return[-ex,-ey,VW+2*ex,VH+2*ey]})():[0,0,VW,VH];
+  const ov=W>VW||H>VH||cam.z>1.001?(()=>{const{ex,ey}=scrExtra();return[-ex,-ey,VW+2*ex,VH+2*ey]})():[0,0,VW,VH];
   const vg=ctx.createRadialGradient(VW/2,VH/2,VH*.45,VW/2,VH/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(...ov);
   {const me=game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse');   // your health is low: the screen edges pulse red
     if(me&&me.alive&&!game.bg&&me.s&&me.hp<me.s.maxHp*.35&&['play','ready','pointEnd'].includes(game.state)){const k=1-clamp(me.hp/(me.s.maxHp*.35),0,1),pu=RM?.5:.5+.5*Math.sin(performance.now()/180);
@@ -2505,8 +2535,11 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
 /* the camera: arenas that fit the screen are shown whole (z 1, no motion). A big arena is followed: the view centres on the
    heroes (leaning a little toward where you aim), eased so it never jerks, and clamped to the arena. Phones sit a bit closer */
 const cam={x:0,y:0,z:1,t:0};
-function camGoal(){const big=W>VW||H>VH;if(!big)return{x:0,y:0,z:1};
-  const z=Math.max(VW/W,VH/H,touch.on?1.2:.92),vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
+function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
+  // a phone wider than 16:9 shows a standard arena with bars at the sides: zoom in up to 20% to fill it, following you
+  const fillZ=touch.on&&!big&&!game.bg?clamp((VW+2*ex0)/VW,1,1.2):1;
+  if(!big&&fillZ<=1.001)return{x:0,y:0,z:1};
+  const z=big?Math.max(VW/W,VH/H,touch.on?1.2:.92):fillZ,vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
   const me=survOn()?myHero():game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
   let fx,fy;if(me&&me.alive){fx=me.x;fy=me.y;if(mate){fx+=clamp((mate.x-me.x)*.35,-vw*.25,vw*.25);fy+=clamp((mate.y-me.y)*.35,-vh*.2,vh*.2)}}
   else{const fs=survOn()?heroes().filter(p=>p.alive):[];const L=fs.length?fs:players.filter(p=>p.alive);if(!L.length)return{x:cam.x,y:cam.y,z};fx=0;fy=0;for(const p of L){fx+=p.x;fy+=p.y}fx/=L.length;fy/=L.length}
@@ -2521,7 +2554,7 @@ function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1)
   cam.z+=(g.z-cam.z)*k;cam.x+=(g.x-cam.x)*k;cam.y+=(g.y-cam.y)*k;
   if(!touch.on&&mouse.sx!=null){mouse.x=mouse.sx/cam.z+cam.x;mouse.y=mouse.sy/cam.z+cam.y}}
 // someone off the edge of a followed view: an arrow on that edge, in their colour, so no enemy is ever out of mind
-function drawOffscreen(){if(W<=VW&&H<=VH||game.bg)return;const{ex,ey}=scrExtra();
+function drawOffscreen(){if(W<=VW&&H<=VH&&cam.z<=1.001||game.bg)return;const{ex,ey}=scrExtra();
   for(const p of players){if(!p.alive||!Number.isFinite(p.x))continue;const px=(p.x-cam.x)*cam.z,py=(p.y-cam.y)*cam.z,m=p.r*cam.z;
     if(px>-ex-m&&px<VW+ex+m&&py>-ey-m&&py<VH+ey+m)continue;const x=clamp(px,28-ex,VW+ex-28),y=clamp(py,28-ey,VH+ey-28);
     ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(py-y,px-x));ctx.globalAlpha=.9;ctx.fillStyle=p.color;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=3;
@@ -2589,7 +2622,7 @@ function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>
 // keep the virtual mouse out along the aim, wherever the fighter goes
 function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
   mouse.x=me.x+(game.mode==='online-guest'?net.offX:0)+Math.cos(touch.aimA)*260;mouse.y=me.y+(game.mode==='online-guest'?net.offY:0)+Math.sin(touch.aimA)*260}
-cv.addEventListener('touchstart',e=>{if(!touchLive())return;e.preventDefault();initAudio();
+cv.addEventListener('touchstart',e=>{if(!touchLive())return;e.preventDefault();initAudio();autoFull();
   for(const t of e.changedTouches){const left=t.clientX<innerWidth*.45;
     if(left&&!touch.move){touch.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsMove'),t.clientX,t.clientY)}
     else if(!left&&!touch.aim){touch.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0,t0:performance.now(),maxD:0};stickAt($('#tsAim'),t.clientX,t.clientY)}}
@@ -2612,7 +2645,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-art2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-mobile';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3103,6 +3136,8 @@ $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game
 $('#bMute').onclick=()=>{initAudio();toggleMute()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
+function autoFull(){const d=document;if(touch.fsTried||d.fullscreenElement||d.webkitFullscreenElement)return;touch.fsTried=true;
+  if(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen)toggleFull()}   // a phone's first touch in a game takes it full screen; once a visit, so leaving full screen sticks
 function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
   else{const el=d.documentElement,r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);   // phones: also hold it sideways
     Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
