@@ -12,7 +12,7 @@ const RUNS = +(process.argv[2] || 6);
   const reached = []; let arenaOff = 0, chars = 0, maxLvl = 1, maxWave = 0, shops = 0, spent = 0, bossRounds = 0, specials = 0, shortTells = 0, sawDrop = false, errors = 0, hpGrows = true;
   for (let r = 0; r < RUNS; r++) {
     A.startSurvival(); flushTimers(); A.players[0].ctrl = 'cpu'; A.players[0].skill = 'hard';   // a decent player
-    let lastK = -1, round = 0;
+    let lastK = {}, round = 0;
     for (let f = 0; f < 60 * 60 * 25 && A.game.state !== 'over'; f++) {
       if (A.game.state === 'pick' && A.pickFor && !A.pickLock) A.choose(A.hand[0], null);
       if (A.game.state === 'shop') { shops++; const s0 = A.players[0].scrap; for (let i = 0; i < 5; i++) A.survBuy(i); spent += s0 - A.players[0].scrap; A.survNext(); }
@@ -20,7 +20,8 @@ const RUNS = +(process.argv[2] || 6);
       flushTimers();
       if (A.game.round !== round) { round = A.game.round; const e = A.players[1];
         const es = A.players.filter((p) => p.team === 1); maxWave = Math.max(maxWave, es.length);
-        if (!es.some((q) => q.boss)) { const k = es.reduce((t, q) => t + q.cards.length + q.hpMul * 10, 0); if (k < lastK - 1) hpGrows = false; lastK = k } else bossRounds++;
+        if (!es.some((q) => q.boss)) { const k = es.reduce((t, q) => t + q.cards.length + q.hpMul * 10, 0), kind = A.game.rkind;   // compare with the same kind of round (wave, swarm, twist, elite) a lap earlier
+          if (lastK[kind] != null && k < lastK[kind] - 1) hpGrows = false; lastK[kind] = k } else bossRounds++;
         if (round === 5) check(A.players.some((p) => p.boss), 'round 5 should be a boss'); }
       if (A.drops.length) sawDrop = true;
       if (A.game.state === 'play' && A.game.dropOff !== 0) arenaOff++;   // the arena must be in place whenever the fight is on (after a lost life too)

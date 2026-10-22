@@ -15,8 +15,12 @@ const path = require('path');
     // open gaps: columns with nothing solid between mid-height and the bottom edge
     const open = []; for (let x = 40; x <= 1560; x += 40) if (!A.solids.some((r) => !r.bound && x > r.x - P.r && x < r.x + r.w + P.r && r.y + r.h > 520)) open.push(x);
     let saved = 0;
+    // on an arena made only of hanging blocks (Chimes), whether a block is in reach depends on how they happen to be swinging:
+    // a spot gets a second try with fresh starting angles there
+    const allSwing = !A.game.map.rects.length;
     for (const x0 of open) {
       let ok = false;
+      for (let tries = allSwing ? 2 : 1; tries-- > 0 && !ok;)
       for (const dir of [-1, 1, 0]) { for (const pr of progs) {
         A.loadMap(mi); A.game.state = 'play'; A.resetPlayer(P, [x0, 840]); P.ctrl = 'mouse'; P.vy = 900; P.grounded = false; P.ground = null; P.edgeT = 0;
         A.keys.clear(); A.edges.clear(); A.doBlock(P); let bounced = false, t0 = 0;

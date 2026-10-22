@@ -584,9 +584,10 @@ body.touch .desk-only{display:none!important}
             <li><b>Parry</b><span>Block just as a bullet arrives to send it back.</span></li>
             <li><b>Edges</b><span>The glowing edge hurts. Block as you hit it to bounce off safely.</span></li>
             <li><b>Walls</b><span>Hold toward a wall to grip it, then jump off.</span></li>
-            <li><b>Planks</b><span>Bright-edged planks are one-way. Press down to drop through.</span></li>
-            <li><b>Pads</b><span>Pink pads launch you into the air.</span></li>
-            <li><b>Blocks</b><span>Shoot hanging blocks to swing them into your rival.</span></li>
+            <li><b>Planks</b><span>Bright-edged planks are one-way. Press down to drop through. Pink pads launch you.</span></li>
+            <li><b>Swings</b><span>Shoot hanging blocks to swing them into your rival.</span></li>
+            <li><b>Crates</b><span>Walk into a crate to push it. Shove one off a ledge onto someone.</span></li>
+            <li><b>Ropes</b><span>Shoot a red target to drop the platform it holds.</span></li>
           </ul>
         </div>
       </div>
@@ -848,11 +849,11 @@ const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
  {name:'Archipelago',rects:[[120,640,360,56],[620,520,360,56],[1120,640,360,56],[370,360,220,38],[1010,360,220,38]],sp:[[300,600],[1300,600]]},
- {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,590,240,40],[1180,590,240,40],[600,310,400,38],[420,700,60,60],[1120,700,60,60]],sp:[[200,720],[1400,720]]},
+ {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,590,240,40],[1180,590,240,40],[600,310,400,38]],crates:[[420,700,60],[1120,700,60]],sp:[[200,720],[1400,720]]},
  {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,600,400,40],[740,720,120,60]],sp:[[225,610],[1375,610]]},
  {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,600,220,40],[1180,600,220,40]],sp:[[200,750],[1400,750]]},
- {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],sp:[[300,690],[1300,690]]},
+ {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],hangs:[{x:220,y:470,w:180},{x:1200,y:470,w:180}],sp:[[300,690],[1300,690]]},
  {name:'Chimes',rects:[],swings:chimeLens.map((l,i)=>({ax:100+i*128,len:l,w:60,h:60})),sp:[[228,560-30-24],[1380,560-30-24]]},
  {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,36],[1180,485,320,36],[100,665,320,36],[1180,665,320,36],[560,310,480,36],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
@@ -864,10 +865,15 @@ const MAPS=[
  {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
  {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
- {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],sp:[[200,740],[1400,740]]},
+ {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],crates:[[560,720,60],[980,720,60]],sp:[[200,740],[1400,740]]},
  {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
  // big arenas (Survival's bigger waves only): larger than the screen, so the camera follows you
+ // push the crates around for cover, or shove one off the middle ledge onto someone
+ {name:'Quarry',rects:[[0,780,1600,120],[110,600,260,40],[1230,600,260,40],[620,450,360,40],[0,400,150,38],[1450,400,150,38]],crates:[[470,716,64],[1066,716,64],[768,716,64],[770,390,60]],sp:[[200,740],[1400,740]]},
+ // platforms hung over a low floor: shoot the red target and the platform drops on whoever is under it, then stays as cover
+ {name:'Cutline',rects:[[0,820,1600,80],[0,680,300,140],[1300,680,300,140],[80,460,200,38],[1320,460,200,38],[700,250,200,38]],
+   hangs:[{x:410,y:560,w:200},{x:990,y:560,w:200},{x:700,y:410,w:200,ay:288}],sp:[[150,640],[1450,640]]},
  {name:'Canyon',big:1,w:2400,h:1100,rects:[[0,960,900,140],[1500,960,900,140],[1040,820,320,40],[200,800,260,40],[1940,800,260,40],[560,680,260,40],[1580,680,260,40],[1030,560,340,40],
    [250,520,220,40],[1930,520,220,40],[700,400,240,38],[1460,400,240,38],[1100,290,200,38],[60,944,90,16,3],[2250,944,90,16,3]],sp:[[300,920],[2100,920]]},
  {name:'Fortress',big:1,w:2400,h:1200,rects:[[0,1060,2400,140],[1000,880,400,180],[1080,710,240,40],[160,760,60,300,1],[2180,760,60,300,1],[260,900,260,40],[1880,900,260,40],[440,740,260,40],[1700,740,260,40],
@@ -892,7 +898,7 @@ const WIDE_K=1.35;
 for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name))){const X=v=>Math.round(v*WIDE_K),mid=(x,w)=>X(x+w/2)-w/2;
   MAPS.push({name:'Wide '+m.name,label:m.name,big:1,coop:1,w:X(1600),h:900,
     rects:m.rects.map(r=>{const[x,y,w,h,k]=r,keep=k===1||k===3||w<=70;return[keep?mid(x,w):X(x),y,keep?w:X(w),h,...(r.length>4?[k]:[])]}),
-    ...(m.swings?{swings:m.swings.map(d=>({...d,ax:X(d.ax)}))}:{}),...(m.movers?{movers:m.movers.map(d=>({...d,x:mid(d.x,d.w),mx:X(d.mx)}))}:{}),
+    ...(m.swings?{swings:m.swings.map(d=>({...d,ax:X(d.ax)}))}:{}),...(m.movers?{movers:m.movers.map(d=>({...d,x:mid(d.x,d.w),mx:X(d.mx)}))}:{}),...(m.crates?{crates:m.crates.map(([x,y,z])=>[mid(x,z),y,z])}:{}),...(m.hangs?{hangs:m.hangs.map(d=>({...d,x:mid(d.x,d.w)}))}:{}),
     sp:m.sp.map(([x,y])=>[X(x),y])})}
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
@@ -900,7 +906,7 @@ const FRAME=10;
 let W=VW,H=VH;
 const mkBounds=()=>[[-80,-600,80+FRAME,H+1200],[W-FRAME,-600,80+FRAME,H+1200],[-80,-80,W+160,80+FRAME]].map(([x,y,w,h])=>({x,y,w,h,bound:true}));
 let BOUNDS=mkBounds();
-let solids=[],swings=[];
+let solids=[],swings=[],rides=[];   // rides: crates you can push and platforms hung on a rope you can shoot down
 
 /* ---------- canvas & art ---------- */
 const cv=$('#game'),ctx=cv.getContext('2d');
@@ -929,13 +935,24 @@ const GLOWS={};function glowSprite(col){if(GLOWS[col])return GLOWS[col];const c=
   return GLOWS[col]=c}
 const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 /* collision is readable: solid blocks get a rim + outline, one-way planks get a bright lip and pass-through ticks */
-function edgeDecor(g,x,y,w,h,kind,oneway){g.save();
+function edgeDecor(g,x,y,w,h,kind,oneway){g.save();if(kind!==3){slabPath(g,x,y,w,h);g.clip()}   // the trim stays inside the chipped corners
   if(kind===3){g.strokeStyle='rgba(255,230,240,.85)';g.lineWidth=2.5;g.lineJoin='round';for(let i=x+14;i<x+w-8;i+=22){g.beginPath();g.moveTo(i-6,y+h-4);g.lineTo(i,y+4);g.lineTo(i+6,y+h-4);g.stroke()}}
   if(oneway){g.fillStyle='#ffd79a';g.fillRect(x,y,w,4);g.fillStyle='rgba(255,215,154,.35)';for(let i=x+8;i<x+w-4;i+=18)g.fillRect(i,y+h-3,8,3)}
-  else{g.fillStyle=EDGE[kind||0];g.fillRect(x,y,w,3);g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2);
+  else{g.fillStyle=EDGE[kind||0];g.fillRect(x,y,w,3);g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=2;slabPath(g,x+1,y+1,w-2,h-2);g.stroke();
     g.fillStyle='rgba(255,255,255,.08)';g.fillRect(x,y+3,3,h-3)}
   g.restore()}
-function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fillStyle=base;g.fillRect(x,y,w,h);g.beginPath();g.rect(x,y,w,h);g.clip();
+/* a rock slab's outline, with chipped corners like the card art (the art only: collision stays the plain rectangle) */
+function slabPath(g,x,y,w,h){const c=Math.min(7,w/6,h/3);g.beginPath();g.moveTo(x+c,y);g.lineTo(x+w-c,y);g.lineTo(x+w,y+c);g.lineTo(x+w,y+h-c);g.lineTo(x+w-c*1.4,y+h);g.lineTo(x+c*1.4,y+h);g.lineTo(x,y+h-c);g.lineTo(x,y+c);g.closePath()}
+/* under a floating ledge, a short tapered rock belly (seeded, so it never changes the game's random numbers) */
+function rockBelly(g,x,y,w,h,kind){const [,,lo]=KIND[kind||0],R=artRng(strSeed('b'+x+','+y+','+w)),d=Math.min(20,6+w*.035),n=Math.max(4,Math.round(w/34));
+  g.save();g.beginPath();g.moveTo(x+w*.08,y+h-2);for(let i=1;i<n;i++){const t=i/n;g.lineTo(x+w*(.08+.84*t),y+h-2+d*Math.sin(Math.PI*t)*(.55+.45*R()))}g.lineTo(x+w*.92,y+h-2);g.closePath();
+  g.fillStyle=lo;g.fill();g.globalAlpha=.45;g.fillStyle='#2a1530';g.fill();g.restore()}
+/* a bounce pad: a pink plate on a little spring, set into the rock below it (no shadow of its own) */
+function padArt(g,x,y,w,h){g.save();const mx=x+6,mw=w-12;g.fillStyle='#3a2f45';g.fillRect(mx,y+7,mw,h-7);
+  g.strokeStyle='#b9b2c6';g.lineWidth=2;g.beginPath();for(let i=0,n=Math.max(3,Math.round(mw/14));i<=n;i++){const px=mx+4+(mw-8)*i/n;g[i?'lineTo':'moveTo'](px,i%2?y+h-2:y+9)}g.stroke();
+  g.fillStyle='#d6457f';g.beginPath();g.roundRect?g.roundRect(x,y,w,8,4):g.rect(x,y,w,8);g.fill();g.fillStyle='#ff9cc4';g.fillRect(x+4,y+1,w-8,2);
+  g.strokeStyle='rgba(255,235,245,.9)';g.lineWidth=2;g.lineJoin='round';for(let i=x+14;i<x+w-8;i+=22){g.beginPath();g.moveTo(i-5,y+6);g.lineTo(i,y+2);g.lineTo(i+5,y+6);g.stroke()}g.restore()}
+function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fillStyle=base;slabPath(g,x,y,w,h);g.fill();g.clip();
   const n=Math.max(2,Math.round((w*h)/9000));for(let i=0;i<n;i++){g.fillStyle=Math.random()<.5?hi:lo;g.globalAlpha=rand(.25,.55);g.beginPath();
     const cx=x+Math.random()*w,cy=y+Math.random()*h,s=Math.max(w,h)*rand(.4,.9);g.moveTo(cx,cy);g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.fill()}
   // a low-poly skin: the slab cut into triangles, each a touch lighter or darker
@@ -982,7 +999,11 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
   g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.025)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
   // platforms live on their own layer so a new arena can drop into place
   platx.clearRect(0,0,W,H);
-  for(const r of map.rects){platx.fillStyle='rgba(10,4,18,.4)';platx.fillRect(r[0]+10,r[1]+12,r[2],r[3]);facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
+  // every shadow first, so a shadow can never fall on top of another platform (or a pad's onto the ground it sits on)
+  platx.fillStyle='rgba(10,4,18,.4)';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0]+10,r[1]+12,r[2],r[3]);platx.fill()}
+  const sitsOn=r=>map.rects.some(o=>o!==r&&Math.abs(o[1]-(r[1]+r[3]))<3&&o[0]<r[0]+r[2]&&o[0]+o[2]>r[0]);
+  for(const r of map.rects)if(!r[4]&&r[1]+r[3]<H-12&&!sitsOn(r))rockBelly(platx,r[0],r[1],r[2],r[3],0);
+  for(const r of map.rects){if(r[4]===3){padArt(platx,r[0],r[1],r[2],r[3]);continue}facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
   dec.clearRect(0,0,W,H);
   motes=Array.from({length:RM?0:46},()=>({x:rand(0,W),y:rand(0,H),vx:rand(-8,8),vy:rand(-14,-3),s:rand(1,2.6),a:rand(.08,.25)}))}
 let motes=[];
@@ -1171,8 +1192,16 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
   // moving platforms ride the same carry/push/sync path as hanging blocks; their 'ang' is the phase of a smooth back-and-forth
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
-  solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
+  buildRides();
+  solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[];camSnap()}
+// crates back in their spots and ropes back up (a new map, or a Survival life lost on the same one)
+function buildRides(){const old=rides;
+  rides=[...(game.map.crates||[]).map(([x,y,z])=>({ride:true,crate:true,x,y,w:z,h:z,x0:x,y0:y,vx:0,vy:0,dx:0,dy:0,pushV:0,pushT:0,gone:0,art:crateArt(z)})),
+    ...(game.map.hangs||[]).map(d=>{const c={ride:true,hang:true,x:d.x,y:d.y,w:d.w,h:d.h||30,ay:d.ay||0,st:0,vy:0,dx:0,dy:0,hit:[],art:document.createElement('canvas')};
+      c.tx=c.x+c.w/2;c.ty=c.y-56;c.art.width=c.w;c.art.height=c.h;const ag=c.art.getContext('2d');facets(ag,0,0,c.w,c.h,0);edgeDecor(ag,0,0,c.w,c.h,0,false);return c})];
+  for(const c of rides){c.px=c.lx=c.x;c.py=c.ly=c.y}
+  if(old!==rides&&solids.length){solids=solids.filter(r=>!old.includes(r)&&!r.bound).concat(rides,BOUNDS)}}
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
@@ -1625,7 +1654,7 @@ function survResolve(){const hs=heroes();
     // every hero shops (in co-op both at once, each on their own screen); then the next round
     heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
   game.lives--;if(game.lives<=0){survEnd();return}
-  for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0}
+  buildRides();for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
   bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
 // XP from damage you deal; each level waits for the end of the round
@@ -1639,7 +1668,9 @@ function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),up
 // or sell a card from your build for half its price
 const SHOP_PRICE=[6,10,16],SHOP_N=5;
 const cardPrice=c=>(c.up?9:SHOP_PRICE[c.r])+Math.floor((game.round||1)/3);   // a power-up costs a bit more than a common card
-function survOffers(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
+// a stack is capped in the shop: 3 of any card, 1 of the cards that save you from a lethal hit (stacked, they made a hero unkillable)
+const SHOP_CAP={'Second Wind':1,'Aegis':1};
+function survOffers(p){const cnt={};for(const c of p.cards)cnt[c.n]=(cnt[c.n]||0)+1;const owned=new Set(p.cards.filter(c=>c.u||(cnt[c.n]||0)>=(SHOP_CAP[c.n]||3)).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
   const keep=(p.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
   for(let g=0;out.length<SHOP_N&&g<300;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
     let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.35){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
@@ -2004,6 +2035,68 @@ function updateSwings(dt){
     if(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y){for(const s of[a,b]){s.ang=s.pa;s.av*=-.4;placeSwing(s)}
       if(Math.random()<.5){burst((a.x+a.w/2+b.x+b.w/2)/2,(a.y+b.y)/2+15,'#cfd8e3',4,160,3,.25);sfx('thud')}}}}
 
+/* ---------- crates and rope drops ----------
+   A crate is pushed by walking into it (at a slower walk), falls off ledges, shoves fighters aside and lands hard on
+   anyone below; one pushed into a pit comes back a few seconds later. A rope drop is a platform hung under a red target:
+   shoot the target and the platform falls, hurting whoever it lands on, and stays where it lands as new cover.
+   The host decides; an online guest predicts the crates it pushes and is corrected by the host. Everything resets each point */
+const CRATE_PUSH=230,CRUSH_V=520;
+const boxOver=(a,x,y,b)=>x<b.x+b.w&&x+a.w>b.x&&y<b.y+b.h&&y+a.h>b.y;
+const rideBlocks=c=>solids.filter(o=>o!==c&&!o.swing&&!(o.hang&&o.st===3)&&!(o.crate&&o.gone>0));
+function rideCrush(c,p,dmg){if(game.mode==='online-guest'||c.hit.includes(p))return;c.hit.push(p);if(p.blockT>0){ring(p.x,p.y,'#ffffff',60);sfx('parry');return}
+  p.vx=(p.x<c.x+c.w/2?-1:1)*620;p.vy=-380;p.ground=null;p.grounded=false;p.kT=.35;damage(p,dmg,c.by&&c.by!==p?c.by:null);burst(p.x,p.y,'#cfd8e3',14,420,5,.35,0);addShake(9);sfx('crush')}
+function rideFall(c,dt,isCrate){const B=rideBlocks(c);let ny=c.y+c.vy*dt,landed=null;
+  for(const o of B){if(o.bound&&o.y>0)continue;if(o.oneway){if(c.vy>=0&&c.y+c.h<=o.y+1&&ny+c.h>o.y&&c.x<o.x+o.w&&c.x+c.w>o.x){ny=o.y-c.h;landed=o}continue}
+    if(boxOver(c,c.x,ny,o)){if(c.vy>0&&c.y+c.h<=o.y+2){ny=o.y-c.h;landed=o}else if(c.vy<0){ny=o.y+o.h;c.vy=0}}}
+  if(c.vy>CRUSH_V)for(const p of players)if(p.alive&&p.y>ny+c.h*.4&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h}))rideCrush(c,p,isCrate?22:30);
+  // it can't fall through a fighter: it comes to rest on their head (they've just been knocked aside) and falls on once they're out
+  for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[1])||p.y<=c.y+c.h*.4)continue;
+    const top=p.y-p.r-c.h-.5;if(top<ny&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h})){ny=Math.max(c.y,top);c.vy=Math.min(c.vy,150);landed=null;
+      const ok=x=>!solidBoxP(x,p.y,p.r-1,p.r-1)&&x>FRAME+p.r&&x<W-FRAME-p.r,L=c.x-p.r-.5,Rr=c.x+c.w+p.r+.5,near=p.x-L<Rr-p.x?-1:1,dir=ok(near<0?L:Rr)?near:ok(near<0?Rr:L)?-near:0;
+      if(dir){const nx=p.x+dir*Math.min(9,900*dt);if(ok(nx))p.x=nx}}}   // and they're squeezed out toward a side with room to come out
+  if(landed){if(c.vy>420){addShake(isCrate?4:7);sfx('thud');burst(c.x+c.w/2,ny+c.h,'#cfd8e3',isCrate?6:12,240,3,.3,0)}c.vy=0;c.hit=[]}
+  c.ground=landed;c.y=ny;return landed}
+function crateStep(c,dt){
+  if(c.gone>0){c.gone-=dt;if(c.gone<=0){if(rideBlocks(c).some(o=>boxOver(c,c.x0,c.y0,o))||players.some(p=>p.alive&&boxHit(p.x,p.y,p.r,p.r,{x:c.x0,y:c.y0,w:c.w,h:c.h}))){c.gone=.5;return}
+      c.x=c.px=c.lx=c.x0;c.y=c.py=c.ly=c.y0;c.vx=c.vy=0;cloud(c.x+c.w/2,c.y+c.h/2,'rgba(220,200,240,.5)',6,c.w*.4)}return}
+  const g=c.ground;if(g&&(g.ride||g.swing)&&!(g.crate&&g.gone>0)){c.x+=g.dx;c.y+=g.dy}
+  c.pushT-=dt;const tv=c.pushT>0?c.pushV:0;c.vx+=(tv-c.vx)*Math.min(1,dt*(tv?24:12));if(Math.abs(c.vx)<2)c.vx=0;
+  c.vy=Math.min(1500,c.vy+PG*gMul()*dt);c.hit=c.hit||[];
+  let nx=c.x+c.vx*dt;if(nx!==c.x){const B=rideBlocks(c);for(const o of B)if(boxOver(c,nx,c.y,o))nx=nx>c.x?Math.min(nx,o.x-c.w):Math.max(nx,o.x+o.w);
+    // a sliding crate shoves a fighter in its way, unless a wall is right behind them: then the crate stops
+    for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[1])||p.y+p.r<=c.y+4)continue;if(!boxHit(p.x,p.y,p.r,p.r,{x:nx,y:c.y,w:c.w,h:c.h}))continue;
+      const right=nx>c.x,tx=right?nx+c.w+p.r+.5:nx-p.r-.5;if((right?p.x>c.x+c.w/2:p.x<c.x+c.w/2)&&!solidBoxP(tx,p.y,p.r-1,p.r-1)){p.x=tx;p.lx=tx}else{nx=c.x;c.vx=0}}
+    c.x=nx}
+  rideFall(c,dt,true);if(c.y>H+80){c.gone=3;c.y=H+5000;c.vx=c.vy=0}}
+function hangStep(c,dt){if(c.st!==1)return;c.vy=Math.min(1600,c.vy+PG*gMul()*dt);if(rideFall(c,dt,false))c.st=2;if(c.y>H+80){c.st=3;c.y=H+5000}}
+function cutHang(c,by){if(c.st!==0)return;c.st=1;c.vy=0;c.by=by;burst(c.tx,c.ty,'#ff5a4f',16,420,4,.4,600);burst(c.tx,c.ty,'#ffd36b',8,300,3,.3,0,true);sfx('crush');addShake(5)}
+function updateRides(dt){for(const c of rides){c.px=c.x;c.py=c.y;if(c.crate)crateStep(c,dt);else hangStep(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;
+  if(Math.abs(c.dx)>200||Math.abs(c.dy)>200){c.dx=c.dy=0}}}   // a respawn or a reset is a jump, not a motion to carry riders along
+// online guest: step the crates locally (so pushing one feels instant), then pull each toward where the host says it is
+function guestRides(h){updateRides(h);const k=Math.min(1,h*6);
+  for(const c of rides){if(c.gx==null)continue;
+    // a falling platform follows the same physics on both screens: the guest drops it itself and only snaps if it has drifted far
+    if(c.hang){if(c.gst===0&&c.st!==0){c.st=0;c.vy=0;c.x=c.gx;c.y=c.ly=c.gy}else if(c.gst===1&&c.st===0)cutHang(c,null);else if(c.gst===3&&c.st!==3){c.st=3;c.y=H+5000}else if(c.gst===2&&c.st===0){c.st=2;c.y=c.ly=c.gy}
+      if(c.st===2&&c.gst===2&&Math.abs(c.gy-c.y)>30)c.y=c.ly=c.gy;continue}
+    if(c.ggone){if(!(c.gone>0)){c.gone=99;c.y=H+5000}continue}if(c.gone>0){c.gone=0;c.x=c.lx=c.gx;c.y=c.ly=c.gy}
+    const ex=c.gx-c.x,ey=c.gy-c.y;if(Math.hypot(ex,ey)>70){c.x=c.lx=c.gx;c.y=c.ly=c.gy}else if(!(c.pushT>0)){c.x+=ex*k;c.y+=ey*k}}}
+/* a wooden crate in the low-poly style: planks, a dark frame and a cross brace */
+function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.height=z;const g=cv2.getContext('2d');
+  g.fillStyle='#a8703f';g.fillRect(0,0,z,z);g.fillStyle='#c28a52';for(let i=0;i<z;i+=z/4)g.fillRect(2,i+2,z-4,z/4-4);
+  g.fillStyle='#d9a56a';g.fillRect(0,0,z,4);g.strokeStyle='#6b4325';g.lineWidth=Math.max(5,z*.11);g.strokeRect(g.lineWidth/2,g.lineWidth/2,z-g.lineWidth,z-g.lineWidth);
+  g.lineWidth=Math.max(4,z*.09);g.beginPath();g.moveTo(z*.14,z*.86);g.lineTo(z*.86,z*.14);g.stroke();g.fillStyle='#4a2c17';for(const[a,b]of[[.14,.14],[.86,.14],[.14,.86],[.86,.86]]){g.beginPath();g.arc(z*a,z*b,2.4,0,TAU);g.fill()}
+  return cv2}
+/* a chain from its anchor down to what it holds */
+function chain(x0,y0,x1,y1){const L=Math.hypot(x1-x0,y1-y0);if(L<2)return;ctx.save();ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=3;ctx.setLineDash([7,4]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+  ctx.setLineDash([]);ctx.fillStyle='rgba(150,140,175,.9)';ctx.fillRect(x0-7,y0,14,5);ctx.restore()}
+function drawRides(){for(const c of rides){if(c.crate&&c.gone>0||c.hang&&c.st===3)continue;
+  if(c.hang&&c.st===0){const cx=c.tx,cy=c.ty;ctx.save();ctx.strokeStyle='rgba(222,196,150,.8)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,c.ay);ctx.lineTo(cx,cy-13);ctx.stroke();
+    ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(cx-6,cy+13);ctx.lineTo(c.x+14,c.y);ctx.moveTo(cx+6,cy+13);ctx.lineTo(c.x+c.w-14,c.y);ctx.stroke();
+    const pulse=.5+.5*Math.sin(performance.now()/260);ctx.globalAlpha=.25+.2*pulse;ctx.fillStyle='#ff5a4f';ctx.beginPath();ctx.arc(cx,cy,22,0,TAU);ctx.fill();ctx.globalAlpha=1;
+    ctx.fillStyle='#7a1f2a';ctx.fillRect(cx-13,cy-13,26,26);ctx.fillStyle='#e8455f';ctx.fillRect(cx-11,cy-11,22,22);ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(cx,cy,6,0,TAU);ctx.stroke();
+    ctx.fillStyle='#ffffff';ctx.fillRect(cx-1.5,cy-1.5,3,3);ctx.restore()}
+  if(!c.ground&&c.st!==2){ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(c.x+7,c.y+9,c.w,c.h)}ctx.drawImage(c.art,c.x,c.y)}}   // a shadow only while it hangs or falls: never one lying across the ground
+
 /* ---------- particles ---------- */
 function burst(x,y,color,n,sp,size,life,grav=900,glow=false){fxRec('b',[x,y,color,n,sp,size,life,grav,glow]);for(let i=0;i<n&&parts.length<800;i++){const a=Math.random()*TAU,v=rand(.25,1)*sp;
   parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.5,1)*life,max:life,size:rand(.5,1)*size,color,grav,glow})}}
@@ -2062,7 +2155,7 @@ function blockFx(p){const s=p.s;
   if(s.blink)blinkMove(p)}
 // the landing spot is judged against fixed walls only: each screen swings its own copy of a hanging block, so both screens
 // always pick the same spot (a teleport into a swinging block is pushed out like any other overlap)
-const staticBox=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&!r.swing&&boxHit(x,y,hw,hh,r));
+const staticBox=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&!r.swing&&!r.ride&&boxHit(x,y,hw,hh,r));
 function blinkMove(p){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
     if(!staticBox(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){const ox=p.x,oy=p.y;p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;p.grounded=false;p.squash=1.3;
       p.blinkN=(p.blinkN||0)+1;moveFx(p,()=>blinkFx(ox,oy,tx,ty,p.r,p.color,p.glow));return true}}return false}
@@ -2185,6 +2278,8 @@ function updateBullets(dt){
         else{killBullet(b,true,r,n);if(r.swing&&!b.stuck)sfx('thud')}break}
       if(b.phase&&!ghostIn)b.phasing=false;
       if(b.dead)break;
+      if(game.mode!=='online-guest')for(const c of rides)if(c.hang&&c.st===0&&Math.abs(b.x-c.tx)<13+b.r&&Math.abs(b.y-c.ty)<13+b.r){cutHang(c,b.owner);killBullet(b,b.explode>0);break}
+      if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner||(b.owner&&p.team===b.owner.team))continue;
@@ -2217,7 +2312,7 @@ const berserkOn=p=>p.s.berserk&&p.hp<p.s.maxHp*.5;
 // air you steer less, so a jump is a committed arc a rival can lead
 const GROUND_ACC=10,AIR_ACC=4.5;
 function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.coyote-=dt;
-  if(p.grounded&&p.ground&&p.ground.swing){p.x+=p.ground.dx;p.y+=p.ground.dy}
+  if(p.grounded&&p.ground&&(p.ground.swing||p.ground.ride)){p.x+=p.ground.dx;p.y+=p.ground.dy}
   if(p.grounded)p.coyote=.12;
   // drop through a one-way plank
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
@@ -2271,7 +2366,9 @@ function moveCollide(p,dt){
   for(const r of solids){if(r.oneway||r.bound||!boxHit(p.x,p.y,R,R,r))continue;
     const step=p.y+R-r.y;
     if(step>0&&step<=12&&p.vy>=-1&&!r.swing&&!solidBoxP(p.x,r.y-R-.5,R,R)){p.y=r.y-R-.5;continue}
-    if(p.vx>0&&p.x<r.x)p.x=r.x-R;else if(p.vx<0&&p.x>r.x+r.w)p.x=r.x+r.w+R;else{pushOut(p,r);continue}p.vx=0}
+    if(p.vx>0&&p.x<r.x)p.x=r.x-R;else if(p.vx<0&&p.x>r.x+r.w)p.x=r.x+r.w+R;else{pushOut(p,r);continue}
+    if(r.crate&&p.grounded&&p.input&&p.input.move===Math.sign(p.vx)){const v=Math.sign(p.vx)*Math.min(Math.abs(p.vx),CRATE_PUSH);r.pushV=v;r.pushT=.08;p.vx=v;continue}   // walking into a crate pushes it, at a slower walk
+    p.vx=0}
   // vertical: land on planks only from above; clipping a ceiling corner by ≤10px slides you past it
   const wasG=p.grounded,vyIn=p.vy,prevBottom=p.y+R;p.grounded=false;p.y+=p.vy*mdt;
   for(const r of solids){if(r.bound||!boxHit(p.x,p.y,R,R,r))continue;
@@ -2401,11 +2498,15 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   // perception lag: the CPU reacts to where you were a moment ago, not where you are now
   if(ai.sx==null){ai.sx=e.x;ai.sy=e.y;ai.svx=0;ai.svy=0;ai.aim=p.aim}
   const k=Math.min(1,dt/sk.lag);ai.sx+=(e.x-ai.sx)*k;ai.sy+=(e.y-ai.sy)*k;ai.svx+=(e.vx-ai.svx)*k;ai.svy+=(e.vy-ai.svy)*k;
-  const wantAim=aimSolutionAt(p,ai.sx,ai.sy,ai.svx*sk.lead,ai.svy*sk.lead,e.grounded)+ai.err;
+  // a rope drop over (or under) the rival, with a clear line to its target: cut it and drop the platform on them
+  if((ai.ropeT=(ai.ropeT||0)-dt)<=0){ai.ropeT=.15;ai.rope=rides.find(c=>c.hang&&c.st===0&&Math.abs(e.x-(c.x+c.w/2))<c.w/2+12&&(e.ground===c||e.y>c.y+c.h&&e.y-c.y<460)&&losClear(p.x,p.y,c.tx,c.ty))||null}
+  if(ai.rope&&ai.rope.st!==0)ai.rope=null;
+  const wantAim=ai.rope?aimSolutionAt(p,ai.rope.tx,ai.rope.ty,0,0,false)+ai.err*.3:aimSolutionAt(p,ai.sx,ai.sy,ai.svx*sk.lead,ai.svy*sk.lead,e.grounded)+ai.err;
   // the gun arm swings toward that aim at a human-ish speed instead of snapping
   ai.aim+=clamp(wrapA(wantAim-ai.aim),-sk.turn*dt,sk.turn*dt);inp.aim=ai.aim;
   ai.losT-=dt;if(ai.losT<=0){ai.losT=.1;const was=ai.los;ai.los=clearShot(p,inp.aim,e);if(ai.los&&!was)ai.hes=sk.hes*rand(.6,1.4)}
   if(ai.los){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}
+  if(ai.rope&&Math.abs(wrapA(wantAim-ai.aim))<.05)inp.fire=true;
   // intent: engage when there is a shot, hunt when there has not been one for a while, recover when falling into nothing
   ai.noLos=ai.los?0:ai.noLos+dt;ai.gapT-=dt;ai.flipT-=dt;
   const falling=!p.grounded&&!groundBelow(p);
@@ -2458,7 +2559,7 @@ function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
-  updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
+  updateSwings(h);updateRides(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
   dropTick(h);strikeTick(h);if(game.mode==='survival')downTick(h);
   if(hostingNet()){const e=[performance.now()];for(const q of players)e.push(q.x,q.y);(net.h0=net.h0||[]).push(e);if(net.h0.length>60)net.h0.shift()}   // every fighter's recent path, for lag compensation
   updateBullets(h);
@@ -2474,7 +2575,7 @@ function simTick(h){const st=game.state;
     if(!game.overtime&&game.pointT>45){game.overtime=true;game.banner='OVERTIME';game.bannerT=1.4;sfx('horn')}return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
   return false}
-function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}}
+function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}
 function update(dt){pollPads();
   if(game.mode==='online-guest'){guestTick(dt);return}
   if(game.paused){edges.clear();mouse.rEdge=false;return}
@@ -2648,7 +2749,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
 function render(){const saved=[],a=clamp(game.alpha||0,0,1),lerp=o=>{if(o.lx!=null&&Number.isFinite(o.x)&&Number.isFinite(o.lx)){saved.push([o,o.x,o.y]);o.x=o.lx+(o.x-o.lx)*a;o.y=o.ly+(o.y-o.ly)*a}};
-  for(const w of swings)lerp(w);
+  for(const w of swings)lerp(w);for(const c of rides)lerp(c);
   if(game.mode==='online-guest'){const me=players[1];if(me&&me.phys){lerp(me);if(!saved.some(e=>e[0]===me))saved.push([me,me.x,me.y]);me.x+=net.offX;me.y+=net.offY}}
   else for(const o of[...players,...bullets])lerp(o);
   try{renderNow()}finally{for(const[o,x,y]of saved){o.x=x;o.y=y}}}
@@ -2663,8 +2764,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.drawImage(bgC,0,0);
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
   ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0);ctx.drawImage(decC,0,0);
-  for(const s of swings){if(!s.mover){ctx.strokeStyle='rgba(235,215,245,.38)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(s.ax,0);ctx.lineTo(s.x+s.w/2,s.y);ctx.stroke()}
-    ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(s.x+8,s.y+10,s.w,s.h);ctx.drawImage(s.art,s.x,s.y)}
+  for(const s of swings){if(!s.mover)chain(s.ax,s.ay||0,s.x+s.w/2,s.y);
+    ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
+  drawRides();
   for(const q of parts)if(q.blob){ctx.globalAlpha=clamp(q.life/q.max,0,1)*.7;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(1.3-.3*q.life/q.max),0,TAU);ctx.fill()}
   ctx.globalAlpha=1;
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
@@ -2835,7 +2937,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-howto';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-maps2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3052,7 +3154,7 @@ function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.m
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
-  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0),...(game.coop?coopSnap():{})}}
+  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>[r1(c.x),r1(c.y),c.crate?(c.gone>0?1:0):c.st])}:{}),fx:net.fx.splice(0),...(game.coop?coopSnap():{})}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
   // host-clock offset: the smallest (arrival - send) seen is the least-delayed path; it drifts up slowly to follow clock drift
@@ -3094,6 +3196,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   (s.sw||[]).forEach((a,i)=>{const w=swings[i];if(!w||!Array.isArray(a))return;const first=w.gAng==null;let ang=a[0],av=a[1];
     if(w.mover)ang=(ang+lead/w.period)%1;else for(let k=0;k<ls;k++)[ang,av]=swingPhys(ang,av,w.len,FIXED);
     w.gAng=ang;w.gAv=av;if(first){w.ang=ang;w.av=av;placeSwing(w);w.px=w.x;w.py=w.y;w.dx=0;w.dy=0}});
+  (s.rd||[]).forEach((a,i)=>{const c=rides[i];if(!c||!Array.isArray(a))return;c.gx=a[0];c.gy=a[1];if(c.crate)c.ggone=!!a[2];else c.gst=a[2]});
   for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
 // guest's own fighter: compare the host's state for the newest input it has applied with what this screen predicted
 // for that same input; shift the prediction by the difference and fade the visual jump out over ~0.1 s
@@ -3141,7 +3244,7 @@ function guestSwings(h){const k=Math.min(1,h*5);
       if(s.gAng!=null){[s.gAng,s.gAv]=swingPhys(s.gAng,s.gAv,s.len,h);const d=s.gAng-s.ang;
         if(Math.abs(d)>.3){s.ang=s.gAng;s.av=s.gAv}else{s.ang+=d*k;s.av+=(s.gAv-s.av)*k}}}
     placeSwing(s)}}
-function guestStep(h,busy){guestSwings(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
+function guestStep(h,busy){guestSwings(h);guestRides(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
   // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
   // and an aim taken after it would point back the other way, so the host would teleport the other way
   if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
@@ -3182,7 +3285,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     if(me&&me.alive&&liveThen&&(ready||me.blockStock>0&&!(me.localBlockT>0))){if(!ready)me.blockStock--;else{me.gCd=me.s.blockCd;me.blockStock=me.s.blockStock}
       // the aim this block (and its dash or teleport) uses, recorded for the host too
       if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
-  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[1];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}}guestStep(FIXED,busy)}
+  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[1];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
