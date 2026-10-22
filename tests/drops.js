@@ -6,6 +6,7 @@ const { load, flushTimers } = require('./env');
   const { api: A } = await load({ seed: 3 });
   const fail = [], check = (ok, m) => { if (!ok) fail.push(m) };
   const fresh = () => { A.startSurvival(); flushTimers(); while (A.game.state === 'pick') { A.choose(A.hand[0], null); flushTimers() }
+    A.loadMap(0); A.players.forEach((p, k) => A.resetPlayer(p, A.game.map.sp[k % 2]));   // a fixed arena (Yard): room for a capsule away from both fighters
     A.game.state = 'play'; for (const p of A.players) { p.ctrl = 'idle'; p.hp = p.s.maxHp } };
   // a drop appears: beam first, then it falls and lands on top of a platform
   fresh(); A.game.capT = 0; A.dropTick(1 / 120);

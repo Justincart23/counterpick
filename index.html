@@ -276,6 +276,8 @@ body.touch .menu-foot .touchnote{display:inline}
 .logo{font-family:var(--display);font-weight:400;font-size:clamp(56px,10vw,124px);line-height:.86;margin:0;transform:rotate(-4deg);transform-origin:left bottom;
   text-shadow:0 7px 0 rgba(0,0,0,.35);animation:logoBob 4.5s ease-in-out infinite}
 .logo .a{color:var(--orange)} .logo .b{color:var(--blue);display:inline-block;transform:translateY(.08em)}
+/* the painted logo, once it has loaded (the lettering above stays as the fallback) */
+.logo .logo-img{display:none;height:1.5em;width:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.3))} .logo.img .logo-img{display:block} .logo.img span{display:none} .logo.img{text-shadow:none;margin-bottom:.06em}
 @keyframes logoBob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(-3deg) translateY(-6px)}}
 .mlist{display:grid;justify-items:start;gap:0}
 .mlist.centered{justify-items:center}
@@ -372,7 +374,7 @@ body.touch .menu-foot .touchnote{display:inline}
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
     <div>
-      <h1 class="logo" aria-label="CUUED"><span class="a">CU</span><span class="b">UED</span></h1>
+      <h1 class="logo" aria-label="CUUED"><img class="logo-img" src="logo.webp" alt="" width="720" height="340" onload="this.parentNode.classList.add('img')"><span class="a">CU</span><span class="b">UED</span></h1>
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
     <p class="playing-as">Playing as <b data-myname>—</b>
@@ -454,7 +456,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: choose a character (more unlock as you reach new rounds), draft a card, then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). You get one free power-up at the start and one after each boss you beat; the rest you buy. Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap for the shop: cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
+            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After each boss you beat you get another free power-up; everything else you buy with scrap. Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap for the shop: cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
             <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
           </ol>
         </div>
@@ -749,6 +751,15 @@ const MAPS=[
  {name:'Skyline',big:1,w:2800,h:1000,rects:[[80,800,520,56],[760,690,420,56],[1300,820,320,56],[1720,690,420,56],[2280,800,440,56],[320,580,240,38],[1000,480,260,38],[1820,480,260,38],[2440,580,240,38],
    [1330,340,260,38]],movers:[{x:1390,y:560,w:140,h:30,mx:0,my:180,period:5}],sp:[[300,760],[2500,760]]},
 ];
+/* Co-op arenas: every standard arena 35% wider (heights stay, so every jump still reaches), for two heroes and their foes.
+   Pillars and springs keep their width; everything else spreads out. (Springs, Piston and Chimes stay standard: their gaps,
+   piston and hanging blocks are built for that width) */
+const WIDE_K=1.35;
+for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name))){const X=v=>Math.round(v*WIDE_K),mid=(x,w)=>X(x+w/2)-w/2;
+  MAPS.push({name:'Wide '+m.name,label:m.name,big:1,coop:1,w:X(1600),h:900,
+    rects:m.rects.map(r=>{const[x,y,w,h,k]=r,keep=k===1||k===3||w<=70;return[keep?mid(x,w):X(x),y,keep?w:X(w),h,...(r.length>4?[k]:[])]}),
+    ...(m.swings?{swings:m.swings.map(d=>({...d,ax:X(d.ax)}))}:{}),...(m.movers?{movers:m.movers.map(d=>({...d,x:mid(d.x,d.w),mx:X(d.mx)}))}:{}),
+    sp:m.sp.map(([x,y])=>[X(x),y])})}
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -801,7 +812,7 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
   for(let i=0;i<4;i++){const a=rand(-.5,.5),w0=rand(30,90),w1=rand(220,420);g.fillStyle=`rgba(255,190,170,${rand(.014,.026)})`;g.beginPath();
     g.moveTo(sx-w0,-10);g.lineTo(sx+w0,-10);g.lineTo(sx+w0+Math.sin(a)*H*1.2+w1,H+10);g.lineTo(sx-w0+Math.sin(a)*H*1.2-w1,H+10);g.fill()}
   g.restore();
-  g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.025)';g.fillText(map.name.toUpperCase(),W/2,H*.4);g.restore();
+  g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.025)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
   // platforms live on their own layer so a new arena can drop into place
   platx.clearRect(0,0,W,H);
   for(const r of map.rects){platx.fillStyle='rgba(10,4,18,.4)';platx.fillRect(r[0]+10,r[1]+12,r[2],r[3]);facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
@@ -981,7 +992,7 @@ function startMatch(mode){
     // every hero (one, or two in co-op, each on their own screen) chooses a character and drafts a first card; then round 1
     heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
-        ()=>heroPick(p,dealHand(p),'Survival · draft a card to start your run',null,()=>{p.starter=p.cards[p.cards.length-1];heroFreeUp(p,done)}))},()=>survRound(1));cv.focus();return}
+        ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -995,12 +1006,14 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[];camSnap()}
 function newPoint(fresh){
-  let i;if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.5))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx));
+  let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
+  if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
+  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.5))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&k!==game.mapIdx));
   else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k))});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
-  game.banner=finalRound?'FINAL ROUND':game.map.name.toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  game.banner=finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -1435,9 +1448,11 @@ function survResolve(){const hs=heroes();
 function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);
   while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;const m0=src.s.maxHp;recompute(src);src.hp+=src.s.maxHp-m0;   // the new health arrives at once
     parts.push({text:`LEVEL ${src.lvl} · +HP +DMG`,x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1.2,max:1.2,color:'#9be15d'});sfx('point')}}
+// the run's one free pick: three cards and two power-ups in one hand
+function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),ups=[];while(ups.length<2)ups.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return[cs[0],ups[0],cs[1],ups[1],cs[2]]}
 // one free power-up per boss: at the start of the run, and again after each boss is beaten. The rest are bought in the shop
 function heroFreeUp(p,done){const pool=UPGRADES.slice(),hand=[];while(hand.length<4&&pool.length)hand.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-  heroPick(p,hand,game.round?'Boss beaten · one free power-up':'One free power-up to start · the rest you earn in the shop','Free power-up',done)}
+  heroPick(p,hand,'Boss beaten · one free power-up','Free power-up',done)}
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
@@ -2597,7 +2612,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-art';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-art2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

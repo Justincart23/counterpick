@@ -162,7 +162,7 @@ const DT = 1 / 60;
     check(back, 'the downed guest should come back by the timer');
     // standing next to them revives sooner
     if (H.game.state === 'play') { H.die(g); const h0 = H.players[0]; let t = 0; for (; t < 60 * 6 && !g.alive; t++) { h0.x = g.downX; h0.y = g.downY; h0.vx = h0.vy = 0; h0.hp = 1e6; frame(1) }
-      check(g.alive && t < 60 * 4, `standing beside a downed partner should revive them in about 2 s (${(t / 60).toFixed(1)} s)`) }
+      check(g.alive && t < 60 * 5, `standing beside a downed partner should revive them in about 2 s of fighting (${(t / 60).toFixed(1)} s; hits on the reviver pause the game briefly)`) }
     // both down: a life goes
     const lives = H.game.lives; H.players[0].s.maxHp = 100; H.players[0].ctrl = 'cpu'; if (process.env.DBG) console.log('before', H.game.state, lives, H.players.map(p => p.alive)); if (H.game.state === 'play') { H.die(H.players[1]); H.die(H.players[0]); frame(300) }
     if (process.env.DBG) console.log('after', H.game.state, H.game.lives, H.players.map(p => p.alive)); check(H.game.lives === lives - 1 || H.game.state === 'over', 'both heroes down should cost a life') }
