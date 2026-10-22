@@ -526,7 +526,7 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap: more for kills, no damage and bosses, plus interest (1 per 10 scrap saved, up to 5). Spend it in the shop on cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
+            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. From round 7 every five rounds turn the same wheel: a wave, a <b>swarm</b> (more enemies, each weaker), a <b>twist</b> (low gravity, fast bullets...), an <b>elite</b> (a gold leader with extra cards and health, worth a bonus), then the boss. Bosses get tougher every time: more health each boss round, and an extra card from round 20. After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap: more for kills, no damage and bosses, plus interest (1 per 10 scrap saved, up to 5). Spend it in the shop on cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
             <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
           </ol>
         </div>
@@ -1335,19 +1335,19 @@ function drawDrops(){if(!drops.length)return;const now=performance.now()/1000;ct
    keep their damage when you lose one). Reaching new rounds unlocks new characters ---------- */
 const BOSSES=[
  {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Divider',
-  hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe'},
+  hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe',extra:['Overpressure','Deep Magazine']},
  {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Yard',
-  hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge'},
+  hp:5,size:1.45,deck:['Haymaker','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge',extra:['Regrowth','Momentum']},
  {id:'bombardier',n:'The Bombardier',sub:'Calls down shells: red circles mark where they land. Keep moving.',color:'#d9822b',glow:'#ffc27a',hat:'tophat',map:'Bunkers',
-  hp:4.5,size:1.3,deck:['Lob Shell','Cluster Guard'],phases:[['Blast Cap'],['Splinter Rounds']],special:'barrage'},
+  hp:4.5,size:1.3,deck:['Lob Shell','Cluster Guard'],phases:[['Blast Cap'],['Splinter Rounds']],special:'barrage',extra:['Limpet Mines','Fat Rounds']},
  {id:'phantom',n:'The Phantom',sub:'A shimmer shows where it will appear. Turn and fire as it lands.',color:'#8e7bff',glow:'#c9bdff',hat:'halo',map:'Archipelago',
-  hp:4,size:1.1,deck:['Ghost Rounds','Pipsqueak'],phases:[['Triple Tap'],['Seeker']],special:'phase'},
+  hp:4,size:1.1,deck:['Ghost Rounds','Pipsqueak'],phases:[['Triple Tap'],['Seeker']],special:'phase',extra:['Venom Tips','Reflex Guard']},
  {id:'warden',n:'The Warden',sub:'Raises a mirror shield that throws your shots back. Wait it out, then punish.',color:'#3fa9a0',glow:'#9ff0e6',hat:'crown',map:'Crossroads',
-  hp:5,size:1.4,deck:['Bulwark','Quick Guard'],phases:[['Mirror Guard'],['Counterfire']],special:'fortress'},
+  hp:5,size:1.4,deck:['Bulwark','Quick Guard'],phases:[['Mirror Guard'],['Counterfire']],special:'fortress',extra:['Mending Guard','Static Guard']},
 ];
 // every 25th round: all their tricks, one per phase
 const CROWN={id:'crown',n:'The Crown',sub:'Every trick in the book: it changes its attack at each phase.',color:'#ffd36b',glow:'#fff1b8',hat:'crown',map:'Towers',
-  hp:6,size:1.5,deck:['Rail Slug','Thick Skin'],phases:[['Haymaker','Lob Shell'],['Blink Guard','Speed Loader']],special:'crown',specials:['snipe','charge','barrage']};
+  hp:6,size:1.5,deck:['Rail Slug','Thick Skin'],phases:[['Haymaker','Lob Shell'],['Blink Guard','Speed Loader']],special:'crown',specials:['snipe','charge','barrage'],extra:['Regrowth','Overpressure']};
 const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6,STRIKE_WARN=1,PHASE_WARN=.7,FORT_RAISE=.6,FORT_T=2.4,FORT_TIRED=1.8;
 // ordinary enemies: a name, a look, and a growing random deck
 const RAIDERS=[{n:'Raider',color:'#4fb3a9',glow:'#9ff0e6',hat:'antenna'},{n:'Hunter',color:'#9a6bd8',glow:'#d2b4ff',hat:'tophat'},{n:'Gunner',color:'#d8b04f',glow:'#ffe7a0',hat:'party'},{n:'Shade',color:'#5a6a8c',glow:'#aebddc',hat:'halo'}];
@@ -1389,13 +1389,20 @@ const charOpen=c=>(wallet.survBest||0)>=c.unlock;
 const xpNeed=L=>25+15*L;
 function startSurvival(){startMatch('survival')}
 // a boss fighter: its look, its deck and its special-attack brain; each time round it comes back stronger
-function makeBoss(p,B,cycle){p.boss=B;p.name=B.n;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed(B.deck);p.phase=0;p.hpMul=1+.35*(cycle||0);
+// a boss grows with the run: +8% health for every boss round before it (+20% more each time the six come round again),
+// and one extra card of its own kind from round 20 (two from round 45), so it keeps pace with a hero who has been shopping
+const bossTier=n=>Math.max(0,Math.round(n/BOSS_EVERY)-1);
+function makeBoss(p,B,cycle,n=5){p.boss=B;p.name=B.n;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed([...B.deck,...(B.extra||[]).slice(0,n>=45?2:n>=20?1:0)]);p.phase=0;p.hpMul=1+.08*bossTier(n)+.2*(cycle||0);
   p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0}}
 function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
   const k=Math.min(10,Math.round(.55*(n-1))+Math.floor(n/6)-(count>2?1:0)),pool=CARDS.filter(c=>(c.r<2||n>=10)&&!['Second Wind','Aegis'].includes(c.n)),out=[];   // a gentle climb: about one card every two rounds, rares from round 10
   for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
   // a bigger wave splits the strength: more enemies, each a little weaker
   p.hpMul=(1+.07*(n-1))*(count>1?.62:1)}
+// the elite: the wave's leader, with two more cards and much more health, in gold. Beat it and the boss is next
+function makeElite(p,n){p.name='Elite '+p.name;p.color='#e6b53c';p.glow='#ffe39a';p.cos={hat:'crown'};p.elite=true;
+  const pool=CARDS.filter(c=>(c.r<2||n>=14)&&!['Second Wind','Aegis'].includes(c.n)&&!(c.u&&p.cards.includes(c)));for(let j=0;j<2;j++)p.cards.push(pick(pool));
+  p.hpMul=(1+.07*(n-1))*1.55}
 // set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
 /* ---------- Co-op Survival: two heroes, one run. The host simulates everything; each hero picks and shops on their own
    screen at the same time, and the run carries on when both are done. A downed hero comes back after 8, 12 then 16 s, or
@@ -1428,7 +1435,7 @@ function guestShop(m){const me=players[1];if(!me)return;game.waitMsg='';
 // host -> guest: who is in the fight (sent when it changes, and now and then in case a packet was lost) and the run's state
 function coopSnap(){const pm=players.map(p=>[p.team,p.name,p.color,p.glow,(p.cos&&p.cos.hat)||'',p.boss?p.boss.id:'',r2(p.hpMul||1),p.char?CHARS.indexOf(p.char):-1,(p.ups||[]).map(u=>UPGRADES.indexOf(u)).join(',')]),
     key=JSON.stringify(pm),send=key!==net.pmSent||!((net.pmN=(net.pmN||0)+1)%30);if(send)net.pmSent=key;
-  return{...(send?{pm}:{}),sv:{r:game.round,l:game.lives,tw:game.twist?game.twist.id:'',
+  return{...(send?{pm}:{}),sv:{r:game.round,l:game.lives,tw:game.twist?game.twist.id:'',rk:game.rkind||'',
     k:(game.strikes||[]).map(k=>[r1(k.x),r1(k.y),r1(k.R),r2(k.t),r2(k.max),k.owner.id]),
     h:heroes().map(p=>[p.id,p.scrap|0,p.lvl|0,r1(p.xp||0),0,r2(p.downT||0),r2(p.reviveT||0),r1(p.downX||0),r1(p.downY||0)]),
     b:players.filter(p=>p.boss&&p.bs).map(p=>[p.id,p.bs.state,r2(p.bs.at||0),r1(p.bs.tx||0),r1(p.bs.ty||0),p.bs.dir|0,r2(p.bs.lock||0),r2(p.stunT||0),p.mirror?1:0])}}}
@@ -1438,7 +1445,7 @@ function coopRoster(pm){const key=JSON.stringify(pm);if(key===net.pmKey)return;n
     p.boss=a[5]?(a[5]==='crown'?CROWN:BOSSES.find(b=>b.id===a[5])||null):null;if(p.boss&&!p.bs)p.bs={state:'idle'};p.hpMul=a[6];
     p.char=a[7]>=0?CHARS[a[7]]:null;p.ups=a[8]?String(a[8]).split(',').map(i=>UPGRADES[+i]).filter(Boolean):[];p.cardKey=null;recompute(p)});
   players.length=pm.length}
-function coopState(v){game.round=v.r|0;game.lives=v.l|0;game.twist=TWISTS.find(t=>t.id===v.tw)||null;
+function coopState(v){game.round=v.r|0;game.rkind=v.rk||'';game.lives=v.l|0;game.twist=TWISTS.find(t=>t.id===v.tw)||null;
   game.strikes=(v.k||[]).map(a=>({x:a[0],y:a[1],R:a[2],t:a[3],max:a[4],owner:players[a[5]]})).filter(k=>k.owner);
   for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[1]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
   for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
@@ -1457,16 +1464,20 @@ function drawDowns(){if(!survOn())return;for(const p of heroes()){if(p.alive||!(
   ctx.font='800 12px Nunito, sans-serif';ctx.fillStyle=p.glow;ctx.fillText(k>0?'REVIVING':'STAND HERE TO REVIVE',x,y+(p.r||BASE_R)+22);ctx.restore()}}
 // how many enemies a round brings (a boss round: the boss, plus one from round 15)
 const survWave=(n=game.round||1)=>survBossFor(n)?1:Math.min(4,1+Math.floor(n/4));   // 1 enemy, then 2 from round 4, 3 from 8, 4 from 12
-function survRound(n){game.round=n;const B=survBossFor(n);
-  game.twist=!B&&n>=6&&n%4===2?pick(TWISTS):null;
-  const hs=heroes(),count=B?(n>=15?2:1):Math.min(5,survWave(n)+(hs.length>1&&n>=4?1:0));   // co-op: one more enemy from round 4
+// every five rounds turn the same wheel: a wave, a swarm, a twist, an elite, then a boss. The first lap stays plain while you learn
+const survKind=n=>survBossFor(n)?'boss':n%5===2&&n>=7?'swarm':n%5===3&&n>=8?'twist':n%5===4&&n>=9?'elite':'wave';
+const KIND_N={swarm:'SWARM',elite:'ELITE'};
+function survRound(n){game.round=n;const B=survBossFor(n),kind=survKind(n);game.rkind=kind;
+  game.twist=kind==='twist'?pick(TWISTS):null;
+  const hs=heroes(),base=survWave(n)+(hs.length>1&&n>=4?1:0),   // co-op: one more enemy from round 4
+    count=B?(n>=15?2:1):kind==='swarm'?Math.min(6,base+1):kind==='elite'?Math.max(1,base-1):Math.min(5,base);   // a swarm: one more, all weaker; an elite: one fewer, led by a strong one
   const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
-  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));if(n===5)e.hpMul*=.85}else makeRaider(e,n,i,B?3:count);if(hs.length>1)e.hpMul*=e.boss?1.75:1.3;recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
+  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:count);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)}if(hs.length>1)e.hpMul*=e.boss?1.75:1.3;recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
   for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0;h.roundKills=0}game.waitMsg='';
   game.diff=n<=3?'easy':n<=9?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
-  game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;
+  game.banner=B?(bossTier(n)?`${B.n.toUpperCase()} · TIER ${bossTier(n)+1}`:B.n.toUpperCase()):game.twist?`ROUND ${n} · ${game.twist.n}`:KIND_N[kind]?`ROUND ${n} · ${KIND_N[kind]}`:`ROUND ${n}`;game.bannerT=2;
   if(n<=1)game.newBest=false;{const best=wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
@@ -1554,11 +1565,11 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
 // a point in Survival: every enemy down clears the round (then the shop); every hero down costs a life, and the
 // enemies keep their damage. No lives left ends the run
 function survResolve(){const hs=heroes();
-  if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?12:0;   /* a beaten boss pays a bonus: that's how power-ups are earned */
+  if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?12:game.rkind==='elite'?5:0;   /* an elite pays a smaller bonus */   /* a beaten boss pays a bonus: that's how power-ups are earned */
     // pay = a base that grows slowly + 2 per kill + 4 for no damage + the boss bonus (x the character's bonus), then interest: 1 per 10 scrap saved (up to 5)
     for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?4:0,kills=h.roundKills|0,int=Math.min(5,Math.floor((h.scrap|0)/10)),
       team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((7+game.round+2*kills+bb+nd+team)*mul)+int;h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
-      h.payNote=[kills?`${kills} kill${kills>1?'s':''}`:'',bb?'boss bonus':'',nd?'no damage':'',team?'teamwork':'',int?`+${int} interest`:''].filter(Boolean).join(', ')}
+      h.payNote=[kills?`${kills} kill${kills>1?'s':''}`:'',bb?(bb>5?'boss bonus':'elite bonus'):'',nd?'no damage':'',team?'teamwork':'',int?`+${int} interest`:''].filter(Boolean).join(', ')}
     game.cleared=game.round;game.state='shop';
     // every hero shops (in co-op both at once, each on their own screen); then the next round
     heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
@@ -1637,7 +1648,7 @@ function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=my
   let f=0,col=C.text,label=`ROUND ${game.round}`;
   if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
   else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
-  if(game.twist)label+=` · ${game.twist.n}`;
+  if(game.twist)label+=` · ${game.twist.n}`;else if(!boss&&KIND_N[game.rkind])label+=` · ${KIND_N[game.rkind]}`;
   ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,VW/2,ty);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=boss&&boss.stunT>0?'#ffd36b':col;ctx.fillRect(x,y,bw*f,14);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
   if(boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
@@ -2773,7 +2784,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-balance';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-rotation';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
