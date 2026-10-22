@@ -70,6 +70,13 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
   const hS = await stats(H), vS = await stats(V);
   console.log('host   ', JSON.stringify(hS)); console.log('visitor', JSON.stringify(vS));
   ok(hS.connected && vS.connected, 'still connected at the end');
+  // chat: a typed message reaches the other side as plain text (markup is never rendered), and a quick message goes back
+  await H.ev(`document.querySelector('#bChat').click()`); await sleep(150);
+  await H.ev(`(()=>{const i=document.querySelector('#chatIn');i.value='hello <b>there</b>';document.querySelector('#chatForm').requestSubmit()})()`);
+  const got = await V.until(`[...document.querySelectorAll('#chatLog .cm')].some(d=>d.textContent.includes('hello <b>there</b>')&&!d.querySelector('b b'))`, 5000);
+  await sleep(800); await V.ev(`document.querySelector('#bChat').click()`); await sleep(150); await V.ev(`document.querySelector('#chatForm [data-q="GG"]').click()`);
+  const back = await H.until(`[...document.querySelectorAll('#chatLog .cm')].some(d=>d.textContent.endsWith('GG'))`, 5000);
+  ok(got && back, 'chat messages reach the other player both ways, shown as plain text');
   { const fh = await H.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`), fv = await V.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`);
     ok(fh === 'open' && fv === 'open', `the fast (lossy, unordered) channel carries snapshots and inputs on both sides (host ${fh}, visitor ${fv})`) }
   ok(hS.fps >= 55 && vS.fps >= 55, `both screens hold ~60 fps (host ${hS.fps}, visitor ${vS.fps})`);

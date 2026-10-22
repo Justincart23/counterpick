@@ -297,7 +297,26 @@ body.touch .menu-foot .touchnote{display:inline}
 #hudbtns button{font-family:var(--display);font-size:15px;letter-spacing:.03em;border:2px solid var(--line);border-radius:6px;background:rgba(33,21,47,.86);color:var(--text);padding:5px 12px 6px;cursor:pointer;
   box-shadow:0 2px 0 rgba(0,0,0,.35);transition:transform .08s,opacity .12s,border-color .08s;display:inline-flex;align-items:center;gap:7px}   /* the menu buttons' look, a size down */
 #hudbtns button:hover,#hudbtns button:focus-visible{opacity:1;transform:translateY(-1px);border-color:var(--orange)}
-#bPause{width:40px;height:32px;padding:0;justify-content:center;opacity:.6}#bPause svg{fill:currentColor;width:13px;height:15px}
+#bPause,#bChat{width:40px;height:32px;padding:0;justify-content:center;opacity:.6}#bChat svg{fill:currentColor}
+/* chat: messages stack at the bottom left (top left on phones, clear of the thumbs) and fade; typing opens a bar at the top */
+#chat{position:fixed;inset:0;pointer-events:none;z-index:6}
+#chatLog{position:absolute;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(380px,42vw);display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+#chatLog .cm{font:700 15px/1.3 Nunito,sans-serif;color:var(--text);background:rgba(23,15,34,.82);border:1px solid var(--line);border-radius:8px;padding:5px 10px;max-width:100%;overflow-wrap:anywhere;animation:chatFade 9s forwards}
+#chatLog .cm b{font-family:var(--display);font-weight:400;letter-spacing:.03em;margin-right:6px}
+#chat.open #chatLog .cm{animation:none;opacity:1}
+@keyframes chatFade{0%{opacity:0;transform:translateY(6px)}4%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+#chatForm{position:absolute;top:calc(48px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 32px));pointer-events:auto;display:grid;grid-template-columns:1fr auto;gap:6px;
+  background:rgba(33,21,47,.95);border:2px solid var(--line);border-radius:12px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#chatForm[hidden]{display:none}
+#chatIn{font:700 16px Nunito,sans-serif;color:var(--text);background:var(--night);border:2px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+#chatIn:focus{outline:none;border-color:var(--orange)}
+#chatForm button{font-family:var(--display);font-size:15px;letter-spacing:.03em;color:var(--text);background:var(--night-2);border:2px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+#chatForm .chat-send{background:var(--orange);border-color:var(--orange);color:#1a0e05}
+#chatForm button:hover,#chatForm button:focus-visible{border-color:var(--orange);outline:none}
+.chat-quick{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+body.touch #chatLog{top:calc(96px + env(safe-area-inset-top,0px));bottom:auto;left:calc(var(--gut,0px) + 14px);width:min(300px,40vw)}
+body.touch #chatLog .cm{font-size:13px;padding:4px 8px}body.touch #chat.open #chatLog{top:calc(128px + env(safe-area-inset-top,0px))}
+body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fill:currentColor;width:13px;height:15px}
 #hudbtns button:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
 #hudbtns .kh{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px;line-height:15px}   /* the shortcut as a small keycap */
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
@@ -414,8 +433,11 @@ body.touch .menu-foot .touchnote{display:inline}
   <button type="button" class="tbtn" id="tJump">Jump</button>
   <button type="button" class="tbtn block" id="tBlock">Block</button>
 </div>
+<div id="chat" aria-label="Chat"><div id="chatLog" aria-live="polite"></div>
+  <form id="chatForm" hidden autocomplete="off"><input id="chatIn" maxlength="120" enterkeyhint="send" placeholder="Message your opponent…" aria-label="Chat message"><button type="submit" class="chat-send">Send</button>
+    <div class="chat-quick"><button type="button" data-q="GG">GG</button><button type="button" data-q="Nice shot!">Nice shot!</button><button type="button" data-q="Rematch?">Rematch?</button><button type="button" data-q="😂">😂</button><button type="button" data-q="🔥">🔥</button></div></form></div>
 <div id="rotate" class="touch-only"><div><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways to play</div></div>
-<div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh">Tab</span></button><button id="bPause" type="button" aria-label="Pause (Esc)" title="Pause · Esc"><svg viewBox="0 0 12 14" width="12" height="14" aria-hidden="true"><rect x="1" y="1" width="3.4" height="12" rx="1.2"/><rect x="7.6" y="1" width="3.4" height="12" rx="1.2"/></svg></button></div>
+<div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh">Tab</span></button><button id="bChat" type="button" hidden aria-label="Chat (Enter)" title="Chat · Enter"><svg viewBox="0 0 16 14" width="16" height="14" aria-hidden="true"><path d="M2 1h12a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 14 10H7l-3.5 3v-3H2A1.5 1.5 0 0 1 .5 8.5v-6A1.5 1.5 0 0 1 2 1z"/></svg></button><button id="bPause" type="button" aria-label="Pause (Esc)" title="Pause · Esc"><svg viewBox="0 0 12 14" width="12" height="14" aria-hidden="true"><rect x="1" y="1" width="3.4" height="12" rx="1.2"/><rect x="7.6" y="1" width="3.4" height="12" rx="1.2"/></svg></button></div>
 
 <div id="menu" class="overlay menu-screen">
   <div class="menu-wrap">
@@ -488,6 +510,7 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:4">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:5">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:6">Aim guide <span class="val">Off</span></button>
+        <button type="button" data-opt="chat" data-hint="Text chat with your opponent in online matches. Off hides it both ways." style="--i:6">Chat <span class="val">On</span></button>
         <button type="button" class="touch-only" data-opt="pview" data-hint="Thumb room: the arena sits between two lanes for your thumbs, so they never cover the fight. Fill screen: edge to edge." style="--i:7">Phone view <span class="val">Thumb room</span></button>
         <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:7">Back</button>
       </nav>
@@ -597,6 +620,7 @@ body.touch .menu-foot .touchnote{display:inline}
         <button type="button" data-opt="vol" data-hint="How loud the game plays." style="--i:2">Volume <span class="val">75%</span></button>
         <button type="button" data-opt="music" data-hint="The background music. Sound effects stay on." style="--i:3">Music <span class="val">On</span></button>
         <button type="button" data-opt="aim" data-hint="A dotted arc showing where your shot will fly. On phones it shows while you drag to aim." style="--i:4">Aim guide <span class="val">Off</span></button>
+        <button type="button" data-opt="chat" data-hint="Text chat with your opponent in online matches. Off hides it both ways." style="--i:4">Chat <span class="val">On</span></button>
         <button type="button" class="touch-only" data-opt="pview" data-hint="Thumb room: the arena sits between two lanes for your thumbs, so they never cover the fight. Fill screen: edge to edge." style="--i:7">Phone view <span class="val">Thumb room</span></button>
         <button type="button" data-act="back" data-hint="Back to the pause menu." style="--i:5">Back</button>
       </nav>
@@ -1006,6 +1030,7 @@ addEventListener('keydown',e=>{initAudio();
   if(!$('#shop').hidden){if(e.code==='Escape'){e.preventDefault();closeShop()}return}
   if(sbOpen()){if(e.code==='Escape'||e.code==='Tab'){e.preventDefault();closeSandbox()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
+  if(e.code==='Enter'&&chatOn()&&$('#pause').hidden&&$('#chatForm').hidden&&!['pick','shop'].includes(game.state)){e.preventDefault();chatOpen();return}
   if(menuKey(e))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Slash','Period'].includes(e.code))e.preventDefault();
   if(!keys.has(e.code))edges.add(e.code);keys.add(e.code);
   if(e.code==='Escape'&&!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause();
@@ -2738,12 +2763,12 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame();update(dt);render();requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame();chatSync();update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-survival2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-chat';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2920,6 +2945,7 @@ function onNet(m){
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
   if(m.t==='away'||m.t==='back'){net.awayR=m.t==='away';return}
+  if(m.t==='chat'){chatRecv(m);return}   // both sides
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
   if(net.role==='host'){
     if(m.t==='i'){net.lastInAt=performance.now();net.awayR=false;if(!net.remote||!(m.s<net.remote.s))net.remote=m;
@@ -3172,11 +3198,31 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,pview:'room',v:2};   // the aim guide starts off: turn it on in Settings
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,pview:'room',chat:true,v:2};   // the aim guide starts off: turn it on in Settings
 try{const o=JSON.parse(localStorage.getItem('counterpick.settings')||'{}');if(o&&typeof o==='object'){if((o.v|0)<2)delete o.aim;Object.assign(settings,o,{v:2})}}catch(e){}   // older saves always stored aim:on (the old default), so they start from the new default
 phoneView();   // a saved Phone view applies from the start
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},pview:{vals:['room','fill'],label:v=>v==='fill'?'Fill screen':'Thumb room'}};
+/* ---------- chat with your opponent (online only). Messages go over the reliable channel as plain text and are only ever
+   shown as text (never as HTML); 120 characters at most, one every 0.7 s ---------- */
+const chat={last:0,was:false};
+const chatClean=t=>String(t==null?'':t).replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,120);
+const chatOn=()=>!!(net.role&&net.connected&&settings.chat!==false);
+function chatAdd(name,text,col){const log=$('#chatLog');if(!log)return;const d=document.createElement('div');d.className='cm';const b=document.createElement('b');b.textContent=name;b.style.color=col;
+  d.appendChild(b);d.appendChild(document.createTextNode(text));log.appendChild(d);while(log.children.length>5)log.removeChild(log.firstChild)}
+function chatColor(mine){const i=(game.mode==='online-guest'||net.role==='guest')?(mine?1:0):(mine?0:1),p=players[i];return p&&p.color||(i?C.blue:C.orange)}
+function chatOpen(){if(!chatOn())return;keys.clear();mouse.down=false;$('#chatForm').hidden=false;$('#chat').classList.add('open');const i=$('#chatIn');i.value='';i.focus()}
+function chatClose(){$('#chatForm').hidden=true;$('#chat').classList.remove('open');const i=$('#chatIn');if(document.activeElement===i)i.blur()}
+function chatSend(t){t=chatClean(t);if(!t||!chatOn())return;const now=performance.now();if(now-chat.last<700)return;chat.last=now;
+  netSend({t:'chat',m:t});chatAdd(myName||'You',t,chatColor(true))}
+function chatRecv(m){if(settings.chat===false)return;const t=chatClean(m.m);if(!t)return;chatAdd(net.remoteName||'Opponent',t,chatColor(false));sfx('tick',true)}
+// show the chat button only in a live online match; leaving clears the log
+function chatSync(){const on=chatOn(),b=$('#bChat');if(b&&b.hidden===on)b.hidden=!on;if(!on&&chat.was){chatClose();const l=$('#chatLog');if(l)l.textContent=''}chat.was=on}
+{const f=$('#chatForm');if(f){f.addEventListener('submit',e=>{e.preventDefault();chatSend($('#chatIn').value);chatClose()});
+  f.addEventListener('click',e=>{const q=e.target.closest('[data-q]');if(q){chatSend(q.dataset.q);chatClose()}});
+  $('#chatIn').addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();e.stopPropagation();chatClose()}});
+  $('#chatIn').addEventListener('blur',()=>setTimeout(()=>{const a=document.activeElement;if(!f.contains(a))chatClose()},150))}
+  const b=$('#bChat');if(b)b.onclick=()=>{b.blur();$('#chatForm').hidden?chatOpen():chatClose()}}
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},chat:{vals:[true,false],label:v=>v?'On':'Off'},pview:{vals:['room','fill'],label:v=>v==='fill'?'Fill screen':'Thumb room'}};
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true)}
