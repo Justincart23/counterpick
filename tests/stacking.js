@@ -1,5 +1,5 @@
 // Card stacking: any number of copies of any card, and big random mixes, must still fire visible bullets that fly and
-// can hurt, with no NaN and no crash. (Sandbox lets you stack up to 9 copies; drafts can stack too.)
+// can hurt, with no NaN and no crash, and stay inside the screen budget (bullet size and pellets per second). (Sandbox lets you stack up to 9 copies; drafts can stack too.)
 //   node tests/stacking.js
 const { load, flushTimers } = require('./env');
 
@@ -17,16 +17,18 @@ const { load, flushTimers } = require('./env');
     for (let i = 0; i < 90; i++) { step(1);
       for (const b of A.bullets) { if (b.owner !== P) continue; if (!seen.has(b)) seen.set(b, [b.x, b.y]); const o = seen.get(b); far = Math.max(far, Math.hypot(b.x - o[0], b.y - o[1])); if (!Number.isFinite(b.x + b.y)) nan = true }
       if (!Number.isFinite(P.x + P.y + E.hp + P.hp)) nan = true }
-    P.input.fire = false; return { made: seen.size, far, dmg: hp - E.hp, nan, r: P.s.bulletSize * 5 } };
+    P.input.fire = false; return { made: seen.size, far, dmg: hp - E.hp, nan, r: P.s.bulletSize * 5, rate: P.s.projectiles * P.s.burst / P.s.fireDelay } };
+  // the screen budget: no stack makes bullets huge or fills the air (and the network) with shots
+  const budget = (o, what) => { if (o.r > 13.5 || o.rate > 24.5) fail.push(`${what}: bullets ${o.r.toFixed(1)} px, ${o.rate.toFixed(1)} pellets/s (limits 13 px, 24/s)`) };
   let runs = 0;
   for (const c of A.CARDS) for (const k of c.u ? [1] : [1, 3, 6, 9]) { runs++;
-    const o = fire(Array(k).fill(c));
+    const o = fire(Array(k).fill(c)); budget(o, `${c.n} x${k}`);
     if (!o.made || o.nan || (o.far < 60 && o.dmg <= 0)) fail.push(`${c.n} x${k}: ${o.made} bullets, flew ${o.far | 0}px, dealt ${o.dmg | 0}${o.nan ? ', NaN' : ''}`) }
   // random mixed decks of 4 to 16 cards
   let rs = 99; const rnd = () => (rs = (rs * 1103515245 + 12345) % 2147483648) / 2147483648;
   for (let t = 0; t < 300; t++) { runs++;
     const deck = [], n = 4 + Math.floor(rnd() * 13); while (deck.length < n) { const c = A.CARDS[Math.floor(rnd() * A.CARDS.length)]; if (c.u && deck.includes(c)) continue; deck.push(c) }
-    const o = fire(deck);
+    const o = fire(deck); budget(o, 'a mixed deck');
     if (!o.made || o.nan || (o.far < 60 && o.dmg <= 0)) fail.push(`mix [${deck.map((c) => c.n).join(', ')}]: ${o.made} bullets, flew ${o.far | 0}px, dealt ${o.dmg | 0}${o.nan ? ', NaN' : ''}`) }
   console.log(JSON.stringify({ decks: runs, failures: fail.length }));
   if (fail.length) console.error(fail.slice(0, 12).map((f) => '  - ' + f).join('\n'));

@@ -1147,10 +1147,17 @@ function makePlayer(id,ctrl,name,team){return{id,team:team??id,ctrl,name:name||(
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   // Survival levels: +5% health, +4% damage each, up to level 15if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
+  /* soft caps: every extra copy still pays off, with shrinking returns, and no build floods the screen (or the network) with
+     shots: bullets grow to about 2.6x, a fan holds 7 pellets, a burst 4 shots, and the gun puts out at most 24 pellets a second.
+     Copies past a cap turn into a little damage instead */
+  if(s.bulletSize>1)s.bulletSize=1+1.6*(1-Math.exp(-(s.bulletSize-1)/1.6));
+  if(s.projectiles>7){s.dmg*=1+.08*(s.projectiles-7);s.projectiles=7}
+  if(s.burst>4){s.dmg*=1+.08*(s.burst-4);s.burst=4}
+  {const vol=s.projectiles*s.burst/s.fireDelay;if(vol>24){const k=vol/24;s.fireDelay*=k;s.dmg*=Math.sqrt(k)}}
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
-  s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
+  s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,2.6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
   s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
-  s.dmg=Math.min(s.dmg,BASE.dmg*30);s.lifesteal=Math.min(s.lifesteal,.5);s.regen=Math.min(s.regen,.04);s.blockHeal=Math.min(s.blockHeal,60);s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
+  s.dmg=Math.min(s.dmg,BASE.dmg*30);s.lifesteal=Math.min(s.lifesteal,.5);s.regen=Math.min(s.regen,.04);s.blockHeal=Math.min(s.blockHeal,60);s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,260);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,6);s.burst=Math.min(s.burst,4);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
   dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
@@ -1653,9 +1660,9 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
 // enemies keep their damage. No lives left ends the run
 function survResolve(){const hs=heroes();
   if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?12:game.rkind==='elite'?5:0;   /* an elite pays a smaller bonus */   /* a beaten boss pays a bonus: that's how power-ups are earned */
-    // pay = a base that grows slowly + 2 per kill + 4 for no damage + the boss bonus (x the character's bonus), then interest: 1 per 10 scrap saved (up to 5)
-    for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?4:0,kills=h.roundKills|0,int=Math.min(5,Math.floor((h.scrap|0)/10)),
-      team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((7+game.round+2*kills+bb+nd+team)*mul)+int;h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
+    // pay = a base that grows slowly + 1.5 per kill + 4 for no damage + the boss bonus (x the character's bonus), then interest: 1 per 12 scrap saved (up to 4)
+    for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?4:0,kills=h.roundKills|0,int=Math.min(4,Math.floor((h.scrap|0)/12)),
+      team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((5+.6*game.round+1.5*kills+bb+nd+team)*mul*(hs.length>1?.85:1))+int;   /* co-op: two shoppers on one run, each paid a little less */h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
       h.payNote=[kills?`${kills} kill${kills>1?'s':''}`:'',bb?(bb>5?'boss bonus':'elite bonus'):'',nd?'no damage':'',team?'teamwork':'',int?`+${int} interest`:''].filter(Boolean).join(', ')}
     game.cleared=game.round;game.state='shop';
     // every hero shops (in co-op both at once, each on their own screen); then the next round
@@ -1674,7 +1681,7 @@ function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),up
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
 const SHOP_PRICE=[6,10,16],SHOP_N=5;
-const cardPrice=c=>(c.up?9:SHOP_PRICE[c.r])+Math.floor((game.round||1)/3);   // a power-up costs a bit more than a common card
+const cardPrice=(c,p)=>(c.up?9:SHOP_PRICE[c.r])+Math.floor((game.round||1)/3)+Math.floor((((p&&p.cards.length)||0)+((p&&p.ups&&p.ups.length)||0))/3);   // and every 3 things you own add 1: a bigger build costs more to grow   // a power-up costs a bit more than a common card
 // a stack is capped in the shop: 3 of any card, 1 of the cards that save you from a lethal hit (stacked, they made a hero unkillable)
 const SHOP_CAP={'Second Wind':1,'Aegis':1};
 function survOffers(p){const cnt={};for(const c of p.cards)cnt[c.n]=(cnt[c.n]||0)+1;const owned=new Set(p.cards.filter(c=>c.u||(cnt[c.n]||0)>=(SHOP_CAP[c.n]||3)).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
@@ -1685,7 +1692,7 @@ function survOffers(p){const cnt={};for(const c of p.cards)cnt[c.n]=(cnt[c.n]||0
   // power-ups for sale too: one slot (two from round 8), in place of a card that isn't locked
   const ups=game.round>=8?2:1;for(let k=0,j=out.length-1;k<ups&&j>=keep.length;k++,j--){if(out.some((c,i)=>i===j&&keep.some(o=>o.c===c)))continue;
     const free=UPGRADES.filter(u=>!out.includes(u));if(free.length)out[j]=pick(free)}
-  p.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c)}:{c,price:cardPrice(c),sold:false,locked:false}})}
+  p.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c,p)}:{c,price:cardPrice(c,p),sold:false,locked:false}})}
 function heroShop(p,done){p.shopDone=done;p.reroll=(p.char&&p.char.cheapReroll?1:2)+Math.floor(game.round/4);p.nxName=(survBossFor(game.round+1)||{}).n||'';survOffers(p);
   if(heroLocal(p)){game.state='shop';showSurvShop(p);sfx('round',true)}else sendShop(p,'',true)}
 function showSurvShop(p=myHero()){const nx=p.nxName;
@@ -1708,7 +1715,7 @@ function shopChanged(p,msg){if(heroLocal(p)){decorateShop();renderShopBar(msg)}e
 const guestShopOp=(op,i)=>{if(game.mode!=='online-guest')return false;netSend({t:'sop',op,i:i|0});return true};
 function survBuy(i,p=myHero()){if(guestShopOp('buy',i))return;const o=(p.offers||[])[i];if(!o||o.sold||!p.shopDone)return;
   if((p.scrap|0)<o.price){if(heroLocal(p))sfx('empty',true);shopChanged(p,`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${p.scrap|0}.`);return}
-  p.scrap-=o.price;o.sold=true;o.locked=false;takeChoice(p,o.c);recompute(p);if(heroLocal(p)){sfx('pick',true);drawBigFace(p,'happy')}shopChanged(p,`Bought <b>${o.c.n}</b>.`)}
+  p.scrap-=o.price;o.sold=true;o.locked=false;takeChoice(p,o.c);recompute(p);for(const q of p.offers)if(!q.sold)q.price=cardPrice(q.c,p);if(heroLocal(p)){sfx('pick',true);drawBigFace(p,'happy')}shopChanged(p,`Bought <b>${o.c.n}</b>.`)}
 function survLock(i,p=myHero()){if(guestShopOp('lock',i))return;const o=(p.offers||[])[i];if(!o||o.sold||!p.shopDone)return;o.locked=!o.locked;if(heroLocal(p))sfx('tick',true);shopChanged(p,o.locked?`<b>${o.c.n}</b> will wait for you in the next shop.`:null)}
 function survReroll(p=myHero()){if(guestShopOp('reroll'))return;if(!p.shopDone)return;if((p.scrap|0)<p.reroll){if(heroLocal(p))sfx('empty',true);shopChanged(p,`A reroll costs ${p.reroll} scrap.`);return}
   p.scrap-=p.reroll;p.reroll+=(p.char&&p.char.cheapReroll)?1:2;survOffers(p);if(heroLocal(p))showSurvShop(p);else sendShop(p,'',true)}
@@ -2634,15 +2641,44 @@ function drawFluff(){const now=performance.now(),dt=clamp((now-(fluffT||now))/10
     if(f.c){f.a+=f.va*dt;ctx.globalAlpha=Math.min(1,k*2);ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);ctx.fillStyle='#d9a441';ctx.fillRect(-4,-1.8,8,3.6);ctx.fillStyle='#8a5d1c';ctx.fillRect(-4,-1.8,2,3.6);ctx.restore()}
     else{ctx.globalAlpha=.4*k;ctx.fillStyle='#e7d3b0';ctx.beginPath();ctx.arc(f.x,f.y,f.r*(1.6-k*.6),0,TAU);ctx.fill()}}
   ctx.restore();fluff=fluff.filter(f=>f.t<f.max)}
+/* ---------- a living body ----------
+   Each fighter carries two springs, worked out on every screen from what it shows (so it costs no network traffic):
+   a vertical stretch (stretch on a jump, squash and wobble on a landing or a hit, a slow breath at rest) and a lean
+   (into a run, overshooting on a turn). Against a wall the body squishes flat. Landings, jumps, hard turns and hits
+   flick drops of the fighter's own colour */
+function goo(x,y,col,n,sp,up,size=4){if(RM)return;for(let i=0;i<n&&parts.length<800;i++){const a=-Math.PI/2+rand(-1.25,1.25)*(up?1:2.2),v=rand(.35,1)*sp;
+  parts.push({goo:true,x:x+rand(-4,4),y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,grav:1500,life:rand(.35,.6),max:.6,size:rand(.55,1)*size,color:col})}}
+function liveFx(){const now=performance.now();
+  for(const p of players){const dt=clamp((now-(p.jt||now))/1000,0,.05);p.jt=now;
+    if(p.ja==null){p.ja=0;p.jav=0;p.jl=0;p.jlv=0;p.jw=0;p.blinkAt=now+rand(1500,4000);p.wasG=p.grounded;p.wasHp=p.hp;p.lastVy=p.vy||0;p.lastVx=p.vx||0;p.gooT=0}
+    if(!p.alive){p.ja=p.jl=p.jav=p.jlv=0;p.wasHp=p.hp;continue}
+    const R=p.r,vx=p.vx||0,vy=p.vy||0,g=!!p.grounded;
+    // events: landing, jumping, a hard turn, a hit
+    if(g&&!p.wasG&&p.lastVy>380){const k=Math.min(1,p.lastVy/1300);p.jav-=3+7*k;goo(p.x,p.y+R,p.color,3+Math.round(5*k),180+260*k,true,3+2*k)}
+    if(!g&&p.wasG&&vy<-250){p.jav+=4;goo(p.x,p.y+R,p.color,3,160,true,3)}
+    if(g&&Math.sign(vx)!==Math.sign(p.lastVx)&&Math.abs(p.lastVx)>300)p.jlv+=-Math.sign(p.lastVx)*3;
+    if(p.hp<p.wasHp-1){const k=Math.min(1,(p.wasHp-p.hp)/60);p.jav+=rand(-1,1)*6*k-3*k;p.jlv+=rand(-1,1)*5*k;goo(p.x,p.y,p.color,4+Math.round(8*k),260+260*k,false,3+3*k)}
+    if(g&&Math.abs(vx)>260){p.gooT-=dt;if(p.gooT<=0){p.gooT=rand(.1,.2);goo(p.x-Math.sign(vx)*R*.5,p.y+R,p.color,1,90,true,2.5)}}
+    // springs: under-damped, so they overshoot and settle like jelly
+    const breath=g&&Math.abs(vx)<30?.03*Math.sin(now/380+p.id):0,ta=g?breath:clamp(-vy/3600,-.1,.2),tl=clamp(vx/2200,-.22,.22)*(g?1:.5);
+    p.jav+=(-260*(p.ja-ta)-11*p.jav)*dt;p.ja=clamp(p.ja+p.jav*dt,-.42,.42);
+    p.jlv+=(-200*(p.jl-tl)-10*p.jlv)*dt;p.jl=clamp(p.jl+p.jlv*dt,-.45,.45);
+    p.jw+=((p.wallDir&&!g?1:0)-p.jw)*Math.min(1,dt*14);
+    if(now>p.blinkAt){p.blinkAt=now+rand(2200,5200);p.blinkT=now+120}
+    p.wasG=g;p.wasHp=p.hp;p.lastVy=vy;p.lastVx=vx}}
 function noodle(x0,y0,x1,y1,sag,w,color){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+sag,x1,y1);ctx.stroke()}
 function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math.sin(p.aim),face=ax>=0?1:-1;ctx.save();ctx.translate(p.x,p.y);
   const lw=Math.max(4,R*.36),sk=skinOf(p.color);
   if(p.grounded){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(0,R*1.2,R*.95,R*.17,0,0,TAU);ctx.fill()}
   // legs: stubby, a shade darker than the body
-  for(const s of[-1,1]){const ph=p.walk+(s>0?Math.PI:0),fx=s*R*.38+(p.grounded?Math.sin(ph)*R*.45:-face*R*.2),fy=R+(p.grounded?Math.max(0,-Math.cos(ph))*-R*.25:-R*.15)+R*.08;
-    noodle(s*R*.32,R*.55,fx,fy,3,lw,sk.lo)}
+  // legs swing on the ground; in the air they tuck on the way up and dangle apart on the way down. They lean with the body
+  const lean=(p.jl||0)*.55,vyA=p.vy||0;ctx.save();ctx.translate(0,R);ctx.rotate(lean*.6);ctx.translate(0,-R);
+  for(const s of[-1,1]){const ph=p.walk+(s>0?Math.PI:0),fx=s*R*(p.grounded?.38:.34+(vyA>150?.16:0))+(p.grounded?Math.sin(ph)*R*.45:-face*R*.18),
+    fy=R+(p.grounded?Math.max(0,-Math.cos(ph))*-R*.25:-R*.15+clamp(vyA/2600,-.18,.22)*R)+R*.08;
+    noodle(s*R*.32,R*.55,fx,fy,3+(p.grounded?0:clamp(vyA/300,-3,4)),lw,sk.lo)}
+  ctx.restore();
   // off hand with the block orb (white = block ready)
-  const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12),R*.25+Math.sin(p.walk*.8)*2];
+  const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12)-clamp((p.vx||0)*.014,-12,12),R*.25+Math.sin(p.walk*.8)*2-clamp((p.vy||0)*.012,-12,12)];   // the free hand trails behind the motion
   noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
   ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
   if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}
@@ -2653,7 +2689,9 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   if(p.staticReady){ctx.fillStyle=C.hot;ctx.fillRect(14,-5,6,10)}ctx.restore();
   ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(hx,hy,lw*.62,0,TAU);ctx.fill();   // the fist wraps the grip
   // body
-  const sy=p.squash,sx=1/Math.sqrt(sy);ctx.save();ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
+  // body: squash and stretch from the jelly springs, a lean from the feet, and flattened against a wall it clings to
+  const ja=p.ja||0,jw=p.jw||0,sy=p.squash*(1+ja),sx=(1/Math.sqrt(p.squash))*(1-ja*.7)*(1-.2*jw);
+  ctx.save();ctx.translate(0,R);ctx.rotate(lean);ctx.translate((p.wallDir||0)*jw*R*.2,-R);ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
   if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
   ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
   ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
@@ -2663,7 +2701,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   // face: two tall oval eyes looking along the aim, no mouth; they squeeze shut when hit, and the brows knit at low health
   const ex=ax*R*.34,ey=ay*R*.2-R*.12;ctx.fillStyle='#16121c';
   const hurt=p.hurtT>0,low=p.hp<p.s.maxHp*.35;
-  for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,hurt?R*.04:R*.2,0,0,TAU);ctx.fill()}
+  const shut=hurt||performance.now()<(p.blinkT||0);for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,shut?R*.04:R*.2,0,0,TAU);ctx.fill()}
   if(low&&!hurt){ctx.strokeStyle='#16121c';ctx.lineWidth=Math.max(2,R*.08);ctx.lineCap='round';ctx.beginPath();for(const s of[-1,1]){ctx.moveTo(ex+s*R*.14,ey-R*.3);ctx.lineTo(ex+s*R*.36,ey-R*.38)}ctx.stroke()}
   if(p.cos&&p.cos.hat)drawHat(ctx,p.cos.hat,R,p.glow);
   ctx.restore();
@@ -2750,8 +2788,14 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
-  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
-    bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}
+  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,duel=!survOn()&&game.mode!=='sandbox'&&w>=0;
+    if(duel){   // like ROUNDS: the first kill fills half the winner's circle, the second fills it and wins the round
+      const p=players[w],nm=p.name.toUpperCase(),full=(game.points[w]||0)+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,cy=VH/2+34,cr=30;
+      bigText(match?`${nm} WINS THE MATCH`:full?`${nm} WINS`:nm,68,VW/2,VH/2-40,p.color);
+      ctx.save();ctx.lineWidth=5;ctx.strokeStyle=p.color;ctx.fillStyle=p.color;ctx.beginPath();if(full)ctx.arc(VW/2,cy,cr,0,TAU);else{ctx.moveTo(VW/2,cy-cr);ctx.arc(VW/2,cy,cr,-Math.PI/2,Math.PI/2,true);ctx.closePath()}ctx.fill();
+      ctx.beginPath();ctx.arc(VW/2,cy,cr,0,TAU);ctx.stroke();ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=C.text;ctx.fillText(full?'ROUND':'HALF',VW/2,cy+cr+30);ctx.restore()}
+    else{const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
+      bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
@@ -2767,6 +2811,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   const worldT=()=>ctx.setTransform(view.s*cam.z,0,0,view.s*cam.z,view.ox+(sx-cam.x*cam.z)*view.s,view.oy+(sy-cam.y*cam.z)*view.s),
     viewT=()=>ctx.setTransform(view.s,0,0,view.s,view.ox+sx*view.s,view.oy+sy*view.s);
   worldT();
+  // a big arena shown whole leaves screen around it: carry the sky's edges outward (a touch darker) instead of black bars
+  if(W>VW||H>VH){const E=4000;ctx.drawImage(bgC,0,0,W,2,-E,-E,W+2*E,E);ctx.drawImage(bgC,0,H-2,W,2,-E,H,W+2*E,E);ctx.drawImage(bgC,0,0,2,H,-E,0,E,H);ctx.drawImage(bgC,W-2,0,2,H,W,0,E,H);
+    ctx.fillStyle='rgba(8,4,14,.4)';ctx.fillRect(-E,-E,W+2*E,E);ctx.fillRect(-E,H,W+2*E,E);ctx.fillRect(-E,0,E,H);ctx.fillRect(W,0,E,H)}
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
   ctx.drawImage(bgC,0,0);
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
@@ -2780,16 +2827,17 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
   drawDrops();drawStrikes();drawDowns();drawFluff();
-  for(const p of players)drawPlayer(p);
+  liveFx();for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+  const glowK=bullets.length>24?Math.max(.3,24/bullets.length):1;
   for(const b of bullets){if(b.hide)continue;let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
     {const ct=b.cosT??(b.owner&&b.owner.cos&&b.owner.cos.trail);if(ct&&tc===b.glow)tc=trailColor(ct,tc,b.id||0)}   // cosmetic trail (plain bullets only: effect colours stay readable)
     // tracer: a long thin trail that tapers to nothing, brightest at the head (ROUNDS-style)
     const n=t.length>>1;if(n>=3){ctx.strokeStyle=tc;
       for(let k=0;k<3;k++){const i0=Math.floor((n-1)*k/3),i1=Math.floor((n-1)*(k+1)/3);if(i1<=i0)continue;
         ctx.globalAlpha=(.14+.24*k)*ga;ctx.lineWidth=b.r*(.45+.42*k);ctx.beginPath();ctx.moveTo(t[i0*2],t[i0*2+1]);for(let i=i0+1;i<=i1;i++)ctx.lineTo(t[i*2],t[i*2+1]);if(k===2)ctx.lineTo(b.x,b.y);ctx.stroke()}}
-    {const gr=b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2)*1.7;ctx.globalAlpha=.55*ga;ctx.drawImage(glowSprite(tc),b.x-gr,b.y-gr,gr*2,gr*2)}   // soft glow
+    {const gr=Math.min(b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2)*1.7,b.r+26);ctx.globalAlpha=.55*ga*glowK;ctx.drawImage(glowSprite(tc),b.x-gr,b.y-gr,gr*2,gr*2)}   // soft glow (capped, and dimmer in a crowd)
     if(b.stuck){const k=clamp((performance.now()-(b.stuckAt||performance.now()))/(MINE_FUSE*1000),0,1),on=Math.sin(k*k*44)>0;
       ctx.globalAlpha=1;ctx.strokeStyle=on?'#ff5a4f':'#ffd0c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(b.x,b.y,b.r+5+ (1-k)*8,-Math.PI/2,-Math.PI/2+TAU*(1-k));ctx.stroke()}
     // head: a bright streak stretched along the bullet's motion
@@ -2814,7 +2862,8 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
   for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
-    ctx.fillStyle=q.color;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
+    ctx.fillStyle=q.color;if(q.goo){const k=q.size*(.45+.55*clamp(q.life/q.max,0,1));ctx.globalAlpha=1;ctx.beginPath();ctx.ellipse(q.x,q.y,k,k*(1+Math.min(.8,Math.abs(q.vy)/900)),0,0,TAU);ctx.fill();continue}
+    ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalAlpha=1;ctx.restore();
   drawFrame();
   ctx.restore();ctx.save();viewT();
@@ -2838,7 +2887,8 @@ function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
   // a phone wider than 16:9 shows a standard arena with bars at the sides: zoom in up to 20% to fill it, following you
   const fillZ=touch.on&&!thumbRoom&&!big&&!game.bg?clamp((VW+2*ex0)/VW,1,1.2):1;
   if(!big&&fillZ<=1.001)return{x:0,y:0,z:1};
-  const z=big?Math.max(VW/W,VH/H,touch.on&&!thumbRoom?1.2:touch.on?1.02:.92):fillZ,vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
+  // a big arena is shown whole, like a ROUNDS map (zoomed out only as far as the fighters stay readable: less on a phone)
+  const z=big?Math.max(Math.min(VW/W,VH/H),touch.on?(thumbRoom?.74:.8):.66):fillZ,   /* the widest arenas pan a little, so a fighter never shrinks to a speck */vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
   const me=survOn()?myHero():game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
   let fx,fy;if(me&&me.alive){fx=me.x;fy=me.y;if(mate){fx+=clamp((mate.x-me.x)*.35,-vw*.25,vw*.25);fy+=clamp((mate.y-me.y)*.35,-vh*.2,vh*.2)}}
   else{const fs=survOn()?heroes().filter(p=>p.alive):[];const L=fs.length?fs:players.filter(p=>p.alive);if(!L.length)return{x:cam.x,y:cam.y,z};fx=0;fy=0;for(const p of L){fx+=p.x;fy+=p.y}fx/=L.length;fy/=L.length}
@@ -2944,7 +2994,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-maps2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-23-alive';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
