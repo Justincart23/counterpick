@@ -419,6 +419,18 @@ body.touch .desk-only{display:none!important}
 .text-in::placeholder{color:rgba(241,236,247,.3)}
 .code-in{text-transform:uppercase;letter-spacing:.3em;width:7.5ch;max-width:100%}
 .lobby{display:grid;gap:12px;justify-items:start;max-width:580px;margin:0}
+/* a party's four seats in two teams (left column Team Orange, right Team Blue): each in its fighter's colour, open seats dashed */
+.roster{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(460px,100%)}
+.roster .th{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:0 2px;border:0;background:none;color:var(--muted)}.roster .th::before{display:none}
+.roster li{--pc:var(--orange);font-family:var(--display);font-size:20px;letter-spacing:.03em;padding:8px 12px 8px 34px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--pc);position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster li::before{content:"";position:absolute;left:11px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--pc)}
+.roster li.open{border-style:dashed;border-color:var(--line);color:var(--muted)}.roster li.open::before{background:var(--line)}
+.card.theirs{filter:saturate(.75) brightness(.86)}
+.party-acts{display:flex;flex-wrap:wrap;gap:8px}.party-acts .btn[disabled]{opacity:.45;cursor:default}
+.party-acts [data-team='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}.party-acts [data-team='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
+.party-acts .go{background:#7ed321;border-color:#7ed321;color:#0e1a05}
+/* a party lobby on a phone held sideways: a smaller code and seats, so the team buttons and Start fit on screen */
+@media (max-height:520px){.lobby:has(.roster:not([hidden])){gap:6px}.lobby:has(.roster:not([hidden])) .code{font-size:44px}.lobby:has(.roster:not([hidden])) .lobby-msg{font-size:13px}.roster{gap:5px}.roster li{font-size:15px;padding:4px 10px 4px 28px}.roster li::before{width:11px;height:11px;margin-top:-5.5px;left:9px}.roster .th{font-size:10px}.party-acts .btn{padding:6px 12px;font-size:15px}}
 .code{font-family:var(--display);font-size:clamp(64px,10vw,120px);line-height:.9;letter-spacing:.12em;color:var(--hot);text-shadow:0 6px 0 rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
 .lobby-msg{margin:0;font-size:16px;color:var(--text);max-width:52ch;line-height:1.45}
 .link-row{display:flex;flex-wrap:wrap;gap:8px;width:100%}
@@ -485,9 +497,10 @@ body.touch .desk-only{display:none!important}
       <div class="lbl" style="margin:0 0 4px 40px">Single player</div>
       <nav class="mlist" aria-label="Single player">
         <button type="button" data-act="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0">Practice vs CPU</button>
-        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:1">Survival</button>
-        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:2">Sandbox</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:3">Back</button>
+        <button type="button" data-act="party" data-hint="Four fighters, every one for themselves: you against three CPUs on the party arenas." style="--i:1">Party vs CPUs</button>
+        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2">Survival</button>
+        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3">Sandbox</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:4">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">A duel against the computer. Pick its skill in Settings.</p>
     </div>
@@ -495,8 +508,9 @@ body.touch .desk-only{display:none!important}
       <div class="lbl" style="margin:0 0 4px 40px">Multiplayer</div>
       <nav class="mlist" aria-label="Multiplayer">
         <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
-        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:1">Co-op Survival</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:2">Back</button>
+        <button type="button" data-act="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1">Party · 2v2</button>
+        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:2">Co-op Survival</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:3">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
     </div>
@@ -514,12 +528,16 @@ body.touch .desk-only{display:none!important}
       <div class="code" id="hostCode" aria-live="polite">····</div>
       <p class="lobby-msg" id="hostMsg" role="status">Opening a room…</p>
       <div class="link-row"><input id="hostLink" class="text-in" readonly aria-label="Invite link" value=""><button type="button" class="copy" data-act="copylink">Copy link</button></div>
+      <ul class="roster" id="partyRoster" aria-label="Players" hidden></ul>
+      <div class="party-acts" id="partyActs" hidden><button type="button" class="btn" data-act="team" data-team="0">Team Orange</button><button type="button" class="btn" data-act="team" data-team="1">Team Blue</button><button type="button" class="btn go" data-act="partyStart" disabled>Start</button></div>
       <nav class="mlist"><button type="button" data-act="cancelOnline" style="--i:0">Cancel</button></nav>
     </div>
     <form class="lobby" data-sub="joining" id="joinForm" autocomplete="off" hidden>
       <label class="lbl" for="joinCode">Room code</label>
       <input id="joinCode" class="text-in code-in" maxlength="4" placeholder="ABCD" spellcheck="false" autocapitalize="characters" inputmode="text">
       <p class="lobby-msg" id="joinMsg" role="status">Ask your host for their 4-letter code.</p>
+      <ul class="roster" id="joinRoster" aria-label="Players" hidden></ul>
+      <div class="party-acts" id="joinTeam" hidden><button type="button" class="btn" data-act="team" data-team="0">Team Orange</button><button type="button" class="btn" data-act="team" data-team="1">Team Blue</button></div>
       <nav class="mlist"><button type="submit" style="--i:0">Join</button><button type="button" data-act="cancelOnline" style="--i:1">Back</button></nav>
     </form>
     <div class="opts-wrap" data-sub="settings" hidden>
@@ -549,6 +567,7 @@ body.touch .desk-only{display:none!important}
             <li><b>Win</b><span>First to the set number of rounds takes the match.</span></li>
           </ol>
           <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
+          <p class="hp-note"><b>Party</b> Two against two. Pick Team Orange or Team Blue; CPUs fill empty seats. The losing pair draft together.</p>
         </div>
         <div class="hp-page" data-hpage="controls" hidden>
           <dl class="hp-keys desk-only">
@@ -911,6 +930,18 @@ for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260)
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
    Chimes stay standard: their gaps, piston and hanging blocks are built for that width) */
 for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
+/* Party arenas (3 or 4 fighters, every one for themselves): 1920 x 1080, shown whole on any screen (phones too), with four
+   spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
+MAPS.push(
+ {name:'Plaza',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[120,840,320,40],[1480,840,320,40],[760,860,400,40],[420,690,300,40],[1200,690,300,40],[60,540,260,38],[1600,540,260,38],
+   [810,520,300,38],[880,360,160,38],[30,984,90,16,3],[1800,984,90,16,3]],crates:[[600,940,60],[1260,940,60]],sp:[[230,960],[1690,960],[190,500],[1730,500]]},
+ {name:'Islands',party:1,big:1,w:1920,h:1080,rects:[[0,980,520,100],[1400,980,520,100],[760,900,400,180],[540,780,220,40],[1160,780,220,40],[160,700,260,40],[1500,700,260,40],
+   [820,740,280,38],[860,560,200,38],[380,520,220,38],[1320,520,220,38]],sp:[[260,940],[1660,940],[290,660],[1630,660]]},
+ {name:'Gearworks',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[640,780,50,220,1],[1230,780,50,220,1],[470,870,200,40],[1250,870,200,40],[100,820,300,40],[1520,820,300,40],
+   [140,620,260,40],[1520,620,260,40],[810,700,300,40],[560,560,200,38],[1160,560,200,38],[830,420,260,38]],
+   movers:[{x:430,y:640,w:160,h:30,mx:0,my:200,period:4},{x:1330,y:640,w:160,h:30,mx:0,my:200,period:4,phase:.5}],swings:[{ax:960,len:500,w:160,h:30}],sp:[[230,960],[1690,960],[270,580],[1650,580]]},
+ {name:'Ropeyard',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[80,820,260,40],[1580,820,260,40],[700,840,520,40],[360,660,240,40],[1320,660,240,40],[80,500,240,38],[1600,500,240,38],[810,480,300,38]],
+   hangs:[{x:440,y:830,w:180,ay:700},{x:1300,y:830,w:180,ay:700},{x:860,y:640,w:200,ay:518}],crates:[[700,940,60],[1160,940,60]],sp:[[200,960],[1720,960],[200,780],[1720,780]]});   // never under a rope drop (that makes a pocket)
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -1042,22 +1073,27 @@ function noise(t0,dur,peak,type,f0,f1=f0,q=1,dest=master){const sr=actx.createBu
   f.frequency.setValueAtTime(f0,t0);if(f1!==f0)f.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
   g.gain.exponentialRampToValueAtTime(.0001,t0+dur);sr.connect(f).connect(g).connect(dest);sr.start(t0,Math.random()*.25);sr.stop(t0+dur+.03)}
 
-/* ---------- music: an original looping groove, generated live. A minor, four chords, bass, soft pad, light drums, 112 BPM ---------- */
-const MUSIC={bpm:112,chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],bass:[45,41,36,43]};   // Am, F, C, G (MIDI notes)
+/* ---------- music: an original looping groove, generated live. 126 BPM, Am F C G over eight bars: four-on-the-floor kick,
+   claps on 2 and 4, off-beat open hats, a pumping octave bass, a soft pad, and a bright arpeggio lead that comes in for the
+   second half of the loop (so it builds, then drops back) ---------- */
+const MUSIC={bpm:126,chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],bass:[45,41,36,43]};   // Am, F, C, G (MIDI notes)
 let musicTimer=0,musicStep=0,musicAt=0;
 const midiHz=m=>440*Math.pow(2,(m-69)/12);
 function musicLevel(){return(!muted&&settings.music)?(game.state==='pick'?.11:.2):0}
+const ARP=[0,1,2,1,0,1,2,3, 0,2,1,2,0,1,2,3];   // which chord tone (3 = the root an octave up) on each sixteenth
 function startMusic(){if(!actx||musicTimer)return;musicAt=actx.currentTime+.1;musicStep=0;
   musicTimer=setInterval(()=>{if(!actx)return;try{musicGain.gain.setTargetAtTime(musicLevel(),actx.currentTime,.4)}catch(e){}
     const sixteenth=60/MUSIC.bpm/4;
-    while(musicAt<actx.currentTime+.25){const st=musicStep%64,bar=Math.floor(st/16),beat=st%16,t=musicAt;
+    while(musicAt<actx.currentTime+.25){const st=musicStep%128,bar=Math.floor(st/16)%4,half=st>=64,beat=st%16,t=musicAt,ch=MUSIC.chords[bar],root=MUSIC.bass[bar];
       if(musicLevel()>0){
-        if(beat===0){for(const n of MUSIC.chords[bar])pad(midiHz(n),t,sixteenth*16)}
-        if(beat===0||beat===10)tone('triangle',midiHz(MUSIC.bass[bar]),midiHz(MUSIC.bass[bar]),t,sixteenth*5,.22,musicGain);
-        if(beat===6)tone('triangle',midiHz(MUSIC.bass[bar]+12),midiHz(MUSIC.bass[bar]+12),t,sixteenth*2,.12,musicGain);
-        if(beat%8===0)tone('sine',110,42,t,.16,.38,musicGain);                       // kick
-        if(beat%8===4)noise(t,.12,.12,'bandpass',1800,1400,.8,musicGain);            // snare-ish
-        if(beat%2===0)noise(t,.03,beat%4===2?.06:.035,'highpass',7500,7500,1,musicGain)}   // hats
+        if(beat===0){for(const n of ch)pad(midiHz(n),t,sixteenth*16)}
+        if(beat%2===0)tone('triangle',midiHz(root+(beat%4===2?12:0)),midiHz(root+(beat%4===2?12:0)),t,sixteenth*1.6,beat%4===2?.13:.2,musicGain);   // pumping octave bass
+        if(beat%4===0)tone('sine',120,42,t,.15,.36,musicGain);                        // kick, every beat
+        if(beat%8===4){noise(t,.13,.14,'bandpass',1700,1300,.9,musicGain);noise(t+.012,.08,.08,'bandpass',2400,1900,1.2,musicGain)}   // clap
+        if(beat%4===2)noise(t,.09,.07,'highpass',6500,6500,1,musicGain);              // off-beat open hat
+        else if(beat%2===1)noise(t,.025,.03,'highpass',8500,8500,1,musicGain);        // light closed hats between
+        if(half){const k=ARP[beat],n=k===3?ch[0]+12:ch[k];tone('square',midiHz(n+12),midiHz(n+12),t,sixteenth*.9,beat%4===0?.05:.035,musicGain)}   // the lead arpeggio
+        if(st===124||st===126)noise(t,.06,.05,'highpass',3000,9000,1,musicGain)}     // a little riser into the loop
       musicAt+=sixteenth;musicStep++}},90)}
 function pad(f,t,dur){for(const d of[-6,6]){const o=actx.createOscillator(),lp=actx.createBiquadFilter(),g=actx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f,t);o.detune.setValueAtTime(d,t);
   lp.type='lowpass';lp.frequency.setValueAtTime(900,t);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.045,t+.4);g.gain.linearRampToValueAtTime(.0001,t+dur);
@@ -1146,7 +1182,9 @@ const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,ma
   slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
 let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
 
-function makePlayer(id,ctrl,name,team){return{id,team:team??id,ctrl,name:name||(id?'Blue':'Orange'),netJc:null,netBc:null,color:id?C.blue:C.orange,glow:id?C.bGlow:C.oGlow,cards:[],s:{...BASE},r:BASE_R,
+// four fighter colours, in two teams: CUUED's orange with a gold teammate, its blue with a teal one
+const PCOL=()=>[[C.orange,C.oGlow,'Orange'],[C.blue,C.bGlow,'Blue'],['#ffbf2e','#ffe39a','Gold'],['#2fc6c9','#a6f4f5','Teal']];
+function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team??id,ctrl,name:name||pc[2],netJc:null,netBc:null,color:pc[0],glow:pc[1],cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   // Survival levels: +5% health, +4% damage each, up to level 15if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
@@ -1177,16 +1215,25 @@ const other=p=>{if(players.length===2)return players[1-p.id];let best=null,bd=1e
 const foes=(a,b)=>a&&b&&a!==b&&a.team!==b.team;
 const playerLabel=p=>p.boss||survOn()?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
+function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{cpu:1},{cpu:1}]:net.roster||[];
+  return R.map((e,k)=>{const ctrl=mode==='party'?(k?'cpu':'mouse'):mode==='online-host'?(e.host?'mouse':e.cpu?'cpu':'net'):(k===net.me?'mouse':'net');
+    const p=makePlayer(k,ctrl,e.cpu?(mode==='online-guest'?PCOL()[k%4][2]+' · CPU':PCOL()[k%4][2]):e.n);p.team=k%2;p.cos=e.cpu?randomCos():cleanCos(e.cos);if(e.peer)p.peer=e.peer;if(e.cpu&&mode!=='online-guest')p.skill='normal';return p})}
 function startMatch(mode){
-  game.token++;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
+  game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
   game.coop=!!net.coopLive&&net.connected&&(mode==='survival'||mode==='online-guest');   // Co-op Survival: the host runs it, the guest draws it
   const you=myName||'You';
-  const ctrls={survival:['mouse',game.coop?'net':'cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
-  const names={survival:[you,game.coop?net.remoteName||'Partner':'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
+  const ctrls={survival:['mouse',game.coop?'net':'cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],party:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
+  const names={survival:[you,game.coop?net.remoteName||'Partner':'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],party:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
   {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||(game.coop?[mine,theirs]:[mine,{}]);players.forEach((p,k)=>p.cos=cos[k]||{})}
+  // a party: up to four fighters, every one for themselves (offline against CPUs, or online with the host's roster)
+  game.party=mode==='party'||!!net.party&&(mode==='online-host'||mode==='online-guest');
+  if(game.party)players=partyPlayers(mode);
+  else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
+  for(const p of players)if(p.peer){const L=p.peer;L.inQ=[];L.lastQ=-1;L.heldIn=null;L.lagSteps=0}
+  game.wins=game.party?[0,0]:players.map(()=>0);game.points=game.party?[0,0]:players.map(()=>0);   // a party scores by team
   players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
@@ -1200,7 +1247,8 @@ function startMatch(mode){
     heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
         ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
-  beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
+  if(game.party){const ids=t=>players.filter(p=>p.team===t&&!p.left).map(p=>p.id);beginTeamPick(ids(0),'Opening draft · Team Orange',()=>beginTeamPick(ids(1),'Opening draft · Team Blue',()=>{game.state='ready';game.stT=1.1}))}
+  else beginPick(players.map(p=>p.id),'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
 function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h||VH;BOUNDS=mkBounds();
@@ -1223,10 +1271,11 @@ function buildRides(){const old=rides;
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
-  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&k!==game.mapIdx));
+  else if(game.party&&players.length>2)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
+  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].party&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&!MAPS[k].party&&k!==game.mapIdx));
   else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
-  players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k))});
+  players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
   game.banner=finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
@@ -1238,10 +1287,11 @@ function resolvePoint(){
   if(w<0){newPoint();return}
   game.points[w]++;sfx(game.points[w]>=2?'round':'point');
   if(game.points[w]>=2){
-    game.wins[w]++;game.points=[0,0];
+    game.wins[w]++;game.points=players.map(()=>0);
     if(game.wins[w]>=game.target){endMatch(w);return}
-    const loser=1-w;newPoint(true);game.state='pick';
-    beginPick([loser],`Lost the round · ${game.wins[0]}–${game.wins[1]}`,()=>{game.state='ready';game.stT=1.1});
+    // every round loser drafts a card, one after another (a party's fighter who left sits it out)
+    const losers=players.filter(q=>q.team!==w&&!q.left).map(q=>q.id);newPoint(true);game.state='pick';
+    (game.party?beginTeamPick:beginPick)(losers,`Lost the round · ${game.wins.join('–')}`,()=>{game.state='ready';game.stT=1.1});
   }else newPoint();
 }
 function endMatch(w){
@@ -1249,9 +1299,10 @@ function endMatch(w){
   if(game.bg){setTimeout(()=>{if(game.bg)startMatch('demo')},1500);return}
   netSend({t:'end',w});showEnd(w)}
 function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=again]');if(a)a.textContent='Rematch'}
-  const L=players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
-  $('#endScore').textContent=`Rounds ${game.wins[0]}–${game.wins[1]}. ${L.name} finished with ${L.cards.length} cards.`;
-  [0,1].forEach(k=>{$('#deckName'+k).textContent=players[k].name+"'s deck";const el=$('#deck'+k);el.innerHTML='';players[k].cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
+  const L=game.party?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
+  $('#endScore').textContent=game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
+  const shown=game.party?players.filter(p=>p.team===w):[players[0],players[1]];   // a party: the winning pair's decks
+  shown.forEach((P,k)=>{$('#deckName'+k).textContent=P.name+"'s deck";const el=$('#deck'+k);el.innerHTML='';P.cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
   $('#end').hidden=false;showSub($('#end'),'main');
 }
 
@@ -1273,9 +1324,10 @@ const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wal
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
 const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k]).id:'';return o};
 // coins for winning a full match, shown on the end screen (once per match)
-function awardMatch(w){const me=game.mode==='online-guest'?1:game.mode==='online-host'||game.mode==='cpu'?0:-1,el=$('#endCoins');if(el)el.hidden=true;
+function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='online-host'?(game.party?net.hostId:0):game.mode==='cpu'||game.mode==='party'?0:-1;if(game.party&&me>=0)me=players[me].team;   // a party: your team's win is yours
+  const el=$('#endCoins');if(el)el.hidden=true;
   if(me<0||game.awarded)return;game.awarded=true;
-  if(w===me){const n=game.mode==='cpu'&&game.diff!=='hard'?1:2;wallet.coins+=n;wallet.earned+=n;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
+  if(w===me){const n=(game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2;wallet.coins+=n;wallet.earned+=n;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
 // ---- shop
@@ -1504,7 +1556,7 @@ function makeElite(p,n){p.name='Elite '+p.name;p.color='#e6b53c';p.glow='#ffe39a
    screen at the same time, and the run carries on when both are done. A downed hero comes back after 8, 12 then 16 s, or
    at once if their partner stands beside them for 2 s; both down at once costs a life ---------- */
 const survOn=()=>game.mode==='survival'||game.coop&&game.mode==='online-guest';
-const myHero=()=>game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'&&p.team===0)||heroes()[0]||players[0];
+const myHero=()=>game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse'&&p.team===0)||heroes()[0]||players[0];
 const heroLocal=p=>p.ctrl!=='net';
 const hostingNet=()=>net.role==='host'&&net.connected&&(game.mode==='online-host'||game.coop&&game.mode==='survival');
 // cards travel as numbers; characters and power-ups as 'h3' / 'u5'
@@ -1525,7 +1577,7 @@ function coopShopOp(m){const p=players[1];if(!p)return;const i=m.i|0;
   if(m.op==='buy')survBuy(i,p);else if(m.op==='lock')survLock(i,p);else if(m.op==='reroll')survReroll(p);else if(m.op==='sell')survSell(i,p);
   else if(m.op==='next'&&p.shopDone){const d=p.shopDone;p.shopDone=null;d()}}
 function sendShop(p,msg,full){netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,pn:p.payNote||"",nx:p.nxName||'',msg:msg||'',full:full?1:0})}
-function guestShop(m){const me=players[1];if(!me)return;game.waitMsg='';
+function guestShop(m){const me=players[net.me];if(!me)return;game.waitMsg='';
   me.offers=(m.o||[]).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c);me.scrap=m.sc|0;me.reroll=m.rr|0;me.lastPay=m.pay|0;me.payNote=m.pn||"";me.nxName=String(m.nx||'');me.shopDone=true;
   if(m.full||$('#pick').hidden||pickMode!=='shop')showSurvShop(me);else{decorateShop();renderShopBar(String(m.msg||'').replace(/[<>]/g,c=>c==='<'?'&lt;':'&gt;').replace(/&lt;(\/?)b&gt;/g,'<$1b>'))}}
 // host -> guest: who is in the fight (sent when it changes, and now and then in case a packet was lost) and the run's state
@@ -1543,7 +1595,7 @@ function coopRoster(pm){const key=JSON.stringify(pm);if(key===net.pmKey)return;n
   players.length=pm.length}
 function coopState(v){game.round=v.r|0;game.rkind=v.rk||'';game.lives=v.l|0;game.twist=TWISTS.find(t=>t.id===v.tw)||null;
   game.strikes=(v.k||[]).map(a=>({x:a[0],y:a[1],R:a[2],t:a[3],max:a[4],owner:players[a[5]]})).filter(k=>k.owner);
-  for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[1]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
+  for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[net.me]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
   for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
 const REVIVE_T=2,REVIVE_R=110;
 function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.alive||!(p.downT>0))continue;
@@ -1759,6 +1811,30 @@ function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=my
     if(!mate.alive&&mate.downT>0){ctx.fillStyle='#ff9aa8';ctx.fillText(`DOWN · back in ${Math.ceil(mate.downT)} s, or stand by them`,20,128)}}}
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
+/* ---------- a team draft (2v2): the losing pair pick at the same time from one fan of six, three cards each in their own
+   colour, so everyone sees both picks. The host decides; a guest's click is sent to it ---------- */
+let tpick=null;
+function beginTeamPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id].left);if(!ids.length){done&&done();return}
+  game.state='pick';const hands=ids.map(id=>{const p=players[id],h=dealHand(p).slice(0,3);p.nextHand=null;return h});
+  tpick={ids,hands,chosen:ids.map(()=>-1),done,sub};showTeamHand();
+  netSend({t:'tpick',ids,hands:hands.map(h=>h.map(c=>c.id)),sub});
+  ids.forEach((id,g)=>{const p=players[id];if(p.ctrl==='cpu'||game.bg){const tk=game.token,i=cpuChoice(p,hands[g]);setTimeout(()=>{if(tk===game.token&&tpick&&tpick.chosen[g]<0)teamChoose(g,g*3+i)},game.bg?0:1300+g*600)}})}
+function showTeamHand(){const T=tpick,own=[],flat=[];T.ids.forEach((id,g)=>{const p=players[id],mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';for(const c of T.hands[g]){flat.push(c);own.push({color:p.color,mine})}});
+  const me=T.ids.map(id=>players[id]).find(p=>net.role==='guest'?p.id===net.me:p.ctrl==='mouse')||players[T.ids[0]],tm=players[T.ids[0]].team;
+  const who=T.ids.map(id=>players[id].name),side=who.length>1?` · ${who[0]} left, ${who[1]} right`:'';
+  showHand(me,flat,T.sub,'team',own);$('#pickTitle').textContent=`Team ${TEAM_N[tm]} drafts`;$('#pickTitle').style.color=players[T.ids[0]].color;
+  $('#pickSub').textContent=T.sub+side+(own.some(o=>o.mine)?(touch.on?' · tap one of yours':' · pick one of yours'):' · watching');
+  T.chosen.forEach((i,g)=>{if(i>=0)animTeam(i)})}
+function teamClick(i){const T=tpick;if(!T||!hand[i])return;const g=T.ids.length>1&&i>=3?1:0,p=players[T.ids[g]];if(!p||T.chosen[g]>=0||T.sent===g)return;
+  const mine=net.role==='guest'?p.id===net.me:p.ctrl==='mouse';if(!mine){sfx('empty',true);return}
+  if(net.role==='guest'){T.sent=g;netSend({t:'tchoose',i});animTeam(i);return}teamChoose(g,i)}
+function teamChoose(g,i){const T=tpick;if(!T||T.chosen[g]>=0||!T.hands[g][i-g*3])return;T.chosen[g]=i;animTeam(i);netSend({t:'tchosen',i});
+  if(T.chosen.every(x=>x>=0)){const tk=game.token;setTimeout(()=>{if(tk!==game.token||tpick!==T)return;
+    T.ids.forEach((id,g)=>{const p=players[id];takeChoice(p,T.hands[g][T.chosen[g]-g*3]);recompute(p);resetPlayer(p,spawnFor(p,id))});
+    tpick=null;$('#pick').hidden=true;pickFor=null;netSend({t:'pickEnd'});T.done&&T.done()},game.bg?0:700)}}
+// a pick in a team draft: that card lifts, the other two of that player's cards drop away
+function animTeam(i){const kids=[...$('#fan').children],b=kids[i];if(!b||b.classList.contains('chosen'))return;b.classList.add('chosen');const g=i<3?0:1;
+  kids.forEach((o,k)=>{if(k!==i&&(k<3?0:1)===g)o.classList.add('away')});sfx('pick',false,true)}
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
 /* each card in a hand rolls 55% common, 32% uncommon, 13% rare (about half of hands show a rare); three drafts without one guarantees one */
 function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),out=[];let guard=0;
@@ -1767,12 +1843,12 @@ function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),ou
   p.sinceRare=out.some(c=>c.r===2)?0:(p.sinceRare||0)+1;
   return out}
 let pickMode='local';   // local: this screen picks · remote: this guest picks, host applies · watch: someone else is picking
-function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
+function showHand(p,h,sub,mode,own){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
   $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
   $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
   const el=$('#fan');el.innerHTML='';el.style.setProperty('--n',h.length);
-  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-(hand.length-1)/2;
-    b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
+  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=own&&hand.length===6?(i<3?i-2.9:i-2.1):i-(hand.length-1)/2;
+    b.style.setProperty('--pc',(own?own[i]:p).color);if(own&&!own[i].mine)b.classList.add('theirs');b.style.setProperty('--cat',CAT[c.k]);
     b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
     b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${c.char?'Character':c.up?'Power-up':RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
@@ -1794,13 +1870,13 @@ function nextPick(){
     setTimeout(()=>{if(tk!==game.token)return;hl=i;markHl()},700);
     setTimeout(()=>{if(tk!==game.token)return;choose(hand[i],i)},1500)}
 }
-function pickNow(i){if(!hand[i])return;if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
+function pickNow(i){if(!hand[i])return;if(pickMode==='team'){teamClick(i);return}if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
 function animChosen(i){const b=$('#fan').children[i];b&&b.classList.add('chosen');[...$('#fan').children].forEach((o,k)=>{if(k!==i)o.classList.add('away')});sfx('pick',false,true);pickFor&&drawBigFace(pickFor,'happy')}
 /* CPU drafts by usefulness, not rarity, so it stops hoarding wall-phasing rares */
 const CPU_PREF={'Ghost Rounds':.45,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
 function cpuChoice(p,h){let best=0,bs=-1;h.forEach((c,i)=>{const sc=(CPU_PREF[c.n]||1)*(1+c.r*.2)*(.6+Math.random()*.8);if(sc>bs){bs=sc;best=i}});return best}
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
-function choose(c,i){if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
+function choose(c,i){if(tpick&&i!=null){if(net.role!=='guest')teamChoose(i<3?0:1,i);return}if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
   if(!game.bg&&i!=null){animChosen(i);if(!game.coop)netSend({t:'chosen',i});const tk=game.token;
     setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()},480);return}
   takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()}
@@ -2074,7 +2150,7 @@ function rideFall(c,dt,isCrate){const B=rideBlocks(c);let ny=c.y+c.vy*dt,landed=
     if(boxOver(c,c.x,ny,o)){if(c.vy>0&&c.y+c.h<=o.y+2){ny=o.y-c.h;landed=o}else if(c.vy<0){ny=o.y+o.h;c.vy=0}}}
   if(c.vy>CRUSH_V)for(const p of players)if(p.alive&&p.y>ny+c.h*.4&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h}))rideCrush(c,p,isCrate?22:30);
   // it can't fall through a fighter: it comes to rest on their head (they've just been knocked aside) and falls on once they're out
-  for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[1])||p.y<=c.y+c.h*.4)continue;
+  for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[net.me])||p.y<=c.y+c.h*.4)continue;
     const top=p.y-p.r-c.h-.5;if(top<ny&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h})){ny=Math.max(c.y,top);c.vy=Math.min(c.vy,150);landed=null;
       const ok=x=>!solidBoxP(x,p.y,p.r-1,p.r-1)&&x>FRAME+p.r&&x<W-FRAME-p.r,L=c.x-p.r-.5,Rr=c.x+c.w+p.r+.5,near=p.x-L<Rr-p.x?-1:1,dir=ok(near<0?L:Rr)?near:ok(near<0?Rr:L)?-near:0;
       if(dir){const nx=p.x+dir*Math.min(9,900*dt);if(ok(nx))p.x=nx}}}   // and they're squeezed out toward a side with room to come out
@@ -2088,7 +2164,7 @@ function crateStep(c,dt){if(c.broken){orbTick(c);return}
   c.vy=Math.min(1500,c.vy+PG*gMul()*dt);c.hit=c.hit||[];
   let nx=c.x+c.vx*dt;if(nx!==c.x){const B=rideBlocks(c);for(const o of B)if(boxOver(c,nx,c.y,o))nx=nx>c.x?Math.min(nx,o.x-c.w):Math.max(nx,o.x+o.w);
     // a sliding crate shoves a fighter in its way, unless a wall is right behind them: then the crate stops
-    for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[1])||p.y+p.r<=c.y+4)continue;if(!boxHit(p.x,p.y,p.r,p.r,{x:nx,y:c.y,w:c.w,h:c.h}))continue;
+    for(const p of players){if(!p.alive||(game.mode==='online-guest'&&p!==players[net.me])||p.y+p.r<=c.y+4)continue;if(!boxHit(p.x,p.y,p.r,p.r,{x:nx,y:c.y,w:c.w,h:c.h}))continue;
       const right=nx>c.x,tx=right?nx+c.w+p.r+.5:nx-p.r-.5;if((right?p.x>c.x+c.w/2:p.x<c.x+c.w/2)&&!solidBoxP(tx,p.y,p.r-1,p.r-1)){p.x=tx;p.lx=tx}else{nx=c.x;c.vx=0}}
     c.x=nx}
   rideFall(c,dt,true);if(c.y>H+80){c.gone=3;c.y=H+5000;c.vx=c.vy=0}}
@@ -2104,11 +2180,21 @@ function guestRides(h){updateRides(h);const k=Math.min(1,h*6);
       if(c.st===2&&c.gst===2&&Math.abs(c.gy-c.y)>30)c.y=c.ly=c.gy;continue}
     if(c.broken)continue;if(c.ggone){if(!(c.gone>0)){c.gone=99;c.y=H+5000}continue}if(c.gone>0){c.gone=0;c.x=c.lx=c.gx;c.y=c.ly=c.gy}
     const ex=c.gx-c.x,ey=c.gy-c.y;if(Math.hypot(ex,ey)>70){c.x=c.lx=c.gx;c.y=c.ly=c.gy}else if(!(c.pushT>0)){c.x+=ex*k;c.y+=ey*k}}}
-/* a wooden crate in the low-poly style: planks, a dark frame and a cross brace */
-function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.height=z;const g=cv2.getContext('2d');
-  g.fillStyle='#a8703f';g.fillRect(0,0,z,z);g.fillStyle='#c28a52';for(let i=0;i<z;i+=z/4)g.fillRect(2,i+2,z-4,z/4-4);
-  g.fillStyle='#d9a56a';g.fillRect(0,0,z,4);g.strokeStyle='#6b4325';g.lineWidth=Math.max(5,z*.11);g.strokeRect(g.lineWidth/2,g.lineWidth/2,z-g.lineWidth,z-g.lineWidth);
-  g.lineWidth=Math.max(4,z*.09);g.beginPath();g.moveTo(z*.14,z*.86);g.lineTo(z*.86,z*.14);g.stroke();g.fillStyle='#4a2c17';for(const[a,b]of[[.14,.14],[.86,.14],[.14,.86],[.86,.86]]){g.beginPath();g.arc(z*a,z*b,2.4,0,TAU);g.fill()}
+/* a crate in the card-art style: chipped low-poly planks lit from above, dark corner brackets with bolts, and CUUED's
+   orange chevron stencilled on the side */
+function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.height=z;const g=cv2.getContext('2d'),R=artRng(strSeed('crate'+z));
+  g.save();slabPath(g,0,0,z,z);g.fillStyle='#b98252';g.fill();g.clip();
+  for(let i=0;i<7;i++){g.globalAlpha=.1+R()*.16;g.fillStyle=R()<.5?'#d9a66e':'#8a5a34';g.beginPath();const x=R()*z,y=R()*z;g.moveTo(x,y);g.lineTo(x+(R()-.5)*z,y+(R()-.5)*z);g.lineTo(x+(R()-.5)*z,y+(R()-.5)*z);g.fill()}   // facets
+  g.globalAlpha=1;g.fillStyle='rgba(60,32,16,.55)';for(const f of[.34,.67])g.fillRect(0,z*f-1.5,z,3);   // plank seams
+  g.fillStyle='#e6bb84';g.globalAlpha=.8;g.fillRect(0,0,z,Math.max(3,z*.07));g.globalAlpha=1;   // the lit top edge
+  try{const sg=g.createLinearGradient(0,z*.5,0,z);sg.addColorStop(0,'rgba(0,0,0,0)');sg.addColorStop(1,'rgba(40,18,30,.32)');g.fillStyle=sg;g.fillRect(0,z*.5,z,z*.5)}catch(e){}
+  // the stencil: an orange chevron, a little worn
+  g.globalAlpha=.85;g.strokeStyle='#ff7a1a';g.lineWidth=z*.09;g.lineJoin='round';g.beginPath();g.moveTo(z*.36,z*.34);g.lineTo(z*.56,z*.5);g.lineTo(z*.36,z*.66);g.stroke();
+  g.globalAlpha=.35;g.strokeStyle='#ffd0a0';g.lineWidth=z*.025;g.stroke();g.globalAlpha=1;g.restore();
+  // corner brackets (slate, with a bolt) and the outline
+  const k=z*.24,w=Math.max(4,z*.08);g.fillStyle='#3a3f4c';for(const[x,y,sx,sy]of[[0,0,1,1],[z,0,-1,1],[0,z,1,-1],[z,z,-1,-1]]){g.fillRect(sx>0?x:x-k,sy>0?y:y-w,k,w);g.fillRect(sx>0?x:x-w,sy>0?y:y-k,w,k);
+    g.fillStyle='#8f97a8';g.beginPath();g.arc(x+sx*w*.8,y+sy*w*.8,Math.max(1.6,z*.03),0,TAU);g.fill();g.fillStyle='#3a3f4c'}
+  g.strokeStyle='rgba(30,14,10,.7)';g.lineWidth=2;slabPath(g,1,1,z-2,z-2);g.stroke();
   return cv2}
 /* a chain from its anchor down to what it holds */
 function chain(x0,y0,x1,y1){const L=Math.hypot(x1-x0,y1-y0);if(L<2)return;ctx.save();ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=3;ctx.setLineDash([7,4]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
@@ -2215,6 +2301,10 @@ function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10
   if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=[8,12,16][Math.min(2,p.downs||0)];p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
     if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
     if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
+  if(game.party){   // 2v2: the point ends when a whole team is down (both at once: a trade). lastWinner is the team
+    const up=t=>players.some(q=>q.team===t&&q.alive);
+    if((game.state==='play'||game.state==='ready')&&!up(p.team)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=up(1-p.team)?1-p.team:-1}
+    else if(game.state==='pointEnd'&&game.lastWinner>=0&&!up(game.lastWinner)&&!pointDecided())game.lastWinner=-1;return}
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
 // your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
@@ -2481,23 +2571,23 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
       if(padBtn(pad,7)||padBtn(pad,5))inp.fire=true;if(padEdge(pad,4)||padEdge(pad,6)||padEdge(pad,1))inp.blockP=true;
       const rx=pad.axes[2]||0,ry=pad.axes[3]||0;if(Math.hypot(rx,ry)>.35)aim=Math.atan2(ry,rx)}
     inp.move=mv;const e=other(p);inp.aim=aim??(e.alive?aimSolution(p,e):p.aim)}
-  else if(p.ctrl==='net'){const r=net.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
+  else if(p.ctrl==='net'){const L=p.peer,r=L&&L.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
     inp.fire=false;if(Number.isFinite(r.a))inp.aim=r.a;   // shots come from the guest's step records (below), aligned to its physics steps
     // movement replays the guest's own physics steps one for one, so the host moves the guest exactly as the guest's
     // screen predicted, however bunched up the packets arrive. A small buffer soaks up jitter; a backlog is skipped.
     // When the buffer runs dry the host stands in with the last input and counts it (lagSteps); those stand-in steps are
     // paid back by skipping the same number of real ones later, so both sides stay on the same step count.
-    const Q=net.inQ;let q=null;
+    const Q=L.inQ;let q=null;
     // A backlog (hitstop pauses the host but not the guest) drains only through steps where the fighter stands still on
     // fixed ground with no input: skipping one of those changes nothing. Between points it's simply cleared.
     const same=(x,y)=>x&&y&&x[1]===y[1]&&x[2]===y[2]&&x[3]===y[3]&&x[4]===y[4]&&x[5]===y[5]&&x[6]===y[6];
     const idle=x=>x[1]===0&&!x[2]&&!x[3]&&x[4]===p.netJc&&x[5]===p.netBc&&(x[6]==null||x[6]===p.netSc)&&p.grounded&&!(p.ground&&p.ground.swing)&&Math.abs(p.vx)<1;
-    if(game.state==='ready'||Q.length>90){if(Q.length>1)Q.splice(0,Q.length-1);net.lagSteps=0}
-    while(Q.length>2&&((net.lagSteps>0&&same(Q[0],net.heldIn))||(Q.length>4&&idle(Q[0])))){if(net.lagSteps>0&&same(Q[0],net.heldIn))net.lagSteps--;Q.shift()}
-    let real=false;if(Q.length){q=Q.shift();net.heldIn=q;real=true}else if(net.heldIn){q=net.heldIn;net.lagSteps=Math.min(30,net.lagSteps+1);
+    if(game.state==='ready'||Q.length>90){if(Q.length>1)Q.splice(0,Q.length-1);L.lagSteps=0}
+    while(Q.length>2&&((L.lagSteps>0&&same(Q[0],L.heldIn))||(Q.length>4&&idle(Q[0])))){if(L.lagSteps>0&&same(Q[0],L.heldIn))L.lagSteps--;Q.shift()}
+    let real=false;if(Q.length){q=Q.shift();L.heldIn=q;real=true}else if(L.heldIn){q=L.heldIn;L.lagSteps=Math.min(30,L.lagSteps+1);
       // no input for a quarter second (the visitor switched tabs or apps): stand still rather than keep running into a pit
-      if(performance.now()-(net.lastInAt||0)>250)q=[q[0],0,0,0,q[4],q[5],q[6],q[7]]}
-    if(q){inp.move=clamp(q[1]|0,-1,1);inp.jumpH=!!q[2];inp.down=!!q[3];p.ackSeq=q[0]+net.lagSteps}
+      if(performance.now()-(L.lastInAt||0)>250)q=[q[0],0,0,0,q[4],q[5],q[6],q[7]]}
+    if(q){inp.move=clamp(q[1]|0,-1,1);inp.jumpH=!!q[2];inp.down=!!q[3];p.ackSeq=q[0]+L.lagSteps}
     else{inp.move=clamp(r.m|0,-1,1);inp.jumpH=!!r.jh;inp.down=!!r.d}
     // presses arrive as running counters, so a press is never lost between frames
     const jc=q?q[4]:r.jc,bc=q?q[5]:r.bc;
@@ -2622,9 +2712,13 @@ function update(dt){pollPads();
   game.alpha=game.acc/FIXED;game.stepAt=performance.now()-game.acc*1000;   // the moment the latest step's state belongs to
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
-  if(hostingNet()){net.sendT-=dt;net.pingT-=dt;
-    if(net.sendT<=1e-4){net.sendT=Math.max(-.05,net.sendT)+(net.relayed?1/20:fastLane()?1/60:1/30);{const sn=snapshot();if(net.fast&&net.fast.readyState==='open'){if(sn.fx.length)netSend({t:'fx',fx:sn.fx});delete sn.fx}netSend(sn)}}   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
-    if(performance.now()-net.lastRecv>15000)netLost(`Lost the connection to ${net.remoteName||'your opponent'}.`);if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}}
+  if(hostingNet()){net.pingT-=dt;const fx=net.fx.splice(0);let sn=null;
+    for(const pr of net.peers.slice()){if(!pr.open)continue;if(fx.length)pr.fxQ.push(...fx);pr.sendT-=dt;
+      if(pr.sendT<=1e-4){pr.sendT=Math.max(-.05,pr.sendT)+(pr.relayed?1/20:fastLane(pr)?1/60:1/30);   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
+        sn=sn||snapshot();const out={...sn,rt:Math.round(pr.rtt||0)},q=pr.fxQ.splice(0);
+        if(pr.fast&&pr.fast.readyState==='open'){if(q.length)linkSend(pr,{t:'fx',fx:q});delete out.fx}else out.fx=q;linkSend(pr,out)}
+      if(performance.now()-pr.lastRecv>15000)peerGone(pr,`Lost the connection to ${pr.name||'a player'}.`)}
+    if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}}
 
 /* ---------- render ---------- */
 /* the gun grows with your picks: longer for faster rounds, thicker for bigger ones, a drum for extra ammo,
@@ -2739,7 +2833,9 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   if(p.blockT>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.globalAlpha=Math.min(1,p.blockT*5);ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.stroke();
     ctx.globalAlpha*=.3;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.fill();ctx.restore()}
   // name, health, ammo
-  const bw=Math.max(46,R*2.2),by=-R-24;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
+  // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
+  const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
+  const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
   ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
@@ -2794,8 +2890,9 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
   for(const p of players){if(survOn()&&p.team!==0)continue;const y=24+p.id*24;
-    if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
-    if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
+    const si=game.party?p.team:p.id,pips=!sb&&!(game.party&&p.id>1);
+    if(pips)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[si]?8:2.5,0,TAU);ctx.fill()}
+    if(pips)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[si]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=chipList(p);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
     list.forEach(({c,k},i)=>{const x=VW-24-17-(list.length-1-i)*40,cy=y-2+p.id*14;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,cy-15,34,34);
       const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,cy-15,34,34);drawIcon(ctx,c.n,x,cy+2,24,hov?'#ffffff':p.glow,2);
@@ -2803,14 +2900,14 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
         ctx.fillStyle='#1a0e05';ctx.fillText(t,x+17-tw/2+3,cy+19-7+2);ctx.font='700 14px "JetBrains Mono", monospace'}});
     ctx.textAlign='left'}
   ctx.textAlign='center';
-  if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
+  if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.peers.filter(q=>q.away).map(q=>q.name).join(', ')||net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
   if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,duel=!survOn()&&game.mode!=='sandbox'&&w>=0;
     if(duel){   // like ROUNDS: the first kill fills half the winner's circle, the second fills it and wins the round
-      const p=players[w],nm=p.name.toUpperCase(),full=(game.points[w]||0)+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,cy=VH/2+34,cr=30;
+      const p=game.party?{name:'Team '+TEAM_N[w],color:players[w].color}:players[w],nm=p.name.toUpperCase(),full=(game.points[w]||0)+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,cy=VH/2+34,cr=30;
       bigText(match?`${nm} WINS THE MATCH`:full?`${nm} WINS`:nm,68,VW/2,VH/2-40,p.color);
       ctx.save();ctx.lineWidth=5;ctx.strokeStyle=p.color;ctx.fillStyle=p.color;ctx.beginPath();if(full)ctx.arc(VW/2,cy,cr,0,TAU);else{ctx.moveTo(VW/2,cy-cr);ctx.arc(VW/2,cy,cr,-Math.PI/2,Math.PI/2,true);ctx.closePath()}ctx.fill();
       ctx.beginPath();ctx.arc(VW/2,cy,cr,0,TAU);ctx.stroke();ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=C.text;ctx.fillText(full?'ROUND':'HALF',VW/2,cy+cr+30);ctx.restore()}
@@ -2821,7 +2918,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
 function render(){const saved=[],a=clamp(game.alpha||0,0,1),lerp=o=>{if(o.lx!=null&&Number.isFinite(o.x)&&Number.isFinite(o.lx)){saved.push([o,o.x,o.y]);o.x=o.lx+(o.x-o.lx)*a;o.y=o.ly+(o.y-o.ly)*a}};
   for(const w of swings)lerp(w);for(const c of rides)lerp(c);
-  if(game.mode==='online-guest'){const me=players[1];if(me&&me.phys){lerp(me);if(!saved.some(e=>e[0]===me))saved.push([me,me.x,me.y]);me.x+=net.offX;me.y+=net.offY}}
+  if(game.mode==='online-guest'){const me=players[net.me];if(me&&me.phys){lerp(me);if(!saved.some(e=>e[0]===me))saved.push([me,me.x,me.y]);me.x+=net.offX;me.y+=net.offY}}
   else for(const o of[...players,...bullets])lerp(o);
   try{renderNow()}finally{for(const[o,x,y]of saved){o.x=x;o.y=y}}}
 function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.fillRect(0,0,cv.width,cv.height);
@@ -2889,7 +2986,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.restore();ctx.save();viewT();
   const ov=W>VW||H>VH||cam.z>1.001?(()=>{const{ex,ey}=scrExtra();return[-ex,-ey,VW+2*ex,VH+2*ey]})():[0,0,VW,VH];
   const vg=ctx.createRadialGradient(VW/2,VH/2,VH*.45,VW/2,VH/2,H*1.05);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(...ov);
-  {const me=game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse');   // your health is low: the screen edges pulse red
+  {const me=game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse');   // your health is low: the screen edges pulse red
     if(me&&me.alive&&!game.bg&&me.s&&me.hp<me.s.maxHp*.35&&['play','ready','pointEnd'].includes(game.state)){const k=1-clamp(me.hp/(me.s.maxHp*.35),0,1),pu=RM?.5:.5+.5*Math.sin(performance.now()/180);
       const rg=ctx.createRadialGradient(VW/2,VH/2,VH*.38,VW/2,VH/2,VH*.95);rg.addColorStop(0,'rgba(255,40,50,0)');rg.addColorStop(1,`rgba(255,40,50,${(.16+.18*k)*(.6+.4*pu)})`);ctx.fillStyle=rg;ctx.fillRect(...ov)}}
   if(game.flash>0){ctx.globalAlpha=game.flash*1.8;ctx.fillStyle='#ffffff';ctx.fillRect(...ov);ctx.globalAlpha=1}
@@ -2909,7 +3006,7 @@ function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
   if(!big&&fillZ<=1.001)return{x:0,y:0,z:1};
   // a big arena is shown whole, like a ROUNDS map (zoomed out only as far as the fighters stay readable: less on a phone)
   const z=big?Math.max(Math.min(VW/W,VH/H),touch.on?(thumbRoom?.74:.8):.66):fillZ,   /* the widest arenas pan a little, so a fighter never shrinks to a speck */vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
-  const me=survOn()?myHero():game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
+  const me=survOn()?myHero():game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
   let fx,fy;if(me&&me.alive){fx=me.x;fy=me.y;if(mate){fx+=clamp((mate.x-me.x)*.35,-vw*.25,vw*.25);fy+=clamp((mate.y-me.y)*.35,-vh*.2,vh*.2)}}
   else{const fs=survOn()?heroes().filter(p=>p.alive):[];const L=fs.length?fs:players.filter(p=>p.alive);if(!L.length)return{x:cam.x,y:cam.y,z};fx=0;fy=0;for(const p of L){fx+=p.x;fy+=p.y}fx/=L.length;fy/=L.length}
   if(!touch.on&&mouse.sx!=null){fx+=clamp((mouse.sx-VW/2)*.18,-160,160)/z;fy+=clamp((mouse.sy-VH/2)*.14,-90,90)/z}
@@ -2987,7 +3084,7 @@ function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a
 function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
   if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}}
 const touchAiming=()=>!!(touch.aim&&(touch.aim.maxD||0)>=TAP_MOVE&&Math.hypot(touch.aim.dx,touch.aim.dy)>=AIM_DEAD);
-function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')}
+function touchMe(){return game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse')}
 // keep the virtual mouse out along the aim, wherever the fighter goes
 function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
   mouse.x=me.x+(game.mode==='online-guest'?net.offX:0)+Math.cos(touch.aimA)*260;mouse.y=me.y+(game.mode==='online-guest'?net.offY:0)+Math.sin(touch.aimA)*260}
@@ -3014,12 +3111,13 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-23-crates2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-24-party3';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
   relayClients:[],relayed:false,relayTrying:false,relayReady:false,lastRecv:0,sendParity:0,
-  inSeq:0,steps:[],inQ:[],lastQ:-1,ghosts:[],heldIn:null,lagSteps:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false};
+  inSeq:0,steps:[],inQ:[],lastQ:-1,ghosts:[],heldIn:null,lagSteps:0,hist:[],offX:0,offY:0,pendJump:false,noRec:false,
+  peers:[],me:1,party:false,wantParty:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false};   // peers: the host's link to each guest · me: this guest's fighter
 /* relay settings: /api/turn hands out short-lived Cloudflare TURN credentials, so players on networks that can't link
    directly (strict routers, campus or office Wi-Fi, phone carriers) still connect through a relay */
 const STUN_ONLY=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
@@ -3037,24 +3135,26 @@ const linkFailMsg=code=>`Couldn't connect to room ${code}: your networks wouldn'
 let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&hostingNet()&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
-function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
-const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
+function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k,p.id]);return}sfx(k,false,true)}
+const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:(k,pid)=>{if(pid==null||pid===net.me)sfx(k,false,true)},F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
    never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
    self-contained (full state; inputs repeat the last 24 steps), so a lost one is simply skipped and the next one
    (16-33 ms later) carries on. Picks, results, effects and everything else stay on the reliable channel. */
 const FAST_T={s:1,i:1,ping:1,pong:1};
-const fastLane=()=>!net.relayed&&!!net.fast&&net.fast.readyState==='open';
-function netSend(m){if(!net.conn||!net.connected)return;const f=net.fast;
+const fastLane=(L=net)=>!(L.relayed??net.relayed)&&!!L.fast&&L.fast.readyState==='open';
+function netSend(m){if(net.role==='host'){for(const pr of net.peers)if(pr.open)linkSend(pr,m);return}
+  if(!net.conn||!net.connected)return;linkSend(net,m)}
+function linkSend(L,m){const f=L.fast;
   if(FAST_T[m.t]&&f&&f.readyState==='open'){if(f.bufferedAmount>65536)return;   // backed up: drop this one (the next is newer anyway) rather than queue lag
     try{f.send(JSON.stringify(m));return}catch(e){}}
-  try{net.conn.send(m)}catch(e){}}
+  try{L.conn.send(m)}catch(e){}}
 // both sides open the same pre-agreed channel (negotiated, id 42) on the link PeerJS already made: no extra signalling
-function openFast(conn){const pc=conn&&conn.peerConnection;if(!pc||typeof pc.createDataChannel!=='function')return;
-  try{const ch=pc.createDataChannel('cuued-fast',{negotiated:true,id:42,ordered:false,maxRetransmits:0});net.fast=ch;
-    ch.onmessage=e=>{if(net.conn!==conn||net.fast!==ch)return;let m;try{m=JSON.parse(e.data)}catch(err){return}
-      if(m&&typeof m==='object'&&FAST_T[m.t]){net.lastRecv=performance.now();onNet(m)}}}catch(e){net.fast=null}}
+function openFast(conn,L=net){const pc=conn&&conn.peerConnection;if(!pc||typeof pc.createDataChannel!=='function')return;
+  try{const ch=pc.createDataChannel('cuued-fast',{negotiated:true,id:42,ordered:false,maxRetransmits:0});L.fast=ch;
+    ch.onmessage=e=>{if(L.conn!==conn||L.fast!==ch)return;let m;try{m=JSON.parse(e.data)}catch(err){return}
+      if(m&&typeof m==='object'&&FAST_T[m.t]){L.lastRecv=net.lastRecv=performance.now();onNet(m,L===net?null:L)}}}catch(e){L.fast=null}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
 function netErr(err,code){const t=err&&err.type;
@@ -3115,12 +3215,12 @@ function openRelayInbox(code){if(!relayAvailable())return;const tk=net.seq;
       c.subscribe(relayTopic(code,'h'),raw=>onRelayToHost(c,code,raw));
       if(!net.relayReady){net.relayReady=true;showRoom()}}).catch(()=>{})}}
 function onRelayToHost(c,code,raw){let m;try{m=JSON.parse(raw)}catch(e){return}if(!m||typeof m.from!=='string'||m.from.length>24)return;
-  const reply=d=>c.publish(relayTopic(code,'g/'+m.from),JSON.stringify(d)),cur=net.conn;
-  if(cur&&cur.relayFrom===m.from){if(m.t==='rhello')reply({t:'ack'});else cur.receive(m.d);return}
+  const reply=d=>c.publish(relayTopic(code,'g/'+m.from),JSON.stringify(d)),pr=net.peers.find(q=>q.conn.relayFrom===m.from),cur=pr&&pr.conn;
+  if(cur){if(m.t==='rhello')reply({t:'ack'});else cur.receive(m.d);return}
   if(m.t!=='rhello')return;
-  if(cur){reply({t:'full'});return}
+  if(roomFull()){reply({t:'full'});return}
   const rc=new RelayConn(c,relayTopic(code,'g/'+m.from));rc.relayFrom=m.from;net.relayed=true;
-  attachConn(rc);reply({t:'ack'});rc.open();setText('#hostMsg','A challenger is connecting through a relay…')}
+  attachConn(rc);reply({t:'ack'});rc.open();if(!net.party)setText('#hostMsg','A challenger is connecting through a relay…')}
 // guest: the direct link failed, so try each broker in turn until the host answers
 function joinViaRelay(code){
   if(!relayAvailable()){setText('#joinMsg',linkFailMsg(code));leaveOnline(true);return}
@@ -3142,9 +3242,11 @@ function joinViaRelay(code){
   next()}
 function hostGame(){leaveOnline(true);
   if(!peerReady()){setText('#hostMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
-  net.role='host';net.code=makeCode();setText('#hostCode','····');setText('#hostMsg','Opening a room…');$('#hostLink').value='';
+  net.role='host';net.party=!!net.wantParty;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');setText('#hostMsg','Opening a room…');$('#hostLink').value='';
+  $('#partyRoster').hidden=$('#partyActs').hidden=!net.party;
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
 function showRoom(){if(net.role!=='host')return;setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
+  if(net.party){partyLobbyChanged();return}
   setText('#hostMsg','Waiting for a challenger. Share the code, or send them the link.')}
 function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
   peer.on('open',()=>{if(net.peer===peer)showRoom()});
@@ -3153,8 +3255,10 @@ function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net
     setTimeout(()=>{if(net.peer===peer&&!net.relayReady&&!net.connected){setText('#hostMsg',netErr(err));leaveOnline(true)}},6500)});
   peer.on('disconnected',()=>{if(net.peer===peer&&!net.connected)try{peer.reconnect()}catch(e){}});
   peer.on('connection',conn=>{if(net.peer!==peer)return;
-    if(net.conn){conn.on('open',()=>{conn.send({t:'full'});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // time for the message to arrive (a lost packet is resent) before the link closes
-    attachConn(conn);setText('#hostMsg','A challenger is connecting…')})}
+    if(roomFull()){conn.on('open',()=>{conn.send({t:'full',party:net.party?1:0,started:net.party&&!net.lobbyOpen?1:0});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // time for the message to arrive (a lost packet is resent) before the link closes
+    attachConn(conn);if(!net.party)setText('#hostMsg','A challenger is connecting…')})}
+// a duel or co-op room holds one guest; a party room up to three, and only while its lobby is open
+const roomFull=()=>net.party?!net.lobbyOpen||net.peers.length>=3:net.peers.length>=1;
 function joinGame(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length!==4||[...code].some(ch=>!ROOM_ALPHA.includes(ch))){setText('#joinMsg','Room codes are 4 letters or numbers, like KX7Q.');return}
   leaveOnline(true);
@@ -3174,7 +3278,7 @@ function openJoin(code){
 function directFailed(code){if(net.role!=='guest'||net.connected||net.relayTrying)return;net.relayTrying=true;clearTimeout(net.joinTimer);
   const pe=net.peer,c=net.conn;net.peer=null;net.conn=null;setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},50);
   joinViaRelay(code)}
-function attachConn(conn){net.conn=conn;
+function attachConn(conn){if(net.role==='host'){hostAttach(conn);return}net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
@@ -3182,45 +3286,112 @@ function attachConn(conn){net.conn=conn;
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
-function onNet(m){
+/* ---------- the host's links: one per guest (a duel or co-op has one; a party up to three) ---------- */
+function hostAttach(conn){const pr={conn,fast:null,open:false,pid:-1,name:'',cos:{},sb:0,inQ:[],lastQ:-1,heldIn:null,lagSteps:0,remote:null,lastInAt:0,rtt:0,away:false,
+    lastRecv:performance.now(),sendT:0,fxQ:[],relayed:!!conn.relayFrom};net.peers.push(pr);if(!net.conn)net.conn=conn;
+  conn.on('iceStateChanged',st=>{if(pr.open||st!=='failed'||!net.peers.includes(pr))return;dropPeer(pr);setText('#hostMsg','A player tried to join, but your networks could not connect. Still waiting. They can try again.')});
+  conn.on('open',()=>{if(!net.peers.includes(pr))return;pr.open=true;pr.lastRecv=net.lastRecv=performance.now();if(!net.party)net.connected=true;openFast(conn,pr);
+    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.wantCoop?1:0,party:net.party?1:0,sb:wallet.survBest||0})});
+  conn.on('data',m=>{if(net.peers.includes(pr)&&m&&typeof m==='object'){pr.lastRecv=net.lastRecv=performance.now();onNet(m,pr)}});
+  conn.on('close',()=>{if(net.peers.includes(pr))peerGone(pr,`${pr.name||'A player'} left the match.`)});
+  conn.on('error',()=>{if(net.peers.includes(pr))peerGone(pr,`The connection to ${pr.name||'a player'} dropped.`)})}
+function dropPeer(pr){net.peers=net.peers.filter(q=>q!==pr);if(net.conn===pr.conn)net.conn=net.peers[0]?net.peers[0].conn:null;try{pr.fast&&pr.fast.close()}catch(e){}setTimeout(()=>{try{pr.conn.close()}catch(e){}},150)}
+// a guest left: a duel or co-op ends; a party carries on without them (their fighter sits out), unless nobody is left
+function peerGone(pr,msg){const wasOpen=pr.open;dropPeer(pr);
+  if(!net.party){if(wasOpen||net.connected)netLost(msg);return}
+  if(net.lobbyOpen){partyLobbyChanged();return}
+  const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;
+    if(tpick){const g=tpick.ids.indexOf(p.id);if(g>=0&&tpick.chosen[g]<0)setTimeout(()=>{if(tpick&&tpick.chosen[g]<0)teamChoose(g,g*3)},300)}}
+  chatAdd('',msg,'#ffd36b');if(!net.peers.length)netLost('Everyone else left the party.')}
+function hostNet(m,pr){
+  if(m.t==='hello'){pr.name=cleanName(m.name)||'Player';pr.cos=cleanCos(m.cos);pr.sb=Math.max(0,m.sb|0);
+    if(m.v!==BUILD){linkSend(pr,{t:'oldver'});if(net.party){dropPeer(pr);partyLobbyChanged(`${pr.name} is on a different version of CUUED: they need to refresh the page.`)}else netLost(`${pr.name} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
+    if(net.party){partyLobbyChanged();return}
+    // a duel or Co-op Survival starts as soon as the one guest says hello
+    Object.assign(net,{connected:true,remoteName:pr.name,remoteCos:pr.cos,remoteBest:pr.sb,coopLive:!!net.wantCoop,snap:null,lateMax:0,roster:null});
+    startMatch(net.coopLive?'survival':'online-host');return}
+  if(m.t==='away'||m.t==='back'){pr.away=m.t==='away';net.awayR=net.peers.some(q=>q.away);return}
+  if(m.t==='chat'){chatRecv(m,pr);return}
+  if(m.t==='bye'){peerGone(pr,`${pr.name||'A player'} left the match.`);return}
+  if(m.t==='team'){partyTeam(pr,m.k|0);return}
+  if(m.t==='tchoose'){const T=tpick,i=m.i|0,g=i>=3?1:0;if(T&&players[T.ids[g]]&&players[T.ids[g]].peer===pr)teamChoose(g,i);return}
+  if(m.t==='i'){pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!pr.remote||!(m.s<pr.remote.s))pr.remote=m;
+    if(Array.isArray(m.st))for(const q of m.st)if(q[0]>pr.lastQ){pr.inQ.push(q);pr.lastQ=q[0]}}
+  else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.peer===pr&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
+  else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
+  else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop))restartHosted()}
+  else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0))}}
+function restartHosted(){if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
+/* ---------- a party room: 2v2. Everyone in the room (the host too) picks Team Orange or Team Blue, two to a team; a friend
+   who joins lands on the team with fewer players; CPUs fill any empty seat at the start. Fighters 1 and 3 are Team Orange
+   (orange, gold), 2 and 4 Team Blue (blue, teal) ---------- */
+const TEAM_N=['Orange','Blue'];
+function lobbyTidy(){const ps=net.peers.filter(p=>p.open&&p.name);if(net.hostTeam==null)net.hostTeam=0;
+  const n=k=>(net.hostTeam===k?1:0)+ps.filter(p=>p.team===k).length;
+  for(const p of ps)if(p.team!==0&&p.team!==1)p.team=n(1)<n(0)?1:n(0)<n(1)?0:net.hostTeam;   // the team with fewer players (a tie: the host's)
+  return ps}
+// the lobby's two teams, in fighter order: [orange 1, blue 1, orange 2, blue 2] (null: an empty seat)
+function partyList(fill){const ps=lobbyTidy(),host={n:myName||'Host',cos:cleanCos(wallet.eq),host:1},T=[[],[]];
+  T[net.hostTeam].push(host);for(const p of ps)T[p.team].push({n:p.name,cos:p.cos,peer:p});
+  const cell=(t,i)=>T[t][i]||(fill?{cpu:1,n:'CPU'}:null);return[cell(0,0),cell(1,0),cell(0,1),cell(1,1)]}
+function renderRoster(el,list){if(!el)return;el.hidden=false;el.innerHTML='';
+  for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
+  for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=PCOL()[k];if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.cpu?`${c[2]} · CPU`:e.n}else{li.className='open';li.textContent='Open seat (CPU)'}el.appendChild(li)}}
+function partyLobbyChanged(msg){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(false),humans=list.filter(e=>e&&e.peer).length;
+  renderRoster($('#partyRoster'),list);const st=$('[data-act=partyStart]');if(st)st.disabled=!humans;teamButtons(net.hostTeam,list);
+  setText('#hostMsg',msg||(!humans?'Share the code or the link. Friends who join pick a team; CPUs fill the empty seats.':humans<3?`${humans+1} players in. Start now (CPUs fill the empty seats), or wait for more.`:'The party is full. Press Start!'));
+  for(const pr of net.peers)if(pr.open&&pr.name)linkSend(pr,{t:'lobby',list:list.map(e=>e?{n:e.n}:null),you:pr.team})}
+// team buttons: yours lit, a full team (two players) greyed out
+function teamButtons(mine,list){const full=t=>[list[t],list[t+2]].filter(Boolean).length>=2;
+  document.querySelectorAll('[data-team]').forEach(b=>{const t=+b.dataset.team;b.classList.toggle('primary',t===mine);b.disabled=t!==mine&&full(t)})}
+function partyTeam(pr,t){if(!net.lobbyOpen||(t!==0&&t!==1))return;const list=partyList(false),cur=pr?pr.team:net.hostTeam;if(cur===t)return;
+  if([list[t],list[t+2]].filter(Boolean).length>=2)return;if(pr)pr.team=t;else net.hostTeam=t;partyLobbyChanged()}
+function partyStart(){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(true);if(!list.some(e=>e.peer))return;
+  // anyone still connecting (no hello yet) can't join a party that has started
+  for(const pr of net.peers.slice())if(!list.some(e=>e.peer===pr)){linkSend(pr,{t:'full',party:1,started:1});dropPeer(pr)}
+  net.lobbyOpen=false;partyBegin(list)}
+function partyBegin(list){net.roster=list;net.connected=true;net.remoteName='';net.hostId=list.findIndex(e=>e.host);
+  list.forEach((e,k)=>{if(e.peer)linkSend(e.peer,{t:'start',me:k,roster:list.map(x=>({n:x.n,cos:x.cos||{},cpu:x.cpu?1:0}))})});
+  startMatch('online-host')}
+function partyJoined(){setText('#joinMsg',"You're in the party. Waiting for the host to start…")}
+function partyRoster(list,you){const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L);$('#joinTeam').hidden=false;teamButtons(you,L);setText('#joinMsg',`You're in the party (${list.filter(Boolean).length} of 4). Waiting for the host to start; CPUs fill empty seats.`)}
+function onNet(m,pr){
+  if(net.role==='host'&&pr){hostNet(m,pr);return}
   if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     // the host's room decides the game: a duel, or Co-op Survival (the guest learns which from the host's hello)
     net.coopLive=net.role==='host'?!!net.wantCoop:!!m.coop;net.remoteBest=Math.max(0,m.sb|0);
-    if(net.role==='host')startMatch(net.coopLive?'survival':'online-host');else{startMatch('online-guest')}return}
+    if(net.role==='host')startMatch(net.coopLive?'survival':'online-host');else{net.party=!!m.party;net.me=1;net.roster=null;if(net.party)partyJoined();else startMatch('online-guest')}return}
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
-  if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
+  if(m.t==='full'){setText('#joinMsg',m.started?'That party has already started. Ask the host to start a new one.':m.party?'That party is full (4 players).':'That room already has two players.');leaveOnline(true);return}
+  if(m.t==='lobby'){partyRoster((m.list||[]).slice(0,4),m.you);return}
+  if(m.t==='start'){net.me=clamp(m.me|0,1,3);net.roster=(m.roster||[]).slice(0,4).map(e=>({n:cleanName(e.n)||'Player',cos:cleanCos(e.cos),cpu:!!e.cpu}));startMatch('online-guest');return}
   if(m.t==='away'||m.t==='back'){net.awayR=m.t==='away';return}
   if(m.t==='chat'){chatRecv(m);return}   // both sides
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
-  if(net.role==='host'){
-    if(m.t==='i'){net.lastInAt=performance.now();net.awayR=false;if(!net.remote||!(m.s<net.remote.s))net.remote=m;
-      if(Array.isArray(m.st))for(const q of m.st)if(q[0]>net.lastQ){net.inQ.push(q);net.lastQ=q[0]}}
-    else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.ctrl==='net'&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
-    else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
-    else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop)){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}}
-    else if(m.t==='pong'&&Number.isFinite(m.at))net.rtt=performance.now()-m.at;
-    return}
   if(m.t==='s')applySnap(m);
   else if(m.t==='fx'){for(const[n,a]of m.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
   else if(m.t==='ping')netSend({t:'pong',at:m.at});
-  else if(m.t==='pick'){const p=players[m.pid];game.waitMsg='';if(p){showHand(p,(m.hand||[]).map(decodeCard).filter(Boolean),m.sub||'',m.pid===1?'remote':'watch');if(m.ti)$('#pickTitle').textContent=m.ti}}
+  else if(m.t==='pick'){const p=players[m.pid];game.waitMsg='';if(p){showHand(p,(m.hand||[]).map(decodeCard).filter(Boolean),m.sub||'',m.pid===net.me?'remote':'watch');if(m.ti)$('#pickTitle').textContent=m.ti}}
   else if(m.t==='shop')guestShop(m);
-  else if(m.t==='shopEnd'){closeShopUi();const me=players[1];if(me)me.shopDone=null}
+  else if(m.t==='shopEnd'){closeShopUi();const me=players[net.me];if(me)me.shopDone=null}
   else if(m.t==='wait')game.waitMsg=String(m.msg||'').slice(0,80);
   else if(m.t==='cend'){game.cleared=m.n|0;survEnd()}
   else if(m.t==='chosen'){if(!pickLock){pickLock=true;animChosen(m.i|0)}}
-  else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null}
+  else if(m.t==='tpick'){game.waitMsg='';const ids=(m.ids||[]).filter(id=>players[id]).slice(0,2);tpick={ids,hands:ids.map((id,g)=>((m.hands||[])[g]||[]).map(decodeCard).filter(Boolean).slice(0,3)),chosen:ids.map(()=>-1),sub:String(m.sub||'')};showTeamHand()}
+  else if(m.t==='tchosen'){if(tpick){const i=m.i|0,g=i>=3?1:0;tpick.chosen[g]=i;animTeam(i)}}
+  else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null;tpick=null}
   else if(m.t==='end'){showEnd(m.w|0)}
   else if(m.t==='restart'){startMatch('online-guest')}}
 function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
-  else if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
+  else if(net.role==='host')restartHosted();else startMatch(game.mode)}
 function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
-  if(c&&net.connected)try{c.send({t:'bye'})}catch(e){}
+  if(c&&net.connected&&net.role!=='host')try{c.send({t:'bye'})}catch(e){}
+  for(const pr of net.peers){if(pr.open)try{pr.conn.send({t:'bye'})}catch(e){}dropPeer(pr)}
   for(const rc of net.relayClients)rc.close();
   if(net.fast)try{net.fast.close()}catch(e){}
-  Object.assign(net,{coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
+  Object.assign(net,{peers:[],party:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false,me:1,awayR:false,coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
@@ -3231,7 +3402,7 @@ function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.m
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
-  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>c.crate?[r1(c.x),r1(c.y),c.broken?c.broken+1:c.gone>0?1:0,c.hits|0,r1(c.ox||0),r1(c.oy||0)]:[r1(c.x),r1(c.y),c.st])}:{}),fx:net.fx.splice(0),...(game.coop?coopSnap():{})}}
+  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>c.crate?[r1(c.x),r1(c.y),c.broken?c.broken+1:c.gone>0?1:0,c.hits|0,r1(c.ox||0),r1(c.oy||0)]:[r1(c.x),r1(c.y),c.st])}:{}),fx:[],...(game.coop?coopSnap():{})}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
   // host-clock offset: the smallest (arrival - send) seen is the least-delayed path; it drifts up slowly to follow clock drift
@@ -3251,9 +3422,9 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
     p.buffOver=a[24]||0;p.buffRapid=a[25]||0;if(p.tempKey!==(a[26]||'')){p.tempKey=a[26]||'';p.tempCards=p.tempKey?String(p.tempKey).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     if(p.cardKey!==a[17]){p.cardKey=a[17];p.cards=a[17]?String(a[17]).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     const snapTo=p.tx==null||(!p.alive&&a[6]);
-    if((game.coop?p.team===1:k===0)&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5)game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
+    if((game.coop?p.team===1:k!==net.me)&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5&&(players.length<3||[...net.bmap.values()].some(b=>b.own===net.me&&Math.hypot(b.sx-p.x,b.sy-p.y)<90)))game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
     Object.assign(p,{hp:a[5],alive:!!a[6],ammo:a[7],sinceShot:a[8],blockT:a[9],blockCd:a[10],staticReady:!!a[11],shotT:a[12],hurtT:a[13],slowAmt:a[16],aegis:a[19]|0,frozen:!!a[20],blockStock:a[21]|0});
-    if(k===1){reconcile(p,a,snapTo);return}   // the guest's own fighter is predicted locally; its arm follows the local mouse
+    if(k===net.me){reconcile(p,a,snapTo);return}   // the guest's own fighter is predicted locally; its arm follows the local mouse
     p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.squash=a[14];p.grounded=!!a[15];if(snapTo){p.x=a[0];p.y=a[1];p.walk=p.walk||0;p.buf=[]}
     // interpolation buffer: the other fighter's recent states on the host's clock
     if(s.ht!=null){p.buf=p.buf||[];const L=p.buf[p.buf.length-1];if(!L||s.ht>L[0]){p.buf.push([s.ht,a[0],a[1],a[2],a[3],a[23]|0]);if(p.buf.length>16)p.buf.shift()}}
@@ -3261,7 +3432,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   const seen=new Set();
   for(const a of s.b){seen.add(a[0]);let b=net.bmap.get(a[0]);const o=players[a[6]]||players[0];
     let fresh=false;if(!b){b={id:a[0],trail:[],x:a[1],y:a[2],seen:performance.now()};net.bmap.set(a[0],b);fresh=true}
-    Object.assign(b,{own:a[6],gun:!!(a[7]&256),ag:a[11]||0,sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1});b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===1&&(a[7]&256))adoptGhost(b,a[10]??-1)}
+    Object.assign(b,{own:a[6],gun:!!(a[7]&256),ag:a[11]||0,sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),heat:a[9]||1});b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===net.me&&(a[7]&256))adoptGhost(b,a[10]??-1)}
   for(const id of[...net.bmap.keys()])if(!seen.has(id))net.bmap.delete(id);
   bullets=net.ghosts.length?[...net.bmap.values(),...net.ghosts]:[...net.bmap.values()];   // keep this screen's own instant shots in the list
   // hanging blocks and moving platforms: the guest runs their motion itself every step (guestSwings) and steers toward
@@ -3321,7 +3492,7 @@ function guestSwings(h){const k=Math.min(1,h*5);
       if(s.gAng!=null){[s.gAng,s.gAv]=swingPhys(s.gAng,s.gAv,s.len,h);const d=s.gAng-s.ang;
         if(Math.abs(d)>.3){s.ang=s.gAng;s.av=s.gAv}else{s.ang+=d*k;s.av+=(s.gAv-s.av)*k}}}
     placeSwing(s)}}
-function guestStep(h,busy){guestSwings(h);guestRides(h);const me=players[1],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
+function guestStep(h,busy){guestSwings(h);guestRides(h);const me=players[net.me],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
   // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
   // and an aim taken after it would point back the other way, so the host would teleport the other way
   if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
@@ -3351,7 +3522,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   game.shake*=Math.pow(.0015,dt);game.bannerT-=dt;game.flash=Math.max(0,game.flash-dt);game.hitMark=Math.max(0,(game.hitMark||0)-dt);
   for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;if(m.y<-10){m.y=H+10;m.x=rand(0,W)}if(m.x<-10)m.x=W+10;if(m.x>W+10)m.x=-10}
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[1];
+  if(!busy){if(edges.has('KeyW')||edges.has('Space')||edges.has('ArrowUp')){net.out.jc++;net.pendJump=true}if(mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE')){net.out.bc++;const me=players[net.me];
     // predict the block only when the host will make it (no blocking in the countdown), and spend the cooldown or a stored
     // charge here at once, as doBlock does: otherwise every press before the next snapshot counted as a fresh block
     // the host's cooldown on the step it will apply this press: the snapshot's value (taken right after the host applied this
@@ -3362,7 +3533,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     if(me&&me.alive&&liveThen&&(ready||me.blockStock>0&&!(me.localBlockT>0))){if(!ready)me.blockStock--;else{me.gCd=me.s.blockCd;me.blockStock=me.s.blockStock}
       // the aim this block (and its dash or teleport) uses, recorded for the host too
       if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
-  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[1];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}guestStep(FIXED,busy)}
+  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
@@ -3398,7 +3569,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   edges.clear();mouse.rEdge=false}
 /* the visitor's own shots fire the instant they click (a ghost bullet from their own gun, same speed, drop, walls and
    bounces); when the host's real bullet shows up it takes over the ghost's place and trail, so the shot never hitches */
-function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
+function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
   if(!me||!me.phys||!me.alive||game.state!=='play'){G.length=0;return}   // (shots are fired in guestStep, per physics step)
   const now=performance.now();
   // a ghost the host never confirms within 0.7 s was a phantom shot (counted, so tests can catch prediction drift); past
@@ -3427,7 +3598,7 @@ function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV
     if(d>70||ang>.4)continue;const sc=d+ang*60;if(sc<bs){bs=sc;best=i;bt=t}}
   if(best<0)return;net.gMerged=(net.gMerged||0)+1;const g=G.splice(best,1)[0];
   b.lead=clamp(bt,0,.35);b.rx=g.x;b.ry=g.y;b.trail=g.trail}
-function guestSend(){const me=players[1];if(!me||!net.connected)return;
+function guestSend(){const me=players[net.me];if(!me||!net.connected)return;
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
   if(me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));
   if(net.relayed&&(net.sendParity^=1))return;   // relayed: 30 input packets a second instead of 60 (press counters keep every press)
@@ -3456,12 +3627,16 @@ const chatClean=t=>String(t==null?'':t).replace(/[\u0000-\u001f\u007f]/g,' ').re
 const chatOn=()=>!!(net.role&&net.connected&&settings.chat!==false);
 function chatAdd(name,text,col){const log=$('#chatLog');if(!log)return;const d=document.createElement('div');d.className='cm';const b=document.createElement('b');b.textContent=name;b.style.color=col;
   d.appendChild(b);d.appendChild(document.createTextNode(text));log.appendChild(d);while(log.children.length>5)log.removeChild(log.firstChild)}
-function chatColor(mine){const i=(game.mode==='online-guest'||net.role==='guest')?(mine?1:0):(mine?0:1),p=players[i];return p&&p.color||(i?C.blue:C.orange)}
+function chatColor(mine){const i=(game.mode==='online-guest'||net.role==='guest')?(mine?net.me:0):(mine?(game.party?net.hostId:0):1),p=players[i];return p&&p.color||(i?C.blue:C.orange)}
 function chatOpen(){if(!chatOn())return;keys.clear();mouse.down=false;$('#chatForm').hidden=false;$('#chat').classList.add('open');const i=$('#chatIn');i.value='';i.focus()}
 function chatClose(){$('#chatForm').hidden=true;$('#chat').classList.remove('open');const i=$('#chatIn');if(document.activeElement===i)i.blur()}
 function chatSend(t){t=chatClean(t);if(!t||!chatOn())return;const now=performance.now();if(now-chat.last<700)return;chat.last=now;
-  netSend({t:'chat',m:t});chatAdd(myName||'You',t,chatColor(true))}
-function chatRecv(m){if(settings.chat===false)return;const t=chatClean(m.m);if(!t)return;chatAdd(net.remoteName||'Opponent',t,chatColor(false));sfx('tick',true)}
+  netSend(net.role==='host'?{t:'chat',m:t,n:myName||'Host',pid:0}:{t:'chat',m:t});chatAdd(myName||'You',t,chatColor(true))}
+// a party's chat goes through the host: it shows a guest's message and passes it on to everyone else, with the sender's name
+function chatRecv(m,pr){const t=chatClean(m.m);if(!t)return;
+  if(pr){const p=players.find(q=>q.peer===pr),pid=p?p.id:-1;for(const o of net.peers)if(o!==pr&&o.open)linkSend(o,{t:'chat',m:t,n:pr.name,pid});m={m:t,n:pr.name,pid}}
+  if(settings.chat===false)return;const who=players[m.pid],col=who&&m.pid!=null&&m.pid>=0?who.color:chatColor(false);
+  chatAdd(cleanName(m.n)||net.remoteName||'Opponent',t,col);sfx('tick',true)}
 // show the chat button only in a live online match; leaving clears the log
 function chatSync(){const on=chatOn(),b=$('#bChat');if(b&&b.hidden===on)b.hidden=!on;if(!on&&chat.was){chatClose();const l=$('#chatLog');if(l)l.textContent=''}chat.was=on}
 {const f=$('#chatForm');if(f){f.addEventListener('submit',e=>{e.preventDefault();chatSend($('#chatIn').value);chatClose()});
@@ -3493,16 +3668,18 @@ document.addEventListener('mouseover',e=>{const b=e.target.closest('.mlist butto
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-opt]');if(!b)return;initAudio();
   if(b.dataset.opt){cycleOpt(b.dataset.opt,1);return}
   const a=b.dataset.act,ov=b.closest('.overlay');sfx('pick',true);showMenuMsg('');
-  if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox')startMatch(a);
+  if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party')startMatch(a);
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openShop();
   else if(a==='fullscreen')toggleFull();
-  else if(a==='online'||a==='coop'){net.wantCoop=a==='coop';setText('#onlineLbl',net.wantCoop?'Co-op Survival':'Duel a friend');showSub(ov,'online')}
+  else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
+  else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
+  else if(a==='partyStart')partyStart();
   else if(a==='solo')showSub(ov,'solo');
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
-  else if(a==='join'){showSub(ov,'joining');setText('#joinMsg','Ask your host for their 4-letter code.')}
+  else if(a==='join'){showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,'online')}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};

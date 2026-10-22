@@ -31,7 +31,9 @@ const suite = [
   run('coop.js'),   // Co-op Survival online: host and guest through a whole run
   run('coop.js', 90, 45),
   run('pads.js'),   // bounce pads never throw a fighter into the top edge
-  run('rides.js'),   // crates push, fall and come back; rope drops fall, hurt and reset
+  run('rides.js'),
+  run('party.js'),   // 2v2 online: four screens, lobby and teams, team drafts, a full match, smooth views, a leaver, a rematch
+  run('party.js', 90, 45),   // crates push, fall and come back; rope drops fall, hurt and reset
   run('drops.js'),   // Boss Rush: a CPU stand-in fights each boss to the end
   // 4 seeds x 5 game-minutes of CPU vs CPU
   ...[1, 5150, 9001, 2026].map((seed) => run('audit.js', 300, seed)),

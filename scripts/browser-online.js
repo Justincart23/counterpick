@@ -77,7 +77,7 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
   await sleep(800); await V.ev(`document.querySelector('#bChat').click()`); await sleep(150); await V.ev(`document.querySelector('#chatForm [data-q="GG"]').click()`);
   const back = await H.until(`[...document.querySelectorAll('#chatLog .cm')].some(d=>d.textContent.endsWith('GG'))`, 5000);
   ok(got && back, 'chat messages reach the other player both ways, shown as plain text');
-  { const fh = await H.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`), fv = await V.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`);
+  { const fh = await H.ev(`(()=>{const n=window.__G.net,f=n.peers&&n.peers[0]?n.peers[0].fast:n.fast;return f?f.readyState:'none'})()`), fv = await V.ev(`(()=>{const f=window.__G.net.fast;return f?f.readyState:'none'})()`);
     ok(fh === 'open' && fv === 'open', `the fast (lossy, unordered) channel carries snapshots and inputs on both sides (host ${fh}, visitor ${fv})`) }
   ok(hS.fps >= 55 && vS.fps >= 55, `both screens hold ~60 fps (host ${hS.fps}, visitor ${vS.fps})`);
   ok(hS.framesOver50 <= 3 && vS.framesOver50 <= 3, `no hitches (frames over 50 ms: host ${hS.framesOver50}, visitor ${vS.framesOver50})`);
