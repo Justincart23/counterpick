@@ -2357,41 +2357,46 @@ function update(dt){pollPads();
    stacked barrels for bursts, a flared muzzle for scatter, a coil for rail shots; the accent stripe shows your bullet type */
 function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.explode>0?'#ffab1a':s.homing>0?'#c9a0ff':s.phase?'#d8ccff':p.glow}
 function drawGun(p){const s=p.s,len=22+Math.min(26,Math.max(0,(s.bulletSpeed/1350-1)*30))+(s.explode>0?4:0),th=10*Math.min(1.8,Math.sqrt(s.bulletSize))*(s.dmg>80?1.15:1);
-  ctx.fillStyle=C.dark;ctx.fillRect(-2,-th/2,len,th);
+  ctx.fillStyle='#2b2f3a';ctx.beginPath();ctx.moveTo(1,th/2-1);ctx.lineTo(3+th*.75,th/2-1);ctx.lineTo(th*.55,th/2+th*.95);ctx.lineTo(-th*.25,th/2+th*.95);ctx.fill();   // grip
+  ctx.fillStyle='#4a5161';ctx.fillRect(-2,-th/2,len,th);ctx.fillStyle='#98a1b1';ctx.fillRect(-2,-th/2,len,th*.48);ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(-2,-th/2,len,1.5);   // frame, slide, top glint
+  ctx.fillStyle='#1c1f27';ctx.beginPath();ctx.arc(len-1,0,th*.28,0,TAU);ctx.fill();ctx.fillStyle='#2b2f3a';
   if(s.ammo>4){ctx.beginPath();ctx.arc(6,th/2+5,5+Math.min(5,(s.ammo-4)*.7),0,TAU);ctx.fill()}
   if(s.burst>1)for(let i=1;i<Math.min(s.burst,4);i++)ctx.fillRect(2,-th/2-4*i,len-6,2.5);
   if(s.projectiles>1){const f=4+s.projectiles*1.5;ctx.beginPath();ctx.moveTo(len-3,-th/2);ctx.lineTo(len+9,-th/2-f);ctx.lineTo(len+9,th/2+f);ctx.lineTo(len-3,th/2);ctx.fill()}
   ctx.fillStyle=gunAccent(p);ctx.fillRect(4,-2,Math.min(len-8,8+len*.25),4);
   if(s.bulletSpeed>2000){ctx.fillStyle=p.glow;for(const x of[len-14,len-8])ctx.fillRect(x,-th/2-2,2.5,th+4)}}
+const SKIN={};function skinOf(c){return SKIN[c]||(SKIN[c]=/^#[0-9a-f]{6}$/i.test(c)?{hi:shade(c,.3),lo:shade(c,-.22)}:{hi:c,lo:c})}   // light and shadow tones of a fighter colour
 function noodle(x0,y0,x1,y1,sag,w,color){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+sag,x1,y1);ctx.stroke()}
 function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math.sin(p.aim),face=ax>=0?1:-1;ctx.save();ctx.translate(p.x,p.y);
-  const lw=Math.max(4,R*.3);
-  // legs
-  for(const s of[-1,1]){const ph=p.walk+(s>0?Math.PI:0),fx=s*R*.35+(p.grounded?Math.sin(ph)*R*.45:-face*R*.2),fy=R+(p.grounded?Math.max(0,-Math.cos(ph))*-R*.25:-R*.15)+R*.12;
-    noodle(s*R*.3,R*.6,fx,fy,4,lw*.9,p.color)}
+  const lw=Math.max(4,R*.36),sk=skinOf(p.color);
+  if(p.grounded){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(0,R*1.2,R*.95,R*.17,0,0,TAU);ctx.fill()}
+  // legs: stubby, a shade darker than the body
+  for(const s of[-1,1]){const ph=p.walk+(s>0?Math.PI:0),fx=s*R*.38+(p.grounded?Math.sin(ph)*R*.45:-face*R*.2),fy=R+(p.grounded?Math.max(0,-Math.cos(ph))*-R*.25:-R*.15)+R*.08;
+    noodle(s*R*.32,R*.55,fx,fy,3,lw,sk.lo)}
   // off hand with the block orb (white = block ready)
   const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12),R*.25+Math.sin(p.walk*.8)*2];
-  noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw,p.color);
+  noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
   ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
   if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}
   // gun arm
   const recoil=p.shotT>0?-6:0,hx=ax*(R+14+recoil),hy=ay*(R+14+recoil);
   noodle(face*R*.5,R*.05,hx,hy,10,lw,p.color);
-  ctx.save();ctx.translate(hx,hy);ctx.rotate(p.aim);drawGun(p);
+  ctx.save();ctx.translate(hx,hy);ctx.rotate(p.aim);if(face<0)ctx.scale(1,-1);drawGun(p);   // grip always hangs down
   if(p.staticReady){ctx.fillStyle=C.hot;ctx.fillRect(14,-5,6,10)}ctx.restore();
+  ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(hx,hy,lw*.62,0,TAU);ctx.fill();   // the fist wraps the grip
   // body
   const sy=p.squash,sx=1/Math.sqrt(sy);ctx.save();ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
-  ctx.fillStyle=p.hurtT>0?'#ffffff':p.color;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.14)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();
-  ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.moveTo(R,R*.1);ctx.lineTo(-R*.3,R);ctx.lineTo(R,R);ctx.fill();ctx.restore();
+  if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
+  ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
+  ctx.fillStyle='rgba(0,0,0,.08)';ctx.beginPath();ctx.moveTo(R,R*.1);ctx.lineTo(-R*.3,R);ctx.lineTo(R,R);ctx.fill();ctx.restore();
   if(p.cos&&p.cos.pattern&&!(p.hurtT>0))drawPattern(ctx,p.cos.pattern,R);
   if(p.slowAmt>0){ctx.strokeStyle='#bfe9ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,R-3,0,TAU);ctx.stroke()}
-  // face: pill eyes look along aim; mouth reacts
-  const ex=ax*R*.25,ey=ay*R*.18-R*.15;ctx.fillStyle=C.dark;
+  // face: two tall oval eyes looking along the aim, no mouth; they squeeze shut when hit, and the brows knit at low health
+  const ex=ax*R*.34,ey=ay*R*.2-R*.12;ctx.fillStyle='#16121c';
   const hurt=p.hurtT>0,low=p.hp<p.s.maxHp*.35;
-  for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.3,ey,R*.11,hurt?R*.05:R*.17,0,0,TAU);ctx.fill()}
-  ctx.strokeStyle=C.dark;ctx.lineWidth=Math.max(2,R*.1);ctx.lineCap='round';ctx.beginPath();
-  const my=ey+R*.38;if(hurt){ctx.arc(ex,my,R*.13,0,TAU)}else if(low){ctx.moveTo(ex-R*.2,my+3);ctx.quadraticCurveTo(ex,my-4,ex+R*.2,my+3)}else{ctx.moveTo(ex-R*.18,my);ctx.lineTo(ex+R*.18,my)}ctx.stroke();
+  for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,hurt?R*.04:R*.2,0,0,TAU);ctx.fill()}
+  if(low&&!hurt){ctx.strokeStyle='#16121c';ctx.lineWidth=Math.max(2,R*.08);ctx.lineCap='round';ctx.beginPath();for(const s of[-1,1]){ctx.moveTo(ex+s*R*.14,ey-R*.3);ctx.lineTo(ex+s*R*.36,ey-R*.38)}ctx.stroke()}
   if(p.cos&&p.cos.hat)drawHat(ctx,p.cos.hat,R,p.glow);
   ctx.restore();
   if(berserkOn(p)){ctx.save();ctx.globalCompositeOperation='lighter';const g2=ctx.createRadialGradient(0,0,R*.6,0,0,R+16);
@@ -2659,7 +2664,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-pads';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-look';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
