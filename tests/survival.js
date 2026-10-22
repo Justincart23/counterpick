@@ -9,13 +9,13 @@ const RUNS = +(process.argv[2] || 6);
 (async () => {
   const { api: A } = await load({ seed: 41 });
   const fail = [], check = (ok, m) => { if (!ok) fail.push(m) };
-  const reached = []; let chars = 0, maxLvl = 1, maxWave = 0, shops = 0, spent = 0, bossRounds = 0, specials = 0, shortTells = 0, sawDrop = false, errors = 0, hpGrows = true;
+  const reached = []; let arenaOff = 0, chars = 0, maxLvl = 1, maxWave = 0, shops = 0, spent = 0, bossRounds = 0, specials = 0, shortTells = 0, sawDrop = false, errors = 0, hpGrows = true;
   for (let r = 0; r < RUNS; r++) {
     A.startSurvival(); flushTimers(); A.players[0].ctrl = 'cpu'; A.players[0].skill = 'hard';   // a decent player
     let lastK = -1, round = 0;
     for (let f = 0; f < 60 * 60 * 25 && A.game.state !== 'over'; f++) {
       if (A.game.state === 'pick' && A.pickFor && !A.pickLock) A.choose(A.hand[0], null);
-      if (A.game.state === 'shop') { shops++; const s0 = A.game.scrap; for (let i = 0; i < 5; i++) A.survBuy(i); spent += s0 - A.game.scrap; A.survNext(); }
+      if (A.game.state === 'shop') { shops++; const s0 = A.players[0].scrap; for (let i = 0; i < 5; i++) A.survBuy(i); spent += s0 - A.players[0].scrap; A.survNext(); }
       try { A.update(1 / 60) } catch (e) { if (errors++ < 2) console.error(e) }
       flushTimers();
       if (A.game.round !== round) { round = A.game.round; const e = A.players[1];
@@ -23,6 +23,7 @@ const RUNS = +(process.argv[2] || 6);
         if (!es.some((q) => q.boss)) { const k = es.reduce((t, q) => t + q.cards.length + q.hpMul * 10, 0); if (k < lastK - 1) hpGrows = false; lastK = k } else bossRounds++;
         if (round === 5) check(A.players.some((p) => p.boss), 'round 5 should be a boss'); }
       if (A.drops.length) sawDrop = true;
+      if (A.game.state === 'play' && A.game.dropOff !== 0) arenaOff++;   // the arena must be in place whenever the fight is on (after a lost life too)
       const b = A.players[1]; if (b.boss && b.bs) { b.bs._seen = true }
       if (b.boss && b.bs && b.bs.n && !b.bs._counted && A.game.state === 'over') {}
     }
@@ -31,6 +32,7 @@ const RUNS = +(process.argv[2] || 6);
   }
   check(shops >= reached.reduce((a, b) => a + b, 0) - RUNS && shops > 0, `the shop should open after each cleared round (${shops} shops)`);
   check(spent > 0, 'scrap should be spent in the shop');
+  check(!arenaOff, `the arena should be in place during play (${arenaOff} frames it was not)`);
   check(hpGrows, 'ordinary enemies should get tougher each round');
   check(sawDrop, 'power-up capsules should drop in Survival');
   check(chars === RUNS, 'every run should start with a character');

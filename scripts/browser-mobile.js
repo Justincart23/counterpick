@@ -12,7 +12,7 @@ fs.writeFileSync(path.join(dir, 'm.html'), html);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]); return c };
 (async () => {
-  const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=9345', `--user-data-dir=${dir}/p`, 'about:blank'], { stdio: 'ignore' });
+  const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', '--remote-debugging-port=9345', `--user-data-dir=${dir}/p`, 'about:blank'], { stdio: 'ignore' });
   let tabs; for (let i = 0; i < 80; i++) { try { tabs = await (await fetch('http://127.0.0.1:9345/json')).json(); break } catch { await sleep(100) } }
   const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl); await new Promise((r) => ws.addEventListener('open', r));
   let id = 0; const pend = new Map(), errors = [];

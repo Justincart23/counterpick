@@ -39,7 +39,8 @@ async function tab(port, url) {
 }
 
 (async () => {
-  const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=9335', `--user-data-dir=${dir}/profile`, '--window-size=1600,900', 'about:blank'], { stdio: 'ignore' });
+  const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', '--remote-debugging-port=9335', `--user-data-dir=${dir}/profile`, '--window-size=1600,900', 'about:blank'], { stdio: 'ignore' });
+  process.on('exit', () => { try { chrome.kill('SIGKILL') } catch (e) {} });   // never leave a headless Chrome holding the port (the next run would attach to it)
   for (let i = 0; i < 50; i++) { try { await fetch('http://127.0.0.1:9335/json/version'); break } catch { await sleep(100) } }
   const shown = (sel) => `(()=>{const e=document.querySelector('${sel}');return !!e&&!e.hidden&&getComputedStyle(e).display!=='none'})()`;
 

@@ -24,7 +24,7 @@ fs.writeFileSync(path.join(dir, 'index.html'), html);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {
-  const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=9333', `--user-data-dir=${dir}/profile`, '--window-size=1920,1080',
+  const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', '--remote-debugging-port=9333', `--user-data-dir=${dir}/profile`, '--window-size=1920,1080',
     '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' });
   let tabs; for (let i = 0; i < 50; i++) { try { tabs = await (await fetch('http://127.0.0.1:9333/json')).json(); break } catch { await sleep(100) } }
   const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);

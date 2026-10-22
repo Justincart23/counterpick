@@ -28,6 +28,8 @@ const suite = [
   withEnv(run('net.js', 90, 45), { NET_REAL: 1, NET_GFPS: 30, NET_FJIT: 3, NET_HITCH: '150@5' }, '30fps+hitches'),
   run('turn.js'),
   run('survival.js', 6),   // Survival: a CPU stand-in plays whole runs
+  run('coop.js'),   // Co-op Survival online: host and guest through a whole run
+  run('coop.js', 90, 45),
   run('drops.js'),   // Boss Rush: a CPU stand-in fights each boss to the end
   // 4 seeds x 5 game-minutes of CPU vs CPU
   ...[1, 5150, 9001, 2026].map((seed) => run('audit.js', 300, seed)),

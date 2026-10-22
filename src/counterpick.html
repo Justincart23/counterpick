@@ -396,12 +396,14 @@ body.touch .menu-foot .touchnote{display:inline}
       <div class="lbl" style="margin:0 0 4px 40px">Multiplayer</div>
       <nav class="mlist" aria-label="Multiplayer">
         <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:1">Back</button>
+        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:1">Co-op Survival</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:2">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
     </div>
     <div data-sub="online" hidden>
-      <nav class="mlist" aria-label="Duel a friend">
+      <div class="lbl" id="onlineLbl" style="margin:0 0 4px 40px">Duel a friend</div>
+      <nav class="mlist" aria-label="Play online">
         <button type="button" data-act="host" data-hint="Get a 4-letter code and a link to send your friend." style="--i:0">Host a game</button>
         <button type="button" data-act="join" data-hint="Type the code your friend sent you." style="--i:1">Join with a code</button>
         <button type="button" data-act="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2">Back</button>
@@ -446,6 +448,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
             <li>Survival: choose a character (more unlock as you reach new rounds), draft a card, then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). Damage earns XP: each level lets you pick 1 of 4 upgrades. Clearing a round pays scrap for the shop: 5 cards, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
+            <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
           </ol>
         </div>
         <div>
@@ -933,41 +936,45 @@ function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.c
   // stacking limits: any number of copies of any card keeps the game playable (big stays big, fast stays hittable)
   s.size=clamp(s.size,.6,2.2);s.bulletSize=clamp(s.bulletSize,.5,6);s.bulletSpeed=clamp(s.bulletSpeed,400,3600);s.bulletGravity=clamp(s.bulletGravity,0,2.6);
   s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
-  s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
+  s.dmg=Math.min(s.dmg,BASE.dmg*30);s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,360);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,16);s.burst=Math.min(s.burst,8);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
   dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 // the rival: in a duel the other fighter; with more fighters, the nearest living enemy (any enemy if none is alive)
 // where fighter k starts: the arena's own spawn for the first two; extra enemies on a free platform far from the heroes
-function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];if(p.team===0)return sp[0];
+function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];
+  if(p.team===0){const i=heroes().indexOf(p),x=sp[0][0]+(sp[0][0]<W/2?1:-1)*80*Math.max(0,i);return i>0&&!solidBoxP(x,sp[0][1],BASE_R,BASE_R)?[x,sp[0][1]]:sp[0]}   // a second hero starts beside the first
   const n=players.filter(q=>q.team===1).indexOf(p);if(n<=0)return sp[1];
   const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=80),hero=sp[0];
   for(let g=0;g<60&&tops.length;g++){const r=pick(tops),x=rand(r.x+30,r.x+r.w-30),y=r.y-BASE_R*1.6;if(Math.abs(x-hero[0])<380||y<FRAME+40||x<FRAME+30||x>W-FRAME-30)continue;if(solidBoxP(x,y-10,22,30))continue;return[x,y]}
   return[sp[1][0]+(n%2?-1:1)*70*n,sp[1][1]]}
 const other=p=>{if(players.length===2)return players[1-p.id];let best=null,bd=1e9;for(const q of players){if(q===p||q.team===p.team)continue;const d=(q.alive?0:1e7)+Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q}}return best||players.find(q=>q!==p)};
 const foes=(a,b)=>a&&b&&a!==b&&a.team!==b.team;
-const playerLabel=p=>p.boss||game.mode==='survival'?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
+const playerLabel=p=>p.boss||survOn()?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function startMatch(mode){
-  game.token++;game.awarded=false;game.mode=mode;game.dropT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
+  game.token++;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:settings.len;
-  game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.scrap=0;game.round=0;game.cleared=0;game.starter=null;
+  game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
+  game.coop=!!net.coopLive&&net.connected&&(mode==='survival'||mode==='online-guest');   // Co-op Survival: the host runs it, the guest draws it
   const you=myName||'You';
-  const ctrls={survival:['mouse','cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
-  const names={survival:[you,'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
+  const ctrls={survival:['mouse',game.coop?'net':'cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
+  const names={survival:[you,game.coop?net.remoteName||'Partner':'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
-  {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||[mine,{}];players.forEach((p,k)=>p.cos=cos[k]||{})}
+  {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||(game.coop?[mine,theirs]:[mine,{}]);players.forEach((p,k)=>p.cos=cos[k]||{})}
   players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
-  if(mode==='online-guest'){game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
+  if(mode==='online-guest'){if(game.coop)players.forEach(p=>p.team=0);game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
   newPoint(true);
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
-  if(mode==='survival'){game.bossOrder=[0,1,2,3,4].sort(()=>Math.random()-.5);const me=players[0];me.team=0;me.xp=0;me.lvl=1;me.pendingLv=0;me.ups=[];me.char=null;
-    const locked=CHARS.filter(c=>!charOpen(c)),next=locked[0];me.nextHand=CHARS.filter(charOpen);
-    beginPick([0],next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character',()=>{
-      beginPick([0],'Survival · draft a card to start your run',()=>{game.starter=me.cards[me.cards.length-1];survRound(1)})});$('#pickTitle').textContent='Choose your character';cv.focus();return}
+  if(mode==='survival'){game.bossOrder=[0,1,2,3,4].sort(()=>Math.random()-.5);
+    for(const p of game.coop?players:[players[0]])Object.assign(p,{team:0,xp:0,lvl:1,pendingLv:0,ups:[],char:null,scrap:0,starter:null,offers:[],downs:0,downT:0});
+    // every hero (one, or two in co-op, each on their own screen) chooses a character and drafts a first card; then round 1
+    heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
+      heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
+        ()=>heroPick(p,dealHand(p),'Survival · draft a card to start your run',null,()=>{p.starter=p.cards[p.cards.length-1];done()}))},()=>survRound(1));cv.focus();return}
   beginPick([0,1],'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -1146,8 +1153,8 @@ function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&
     if(x<FRAME+40||x>W-FRAME-40||y<FRAME+60)continue;if(solidBoxP(x,y-30,DROP_R,40))continue;
     if(players.some(p=>p.alive&&Math.hypot(p.x-x,p.y-y)<220))continue;return{x,y}}return null}
 function dropTick(h){if(!dropsOn()||game.state!=='play')return;
-  game.dropT=(game.dropT??6)-h;
-  if(game.dropT<=0){game.dropT=rand(10,14);if(!drops.length){const s=dropSpot();if(s){drops.push({id:++dropSeq,kind:pick(DROP_KINDS),x:s.x,y:-30,ty:s.y,state:'warn',t:DROP_WARN,vy:0});sfx('arm')}}}
+  game.capT=(game.capT??6)-h;
+  if(game.capT<=0){game.capT=rand(10,14);if(!drops.length){const s=dropSpot();if(s){drops.push({id:++dropSeq,kind:pick(DROP_KINDS),x:s.x,y:-30,ty:s.y,state:'warn',t:DROP_WARN,vy:0});sfx('arm')}}}
   for(const d of drops){d.t-=h;
     if(d.state==='warn'&&d.t<=0){d.state='fall';d.y=-30}
     if(d.state==='fall'){d.vy+=2600*h;d.y+=d.vy*h;if(d.y>=d.ty){d.y=d.ty;d.state='ready';d.t=DROP_LIFE;burst(d.x,d.y+DROP_R,'#cfd8e3',8,220,3,.3,0);sfx('thud')}}
@@ -1233,7 +1240,7 @@ const UPGRADES=[
 UPGRADES.forEach(u=>{u.up=true;u.r=0;u.icon=u.art;u.d='A level-up. Stacks with everything.';u.st=[[u.n.split(' ')[0],u.n.split(' ').slice(1).join(' '),1]]});
 // twist rounds: a rule that changes for one round
 const TWISTS=[{id:'low',n:'LOW GRAVITY',sub:'everything floats'},{id:'fast',n:'FAST BULLETS',sub:'every shot flies 35% faster'},{id:'frenzy',n:'FRENZY',sub:'everyone fires 60% faster'},{id:'glass',n:'GLASS',sub:'everything hits 50% harder'}];
-const twistOn=id=>game.mode==='survival'&&game.twist&&game.twist.id===id;
+const twistOn=id=>survOn()&&game.twist&&game.twist.id===id;
 const gMul=()=>twistOn('low')?.6:1;
 const heroes=()=>players.filter(p=>p.team===0),enemies=()=>players.filter(p=>p.team===1);
 const bossOf=()=>players.find(p=>p.boss&&p.alive)||players.find(p=>p.boss);
@@ -1251,16 +1258,75 @@ function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=nu
   const k=Math.min(14,n-1+Math.floor(n/3)-(count-1)),pool=CARDS.filter(c=>(c.r<2||n>=6)&&!['Second Wind','Aegis'].includes(c.n)),out=[];
   for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
   // a bigger wave splits the strength: more enemies, each a little weaker
-  p.hpMul=(1+.12*(n-1))*(count>1?.62:1)}
+  p.hpMul=(1+.09*(n-1))*(count>1?.62:1)}
 // set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
+/* ---------- Co-op Survival: two heroes, one run. The host simulates everything; each hero picks and shops on their own
+   screen at the same time, and the run carries on when both are done. A downed hero comes back after 8, 12 then 16 s, or
+   at once if their partner stands beside them for 2 s; both down at once costs a life ---------- */
+const survOn=()=>game.mode==='survival'||game.coop&&game.mode==='online-guest';
+const myHero=()=>game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'&&p.team===0)||heroes()[0]||players[0];
+const heroLocal=p=>p.ctrl!=='net';
+const hostingNet=()=>net.role==='host'&&net.connected&&(game.mode==='online-host'||game.coop&&game.mode==='survival');
+// cards travel as numbers; characters and level-ups as 'h3' / 'u5'
+const cardCode=c=>c.char?'h'+CHARS.indexOf(c):c.up?'u'+UPGRADES.indexOf(c):c.id;
+const decodeCard=x=>typeof x==='number'?CARDS[x]:typeof x==='string'?(x[0]==='h'?CHARS:x[0]==='u'?UPGRADES:[])[+x.slice(1)]:null;
+function heroFlows(run,then){const hs=heroes();let left=hs.length;const tk=game.token;
+  for(const p of hs){let fin=false;run(p,()=>{if(fin||tk!==game.token)return;fin=true;
+    if(--left<=0){game.waitMsg='';if(game.coop)netSend({t:'wait',msg:''});then();return}
+    if(heroLocal(p))game.waitMsg=`Waiting for ${(hs.find(q=>q!==p)||{}).name||'your partner'}…`;
+    else{netSend({t:'pickEnd'});netSend({t:'wait',msg:`Waiting for ${(hs.find(q=>q!==p)||{}).name||'your partner'}…`})}})}}
+function heroPick(p,hand,sub,title,done){
+  if(heroLocal(p)){p.nextHand=hand;beginPick([p.id],sub,done);if(title)$('#pickTitle').textContent=title;return}
+  p.rpick={hand,done};netSend({t:'pick',pid:p.id,hand:hand.map(cardCode),sub,ti:title||''})}
+// the co-op guest picked card i of the hand the host sent it
+function coopChoose(i){const p=players[1],r=p&&p.rpick;if(!r||!r.hand[i])return;p.rpick=null;const c=r.hand[i],tk=game.token;
+  setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));r.done()},450)}   // (its card flies off on its screen first)
+function coopShopOp(m){const p=players[1];if(!p)return;const i=m.i|0;
+  if(m.op==='buy')survBuy(i,p);else if(m.op==='lock')survLock(i,p);else if(m.op==='reroll')survReroll(p);else if(m.op==='sell')survSell(i,p);
+  else if(m.op==='next'&&p.shopDone){const d=p.shopDone;p.shopDone=null;d()}}
+function sendShop(p,msg,full){netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,nx:p.nxName||'',msg:msg||'',full:full?1:0})}
+function guestShop(m){const me=players[1];if(!me)return;game.waitMsg='';
+  me.offers=(m.o||[]).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c);me.scrap=m.sc|0;me.reroll=m.rr|0;me.lastPay=m.pay|0;me.nxName=String(m.nx||'');me.shopDone=true;
+  if(m.full||$('#pick').hidden||pickMode!=='shop')showSurvShop(me);else{decorateShop();renderShopBar(String(m.msg||'').replace(/[<>]/g,c=>c==='<'?'&lt;':'&gt;').replace(/&lt;(\/?)b&gt;/g,'<$1b>'))}}
+// host -> guest: who is in the fight (sent when it changes, and now and then in case a packet was lost) and the run's state
+function coopSnap(){const pm=players.map(p=>[p.team,p.name,p.color,p.glow,(p.cos&&p.cos.hat)||'',p.boss?p.boss.id:'',r2(p.hpMul||1),p.char?CHARS.indexOf(p.char):-1,(p.ups||[]).map(u=>UPGRADES.indexOf(u)).join(',')]),
+    key=JSON.stringify(pm),send=key!==net.pmSent||!((net.pmN=(net.pmN||0)+1)%30);if(send)net.pmSent=key;
+  return{...(send?{pm}:{}),sv:{r:game.round,l:game.lives,tw:game.twist?game.twist.id:'',
+    k:(game.strikes||[]).map(k=>[r1(k.x),r1(k.y),r1(k.R),r2(k.t),r2(k.max),k.owner.id]),
+    h:heroes().map(p=>[p.id,p.scrap|0,p.lvl|0,r1(p.xp||0),p.pendingLv|0,r2(p.downT||0),r2(p.reviveT||0),r1(p.downX||0),r1(p.downY||0)]),
+    b:players.filter(p=>p.boss&&p.bs).map(p=>[p.id,p.bs.state,r2(p.bs.at||0),r1(p.bs.tx||0),r1(p.bs.ty||0),p.bs.dir|0,r2(p.bs.lock||0),r2(p.stunT||0),p.mirror?1:0])}}}
+function coopRoster(pm){const key=JSON.stringify(pm);if(key===net.pmKey)return;net.pmKey=key;
+  pm.forEach((a,k)=>{let p=players[k];if(!p||k>=2&&(p.name!==a[1]||p.team!==a[0])){p=makePlayer(k,'net',a[1],a[0]);p.tx=null;p.alive=false;p.hp=1;players[k]=p}
+    p.team=a[0];p.name=a[1];if(k>=2){p.color=a[2];p.glow=a[3];p.cos={hat:a[4]}}
+    p.boss=a[5]?(a[5]==='crown'?CROWN:BOSSES.find(b=>b.id===a[5])||null):null;if(p.boss&&!p.bs)p.bs={state:'idle'};p.hpMul=a[6];
+    p.char=a[7]>=0?CHARS[a[7]]:null;p.ups=a[8]?String(a[8]).split(',').map(i=>UPGRADES[+i]).filter(Boolean):[];p.cardKey=null;recompute(p)});
+  players.length=pm.length}
+function coopState(v){game.round=v.r|0;game.lives=v.l|0;game.twist=TWISTS.find(t=>t.id===v.tw)||null;
+  game.strikes=(v.k||[]).map(a=>({x:a[0],y:a[1],R:a[2],t:a[3],max:a[4],owner:players[a[5]]})).filter(k=>k.owner);
+  for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[1]||!p.shopDone)p.scrap=a[1];Object.assign(p,{lvl:a[2],xp:a[3],pendingLv:a[4],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]})}
+  for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
+const REVIVE_T=2,REVIVE_R=110;
+function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.alive||!(p.downT>0))continue;
+  const mate=heroes().find(q=>q!==p&&q.alive);p.downT-=h;
+  if(mate&&Math.hypot(mate.x-p.downX,mate.y-p.downY)<REVIVE_R)p.reviveT=(p.reviveT||0)+h;else p.reviveT=Math.max(0,(p.reviveT||0)-h*.5);
+  if(p.reviveT>=REVIVE_T||p.downT<=0){const rev=p.reviveT>=REVIVE_T,spot=rev&&!solidBoxP(p.downX,p.downY-10,p.r,p.r)?[p.downX,p.downY-10]:spawnFor(p,p.id);
+    resetPlayer(p,spot);if(rev)p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}}}
+// a downed hero: a ghost where they fell, the time until they're back, and the revive ring filling while their partner is near
+function drawDowns(){if(!survOn())return;for(const p of heroes()){if(p.alive||!(p.downT>0))continue;const x=p.downX,y=p.downY,k=clamp((p.reviveT||0)/REVIVE_T,0,1);ctx.save();
+  ctx.globalAlpha=.35+.15*Math.sin(performance.now()/200);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,p.r||BASE_R,0,TAU);ctx.fill();
+  ctx.globalAlpha=.5;ctx.strokeStyle=p.glow;ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(x,y,REVIVE_R,0,TAU);ctx.stroke();ctx.setLineDash([]);
+  if(k>0){ctx.globalAlpha=1;ctx.strokeStyle='#9be15d';ctx.lineWidth=6;ctx.beginPath();ctx.arc(x,y,(p.r||BASE_R)+12,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}
+  ctx.globalAlpha=1;ctx.font='24px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=C.text;ctx.fillText(String(Math.ceil(p.downT)),x,y-(p.r||BASE_R)-18);
+  ctx.font='800 12px Nunito, sans-serif';ctx.fillStyle=p.glow;ctx.fillText(k>0?'REVIVING':'STAND HERE TO REVIVE',x,y+(p.r||BASE_R)+22);ctx.restore()}}
 // how many enemies a round brings (a boss round: the boss, plus one from round 15)
-const survWave=(n=game.round||1)=>survBossFor(n)?1:Math.min(4,1+Math.floor((n-1)/3));
+const survWave=(n=game.round||1)=>survBossFor(n)?1:Math.min(4,1+Math.floor(n/4));   // 1 enemy, then 2 from round 4, 3 from 8, 4 from 12
 function survRound(n){game.round=n;const B=survBossFor(n);
   game.twist=!B&&n>=6&&n%4===2?pick(TWISTS):null;
-  const count=B?(n>=15?2:1):survWave(n),hs=heroes();
+  const hs=heroes(),count=B?(n>=15?2:1):Math.min(5,survWave(n)+(hs.length>1&&n>=4?1:0));   // co-op: one more enemy from round 4
   const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
-  foes.forEach((e,i)=>{if(B&&i===0)makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));else makeRaider(e,n,i,B?3:count);recompute(e)});
+  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6));if(n===5)e.hpMul*=.85}else makeRaider(e,n,i,B?3:count);if(hs.length>1)e.hpMul*=1.45;recompute(e)});   // two heroes: tougher enemies
+  for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0}game.waitMsg='';
   game.diff=n<=2?'easy':n<=6?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;bullets=[];shields=[];game.strikes=[]}
@@ -1349,60 +1415,70 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
   game.banner=`${p.boss.n.toUpperCase()} · +${(p.boss.phases[next-1]||[]).join(' + ').toUpperCase()}`;game.bannerT=1.6}
 // a point in Survival: every enemy down clears the round (level-ups, then the shop); every hero down costs a life, and the
 // enemies keep their damage. No lives left ends the run
-function survResolve(){const hs=heroes(),me=hs[0];
-  if(!enemies().some(e=>e.alive)){const mul=(me.char&&me.char.scrap)||1,pay=Math.round((10+2*game.round+(me.hp>=me.s.maxHp*.999?5:0))*mul);
-    game.scrap=(game.scrap||0)+pay;game.lastPay=pay;game.cleared=game.round;survLevelUps();return}
+function survResolve(){const hs=heroes();
+  if(!enemies().some(e=>e.alive)){for(const h of hs){const mul=(h.char&&h.char.scrap)||1,pay=Math.round((13+2*game.round+(h.alive&&h.hp>=h.s.maxHp*.999?5:0))*mul);h.scrap=(h.scrap||0)+pay;h.lastPay=pay}
+    game.cleared=game.round;game.state='shop';
+    // each hero takes their level-ups, then shops (in co-op both at once, each on their own screen); then the next round
+    heroFlows((p,done)=>heroLevelUps(p,()=>heroShop(p,done)),survAdvance);return}
   game.lives--;if(game.lives<=0){survEnd();return}
-  for(const h of hs)resetPlayer(h,spawnFor(h,h.id));
+  for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
   bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
 // XP from damage you deal; each level waits for the end of the round
-function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.12+(killed?6:0);
+function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);
   while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;src.pendingLv=(src.pendingLv||0)+1;
     parts.push({text:'LEVEL UP',x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1,max:1,color:'#9be15d'});sfx('point')}}
-function survLevelUps(){const me=heroes()[0];if(!(me.pendingLv>0)){openSurvShop();return}
-  me.pendingLv--;const pool=UPGRADES.slice(),hand=[];while(hand.length<4&&pool.length)hand.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-  me.nextHand=hand;beginPick([me.id],`Level ${me.lvl-me.pendingLv} · pick an upgrade`,()=>survLevelUps());$('#pickTitle').textContent='Level up!'}
+function heroLevelUps(p,done){if(!(p.pendingLv>0)){done();return}
+  p.pendingLv--;const pool=UPGRADES.slice(),hand=[];while(hand.length<4&&pool.length)hand.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  heroPick(p,hand,`Level ${p.lvl-p.pendingLv} · pick an upgrade`,'Level up!',()=>heroLevelUps(p,done))}
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
 const SHOP_PRICE=[6,10,16],SHOP_N=5;
 const cardPrice=c=>SHOP_PRICE[c.r]+Math.floor((game.round||1)/2);
-function survOffers(){const me=heroes()[0],owned=new Set(me.cards.filter(c=>c.u).map(c=>c.id)),kind=game.starter&&game.starter.k,luck=Math.min(.25,game.round*.012);
-  const keep=(game.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
+function survOffers(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
+  const keep=(p.offers||[]).filter(o=>o.locked&&!o.sold),out=keep.map(o=>o.c);
   for(let g=0;out.length<SHOP_N&&g<300;g++){const roll=Math.random(),r=roll<.58-luck?0:roll<.9-luck/2?1:2;
     let pool=CARDS.filter(c=>c.r===r&&!owned.has(c.id)&&!out.includes(c));if(kind&&Math.random()<.35){const kp=pool.filter(c=>c.k===kind);if(kp.length)pool=kp}
     if(pool.length)out.push(pick(pool))}
-  game.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c)}:{c,price:cardPrice(c),sold:false,locked:false}})}
-function openSurvShop(){game.state='shop';const me=heroes()[0];game.reroll=(me.char&&me.char.cheapReroll?1:2)+Math.floor(game.round/4);survOffers();showSurvShop();sfx('round',true)}
-function showSurvShop(){const me=heroes()[0],nx=survBossFor(game.round+1);
-  showHand(me,game.offers.map(o=>o.c),'','shop');$('#pick').classList.add('shopmode');$('#pickShop').hidden=false;
+  p.offers=out.map(c=>{const k=keep.find(o=>o.c===c);return k?{...k,price:cardPrice(c)}:{c,price:cardPrice(c),sold:false,locked:false}})}
+function heroShop(p,done){p.shopDone=done;p.reroll=(p.char&&p.char.cheapReroll?1:2)+Math.floor(game.round/4);p.nxName=(survBossFor(game.round+1)||{}).n||'';survOffers(p);
+  if(heroLocal(p)){game.state='shop';showSurvShop(p);sfx('round',true)}else sendShop(p,'',true)}
+function showSurvShop(p=myHero()){const nx=p.nxName;
+  showHand(p,p.offers.map(o=>o.c),'','shop');$('#pick').classList.add('shopmode');$('#pickShop').hidden=false;
   $('#pickTitle').textContent=`Round ${game.round} cleared`;
-  $('#pickSub').textContent=`+${game.lastPay} scrap${game.lastPay>10+2*game.round?' (no damage taken)':''} · next: ${nx?nx.n:`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
+  $('#pickSub').textContent=`+${p.lastPay|0} scrap${p.lastPay>((13+2*game.round)*((p.char&&p.char.scrap)||1))+.5?' (no damage taken)':''} · next: ${nx||`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
   decorateShop();renderShopBar()}
-function decorateShop(){[...$('#fan').children].forEach((b,i)=>{const o=game.offers[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
+function decorateShop(){const me=myHero();[...$('#fan').children].forEach((b,i)=>{const o=(me.offers||[])[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
   let row=b.querySelector('.shoprow');if(!row){row=document.createElement('span');row.className='shoprow';row.innerHTML='<span class="price"></span><span class="lockbtn" role="button" tabindex="-1"></span>';
     row.querySelector('.lockbtn').addEventListener('click',ev=>{ev.stopPropagation();survLock(i)});b.querySelector('.float').appendChild(row)}
-  const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&game.scrap<o.price);
+  const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&(me.scrap|0)<o.price);
   const lk=row.querySelector('.lockbtn');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold})}
-function renderShopBar(msg){const me=heroes()[0];setText('#psScrap',game.scrap);
-  const rr=$('#pickShop [data-ps=reroll]');if(rr)rr.textContent=`Reroll · ${game.reroll}`;
+function renderShopBar(msg){const me=myHero();setText('#psScrap',me.scrap|0);
+  const rr=$('#pickShop [data-ps=reroll]');if(rr)rr.textContent=`Reroll · ${me.reroll|0}`;
   const el=$('#psBuild');if(el)el.innerHTML='<span class="lbl">Your build</span>'+me.cards.map((c,i)=>`<button type="button" class="chip" data-sell="${i}" title="Sell ${c.n} for ${Math.floor(cardPrice(c)/2)} scrap">${c.n}</button>`).join('');
   const m=$('#psMsg');if(m)m.innerHTML=msg||'Click a card in your build to sell it for half price.'}
-function survBuy(i){const o=game.offers[i],me=heroes()[0];if(!o||o.sold||game.state!=='shop')return;
-  if(game.scrap<o.price){sfx('empty',true);renderShopBar(`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${game.scrap}.`);return}
-  game.scrap-=o.price;o.sold=true;o.locked=false;me.cards.push(o.c);recompute(me);sfx('pick',true);drawBigFace(me,'happy');decorateShop();renderShopBar(`Bought <b>${o.c.n}</b>.`)}
-function survLock(i){const o=game.offers[i];if(!o||o.sold)return;o.locked=!o.locked;sfx('tick',true);decorateShop();renderShopBar(o.locked?`<b>${o.c.n}</b> will wait for you in the next shop.`:null)}
-function survReroll(){if(game.state!=='shop')return;if(game.scrap<game.reroll){sfx('empty',true);renderShopBar(`A reroll costs ${game.reroll} scrap.`);return}
-  game.scrap-=game.reroll;game.reroll+=(heroes()[0].char&&heroes()[0].char.cheapReroll)?1:2;survOffers();showSurvShop()}
-function survSell(i){const me=heroes()[0],c=me.cards[i];if(!c||game.state!=='shop')return;const back=Math.floor(cardPrice(c)/2);
-  me.cards.splice(i,1);recompute(me);game.scrap+=back;sfx('thud',true);decorateShop();renderShopBar(`Sold <b>${c.n}</b> for ${back} scrap.`)}
-function survNext(){if(game.state!=='shop')return;$('#pick').hidden=true;$('#pick').classList.toggle('shopmode',false);$('#pickShop').hidden=true;pickFor=null;sfx('go',true);survRound(game.round+1);cv.focus()}
+// after a change: redraw this screen's shop, or (a co-op partner's) send them the new state
+function shopChanged(p,msg){if(heroLocal(p)){decorateShop();renderShopBar(msg)}else sendShop(p,msg)}
+// the co-op guest's own shop runs on the host: its buttons send the action there
+const guestShopOp=(op,i)=>{if(game.mode!=='online-guest')return false;netSend({t:'sop',op,i:i|0});return true};
+function survBuy(i,p=myHero()){if(guestShopOp('buy',i))return;const o=(p.offers||[])[i];if(!o||o.sold||!p.shopDone)return;
+  if((p.scrap|0)<o.price){if(heroLocal(p))sfx('empty',true);shopChanged(p,`<b>${o.c.n}</b> costs ${o.price} scrap. You have ${p.scrap|0}.`);return}
+  p.scrap-=o.price;o.sold=true;o.locked=false;p.cards.push(o.c);recompute(p);if(heroLocal(p)){sfx('pick',true);drawBigFace(p,'happy')}shopChanged(p,`Bought <b>${o.c.n}</b>.`)}
+function survLock(i,p=myHero()){if(guestShopOp('lock',i))return;const o=(p.offers||[])[i];if(!o||o.sold||!p.shopDone)return;o.locked=!o.locked;if(heroLocal(p))sfx('tick',true);shopChanged(p,o.locked?`<b>${o.c.n}</b> will wait for you in the next shop.`:null)}
+function survReroll(p=myHero()){if(guestShopOp('reroll'))return;if(!p.shopDone)return;if((p.scrap|0)<p.reroll){if(heroLocal(p))sfx('empty',true);shopChanged(p,`A reroll costs ${p.reroll} scrap.`);return}
+  p.scrap-=p.reroll;p.reroll+=(p.char&&p.char.cheapReroll)?1:2;survOffers(p);if(heroLocal(p))showSurvShop(p);else sendShop(p,'',true)}
+function survSell(i,p=myHero()){if(guestShopOp('sell',i))return;const c=p.cards[i];if(!c||!p.shopDone)return;const back=Math.floor(cardPrice(c)/2);
+  p.cards.splice(i,1);recompute(p);p.scrap=(p.scrap|0)+back;if(heroLocal(p))sfx('thud',true);shopChanged(p,`Sold <b>${c.n}</b> for ${back} scrap.`)}
+function closeShopUi(){$('#pick').hidden=true;$('#pick').classList.toggle('shopmode',false);$('#pickShop').hidden=true;pickFor=null}
+// "next round" on this screen: this hero is done shopping (the round starts when every hero is)
+function survNext(){const me=myHero();if(guestShopOp('next')){closeShopUi();sfx('go',true);return}if(!me||!me.shopDone)return;closeShopUi();sfx('go',true);const d=me.shopDone;me.shopDone=null;d();cv.focus()}
+function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});survRound(game.round+1);cv.focus()}
 {const bar=$('#pickShop');bar.addEventListener('click',e=>{const t=e.target;let b;initAudio();
   if((b=t.closest('[data-sell]'))){survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
-function survEnd(){const me=heroes()[0],n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
+function survEnd(){if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
   const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
   if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
@@ -1413,7 +1489,7 @@ function survEnd(){const me=heroes()[0],n=game.cleared||0,best=wallet.survBest||
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
 // the boss's bar across the top (or the whole wave's), the round, your lives, scrap, level and XP
-function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=heroes()[0];if(!me)return;const ty=touch.on?22+Math.round(44/view.cs):22,bw=640,x=VW/2-bw/2,y=ty+18;   // on a phone the pause / sound buttons sit at the top centre: go below them
+function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=myHero();if(!me)return;const ty=touch.on?22+Math.round(44/view.cs):22,bw=640,x=VW/2-bw/2,y=ty+18;   // on a phone the pause / sound buttons sit at the top centre: go below them
   let f=0,col=C.text,label=`ROUND ${game.round}`;
   if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
   else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
@@ -1421,10 +1497,14 @@ function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=he
   ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,VW/2,ty);
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=boss&&boss.stunT>0?'#ffd36b':col;ctx.fillRect(x,y,bw*f,14);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
   if(boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
-  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);ctx.fillText(`SCRAP ${game.scrap||0}`,20,50);
+  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('LIVES',20,26);ctx.fillText(`SCRAP ${me.scrap|0}`,20,50);
   for(let i=0;i<SURV_LIVES;i++){ctx.fillStyle=i<game.lives?me.color:'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(80+i*22,26,8,0,TAU);ctx.fill()}
   ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText(`LV ${me.lvl||1}`,20,74);ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(66,68,110,8);ctx.fillStyle='#9be15d';ctx.fillRect(66,68,110*clamp((me.xp||0)/xpNeed(me.lvl||1),0,1),8);
-  if(me.pendingLv>0){ctx.fillStyle='#9be15d';ctx.fillText(`+${me.pendingLv} level${me.pendingLv>1?'s':''} at round end`,184,74)}}
+  if(me.pendingLv>0){ctx.fillStyle='#9be15d';ctx.fillText(`+${me.pendingLv} level${me.pendingLv>1?'s':''} at round end`,184,74)}
+  // co-op: your partner's level and health under yours
+  const mate=heroes().find(q=>q!==me);if(mate){ctx.fillStyle=mate.color;ctx.fillText(`${mate.name.toUpperCase()} · LV ${mate.lvl||1}`,20,98);
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(20,108,156,6);ctx.fillStyle=mate.alive?C.hp:'#ff5a6a';ctx.fillRect(20,108,156*(mate.alive&&mate.s?clamp(mate.hp/mate.s.maxHp,0,1):0),6);
+    if(!mate.alive&&mate.downT>0){ctx.fillStyle='#ff9aa8';ctx.fillText(`DOWN · back in ${Math.ceil(mate.downT)} s, or stand by them`,20,128)}}}
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
@@ -1453,11 +1533,11 @@ function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);p
   {const tk=game.token;for(let k=0;k<5;k++)setTimeout(()=>{if(tk===game.token)sfx('deal',false,true)},120+k*85)}
   markHl()}
 function nextPick(){
-  if(!pickQ.length){$('#pick').hidden=true;pickFor=null;netSend({t:'pickEnd'});const d=pickDone;pickDone=null;d&&d();return}
+  if(!pickQ.length){$('#pick').hidden=true;pickFor=null;if(!game.coop)netSend({t:'pickEnd'});const d=pickDone;pickDone=null;d&&d();return}
   const p=players[pickQ.shift()],h=p.nextHand||dealHand(p);p.nextHand=null;
   if(game.bg){pickFor=p;hand=h;pickLock=false;choose(pick(h));return}
   showHand(p,h,pickSub,p.ctrl==='cpu'||p.ctrl==='net'?'watch':'local');
-  netSend({t:'pick',pid:p.id,hand:h.map(c=>c.id),sub:pickSub});
+  if(!game.coop)netSend({t:'pick',pid:p.id,hand:h.map(c=>c.id),sub:pickSub});
   if(p.ctrl==='cpu'){const tk=game.token;const i=cpuChoice(p,hand);
     setTimeout(()=>{if(tk!==game.token)return;hl=i;markHl()},700);
     setTimeout(()=>{if(tk!==game.token)return;choose(hand[i],i)},1500)}
@@ -1469,7 +1549,7 @@ const CPU_PREF={'Ghost Rounds':.45,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85
 function cpuChoice(p,h){let best=0,bs=-1;h.forEach((c,i)=>{const sc=(CPU_PREF[c.n]||1)*(1+c.r*.2)*(.6+Math.random()*.8);if(sc>bs){bs=sc;best=i}});return best}
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
 function choose(c,i){if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
-  if(!game.bg&&i!=null){animChosen(i);netSend({t:'chosen',i});const tk=game.token;
+  if(!game.bg&&i!=null){animChosen(i);if(!game.coop)netSend({t:'chosen',i});const tk=game.token;
     setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()},480);return}
   takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()}
 // a draft pick: a card goes in the deck; a character or a level-up goes where it belongs
@@ -1775,13 +1855,14 @@ const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
    after that the survivor can't be hurt and can't die from a fall while the point wraps up */
 const POINT_END=1.7,TRADE_WINDOW=.12;
 const pointDecided=()=>game.state==='pointEnd'&&POINT_END-game.endT>TRADE_WINDOW;
-function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;p.hp-=amt;p.hurtT=.12;
-  if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,amt,p.hp<=0&&!(p.revives>0));
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;
+  if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,Math.min(amt,had),p.hp<=0&&!(p.revives>0));   // overkill earns nothing
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
 function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
-  if(game.mode==='survival'){if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
+  if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=[8,12,16][Math.min(2,p.downs||0)];p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
+    if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
     if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
@@ -1842,7 +1923,7 @@ const PARRY_WIN=.12,HIT_PAD=3,LAG_COMP_MS=300;
    hits on the visitor's screen hits. Everything else (knockback, effects) happens where the fighter really is */
 function hitThen(p,b){const H0=net.h0;if(!H0||!H0.length)return bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0));
   const t=performance.now()-b.rew;let e=H0[0];for(let i=H0.length-1;i>=0;i--)if(H0[i][0]<=t){e=H0[i];break}
-  const ox=p.x,oy=p.y;p.x=e[1];p.y=e[2];try{return bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))}finally{p.x=ox;p.y=oy}}   // bullets reach fighters 3px sooner than they look (walls still see only the core): near misses land   // a block that meets a bullet in its first 0.12 s deflects it back at the shooter
+  const ox=p.x,oy=p.y;if(!Number.isFinite(e[1+2*p.id]))return bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0));p.x=e[1+2*p.id];p.y=e[2+2*p.id];try{return bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))}finally{p.x=ox;p.y=oy}}   // bullets reach fighters 3px sooner than they look (walls still see only the core): near misses land   // a block that meets a bullet in its first 0.12 s deflects it back at the shooter
 function blocked(p,b){burst(b.x,b.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');
   const perfect=p.blockT>BLOCK_T-PARRY_WIN;if(perfect)game.parries=(game.parries||0)+1;
   if(perfect){ring(p.x,p.y,'#ffffff',70);flashFx(b.x,b.y,60,.12,'#ffffff');sparks(b.x,b.y,'#ffffff',10,700,Math.atan2(b.y-p.y,b.x-p.x),.9);sfx('parry');addShake(5);fxRec('P',[p.x,p.y-p.r-30]);popText(p.x,p.y-p.r-30)}
@@ -1879,7 +1960,7 @@ function updateBullets(dt){
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner||(b.owner&&p.team===b.owner.team))continue;
-        if(b.rew>0&&p.id===0&&game.mode==='online-host'?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner&&!b.phase){mirrorBack(p,b);break}if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
+        if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner&&!b.phase){mirrorBack(p,b);break}if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
@@ -2150,8 +2231,8 @@ function step(h){
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
-  dropTick(h);strikeTick(h);
-  if(game.mode==='online-host'&&players[0]){const q=players[0];(net.h0=net.h0||[]).push([performance.now(),q.x,q.y]);if(net.h0.length>60)net.h0.shift()}
+  dropTick(h);strikeTick(h);if(game.mode==='survival')downTick(h);
+  if(hostingNet()){const e=[performance.now()];for(const q of players)e.push(q.x,q.y);(net.h0=net.h0||[]).push(e);if(net.h0.length>60)net.h0.shift()}   // every fighter's recent path, for lag compensation
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
   edges.clear();mouse.rEdge=false;tapStep(players.find(p=>p.ctrl==='mouse'),h,!!players.find(p=>p.ctrl==='mouse'&&p.sinceShot===0))   // a press is consumed by the first step that sees it
@@ -2178,7 +2259,7 @@ function update(dt){pollPads();
   game.alpha=game.acc/FIXED;game.stepAt=performance.now()-game.acc*1000;   // the moment the latest step's state belongs to
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
-  if(net.role==='host'&&net.connected&&game.mode==='online-host'){net.sendT-=dt;net.pingT-=dt;
+  if(hostingNet()){net.sendT-=dt;net.pingT-=dt;
     if(net.sendT<=1e-4){net.sendT=Math.max(-.05,net.sendT)+(net.relayed?1/20:fastLane()?1/60:1/30);{const sn=snapshot();if(net.fast&&net.fast.readyState==='open'){if(sn.fx.length)netSend({t:'fx',fx:sn.fx});delete sn.fx}netSend(sn)}}   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
     if(performance.now()-net.lastRecv>15000)netLost(`Lost the connection to ${net.remoteName||'your opponent'}.`);if(net.pingT<=0){net.pingT=1;netSend({t:'ping',at:performance.now()})}}}
 
@@ -2282,11 +2363,11 @@ function drawCardTip(){hoverChip=null;
   ctx.restore()}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
-  if(game.mode==='survival'){drawSurvHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
-  const sb=game.mode==='sandbox'||game.mode==='survival';
+  if(survOn()){drawSurvHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
+  const sb=game.mode==='sandbox'||survOn();
   if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
-  for(const p of players){if(game.mode==='survival'&&p.team!==0)continue;const y=24+p.id*24;
+  for(const p of players){if(survOn()&&p.team!==0)continue;const y=24+p.id*24;
     if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
     if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
@@ -2295,10 +2376,11 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     ctx.textAlign='left'}
   ctx.textAlign='center';
   if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
-  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,26)}
+  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,survOn()?VH-14:26)}
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=C.text;ctx.fillText(t,VW/2,VH/2-40)}
-  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=game.mode==='survival'?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
+  if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
+  if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
     ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,VW/2,VH/2-40)}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
@@ -2326,7 +2408,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
-  drawDrops();drawStrikes();
+  drawDrops();drawStrikes();drawDowns();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -2378,9 +2460,9 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
 const cam={x:0,y:0,z:1,t:0};
 function camGoal(){const big=W>VW||H>VH;if(!big)return{x:0,y:0,z:1};
   const z=Math.max(VW/W,VH/H,touch.on?1.2:.92),vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
-  let fs=game.mode==='survival'?players.filter(p=>p.team===0&&p.alive):[game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')].filter(p=>p&&p.alive);
-  if(!fs.length)fs=players.filter(p=>p.alive);if(!fs.length)return{x:cam.x,y:cam.y,z};
-  let fx=0,fy=0;for(const p of fs){fx+=p.x;fy+=p.y}fx/=fs.length;fy/=fs.length;
+  const me=survOn()?myHero():game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
+  let fx,fy;if(me&&me.alive){fx=me.x;fy=me.y;if(mate){fx+=clamp((mate.x-me.x)*.35,-vw*.25,vw*.25);fy+=clamp((mate.y-me.y)*.35,-vh*.2,vh*.2)}}
+  else{const fs=survOn()?heroes().filter(p=>p.alive):[];const L=fs.length?fs:players.filter(p=>p.alive);if(!L.length)return{x:cam.x,y:cam.y,z};fx=0;fy=0;for(const p of L){fx+=p.x;fy+=p.y}fx/=L.length;fy/=L.length}
   if(!touch.on&&mouse.sx!=null){fx+=clamp((mouse.sx-VW/2)*.18,-160,160)/z;fy+=clamp((mouse.sy-VH/2)*.14,-90,90)/z}
   // the whole screen shows arena (not just the 16:9 box the HUD sits in), so clamp the screen's edges to the arena's
   const fit=(f,v,e,L)=>v+2*e/z>=L?(L-v)/2:clamp(f,e/z,L-v-e/z);
@@ -2453,7 +2535,7 @@ function tapStep(me,h,fired){if(!(mouse.tapN>0))return;
 function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
   if(quick){autoAim();touchShoot(true)}   // tap: auto-aim at the rival (lob, drop and lead included)
   else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
-function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'?players[0]:other(me));
+function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
   if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}}
 const touchAiming=()=>!!(touch.aim&&(touch.aim.maxD||0)>=TAP_MOVE&&Math.hypot(touch.aim.dx,touch.aim.dy)>=AIM_DEAD);
 function touchMe(){return game.mode==='online-guest'?players[1]:players.find(p=>p.ctrl==='mouse')}
@@ -2483,7 +2565,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-stage3';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-coop';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -2505,7 +2587,7 @@ const peerOpts=()=>({debug:0,config:{iceServers:net.ice||STUN_ONLY}});
 const linkFailMsg=code=>`Couldn't connect to room ${code}: your networks wouldn't link directly and no relay was reachable. Try again, or have one player switch networks (a phone hotspot usually works).`;
 let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
-function fxRec(n,a){if(!net.noRec&&net.role==='host'&&net.connected&&game.mode==='online-host'&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
+function fxRec(n,a){if(!net.noRec&&hostingNet()&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k]);return}sfx(k,false,true)}
 const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:k=>sfx(k,false,true),F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
@@ -2647,14 +2729,16 @@ function attachConn(conn){net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq)})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 function onNet(m){
   if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
-    if(net.role==='host')startMatch('online-host');else{startMatch('online-guest')}return}
+    // the host's room decides the game: a duel, or Co-op Survival (the guest learns which from the host's hello)
+    net.coopLive=net.role==='host'?!!net.wantCoop:!!m.coop;net.remoteBest=Math.max(0,m.sb|0);
+    if(net.role==='host')startMatch(net.coopLive?'survival':'online-host');else{startMatch('online-guest')}return}
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'){setText('#joinMsg','That room already has two players.');leaveOnline(true);return}
   if(m.t==='away'||m.t==='back'){net.awayR=m.t==='away';return}
@@ -2662,26 +2746,31 @@ function onNet(m){
   if(net.role==='host'){
     if(m.t==='i'){net.lastInAt=performance.now();net.awayR=false;if(!net.remote||!(m.s<net.remote.s))net.remote=m;
       if(Array.isArray(m.st))for(const q of m.st)if(q[0]>net.lastQ){net.inQ.push(q);net.lastQ=q[0]}}
-    else if(m.t==='choose'){if(pickFor&&pickFor.ctrl==='net'&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
-    else if(m.t==='rematch'){if(game.state==='over'&&game.mode==='online-host'){startMatch('online-host');netSend({t:'restart'})}}
+    else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.ctrl==='net'&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
+    else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
+    else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop)){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}}
     else if(m.t==='pong'&&Number.isFinite(m.at))net.rtt=performance.now()-m.at;
     return}
   if(m.t==='s')applySnap(m);
   else if(m.t==='fx'){for(const[n,a]of m.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
   else if(m.t==='ping')netSend({t:'pong',at:m.at});
-  else if(m.t==='pick'){const p=players[m.pid];if(p)showHand(p,(m.hand||[]).map(i=>CARDS[i]).filter(Boolean),m.sub||'',m.pid===1?'remote':'watch')}
+  else if(m.t==='pick'){const p=players[m.pid];game.waitMsg='';if(p){showHand(p,(m.hand||[]).map(decodeCard).filter(Boolean),m.sub||'',m.pid===1?'remote':'watch');if(m.ti)$('#pickTitle').textContent=m.ti}}
+  else if(m.t==='shop')guestShop(m);
+  else if(m.t==='shopEnd'){closeShopUi();const me=players[1];if(me)me.shopDone=null}
+  else if(m.t==='wait')game.waitMsg=String(m.msg||'').slice(0,80);
+  else if(m.t==='cend'){game.cleared=m.n|0;survEnd()}
   else if(m.t==='chosen'){if(!pickLock){pickLock=true;animChosen(m.i|0)}}
   else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null}
   else if(m.t==='end'){showEnd(m.w|0)}
   else if(m.t==='restart'){startMatch('online-guest')}}
 function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
-  else if(net.role==='host'){startMatch('online-host');netSend({t:'restart'})}else startMatch(game.mode)}
+  else if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
 function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
   if(c&&net.connected)try{c.send({t:'bye'})}catch(e){}
   for(const rc of net.relayClients)rc.close();
   if(net.fast)try{net.fast.close()}catch(e){}
-  Object.assign(net,{fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
+  Object.assign(net,{coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
@@ -2692,7 +2781,7 @@ function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.m
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
-  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0)}}
+  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),fx:net.fx.splice(0),...(game.coop?coopSnap():{})}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
   // host-clock offset: the smallest (arrival - send) seen is the least-delayed path; it drifts up slowly to follow clock drift
@@ -2707,11 +2796,12 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   shields=(s.sh||[]).map(a=>({x1:a[0],y1:a[1],x2:a[2],y2:a[3],t:a[4],owner:players[a[5]]})).filter(w=>w.owner);
   if(s.bn!==game.banner||s.bT>game.bannerT+.25){game.banner=s.bn;game.bannerT=s.bT}
   if(s.rt)net.rtt=s.rt;
+  if(game.coop){if(s.pm)coopRoster(s.pm);if(s.sv)coopState(s.sv)}
   s.p.forEach((a,k)=>{const p=players[k];if(!p)return;
     p.buffOver=a[24]||0;p.buffRapid=a[25]||0;if(p.tempKey!==(a[26]||'')){p.tempKey=a[26]||'';p.tempCards=p.tempKey?String(p.tempKey).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     if(p.cardKey!==a[17]){p.cardKey=a[17];p.cards=a[17]?String(a[17]).split(',').map(n=>CARDS[+n]).filter(Boolean):[];recompute(p)}
     const snapTo=p.tx==null||(!p.alive&&a[6]);
-    if(k===0&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5)game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
+    if((game.coop?p.team===1:k===0)&&a[13]>0&&p.hp!=null&&a[5]<p.hp-.5)game.hitMark=.22;   // your shot (or anything) just hurt the host's fighter: hit marker
     Object.assign(p,{hp:a[5],alive:!!a[6],ammo:a[7],sinceShot:a[8],blockT:a[9],blockCd:a[10],staticReady:!!a[11],shotT:a[12],hurtT:a[13],slowAmt:a[16],aegis:a[19]|0,frozen:!!a[20],blockStock:a[21]|0});
     if(k===1){reconcile(p,a,snapTo);return}   // the guest's own fighter is predicted locally; its arm follows the local mouse
     p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.squash=a[14];p.grounded=!!a[15];if(snapTo){p.x=a[0];p.y=a[1];p.walk=p.walk||0;p.buf=[]}
@@ -2862,7 +2952,7 @@ function guestGhosts(dt,busy){const me=players[1],G=net.ghosts;
   const now=performance.now();
   // a ghost the host never confirms within 0.7 s was a phantom shot (counted, so tests can catch prediction drift); past
   // 0.45 s an unconfirmed ghost turns faint so it fades rather than pops
-  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;if(b.well)wellBend(b,players[0],dt);const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
+  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;if(b.well)wellBend(b,game.coop?other(me):players[0],dt);const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
     for(let k=0;k<st&&!b.dead;k++){b.x+=b.vx*dt/st;b.y+=b.vy*dt/st;
       for(const r of solids){if(r.bound||b.phase)continue;const n=bulletRect(b,r);if(!n)continue;
         if(b.bounces>0){const d=b.vx*n.nx+b.vy*n.ny;if(d<0){b.vx-=2*d*n.nx;b.vy-=2*d*n.ny}b.bounces--}else b.dead=true;break}}
@@ -2931,7 +3021,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openShop();
   else if(a==='fullscreen')toggleFull();
-  else if(a==='online')showSub(ov,'online');
+  else if(a==='online'||a==='coop'){net.wantCoop=a==='coop';setText('#onlineLbl',net.wantCoop?'Co-op Survival':'Duel a friend');showSub(ov,'online')}
   else if(a==='solo')showSub(ov,'solo');
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
@@ -2947,7 +3037,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='back')showSub(ov,b.dataset.back||'main');
   else if(a==='resume')togglePause();
   else if(a==='again')requestRematch();
-  else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.role==='host'){startMatch('online-host');netSend({t:'restart'})}else startMatch(game.mode)}
+  else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
   else if(a==='menu'){leaveOnline(true);toMenu()}});
 $('#nameForm').addEventListener('submit',e=>{e.preventDefault();const n=cleanName($('#nameInput').value);
   if(!n){$('#nameErr').hidden=false;return}setName(n);$('#nameScreen').hidden=true;sfx('pick',true);

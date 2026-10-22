@@ -8,7 +8,7 @@ const { load, flushTimers } = require('./env');
   const fresh = () => { A.startSurvival(); flushTimers(); while (A.game.state === 'pick') { A.choose(A.hand[0], null); flushTimers() }
     A.game.state = 'play'; for (const p of A.players) { p.ctrl = 'idle'; p.hp = p.s.maxHp } };
   // a drop appears: beam first, then it falls and lands on top of a platform
-  fresh(); A.game.dropT = 0; A.dropTick(1 / 120);
+  fresh(); A.game.capT = 0; A.dropTick(1 / 120);
   check(A.drops.length === 1 && A.drops[0].state === 'warn', 'a capsule starts as a warning beam');
   const d = A.drops[0];
   for (let i = 0; i < 240 && d.state !== 'ready'; i++) A.dropTick(1 / 120);
