@@ -828,6 +828,12 @@ const decC=document.createElement('canvas');decC.width=W;decC.height=H;const dec
 const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f']];
 const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6'];
 const isOneway=(h,k)=>!k&&h<=40;
+/* the look of the card art. Scenery uses its own seeded random stream, so dressing an arena never shifts the game's dice */
+function artRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function strSeed(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const GLOWS={};function glowSprite(col){if(GLOWS[col])return GLOWS[col];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  try{const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,col);r.addColorStop(.35,col);r.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.9;g.fillStyle=r;g.fillRect(0,0,64,64)}catch(e){}
+  return GLOWS[col]=c}
 const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 /* collision is readable: solid blocks get a rim + outline, one-way planks get a bright lip and pass-through ticks */
 function edgeDecor(g,x,y,w,h,kind,oneway){g.save();
@@ -839,6 +845,15 @@ function edgeDecor(g,x,y,w,h,kind,oneway){g.save();
 function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fillStyle=base;g.fillRect(x,y,w,h);g.beginPath();g.rect(x,y,w,h);g.clip();
   const n=Math.max(2,Math.round((w*h)/9000));for(let i=0;i<n;i++){g.fillStyle=Math.random()<.5?hi:lo;g.globalAlpha=rand(.25,.55);g.beginPath();
     const cx=x+Math.random()*w,cy=y+Math.random()*h,s=Math.max(w,h)*rand(.4,.9);g.moveTo(cx,cy);g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.lineTo(cx+rand(-s,s),cy+rand(-s,s));g.fill()}
+  // a low-poly skin: the slab cut into triangles, each a touch lighter or darker
+  const R=artRng(strSeed(x+','+y+','+w+','+h)),cw=Math.max(34,Math.min(90,h*1.6)),rows=h>70?Math.ceil(h/70):1,rh=h/rows;
+  for(let j=0;j<rows;j++)for(let i=0;i<w;i+=cw){const x0=x+i,x1=Math.min(x+w,x0+cw),y0=y+j*rh,y1=y0+rh,j0=(R()-.5)*cw*.5,j1=(R()-.5)*cw*.5,flip=R()<.5;
+    for(const[k,pts]of[[0,flip?[[x0,y0],[x1+j0,y0],[x0+j1,y1]]:[[x0,y0],[x1+j0,y0],[x1+j1,y1]]],[1,flip?[[x1+j0,y0],[x1+j1,y1],[x0+j1,y1]]:[[x0,y0],[x1+j1,y1],[x0+j1,y1]]]]){
+      g.globalAlpha=.06+R()*.16;g.fillStyle=(R()<.5)?hi:lo;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(const q of pts.slice(1))g.lineTo(q[0],q[1]);g.fill()}}
+  g.globalAlpha=1;
+  // lit top face and a shaded lower edge give the slab its thickness
+  const top=Math.min(9,Math.max(3,h*.22));g.fillStyle=hi;g.globalAlpha=.75;g.fillRect(x,y,w,top);g.globalAlpha=.25;g.fillStyle='#ffffff';g.fillRect(x,y+top-1,w,1);
+  try{const sg=g.createLinearGradient(0,y+h*.55,0,y+h);sg.addColorStop(0,'rgba(0,0,0,0)');sg.addColorStop(1,'rgba(40,18,30,.32)');g.globalAlpha=1;g.fillStyle=sg;g.fillRect(x,y+h*.55,w,h*.45)}catch(e){}
   g.restore()}
 /* how far the match has come, 0 at the start to 1 at match point: the sky moves from night to dawn with it */
 function matchProgress(){if(game.bg||!game.target||game.target>=99)return 0;
@@ -860,6 +875,17 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
   for(let i=0;i<4;i++){const a=rand(-.5,.5),w0=rand(30,90),w1=rand(220,420);g.fillStyle=`rgba(255,190,170,${rand(.014,.026)})`;g.beginPath();
     g.moveTo(sx-w0,-10);g.lineTo(sx+w0,-10);g.lineTo(sx+w0+Math.sin(a)*H*1.2+w1,H+10);g.lineTo(sx-w0+Math.sin(a)*H*1.2-w1,H+10);g.fill()}
   g.restore();
+  {const R=artRng(strSeed((map.label||map.name)+W+'x'+H)),a=1-dawn;
+    // the moon's light: one soft cone down the sky, like the card art's spotlight
+    if(a>.05){const bw=150+R()*70,bx=mx+(R()-.5)*120,lg=g.createLinearGradient(0,my,0,H);lg.addColorStop(0,`rgba(255,220,205,${.075*a})`);lg.addColorStop(1,'rgba(255,220,205,0)');
+      g.save();g.globalCompositeOperation='lighter';g.fillStyle=lg;g.beginPath();g.moveTo(mx-40,my);g.lineTo(mx+40,my);g.lineTo(bx+bw*2,H);g.lineTo(bx-bw*2,H);g.fill();g.restore()}
+    // drifting sandstone cubes, far off: small, dim, and never behind a real platform so they can't be mistaken for one
+    const clear=(cx,cy,sz)=>map.rects.every(r=>cx+sz+40<r[0]||cx-40>r[0]+r[2]||cy+sz+40<r[1]||cy-40>r[1]+r[3]);
+    let made=0;for(let t=0;t<40&&made<Math.round(4*W/VW);t++){const sz=16+R()*26,cx=R()*(W-80)+40,cy=40+R()*H*.5;if(!clear(cx,cy,sz)||Math.hypot(cx+sz/2-mx,cy+sz/2-my)<130)continue;/* and clear of the moon */made++;
+      const d=sz*.32,[base,hi2,lo2]=KIND[0];g.save();g.globalAlpha=.42+R()*.2;
+      g.fillStyle=hi2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+d,cy-d);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz,cy);g.fill();   // top
+      g.fillStyle=lo2;g.beginPath();g.moveTo(cx+sz,cy);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz+d,cy+sz-d);g.lineTo(cx+sz,cy+sz);g.fill();   // side
+      g.fillStyle=base;g.fillRect(cx,cy,sz,sz);g.fillStyle='rgba(53,32,74,.22)';g.fillRect(cx,cy,sz,sz);g.restore()}}
   g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.025)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
   // platforms live on their own layer so a new arena can drop into place
   platx.clearRect(0,0,W,H);
@@ -2370,8 +2396,29 @@ function drawGun(p){const s=p.s,len=22+Math.min(26,Math.max(0,(s.bulletSpeed/135
   if(s.burst>1)for(let i=1;i<Math.min(s.burst,4);i++)ctx.fillRect(2,-th/2-4*i,len-6,2.5);
   if(s.projectiles>1){const f=4+s.projectiles*1.5;ctx.beginPath();ctx.moveTo(len-3,-th/2);ctx.lineTo(len+9,-th/2-f);ctx.lineTo(len+9,th/2+f);ctx.lineTo(len-3,th/2);ctx.fill()}
   ctx.fillStyle=gunAccent(p);ctx.fillRect(4,-2,Math.min(len-8,8+len*.25),4);
-  if(s.bulletSpeed>2000){ctx.fillStyle=p.glow;for(const x of[len-14,len-8])ctx.fillRect(x,-th/2-2,2.5,th+4)}}
+  if(s.bulletSpeed>2000){ctx.fillStyle=p.glow;for(const x of[len-14,len-8])ctx.fillRect(x,-th/2-2,2.5,th+4)}
+  if(p.shotT>0&&!RM){const k=clamp(p.shotT/.08,0,1),L=(16+th)*(.6+.6*k),S=th*.9*(.6+.4*k),sp=performance.now()/30;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(len+2,0);   // muzzle flash
+    for(const[col,m]of[[p.glow,1],['#fff4d6',.55]]){ctx.globalAlpha=.9*k;ctx.fillStyle=col;ctx.beginPath();
+      for(let i=0;i<10;i++){const a=i*TAU/10+Math.sin(sp+i)*.08,r=(i%2?S*.45:i===0?L*1.25:L*.6)*m;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*(i===0?1:.75))}ctx.closePath();ctx.fill()}   // five points, the forward one longest
+    ctx.restore()}}
 const SKIN={};function skinOf(c){return SKIN[c]||(SKIN[c]=/^#[0-9a-f]{6}$/i.test(c)?{hi:shade(c,.3),lo:shade(c,-.22)}:{hi:c,lo:c})}   // light and shadow tones of a fighter colour
+/* brass casings kicked out of the gun, dust puffs at running feet and on landing: drawn only on this screen, never simulated */
+let fluff=[],fluffT=0;const FR=artRng(9),fr=(a,b)=>a+FR()*(b-a);   // its own dice: drawing never moves the game's
+function drawFluff(){const now=performance.now(),dt=clamp((now-(fluffT||now))/1000,0,.05);fluffT=now;
+  if(!RM)for(const p of players){if(!p.alive){p._st=0;continue}const R=p.r;
+    if(p.shotT>(p._st||0)+.001&&fluff.length<90){const face=Math.cos(p.aim)>=0?1:-1;
+      fluff.push({c:1,x:p.x+Math.cos(p.aim)*(R+8),y:p.y+Math.sin(p.aim)*(R+8)-4,vx:-face*fr(120,220),vy:-fr(260,380),a:fr(0,TAU),va:fr(-18,18),t:0,max:1.6})}
+    p._st=p.shotT;
+    if(p.grounded&&!p._gr&&(p._vy||0)>420&&fluff.length<90)for(const sgn of[-1,1])fluff.push({d:1,x:p.x+sgn*R*.6,y:p.y+R,vx:sgn*fr(40,90),vy:-fr(10,30),r:R*.32,t:0,max:.45});
+    p._gr=p.grounded;p._vy=p.vy;
+    if(p.grounded&&Math.abs(p.vx)>230&&fluff.length<90){p._dT=(p._dT||0)-dt;if(p._dT<=0){p._dT=.11;fluff.push({d:1,x:p.x-Math.sign(p.vx)*R*.5,y:p.y+R,vx:-p.vx*.12,vy:-fr(20,50),r:R*.22,t:0,max:.4})}}}
+  if(!fluff.length)return;ctx.save();
+  for(const f of fluff){f.t+=dt;if(!f.rest)f.vy+=(f.c?1500:-40)*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;const k=1-f.t/f.max;if(k<=0)continue;
+    if(f.c&&f.vy>0&&!f.rest){const r=solids.find(q=>f.x>q.x&&f.x<q.x+q.w&&f.y>q.y&&f.y<q.y+Math.min(q.h,30));if(r){f.y=r.y-2;f.vy*=-.3;f.vx*=.5;f.va*=.5;if(f.vy>-60){f.rest=1;f.vy=0;f.vx=0;f.va=0}}}   // casings land on platforms
+    if(f.rest){f.vy=0}
+    if(f.c){f.a+=f.va*dt;ctx.globalAlpha=Math.min(1,k*2);ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);ctx.fillStyle='#d9a441';ctx.fillRect(-4,-1.8,8,3.6);ctx.fillStyle='#8a5d1c';ctx.fillRect(-4,-1.8,2,3.6);ctx.restore()}
+    else{ctx.globalAlpha=.4*k;ctx.fillStyle='#e7d3b0';ctx.beginPath();ctx.arc(f.x,f.y,f.r*(1.6-k*.6),0,TAU);ctx.fill()}}
+  ctx.restore();fluff=fluff.filter(f=>f.t<f.max)}
 function noodle(x0,y0,x1,y1,sag,w,color){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+sag,x1,y1);ctx.stroke()}
 function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math.sin(p.aim),face=ax>=0?1:-1;ctx.save();ctx.translate(p.x,p.y);
   const lw=Math.max(4,R*.36),sk=skinOf(p.color);
@@ -2508,7 +2555,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
     ctx.globalAlpha=.9*a;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.restore()}
-  drawDrops();drawStrikes();drawDowns();
+  drawDrops();drawStrikes();drawDowns();drawFluff();
   for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -2518,12 +2565,13 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     const n=t.length>>1;if(n>=3){ctx.strokeStyle=tc;
       for(let k=0;k<3;k++){const i0=Math.floor((n-1)*k/3),i1=Math.floor((n-1)*(k+1)/3);if(i1<=i0)continue;
         ctx.globalAlpha=(.14+.24*k)*ga;ctx.lineWidth=b.r*(.45+.42*k);ctx.beginPath();ctx.moveTo(t[i0*2],t[i0*2+1]);for(let i=i0+1;i<=i1;i++)ctx.lineTo(t[i*2],t[i*2+1]);if(k===2)ctx.lineTo(b.x,b.y);ctx.stroke()}}
-    ctx.globalAlpha=.3*ga;ctx.fillStyle=tc;ctx.beginPath();ctx.arc(b.x,b.y,b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2),0,TAU);ctx.fill();
+    {const gr=b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2)*1.7;ctx.globalAlpha=.55*ga;ctx.drawImage(glowSprite(tc),b.x-gr,b.y-gr,gr*2,gr*2)}   // soft glow
     if(b.stuck){const k=clamp((performance.now()-(b.stuckAt||performance.now()))/(MINE_FUSE*1000),0,1),on=Math.sin(k*k*44)>0;
       ctx.globalAlpha=1;ctx.strokeStyle=on?'#ff5a4f':'#ffd0c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(b.x,b.y,b.r+5+ (1-k)*8,-Math.PI/2,-Math.PI/2+TAU*(1-k));ctx.stroke()}
     // head: a bright streak stretched along the bullet's motion
     {const col=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8',sp=Math.hypot(b.vx,b.vy);ctx.globalAlpha=ga;
-      if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke()}
+      if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke();
+        ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(b.x,b.y,b.r*.6,0,TAU);ctx.fill()}   // white-hot core
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
@@ -2670,7 +2718,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-pausebtn';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-artlook';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
