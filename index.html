@@ -510,7 +510,7 @@ body.touch .menu-foot .touchnote{display:inline}
             <li>The round's loser drafts one card from a hand of five. Cards stack.</li>
             <li>Win the set number of rounds to take the match.</li>
             <li>Online: one player hosts and shares a 4-letter code or link; the other joins with it.</li>
-            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After each boss you beat you get another free power-up; everything else you buy with scrap. Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap for the shop: cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
+            <li>Survival: choose a character (more unlock as you reach new rounds), take one free pick (a card or a power-up), then fight waves of enemies that get tougher every round. Every 5th round is a boss (Sniper, Brute, Bombardier, Phantom or Warden, in a new order each run, and the Crown every 25th); it always warns you before its special. Some rounds bring a twist (low gravity, fast bullets...). After that first pick everything is bought with scrap (bosses pay extra). Damage earns XP: each level adds +5% health and +4% damage. Clearing a round pays scrap for the shop: cards and power-ups, lock one, reroll, or sell from your build. 3 lives for the whole run.</li>
             <li>Co-op Survival (Multiplayer): the same run with a friend. Each of you picks and shops on your own screen. If one of you goes down, they come back after 8, 12, then 16 seconds, or straight away if the other stands next to them for 2 seconds. Both down at once costs a life.</li>
           </ol>
         </div>
@@ -806,6 +806,16 @@ const MAPS=[
    [640,580,260,40],[1500,580,260,40],[260,450,240,40],[1900,450,240,40],[840,420,200,38],[1360,420,200,38],[1100,270,200,38]],sp:[[340,1020],[2060,1020]]},
  {name:'Skyline',big:1,w:2800,h:1000,rects:[[80,800,520,56],[760,690,420,56],[1300,820,320,56],[1720,690,420,56],[2280,800,440,56],[320,580,240,38],[1000,480,260,38],[1820,480,260,38],[2440,580,240,38],
    [1330,340,260,38]],movers:[{x:1390,y:560,w:140,h:30,mx:0,my:180,period:5}],sp:[[300,760],[2500,760]]},
+ // sandstone country, like the card art: tiers of slabs, hanging blocks, springs
+ {name:'Dunes',big:1,w:2600,h:1100,rects:[[0,980,820,120],[1100,1000,400,100],[1780,980,820,120],[880,860,180,38],[1540,860,180,38],[300,820,240,40],[2060,820,240,40],[1150,840,300,40],
+   [560,700,260,40],[1780,700,260,40],[1150,680,300,40],[300,560,240,38],[2060,560,240,38],[900,540,240,38],[1460,540,240,38],[1180,400,240,38],[60,964,90,16,3],[2450,964,90,16,3]],
+   swings:[{ax:1300,len:250,w:90,h:60}],sp:[[300,940],[2300,940]]},
+ {name:'Ruins',big:1,w:2400,h:1200,rects:[[0,1080,2400,120],[180,840,220,240],[2000,840,220,240],[140,700,300,40],[1960,700,300,40],[900,960,600,120],[1000,840,400,120],[1100,720,200,120],
+   [640,900,50,180,1],[1710,900,50,180,1],[520,760,240,40],[1640,760,240,40],[700,600,240,40],[1460,600,240,40],[300,520,220,38],[1880,520,220,38],[1080,360,240,38],[780,1064,90,16,3],[1530,1064,90,16,3]],
+   sp:[[290,800],[2110,800]]},
+ {name:'Mesa',big:1,w:2800,h:1100,rects:[[80,860,560,240],[1120,900,560,200],[2160,860,560,240],[780,700,200,40],[1820,700,200,40],[300,700,240,40],[2260,700,240,40],[1280,740,240,40],
+   [1240,580,320,40],[700,540,240,38],[1860,540,240,38],[1300,420,200,38],[380,520,200,38],[2220,520,200,38],[1355,884,90,16,3]],
+   movers:[{x:760,y:840,w:180,h:30,mx:160,my:0,period:4},{x:1860,y:840,w:180,h:30,mx:160,my:0,period:4}],swings:[{ax:1400,len:200,w:70,h:70}],sp:[[320,820],[2440,820]]},
 ];
 /* Co-op arenas: every standard arena 35% wider (heights stay, so every jump still reaches), for two heroes and their foes.
    Pillars and springs keep their width; everything else spreads out. (Springs, Piston and Chimes stay standard: their gaps,
@@ -1097,7 +1107,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
-  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.5))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&k!==game.mapIdx));
+  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&k!==game.mapIdx));
   else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k))});
@@ -1393,9 +1403,9 @@ function coopChoose(i){const p=players[1],r=p&&p.rpick;if(!r||!r.hand[i])return;
 function coopShopOp(m){const p=players[1];if(!p)return;const i=m.i|0;
   if(m.op==='buy')survBuy(i,p);else if(m.op==='lock')survLock(i,p);else if(m.op==='reroll')survReroll(p);else if(m.op==='sell')survSell(i,p);
   else if(m.op==='next'&&p.shopDone){const d=p.shopDone;p.shopDone=null;d()}}
-function sendShop(p,msg,full){netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,nx:p.nxName||'',msg:msg||'',full:full?1:0})}
+function sendShop(p,msg,full){netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,pn:p.payNote||"",nx:p.nxName||'',msg:msg||'',full:full?1:0})}
 function guestShop(m){const me=players[1];if(!me)return;game.waitMsg='';
-  me.offers=(m.o||[]).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c);me.scrap=m.sc|0;me.reroll=m.rr|0;me.lastPay=m.pay|0;me.nxName=String(m.nx||'');me.shopDone=true;
+  me.offers=(m.o||[]).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c);me.scrap=m.sc|0;me.reroll=m.rr|0;me.lastPay=m.pay|0;me.payNote=m.pn||"";me.nxName=String(m.nx||'');me.shopDone=true;
   if(m.full||$('#pick').hidden||pickMode!=='shop')showSurvShop(me);else{decorateShop();renderShopBar(String(m.msg||'').replace(/[<>]/g,c=>c==='<'?'&lt;':'&gt;').replace(/&lt;(\/?)b&gt;/g,'<$1b>'))}}
 // host -> guest: who is in the fight (sent when it changes, and now and then in case a packet was lost) and the run's state
 function coopSnap(){const pm=players.map(p=>[p.team,p.name,p.color,p.glow,(p.cos&&p.cos.hat)||'',p.boss?p.boss.id:'',r2(p.hpMul||1),p.char?CHARS.indexOf(p.char):-1,(p.ups||[]).map(u=>UPGRADES.indexOf(u)).join(',')]),
@@ -1438,7 +1448,8 @@ function survRound(n){game.round=n;const B=survBossFor(n);
   for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0}game.waitMsg='';
   game.diff=n<=2?'easy':n<=6?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
-  game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;bullets=[];shields=[];game.strikes=[]}
+  game.banner=B?B.n.toUpperCase():game.twist?`ROUND ${n} · ${game.twist.n}`:`ROUND ${n}`;game.bannerT=2;
+  if(n<=1)game.newBest=false;{const best=wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
   p.stunT=(p.stunT||0)-h;
@@ -1522,13 +1533,14 @@ function bossPhaseCheck(){const p=bossOf();if(!p||!p.alive||game.state!=='play')
   p.phase=next;p.cards.push(...cardsNamed(p.boss.phases[next-1]||[]));recompute(p);p.hp=f*p.s.maxHp;
   ring(p.x,p.y,p.glow,160);burst(p.x,p.y,p.glow,30,600,6,.6,0,true);addShake(16);sfx('round');
   game.banner=`${p.boss.n.toUpperCase()} · +${(p.boss.phases[next-1]||[]).join(' + ').toUpperCase()}`;game.bannerT=1.6}
-// a point in Survival: every enemy down clears the round (after a boss a free power-up, then the shop); every hero down costs a life, and the
+// a point in Survival: every enemy down clears the round (then the shop); every hero down costs a life, and the
 // enemies keep their damage. No lives left ends the run
 function survResolve(){const hs=heroes();
-  if(!enemies().some(e=>e.alive)){for(const h of hs){const mul=(h.char&&h.char.scrap)||1,pay=Math.round((13+2*game.round+(h.alive&&h.hp>=h.s.maxHp*.999?5:0))*mul);h.scrap=(h.scrap||0)+pay;h.lastPay=pay}
+  if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?15:0;   /* a beaten boss pays a bonus: that's how power-ups are earned now */
+    for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?5:0,pay=Math.round((13+2*game.round+bb+nd)*mul);h.scrap=(h.scrap||0)+pay;h.lastPay=pay;h.payNote=[bb?'boss bonus':'',nd?'no damage taken':''].filter(Boolean).join(', ')}
     game.cleared=game.round;game.state='shop';
-    // after a boss each hero takes a free power-up; every hero shops (in co-op both at once, each on their own screen); then the next round
-    const boss=!!survBossFor(game.round);heroFlows((p,done)=>boss?heroFreeUp(p,()=>heroShop(p,done)):heroShop(p,done),survAdvance);return}
+    // every hero shops (in co-op both at once, each on their own screen); then the next round
+    heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
   game.lives--;if(game.lives<=0){survEnd();return}
   for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
@@ -1539,9 +1551,6 @@ function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+
     parts.push({text:`LEVEL ${src.lvl} · +HP +DMG`,x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1.2,max:1.2,color:'#9be15d'});sfx('point')}}
 // the run's one free pick: three cards and two power-ups in one hand
 function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),ups=[];while(ups.length<2)ups.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return[cs[0],ups[0],cs[1],ups[1],cs[2]]}
-// one free power-up per boss: at the start of the run, and again after each boss is beaten. The rest are bought in the shop
-function heroFreeUp(p,done){const pool=UPGRADES.slice(),hand=[];while(hand.length<4&&pool.length)hand.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-  heroPick(p,hand,'Boss beaten · one free power-up','Free power-up',done)}
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
@@ -1561,7 +1570,7 @@ function heroShop(p,done){p.shopDone=done;p.reroll=(p.char&&p.char.cheapReroll?1
 function showSurvShop(p=myHero()){const nx=p.nxName;
   showHand(p,p.offers.map(o=>o.c),'','shop');$('#pick').classList.add('shopmode');$('#pickShop').hidden=false;
   $('#pickTitle').textContent=`Round ${game.round} cleared`;
-  $('#pickSub').textContent=`+${p.lastPay|0} scrap${p.lastPay>((13+2*game.round)*((p.char&&p.char.scrap)||1))+.5?' (no damage taken)':''} · next: ${nx||`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
+  $('#pickSub').textContent=`+${p.lastPay|0} scrap${p.payNote?` (${p.payNote})`:''} · next: ${nx||`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
   decorateShop();renderShopBar()}
 function decorateShop(){const me=myHero();[...$('#fan').children].forEach((b,i)=>{const o=(me.offers||[])[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
   let row=b.querySelector('.shoprow');if(!row){row=document.createElement('span');row.className='shoprow';row.innerHTML='<span class="price"></span><span class="lockbtn" role="button" tabindex="-1"></span>';
@@ -1603,7 +1612,7 @@ function survEnd(){if(game.coop&&net.role==='host')netSend({t:'cend',n:game.clea
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
 // the boss's bar across the top (or the whole wave's), the round, your lives, scrap, level and XP
-function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=myHero();if(!me)return;const ty=touch.on?22+Math.round(44/view.cs):22,bw=640,x=VW/2-bw/2,y=ty+18;   // on a phone the pause / sound buttons sit at the top centre: go below them
+function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=myHero();if(!me)return;const ty=22+Math.round(44/(view.cs||1)),bw=640,x=VW/2-bw/2,y=ty+18;   // the pause button sits at the top centre: go below it
   let f=0,col=C.text,label=`ROUND ${game.round}`;
   if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
   else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
@@ -2492,8 +2501,10 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
 /* ---------- card chips: hover one to see what that power-up does ---------- */
 let hoverChip=null;
 // the chip under a point in arena coordinates (same layout drawHUD uses), or null
-function chipAt(mx,my){for(const p of players){const list=p.cards.slice(-12),cy=24+p.id*24-2+p.id*14;
-  for(let i=0;i<list.length;i++){const cx=VW-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i],cx,cy}}}return null}
+// a fighter's cards for the HUD: one chip per card, in the order first taken, with how many copies (x2, x3...)
+function chipList(p){const m=new Map();for(const c of p.cards){const e=m.get(c.n);if(e){e.k++;m.delete(c.n);m.set(c.n,e)}else m.set(c.n,{c,k:1})}return[...m.values()].slice(-12)}
+function chipAt(mx,my){for(const p of players){if(survOn()&&p.team!==0)continue;const list=chipList(p),cy=24+p.id*24-2+p.id*14;
+  for(let i=0;i<list.length;i++){const cx=VW-24-17-(list.length-1-i)*40;if(Math.abs(mx-cx)<=18&&Math.abs(my-cy)<=18)return{p,c:list[i].c,k:list[i].k,cx,cy}}}return null}
 function wrapLines(text,maxW){const out=[];let line='';for(const w of text.split(' ')){const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){out.push(line);line=w}else line=t}if(line)out.push(line);return out}
 function drawCardTip(){hoverChip=null;
   if(touch.on)return;   // a phone's virtual pointer follows the aim stick: it must never pop tooltips over the fight
@@ -2523,6 +2534,10 @@ function drawCardTip(){hoverChip=null;
   // whose card
   ty+=10;ctx.font='700 11px "JetBrains Mono", monospace';ctx.fillStyle=p.color;ctx.fillText(`${p.name.toUpperCase()}'S CARD`,x+pad,ty);
   ctx.restore()}
+// a headline in the display font with its drop shadow, shrunk until it fits inside the screen (never cut off at the sides)
+function bigText(t,size,x,y,col){let sz=size;ctx.font=`${sz}px "Lilita One", sans-serif`;const maxW=VW-120,w=ctx.measureText(t).width;
+  if(w>maxW&&w>0){sz=Math.max(18,Math.floor(sz*maxW/w));ctx.font=`${sz}px "Lilita One", sans-serif`}const d=Math.max(2,sz/24);
+  ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillText(t,x+d,y+d*1.5);ctx.fillStyle=col;ctx.fillText(t,x,y)}
 function drawHUD(){ctx.save();ctx.textBaseline='middle';
   const tot=game.target>=99?5:game.target;
   if(survOn()){drawSurvHud();ctx.restore();ctx.save();ctx.textBaseline='middle'}
@@ -2532,18 +2547,20 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   for(const p of players){if(survOn()&&p.team!==0)continue;const y=24+p.id*24;
     if(!sb)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[p.id]?8:2.5,0,TAU);ctx.fill()}
     if(!sb)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[p.id]){ctx.fillStyle=p.color;ctx.fill()}}
-    const list=p.cards.slice(-12);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
-    list.forEach((c,i)=>{const x=VW-24-17-(list.length-1-i)*40;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,y-2+p.id*14-15,34,34);
-      const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,y-2+p.id*14-15,34,34);drawIcon(ctx,c.n,x,y-2+p.id*14+2,24,hov?'#ffffff':p.glow,2)});
+    const list=chipList(p);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
+    list.forEach(({c,k},i)=>{const x=VW-24-17-(list.length-1-i)*40,cy=y-2+p.id*14;ctx.fillStyle='rgba(12,20,31,.85)';ctx.fillRect(x-17,cy-15,34,34);
+      const hov=hoverChip&&hoverChip.c===c&&hoverChip.p===p;ctx.strokeStyle=hov?'#ffffff':p.color;ctx.lineWidth=hov?3:2;ctx.strokeRect(x-17,cy-15,34,34);drawIcon(ctx,c.n,x,cy+2,24,hov?'#ffffff':p.glow,2);
+      if(k>1){ctx.font='800 12px Nunito, sans-serif';const t='x'+k,tw=ctx.measureText(t).width+8;ctx.fillStyle=p.color;ctx.fillRect(x+17-tw+3,cy+19-14+2,tw,14);   // copies: a small tag on the corner
+        ctx.fillStyle='#1a0e05';ctx.fillText(t,x+17-tw/2+3,cy+19-7+2);ctx.font='700 14px "JetBrains Mono", monospace'}});
     ctx.textAlign='left'}
   ctx.textAlign='center';
   if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
-  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,survOn()?VH-14:26)}
+  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
-    ctx.font='96px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=C.text;ctx.fillText(t,VW/2,VH/2-40)}
+    const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
-    ctx.font='68px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(t,VW/2+4,VH/2-34);ctx.fillStyle=w<0?C.text:players[w].color;ctx.fillText(t,VW/2,VH/2-40)}
+    bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
@@ -2733,7 +2750,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-pausepanel';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-survival2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
