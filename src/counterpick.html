@@ -337,6 +337,22 @@ body.touch .menu-foot .touchnote{display:inline}
 .center-wrap{display:grid;justify-items:center;gap:clamp(12px,3vh,26px);margin:auto;width:min(860px,100%);text-align:center}
 .screen-title{font-family:var(--display);font-weight:400;margin:0;font-size:clamp(40px,6vw,72px);letter-spacing:.06em;text-transform:uppercase;color:var(--text);transform:rotate(-2deg);text-shadow:0 6px 0 rgba(0,0,0,.35)}
 .screen-title.big{font-size:clamp(44px,8vw,96px)}
+/* the pause menu: one tidy panel. A big Resume, quick toggles side by side, then the rest, with leaving set apart at the bottom */
+#pause{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:radial-gradient(ellipse at center,rgba(14,8,22,.7),rgba(14,8,22,.92))}
+#pause .pausepanel{display:grid;justify-items:stretch;gap:8px;width:min(360px,92vw);padding:16px;background:rgba(33,21,47,.94);border:2px solid var(--line);border-radius:14px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45)}
+#pause .pausepanel button{font-size:20px;letter-spacing:.04em;color:var(--text);background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;padding:9px 14px;width:100%;text-align:center;transform:none}
+#pause .pausepanel button::before,#pause .pausepanel button::after{display:none}
+#pause .pausepanel button:hover,#pause .pausepanel button:focus{border-color:var(--orange);background:rgba(255,171,26,.12);text-shadow:none}
+#pause .pausepanel .pp-main{font-size:26px;background:var(--orange);color:#1a0e05;padding:10px 14px;box-shadow:0 4px 0 #a5520f}
+#pause .pausepanel .pp-main:hover,#pause .pausepanel .pp-main:focus{background:#ff9a3d;border-color:#ffe0b8}
+#pause .pp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#pause .pp-row button{font-size:16px;padding:8px 6px}
+#pause .pausepanel .val::before,#pause .pausepanel .val::after{content:none}
+#pause .pausepanel .pp-quit{color:var(--muted);background:none;margin-top:4px;position:relative}
+#pause .pausepanel .pp-quit:hover,#pause .pausepanel .pp-quit:focus{color:#ff8a80;border-color:rgba(255,90,79,.6);background:rgba(255,90,79,.1)}
+#pause .pp-row button[hidden],#pause .pausepanel button[hidden]{display:none}
+#pause .pp-row:has(button[hidden]){grid-template-columns:1fr}
+@media (max-height:560px){#pause .pausepanel{gap:5px;padding:10px;width:min(320px,92vw)}#pause .pausepanel button{font-size:16px;padding:5px 10px}#pause .pausepanel .pp-main{font-size:20px;padding:6px 10px}#pause .pp-row button{font-size:14px;padding:5px 6px}}
 .end-score{margin:0;font-size:clamp(15px,1.8vw,18px);color:var(--muted)}
 .endgrid{width:100%;text-align:left}
 @media (max-width:640px){.menu-wrap{margin:auto}.menu-foot{max-width:calc(100% - 32px);bottom:56px}}
@@ -566,14 +582,13 @@ body.touch .menu-foot .touchnote{display:inline}
 <div id="pause" class="overlay pause-screen" hidden>
   <div class="center-wrap">
     <h2 class="screen-title" id="pauseTitle">Paused</h2>
-    <nav class="mlist centered" data-sub="main" aria-label="Pause menu">
-      <button type="button" data-act="resume" style="--i:0">Resume</button>
+    <nav class="mlist centered pausepanel" data-sub="main" aria-label="Pause menu">
+      <button type="button" data-act="resume" class="pp-main" style="--i:0">Resume</button>
       <button type="button" data-act="loadout" id="pLoadout" style="--i:1" hidden>Change cards</button>
-      <button type="button" data-opt="sound" data-hint="All game sound on or off (M)." style="--i:1">Sound <span class="val">On</span></button>
-      <button type="button" data-act="fullscreen" id="pFull" style="--i:2">Full screen</button>
-      <button type="button" data-act="settings" style="--i:3">Settings</button>
-      <button type="button" data-act="restart" id="pRestart" style="--i:4">Restart match</button>
-      <button type="button" data-act="menu" id="pMenu" style="--i:5">Main menu</button>
+      <div class="pp-row"><button type="button" data-opt="sound" data-hint="All game sound on or off (M)." style="--i:1">Sound <span class="val">On</span></button><button type="button" data-act="fullscreen" id="pFull" style="--i:1">Full screen</button></div>
+      <button type="button" data-act="settings" style="--i:2">Settings</button>
+      <button type="button" data-act="restart" id="pRestart" style="--i:3">Restart match</button>
+      <button type="button" data-act="menu" id="pMenu" class="pp-quit" style="--i:4">Main menu</button>
     </nav>
     <div class="opts-wrap centered" data-sub="settings" hidden>
       <nav class="mlist centered opts" aria-label="Settings">
@@ -2711,7 +2726,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-22-artlook';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-22-pausepanel';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
