@@ -3136,6 +3136,15 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
       for(let k=0;k<8;k++){const o=placed.find(o=>Math.abs(o.x-x)<o.hw+hw&&Math.abs(o.y-y)<26);if(!o)break;y=o.y-28<y0?o.y+28:o.y-28}
       q.px=x;q.py=y;placed.push({x,y,hw})}}
   const glowK=bullets.length>24?Math.max(.3,24/bullets.length):1;
+  /* a live round sheds embers: small glowing sparks peel off behind it, drift back and up like heat, and fade. Worked
+     out on each screen while drawing (no network), on a budget: a crowd of shots sheds less each, never a flood */
+  const emNow=performance.now(),emDt=clamp((emNow-(renderNow.emT||emNow))/1000,0,.05);renderNow.emT=emNow;
+  if(!RM&&emDt>0&&!game.paused){let budget=Math.max(0,Math.min(70,780-parts.length));const per=bullets.length>12?12/bullets.length:1;
+    for(const b of bullets){if(budget<=0)break;if(b.hide||b.stuck)continue;const sp=Math.hypot(b.vx,b.vy);if(sp<120)continue;
+      b.emT=(b.emT||0)+emDt*(26+b.r*3.2)*per;
+      while(b.emT>=1&&budget>0){b.emT-=1;budget--;const ux=b.vx/sp,uy=b.vy/sp,back=rand(.4,1.6)*b.r,side=rand(-1,1)*b.r*.9,hot=Math.random()<.35,l=rand(.22,.42);
+        parts.push({x:b.x-ux*back-uy*side,y:b.y-uy*back+ux*side,vx:-ux*rand(60,180)-uy*rand(-70,70),vy:-uy*rand(60,180)+ux*rand(-70,70)-rand(10,40),grav:-60,life:l,max:l,
+          size:rand(1.6,3)*Math.sqrt(b.r/5),color:hot?'#fff3d0':(b.glow||'#ffc06b'),glow:true})}}}
   for(const b of bullets){if(b.hide)continue;let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
     {const ct=b.cosT??(b.owner&&b.owner.cos&&b.owner.cos.trail);if(ct&&tc===b.glow)tc=trailColor(ct,tc,b.id||0)}   // cosmetic trail (plain bullets only: effect colours stay readable)
     // tracer: a long thin trail that tapers to nothing, brightest at the head (ROUNDS-style)
@@ -3149,13 +3158,13 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     {const col=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8',sp=Math.hypot(b.vx,b.vy);ctx.globalAlpha=ga;
       /* a solid round, like the card art: a warm slug tapering back from a white-hot nose, two thin speed streaks in its
          wake. Drawn normally (not added as light), so it reads as a thing with weight, not an orb */
-      if(sp>60&&!b.stuck){const w=b.r*1.18,L=clamp(sp*.012,b.r*3,b.r*5),o=(b.id||0)%2?1:-1;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.vy,b.vx));
-        ctx.strokeStyle=tc;ctx.lineCap='round';ctx.globalAlpha=.5*ga;ctx.lineWidth=Math.max(1.2,b.r*.26);ctx.beginPath();ctx.moveTo(-L*1.2,w*1.5*o);ctx.lineTo(-L*2.3,w*1.9*o);ctx.moveTo(-L*1.5,-w*1.25*o);ctx.lineTo(-L*2.1,-w*1.5*o);ctx.stroke();
+      if(sp>60&&!b.stuck){const fl=RM?0:Math.sin(emNow/26+(b.id||0)*1.7),w=b.r*1.18*(1+.06*fl),L=clamp(sp*.012,b.r*3,b.r*5)*(1+.08*Math.sin(emNow/41+(b.id||0))),o=(b.id||0)%2?1:-1,sh=1+.18*Math.sin(emNow/33+(b.id||0)*2.3);ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.vy,b.vx));
+        ctx.strokeStyle=tc;ctx.lineCap='round';ctx.globalAlpha=.5*ga;ctx.lineWidth=Math.max(1.2,b.r*.26);ctx.beginPath();ctx.moveTo(-L*1.2,w*1.5*o);ctx.lineTo(-L*(1.2+1.1*sh),w*1.9*o);ctx.moveTo(-L*1.5,-w*1.25*o);ctx.lineTo(-L*(1.5+.6*(2.2-sh)),-w*1.5*o);ctx.stroke();
         ctx.globalCompositeOperation='source-over';ctx.globalAlpha=ga;
         ctx.fillStyle=tc;ctx.beginPath();ctx.moveTo(-L,-w*.28);ctx.lineTo(0,-w);ctx.arc(0,0,w,-Math.PI/2,Math.PI/2);ctx.lineTo(-L,w*.28);ctx.closePath();ctx.fill();   // the warm body, in the shooter's colour
         ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=Math.max(1,w*.32);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-L*.62,0);ctx.lineTo(0,0);ctx.stroke();   // its hot centre
         try{const cg=ctx.createRadialGradient(w*.3,0,0,w*.05,0,w);cg.addColorStop(0,'#ffffff');cg.addColorStop(.55,col);cg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=cg}catch(e){ctx.fillStyle=col}
-        ctx.beginPath();ctx.ellipse(-w*.12,0,w*1.12,w*.78,0,0,TAU);ctx.fill();ctx.restore()}
+        ctx.beginPath();ctx.ellipse(-w*.12,0,w*1.12*(1+.1*fl),w*.78,0,0,TAU);ctx.fill();ctx.restore()}
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
@@ -3304,7 +3313,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-slug2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-embers';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
