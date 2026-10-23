@@ -187,30 +187,83 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .small-panel{width:min(520px,100%)}
 #hudbtns{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:1}
 body:not(.ingame) #hudbtns{display:none}
-.sb-panel{width:min(1120px,100%);gap:14px}
+.sb-panel{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;gap:10px;width:min(1120px,100%);height:min(720px,100%);margin:auto;background:rgba(33,21,47,.96);border:2px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45);min-height:0}
+.sb-panel h2{font-family:var(--display);font-weight:400;font-size:34px;margin:0;line-height:1}
+
+.sb-card .art{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:7px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#3a2652,#170f22)}
+.sb-card .art canvas{width:44px;height:44px}.sb-card .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sb-card .ds{font-size:11px;line-height:1.25;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.sb-info .st{font-family:var(--mono);font-size:12px;font-weight:700;margin-left:4px;white-space:nowrap}.sb-info .st.up{color:var(--good)}.sb-info .st.down{color:var(--bad)}
+@media (max-height:520px),(max-width:700px){.sb-panel{padding:10px;gap:6px;height:100%}.sb-panel h2{font-size:24px}.sb-card .ds{display:none}.sb-info{min-height:0;font-size:12px}
+  .sb-tabs button,.sb-filter button{font-size:14px;padding:4px 9px}.sb-foot .btn{font-size:14px;padding:6px 10px}.sb-go{font-size:18px;padding:6px 12px}}
 .sb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .sb-tabs,.sb-filter,.sb-foot{display:flex;flex-wrap:wrap;gap:8px}
 .sb-tabs button,.sb-filter button{font-family:var(--mono);font-size:13px;font-weight:700;border:2px solid var(--line);border-radius:4px;background:var(--night);color:var(--muted);padding:7px 12px;cursor:pointer}
-.sb-tabs button.on{background:var(--night-2);border-color:currentColor}.sb-tabs button.on.who-o{color:var(--orange)}.sb-tabs button.on.who-b{color:var(--blue)}
+.sb-tabs button.on.who-o{background:var(--orange);color:#1a0e05}.sb-tabs button.on.who-b{background:var(--blue);color:#06142a}
 #sandbox{z-index:2}
 .sb-filter button.on{color:var(--text);border-color:var(--text)}
 .sb-deck{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;align-items:center}
 .sb-deck .empty{color:var(--muted);font-size:14px}
-.sb-deck button{font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid var(--pc);border-radius:3px;padding:4px 8px;background:var(--night);color:var(--text);cursor:pointer}
+.sb-deck button{font-family:var(--display);font-size:14px;letter-spacing:.02em;border:2px solid var(--pc);border-radius:999px;padding:3px 10px;background:rgba(255,255,255,.05);color:var(--text);cursor:pointer}
 .sb-deck button:hover{border-color:var(--bad);color:var(--bad)}
-.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;max-height:min(46vh,430px);overflow:auto;padding:2px 4px 2px 2px}
-.sb-card{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 6px 7px;border:2px solid var(--line);border-top:4px solid var(--cat);border-radius:5px;background:var(--night);color:var(--text);cursor:pointer;font-family:var(--body);text-align:center}
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;overflow:auto;padding:2px 4px 2px 2px;min-height:0;align-content:start}
+@media (max-height:520px),(max-width:700px){.sb-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}}
+.sb-card{position:relative;display:grid;justify-items:center;align-content:start;gap:3px;padding:6px 6px 7px;border:2px solid rgba(255,255,255,.08);border-top:4px solid var(--cat);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-family:var(--body);text-align:center}
 .sb-card:hover,.sb-card:focus-visible{border-color:var(--hot);border-top-color:var(--cat);outline:none;background:var(--night-2)}
-.sb-card canvas{width:40px;height:40px}
-.sb-card .nm{font-weight:800;font-size:13px;line-height:1.15}
+.sb-card .nm{font-family:var(--display);font-size:15px;letter-spacing:.02em;line-height:1.1}
 .sb-card .rar{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .sb-card.r1 .rar{color:#8fcbff}.sb-card.r2 .rar{color:var(--hot)}
 .sb-card .ct{position:absolute;top:4px;right:5px;font-family:var(--mono);font-size:12px;font-weight:700;min-width:20px;padding:1px 5px;border-radius:10px;background:var(--pc);color:#140b1e}
 .sb-card.has{border-color:var(--pc);border-top-color:var(--cat)}
 .sb-info{margin:0;min-height:2.6em;color:var(--muted);font-size:14px;line-height:1.35}
 .sb-info b{color:var(--text)}
-.sb-foot .btn{font-size:16px;padding:9px 16px}.sb-foot .primary{margin-left:auto}
-#shop{z-index:2}
+.sb-foot{align-items:center}.sb-foot .btn{font-family:var(--display);font-size:16px;padding:8px 14px;border-radius:10px}.sb-foot .sb-go{margin-left:auto}
+#shop,#locker{z-index:2}
+/* the shop, the locker and the sandbox share one look: a rounded dark panel like the pause menu, a stage with your fighter,
+   pill tabs, a tidy grid that scrolls inside itself, and a big main button */
+.ward-wrap{padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));box-sizing:border-box}
+.ward-wrap>.ward,.ward-wrap>.sb-panel{box-sizing:border-box;max-height:100%}
+.ward{display:grid;grid-template-columns:minmax(200px,300px) minmax(0,1fr);gap:16px;width:min(980px,100%);height:min(620px,100%);margin:auto;background:rgba(33,21,47,.96);border:2px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45);min-height:0}
+.ward-stage{display:grid;gap:10px;align-content:start;justify-items:stretch;min-height:0}
+.ward-stage canvas{width:100%;aspect-ratio:6/5;border-radius:12px;background:#1a0f26}
+.ward-name{font-family:var(--display);font-size:22px;text-align:center;line-height:1.1}
+.ward-go,.sb-go{font-family:var(--display);font-size:24px;letter-spacing:.03em;background:var(--orange);color:#1a0e05;border:0;border-radius:10px;padding:10px 14px;box-shadow:0 4px 0 #a5520f;cursor:pointer}
+.ward-go:hover,.ward-go:focus-visible,.sb-go:hover,.sb-go:focus-visible{background:#ff9a3d;outline:none}
+.ward-go[disabled]{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:none;cursor:default}
+.ward-msg{margin:0;font-size:13px;line-height:1.4;color:var(--muted);text-align:center}.ward-msg b{color:var(--text)}
+.ward-main{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:10px;min-height:0}
+.ward-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.ward-head h2{font-family:var(--display);font-weight:400;font-size:34px;margin:0;line-height:1}
+.ward-tabs,.ward-side{display:flex;gap:6px;flex-wrap:wrap}
+.ward-tabs button,.ward-side button,.sb-tabs button,.sb-filter button{font-family:var(--display);font-size:17px;letter-spacing:.03em;color:var(--muted);background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;padding:6px 12px;cursor:pointer}
+.ward-tabs button:hover,.ward-side button:hover,.sb-tabs button:hover,.sb-filter button:hover,.ward-tabs button:focus-visible{border-color:var(--orange);color:var(--text);outline:none}
+.ward-tabs button.on,.sb-filter button.on{background:var(--orange);color:#1a0e05;box-shadow:0 3px 0 #a5520f}
+.ward-side{justify-content:center}.ward-side button.on[data-side="0"]{background:var(--orange);color:#1a0e05}.ward-side button.on[data-side="1"]{background:var(--blue);color:#06142a}
+.ward-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;overflow:auto;align-content:start;min-height:0;padding:2px}
+.ward-item{display:grid;justify-items:center;gap:2px;padding:8px 6px;border:2px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-family:var(--body);position:relative}
+.ward-item:hover,.ward-item:focus-visible{border-color:var(--orange);outline:none}
+.ward-item.sel{border-color:#ffd36b;background:rgba(255,211,107,.1)}
+.ward-item.eq::after{content:"✓";position:absolute;top:5px;right:8px;font-weight:800;color:var(--good)}
+.ward-item.locked{opacity:.55}
+.ward-item canvas{width:96px;height:72px}
+.ward-item .nm{font-family:var(--display);font-size:16px;letter-spacing:.02em}
+.ward-item .pr{font-family:var(--mono);font-size:12px;font-weight:700;color:#ffd36b}.ward-item .pr.own{color:var(--good)}.ward-item .pr.poor{color:var(--muted)}
+.ward-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.ward-foot .btn{font-family:var(--display);font-size:18px;border-radius:10px}
+.ward-foot .ward-done{background:var(--orange);border-color:var(--orange);color:#1a0e05}
+/* colour picking: a row of shades and a light/deep slider for each side */
+.shade{grid-column:1/-1;display:grid;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04)}
+.shade .lbl{margin:0;font-family:var(--display);font-size:18px;letter-spacing:.02em;text-transform:none;color:var(--text)}
+.shade .sw{display:flex;flex-wrap:wrap;gap:8px}
+.shade .sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}
+.shade .sw button.on{border-color:#ffffff}
+.shade input[type=range]{width:100%;accent-color:var(--orange)}.shade.b input[type=range]{accent-color:var(--blue)}
+.shade .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+@media (max-height:520px),(max-width:700px){
+  .ward-wrap{padding:6px max(8px,env(safe-area-inset-right,0px)) 6px max(8px,env(safe-area-inset-left,0px))}
+  .ward{grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:10px;padding:10px;height:100%}
+  .ward-name{font-size:16px}.ward-go{font-size:18px;padding:7px 10px}.ward-msg{font-size:11px}
+  .ward-head h2{font-size:24px}.ward-tabs button,.ward-side button{font-size:14px;padding:4px 9px}
+  .ward-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}.ward-item{padding:5px 4px}.ward-item canvas{width:72px;height:54px}.ward-item .nm{font-size:13px}
+  .ward-foot .btn{font-size:15px;padding:6px 12px}.shade{padding:8px 10px;gap:6px}.shade .lbl{font-size:15px}.shade .sw button{width:30px;height:30px}}
 .shop-panel .sb-tabs button.on{color:#ffd36b;border-color:#ffd36b}
 .coinchip{display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding:3px 10px 3px 6px;border:1px solid var(--line);border-radius:20px;background:rgba(18,12,28,.7);color:#ffd36b;font:800 15px var(--body);cursor:pointer;vertical-align:middle}
 .coinchip:hover{border-color:#ffd36b}.coinchip.big{font-size:20px;padding:5px 14px 5px 8px;cursor:default;margin:0}
@@ -490,9 +543,10 @@ body.touch .desk-only{display:none!important}
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0">Single player</button>
         <button type="button" data-act="multi" data-hint="Play with friends online: duel one-on-one, or team up against Survival's waves and bosses." style="--i:1">Multiplayer</button>
-        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:2">Shop</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4">Settings</button>
+        <button type="button" data-act="locker" data-hint="Your fighter's look: your shade of orange and of blue, and the hats, patterns and trails you own." style="--i:2">Customize</button>
+        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:3">Shop</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:4">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:5">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
@@ -642,10 +696,10 @@ body.touch .desk-only{display:none!important}
   </div>
 </div>
 
-<div id="sandbox" class="overlay" hidden>
-  <div class="panel sb-panel" role="dialog" aria-labelledby="sbTitle">
+<div id="sandbox" class="overlay ward-wrap" hidden>
+  <div class="sb-panel" role="dialog" aria-labelledby="sbTitle">
     <div class="sb-head">
-      <h2 class="screen-title" id="sbTitle">Sandbox</h2>
+      <h2 id="sbTitle">Sandbox</h2>
       <div class="sb-tabs" role="tablist" aria-label="Whose cards">
         <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button>
       </div>
@@ -658,22 +712,37 @@ body.touch .desk-only{display:none!important}
       <button type="button" class="btn" data-sbact="clear">Clear these cards</button>
       <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
       <button type="button" class="btn" data-sbact="arena" id="sbArena">Arena: Random</button>
-      <button type="button" class="btn primary" data-sbact="go" id="sbGo">Play · Tab</button>
+      <button type="button" class="sb-go" data-sbact="go" id="sbGo">Play · Tab</button>
     </div>
   </div>
 </div>
 
-<div id="shop" class="overlay" hidden>
-  <div class="panel sb-panel shop-panel" role="dialog" aria-labelledby="shopTitle">
-    <div class="sb-head">
-      <h2 class="screen-title" id="shopTitle">Shop</h2>
-      <div class="shop-bal"><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span><span class="shop-stats" id="shopStats"></span></div>
+<div id="shop" class="overlay ward-wrap" hidden>
+  <div class="ward" role="dialog" aria-labelledby="shopTitle">
+    <div class="ward-stage"><canvas id="shopStage" width="360" height="300" aria-hidden="true"></canvas>
+      <div class="ward-name" id="shopPick">Tap an item to try it on</div>
+      <button type="button" class="ward-go" id="shopGo" data-shopact="go" hidden>Buy</button>
+      <p class="ward-msg" id="shopMsg" aria-live="polite"></p></div>
+    <div class="ward-main">
+      <div class="ward-head"><h2 id="shopTitle">Shop</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
+      <div class="ward-tabs" role="tablist" aria-label="Item type"><button type="button" role="tab" data-shopk="hat">Hats</button><button type="button" role="tab" data-shopk="pattern">Patterns</button><button type="button" role="tab" data-shopk="trail">Trails</button></div>
+      <div class="ward-grid" id="shopGrid"></div>
+      <div class="ward-foot"><button type="button" class="btn" data-shopact="locker">Customize</button><button type="button" class="btn" data-shopact="close">Back · Esc</button></div>
     </div>
-    <p class="sb-info">Win full matches to earn CUUED coins: <b>2</b> for an online win or a Hard CPU, <b>1</b> for a Normal or Easy CPU. Everything here is just for looks, so nobody can buy an edge. Your friend sees what you wear online.</p>
-    <div class="sb-tabs" role="tablist" aria-label="Item type"><button type="button" role="tab" data-shopk="hat">Hats</button><button type="button" role="tab" data-shopk="pattern">Patterns</button><button type="button" role="tab" data-shopk="trail">Bullet trails</button></div>
-    <div class="shop-grid" id="shopGrid"></div>
-    <p class="sb-info" id="shopMsg" aria-live="polite">&nbsp;</p>
-    <div class="sb-foot"><button type="button" class="btn primary" data-shopact="close">Back · Esc</button></div>
+  </div>
+</div>
+
+<div id="locker" class="overlay ward-wrap" hidden>
+  <div class="ward" role="dialog" aria-labelledby="lockTitle">
+    <div class="ward-stage"><canvas id="lockStage" width="360" height="300" aria-hidden="true"></canvas>
+      <div class="ward-side" role="group" aria-label="Preview side"><button type="button" data-side="0">As Orange</button><button type="button" data-side="1">As Blue</button></div>
+      <p class="ward-msg" id="lockMsg" aria-live="polite">You play orange or blue depending on your side. Pick a shade of each.</p></div>
+    <div class="ward-main">
+      <div class="ward-head"><h2 id="lockTitle">Customize</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
+      <div class="ward-tabs" role="tablist" aria-label="What to change"><button type="button" role="tab" data-lockk="color">Colour</button><button type="button" role="tab" data-lockk="hat">Hats</button><button type="button" role="tab" data-lockk="pattern">Patterns</button><button type="button" role="tab" data-lockk="trail">Trails</button></div>
+      <div class="ward-grid" id="lockGrid"></div>
+      <div class="ward-foot"><button type="button" class="btn" data-lockact="shop">Shop</button><button type="button" class="btn ward-done" data-lockact="close">Done · Esc</button></div>
+    </div>
   </div>
 </div>
 
@@ -1151,6 +1220,7 @@ const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0}
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#shop').hidden){if(e.code==='Escape'){e.preventDefault();closeShop()}return}
+  if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
   if(sbOpen()){if(e.code==='Escape'||e.code==='Tab'){e.preventDefault();closeSandbox()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
   if(e.code==='Enter'&&chatOn()&&$('#pause').hidden&&$('#chatForm').hidden&&!['pick','shop'].includes(game.state)){e.preventDefault();chatOpen();return}
@@ -1238,7 +1308,7 @@ function startMatch(mode){
   else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
   for(const p of players)if(p.peer){const L=p.peer;L.inQ=[];L.lastQ=-1;L.heldIn=null;L.lagSteps=0}
   game.wins=game.party?[0,0]:players.map(()=>0);game.points=game.party?[0,0]:players.map(()=>0);   // a party scores by team
-  players.forEach(recompute);bullets=[];parts=[];shields=[];net.bmap.clear();
+  players.forEach(recompute);players.forEach(applyShade);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
   if(mode==='online-guest'){if(game.coop)players.forEach(p=>p.team=0);game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
@@ -1312,6 +1382,9 @@ function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=a
 
 /* ---------- CUUED coins & cosmetics: win full matches to earn coins, spend them on looks only (never power: no buying an
    edge in a fair duel). Kept in this browser; the opponent sees what you wear online ---------- */
+// the shades each colour family allows (see cleanShade below): hue and lightness ranges, and the swatches offered
+const SHADE={o:{h:[10,40],l:[44,66],s:96,def:[25,55],sw:[[12,52],[18,55],[25,55],[31,54],[37,52],[20,46],[28,62],[16,61]]},
+  b:{h:[195,228],l:[46,68],s:92,def:[214,59],sw:[[214,59],[206,55],[199,52],[220,61],[226,63],[210,48],[217,67],[200,62]]}};
 const COS={
   hat:[{id:'party',n:'Party Hat',price:3},{id:'band',n:'Headband',price:4},{id:'antenna',n:'Antenna',price:4},{id:'horns',n:'Horns',price:5},{id:'halo',n:'Halo',price:6},{id:'tophat',n:'Top Hat',price:8},{id:'crown',n:'Crown',price:12}],
   pattern:[{id:'stripes',n:'Stripes',price:4},{id:'spots',n:'Spots',price:4},{id:'stars',n:'Stars',price:7}],
@@ -1322,8 +1395,15 @@ try{const w=JSON.parse(localStorage.getItem('cuued.wallet')||'{}');if(w&&typeof 
 for(const k of['coins','earned','wins','streak','best'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
 const cosValid=(k,id)=>!!COS[k]&&COS[k].some(i=>i.id===id);
 wallet.owned=Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>cosValid(k,x.split(':')[1])&&x.startsWith(k+':'))):[];
-wallet.eq=cleanCos(wallet.eq);for(const k in wallet.eq)if(wallet.eq[k]&&!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]='';
-function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';return o}
+wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]&&!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]='';
+function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;return o}
+/* your colour: a shade of orange (when you play the orange side) and of blue (the blue side). Each stays inside its colour
+   family, so a fighter always reads as orange or blue. Stored as [hue, lightness] and checked here (it also arrives online) */
+function cleanShade(v,f){const F=SHADE[f];if(!Array.isArray(v)||v.length!==2)return null;const h=Math.round(+v[0]),l=Math.round(+v[1]);if(!Number.isFinite(h)||!Number.isFinite(l))return null;return[clamp(h,F.h[0],F.h[1]),clamp(l,F.l[0],F.l[1])]}
+function hslHex(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))};return'#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')}
+const shadeCol=(v,f)=>{const F=SHADE[f],[h,l]=v||F.def;return[hslHex(h,F.s,l),hslHex(h,F.s,Math.min(88,l+22))]};
+// a fighter on the orange or the blue side wears its player's shade of that colour
+function applyShade(p){const c=p.cos;if(!c||!C.orange)return;const f=p.color===C.orange?'o':p.color===C.blue?'b':null;if(!f)return;const v=c[f==='o'?'co':'cb'];if(v)[p.color,p.glow]=shadeCol(v,f)}
 const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wallet))}catch(e){}};
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
 const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k]).id:'';return o};
@@ -1334,27 +1414,76 @@ function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='onl
   if(w===me){const n=(game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2;wallet.coins+=n;wallet.earned+=n;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
-// ---- shop
-let shopK='hat';
-function openShop(){$('#shop').hidden=false;renderShop();const b=$('#shop [data-shopact=close]');b&&b.focus({preventScroll:true})}
+// ---- shop: tap an item to try it on (the stage shows your fighter wearing it), then one button buys or equips it
+let shopK='hat',shopSel='';
+function openShop(k,id){$('#locker').hidden=true;$('#shop').hidden=false;if(k){shopK=k;shopSel=id||''}renderShop();lookLoop();const b=$('#shop [data-shopk].on')||$('#shop [data-shopact=close]');b&&b.focus({preventScroll:true})}
 function closeShop(){$('#shop').hidden=true;focusFirst($('#menu'))}
+const COIN_HTML='<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i>';
 function renderShop(msg){refreshWallet();const grid=$('#shopGrid');if(!grid)return;
   $('#shop').querySelectorAll('[data-shopk]').forEach(b=>{const on=b.dataset.shopk===shopK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-  grid.innerHTML='';const items=[{id:'',n:'None',price:0},...COS[shopK]];
-  for(const it of items){const own=!it.id||wallet.owned.includes(shopK+':'+it.id),on=wallet.eq[shopK]===it.id,b=document.createElement('button');b.type='button';b.className='shop-item'+(on?' on':'');b.dataset.item=it.id;
-    b.innerHTML=`<canvas width="220" height="164" aria-hidden="true"></canvas><span class="nm">${it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${on?'Equipped':own?'Equip':`<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i> ${it.price}`}</span>`;
-    const g=b.querySelector('canvas').getContext('2d');if(g)drawCosPreview(g,shopK,it.id);grid.appendChild(b)}
-  const m=$('#shopMsg');if(m)m.innerHTML=msg||'&nbsp;'}
-function shopClick(id){const it=COS[shopK].find(i=>i.id===id),key=shopK+':'+id;
-  if(!id){wallet.eq[shopK]='';saveWallet();sfx('tick',true);renderShop();return}
-  if(!it)return;
-  if(wallet.owned.includes(key)){wallet.eq[shopK]=id;saveWallet();sfx('pick',true);renderShop(`Equipped <b>${it.n}</b>.`);return}
-  if(wallet.coins<it.price){sfx('empty',true);renderShop(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more coin${it.price-wallet.coins>1?'s':''}.`);return}
-  wallet.coins-=it.price;wallet.owned.push(key);wallet.eq[shopK]=id;saveWallet();sfx('round',true);renderShop(`Bought and equipped <b>${it.n}</b>!`)}
+  grid.innerHTML='';
+  for(const it of COS[shopK]){const own=wallet.owned.includes(shopK+':'+it.id),on=wallet.eq[shopK]===it.id,b=document.createElement('button');b.type='button';
+    b.className='ward-item'+(on?' eq':'')+(it.id===shopSel?' sel':'');b.dataset.item=it.id;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${on?'Equipped':own?'Owned':COIN_HTML+' '+it.price}</span>`;
+    const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);drawCosPreview(g,shopK,it.id)}grid.appendChild(b)}
+  const it=COS[shopK].find(i=>i.id===shopSel),go=$('#shopGo');$('#shopPick').textContent=it?it.n:'Tap an item to try it on';
+  if(go){go.hidden=!it;if(it){const own=wallet.owned.includes(shopK+':'+it.id),on=wallet.eq[shopK]===it.id;go.disabled=on||(!own&&wallet.coins<it.price);
+    go.innerHTML=on?'Equipped ✓':own?'Equip':wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}}
+  const m=$('#shopMsg');if(m)m.innerHTML=msg||'Win matches to earn coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise. Looks only: nobody can buy an edge.'}
+function shopClick(id){shopSel=id;sfx('tick',true);renderShop()}
+function shopGo(){const it=COS[shopK].find(i=>i.id===shopSel);if(!it)return;const key=shopK+':'+it.id;
+  if(wallet.owned.includes(key)){wallet.eq[shopK]=it.id;saveWallet();sfx('pick',true);renderShop(`Equipped <b>${it.n}</b>.`);return}
+  if(wallet.coins<it.price){sfx('empty',true);renderShop(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more.`);return}
+  wallet.coins-=it.price;wallet.owned.push(key);wallet.eq[shopK]=it.id;saveWallet();sfx('round',true);renderShop(`Bought and equipped <b>${it.n}</b>!`)}
 {const root=$('#shop');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
-  if((b=t.closest('[data-shopk]'))){shopK=b.dataset.shopk;sfx('tick',true);renderShop();return}
+  if((b=t.closest('[data-shopk]'))){shopK=b.dataset.shopk;shopSel='';sfx('tick',true);renderShop();return}
   if((b=t.closest('[data-item]'))){shopClick(b.dataset.item);return}
-  if((b=t.closest('[data-shopact]'))){closeShop()}})}
+  if((b=t.closest('[data-shopact]'))){const a=b.dataset.shopact;if(a==='go')shopGo();else if(a==='locker'){$('#shop').hidden=true;openLocker()}else closeShop()}})}
+// ---- the locker (Customize): your shades, and equip anything you own; a locked item opens the shop on it
+let lockK='color',lockSide=0;
+function openLocker(){$('#shop').hidden=true;$('#locker').hidden=false;renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
+function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
+function renderLocker(){refreshWallet();const root=$('#locker'),grid=$('#lockGrid');if(!grid)return;
+  root.querySelectorAll('[data-lockk]').forEach(b=>{const on=b.dataset.lockk===lockK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));
+  grid.innerHTML='';
+  if(lockK==='color'){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
+      box.innerHTML=`<p class="lbl">${f==='o'?'Your orange':'Your blue'}</p><div class="sw">${F.sw.map(([h,l])=>`<button type="button" data-shade="${f}:${h}:${l}" style="background:${hslHex(h,F.s,l)}" class="${h===cur[0]&&l===cur[1]?'on':''}" aria-label="${f==='o'?'Orange':'Blue'} shade"></button>`).join('')}</div>
+        <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}
+    $('#lockMsg').textContent='You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.';return}
+  const items=[{id:'',n:'None',price:0},...COS[lockK]];
+  for(const it of items){const own=!it.id||wallet.owned.includes(lockK+':'+it.id),on=(wallet.eq[lockK]||'')===it.id,b=document.createElement('button');b.type='button';
+    b.className='ward-item'+(on?' eq sel':'')+(own?'':' locked');b.dataset.lock=it.id;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${it.n}</span><span class="pr${own?' own':''}">${on?'Equipped':own?'Tap to wear':'🔒 '+COIN_HTML+' '+it.price}</span>`;
+    const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(it.id)drawCosPreview(g,lockK,it.id);else drawCosPreview(g,lockK==='trail'?'hat':lockK,'')}grid.appendChild(b)}
+  $('#lockMsg').textContent=`Tap one you own to wear it. Locked ones are in the shop.`}
+{const root=$('#locker');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
+  if((b=t.closest('[data-lockk]'))){lockK=b.dataset.lockk;sfx('tick',true);renderLocker();return}
+  if((b=t.closest('[data-side]'))){lockSide=+b.dataset.side;sfx('tick',true);renderLocker();return}
+  if((b=t.closest('[data-shade]'))){const[f,h,l]=b.dataset.shade.split(':');wallet.eq[f==='o'?'co':'cb']=cleanShade([+h,+l],f);lockSide=f==='o'?0:1;saveWallet();sfx('tick',true);renderLocker();return}
+  if((b=t.closest('[data-lock]'))){const id=b.dataset.lock;if(id&&!wallet.owned.includes(lockK+':'+id)){sfx('tick',true);openShop(lockK,id);return}wallet.eq[lockK]=id;saveWallet();sfx('pick',true);renderLocker();return}
+  if((b=t.closest('[data-lockact]'))){if(b.dataset.lockact==='shop')openShop();else closeLocker()}});
+  root.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-light]');if(!r)return;const f=r.dataset.light,k=f==='o'?'co':'cb',cur=wallet.eq[k]||SHADE[f].def;
+    wallet.eq[k]=cleanShade([cur[0],+r.value],f);lockSide=f==='o'?0:1;saveWallet();root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide))})}
+/* the stage: your fighter on a ledge under the moon, bobbing gently, in your shade, with your hat and pattern, and a shot
+   streaking past in your trail colour. The shop's stage shows what you're trying on */
+function drawLook(cvs,look,side,t){const g=cvs&&cvs.getContext('2d');if(!g)return;const W=cvs.width,H=cvs.height;
+  try{const bg=g.createRadialGradient(W*.5,H*.3,8,W*.5,H*.45,W*.75);bg.addColorStop(0,'#4d3166');bg.addColorStop(1,'#170f22');g.fillStyle=bg}catch(e){g.fillStyle='#21152f'}g.fillRect(0,0,W,H);
+  g.fillStyle='rgba(255,240,220,.85)';g.beginPath();g.arc(W*.8,H*.2,16,0,TAU);g.fill();g.fillStyle='#2a1a3d';g.beginPath();g.arc(W*.8+7,H*.2-4,14,0,TAU);g.fill();
+  const lx=W*.16,ly=H*.76,lw=W*.68,lh=H*.12;g.fillStyle='rgba(10,4,18,.4)';slabPath(g,lx+8,ly+10,lw,lh);g.fill();g.fillStyle=KIND[0][0];slabPath(g,lx,ly,lw,lh);g.fill();g.fillStyle=KIND[0][1];g.fillRect(lx+6,ly,lw-12,6);
+  const[col,glow]=side?shadeCol(look.cb,'b'):shadeCol(look.co,'o'),sk=skinOf(col),R=W*.13,bob=Math.sin(t*2.4)*2.5,cx=W*.47,cy=ly-R*1.18+bob;
+  if(look.trail){const tc=trailColor(look.trail,glow,1);g.save();g.lineCap='round';g.strokeStyle=tc;for(let k=0;k<3;k++){g.globalAlpha=.18+.22*k;g.lineWidth=3+k*3;g.beginPath();g.moveTo(W*.05+k*40,H*.36);g.quadraticCurveTo(W*.45,H*.22,W*.95,H*.34);g.stroke()}
+    g.globalAlpha=1;g.fillStyle='#fff6e8';g.beginPath();g.arc(W*.95,H*.34,6,0,TAU);g.fill();g.restore()}
+  g.save();g.translate(cx,cy);g.strokeStyle=sk.lo;g.lineWidth=R*.34;g.lineCap='round';for(const s2 of[-1,1]){g.beginPath();g.moveTo(s2*R*.32,R*.55);g.lineTo(s2*R*.42,R*1.12-bob);g.stroke()}
+  g.strokeStyle=col;g.beginPath();g.moveTo(R*.5,R*.05);g.lineTo(R*1.35,-R*.1);g.stroke();g.fillStyle='#4a5161';g.fillRect(R*1.3,-R*.32,R*.62,R*.22);g.fillStyle='#98a1b1';g.fillRect(R*1.3,-R*.36,R*.62,R*.1);
+  try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,col);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=col}
+  g.beginPath();g.arc(0,0,R,0,TAU);g.fill();drawPattern(g,look.pattern,R);
+  g.fillStyle='#16121c';const shut=(t%3.4)<.12;for(const s2 of[-1,1]){g.beginPath();g.ellipse(R*.2+s2*R*.24,-R*.12,R*.1,shut?R*.03:R*.2,0,0,TAU);g.fill()}
+  drawHat(g,look.hat,R,glow);g.restore()}
+let lookRaf=0;
+function lookLoop(){if(lookRaf)return;const step=now=>{const sh=!$('#shop').hidden,lk=!$('#locker').hidden;if(!sh&&!lk){lookRaf=0;return}const t=now/1000;
+  if(sh)drawLook($('#shopStage'),{...wallet.eq,[shopK]:shopSel||wallet.eq[shopK]},0,t);
+  if(lk)drawLook($('#lockStage'),wallet.eq,lockSide,t);lookRaf=requestAnimationFrame(step)};lookRaf=requestAnimationFrame(step)}
 // ---- drawing cosmetics (shared by fighters and shop previews). Body colour stays the team colour so fighters stay readable
 function drawPattern(g,id,R){if(!id)return;g.save();g.beginPath();g.arc(0,0,R,0,TAU);g.clip();g.fillStyle='rgba(255,255,255,.22)';
   if(id==='stripes')for(let i=-3;i<=3;i++){g.save();g.rotate(-.5);g.fillRect(i*R*.5-R*.1,-R*2,R*.22,R*4);g.restore()}
@@ -1397,7 +1526,7 @@ function sbAdd(c){const k=sandbox.tab,n=sbCount(k,c);
   sandbox.decks[k].push(c);sfx('pick',true);renderSandbox()}
 function sbRemove(c){const d=sandbox.decks[sandbox.tab],i=d.lastIndexOf(c);if(i<0)return;d.splice(i,1);sfx('tick',true);renderSandbox()}
 function setSbInfo(c,extra){const el=$('#sbInfo');if(!el)return;
-  el.innerHTML=c?`<b>${c.n}</b> · ${CATNAME[c.k]} · ${RAR[c.r]}. ${c.d} <span style="font-family:var(--mono);font-size:12px">${c.st.map(([v,l])=>v+' '+l).join(' · ')}</span>${extra?'<br>'+extra:''}`
+  el.innerHTML=c?`<b>${c.n}</b> ${c.d} ${c.st.map(([v,l,good])=>`<span class="st ${good?'up':'down'}">${v} ${l}</span>`).join(' ')}${extra?'<br>'+extra:''}`
     :'Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.'}
 function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color:C.orange,root=$('#sandbox');
   root.style.setProperty('--pc',col);
@@ -1409,8 +1538,10 @@ function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color
   const grid=$('#sbGrid');
   if(full||!grid.children.length){grid.innerHTML='';
     for(const c of CARDS){if(sandbox.filter!=='all'&&c.k!==sandbox.filter)continue;const b=document.createElement('button');b.type='button';b.className='sb-card r'+c.r;b.dataset.sbcard=c.id;
-      b.style.setProperty('--cat',CAT[c.k]);b.innerHTML=`<canvas width="80" height="80" aria-hidden="true"></canvas><span class="nm">${c.n}</span><span class="rar">${RAR[c.r]}</span><span class="ct" hidden></span>`;
-      const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,40,40,48,'#ffffff',4);grid.appendChild(b)}}
+      b.style.setProperty('--cat',CAT[c.k]);
+      b.innerHTML=`<span class="art"><canvas width="96" height="96" aria-hidden="true"></canvas><img alt="" loading="lazy" decoding="async"></span><span class="nm">${c.n}</span><span class="ds">${c.d}</span><span class="rar">${CATNAME[c.k]} · ${RAR[c.r]}</span><span class="ct" hidden></span>`;
+      const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,48,48,56,'#ffffff',4);   // the icon shows until (or unless) the card's painting loads
+      const im=b.querySelector('img');if(im){im.onerror=()=>im.remove();im.src=`cards/${cardSlug(c.n)}.webp`}grid.appendChild(b)}}
   for(const b of grid.children){const c=CARDS.find(x=>x.id==b.dataset.sbcard),n=c?sbCount(k,c):0,ct=b.querySelector('.ct');b.classList.toggle('has',n>0);if(ct){ct.hidden=!n;ct.textContent='×'+n}}
   $('#sbCpu').textContent='CPU: '+SB_CPU[sandbox.cpu];$('#sbArena').textContent='Arena: '+(sandbox.arena<0?'Random':MAPS[sandbox.arena].name)}
 {const root=$('#sandbox'),card=t=>{const b=t.closest&&t.closest('[data-sbcard]');return b?CARDS.find(x=>x.id==b.dataset.sbcard):null};
@@ -1458,7 +1589,7 @@ function takeDrop(p,d){d.taken=true;const s=p.s;
   else if(d.kind==='bubble')p.aegis=(p.aegis|0)+1;
   else if(d.kind==='wild'){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),pool=CARDS.filter(c=>c.r<2&&!owned.has(c.id)&&!WILD_SKIP.has(c.n));
     if(pool.length){const c=pick(pool),f=p.hp/s.maxHp;p.tempCards=[c];recompute(p);p.hp=f*p.s.maxHp;d.card=c.n}}
-  dropFx(p.x,p.y-p.r-26,d.kind,d.card||'')}
+  dropFx(p.x,p.y-p.r-62,d.kind,d.card||'')}
 // the pickup: a ring, sparks and the power-up's name over the fighter (sent to the other screen too)
 function dropFx(x,y,kind,card){fxRec('D',[x,y,kind,card]);const D=DROPS[kind];if(!D)return;
   ring(x,y+26,D.col,90);burst(x,y+26,D.col,18,420,5,.45,0,true);
@@ -1732,7 +1863,7 @@ function survResolve(){const hs=heroes();
 // XP from damage you deal; each level waits for the end of the round
 function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);if(killed)src.roundKills=(src.roundKills|0)+1;
   while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;const m0=src.s.maxHp;recompute(src);src.hp+=src.s.maxHp-m0;   // the new health arrives at once
-    parts.push({text:`LEVEL ${src.lvl} · +HP +DMG`,x:src.x,y:src.y-src.r-40,vx:0,vy:-50,grav:0,life:1.2,max:1.2,color:'#9be15d'});sfx('point')}}
+    parts.push({text:`LEVEL ${src.lvl} · +HP +DMG`,x:src.x,y:src.y-src.r-62,vx:0,vy:-50,grav:0,life:1.2,max:1.2,color:'#9be15d'});sfx('point')}}
 // the run's one free pick: three cards and two power-ups in one hand
 function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),ups=[];while(ups.length<2)ups.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return[cs[0],ups[0],cs[1],ups[1],cs[2]]}
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
@@ -2150,7 +2281,7 @@ function hitCrate(c){if(c.broken||c.gone>0)return;c.hits=(c.hits|0)+1;const cx=c
   c.broken=1;c.ox=cx;c.oy=c.y+c.h-ORB_R-4;c.y=H+5000;burst(cx,cy,'#c28a52',18,520,5,.6,1200);burst(cx,cy,'#6b4325',10,420,4,.5,1200);sfx('crush');addShake(4)}
 function orbTick(c){if(c.broken!==1||game.mode==='online-guest')return;
   for(const p of players){if(!p.alive||(survOn()&&p.team!==0)||Math.hypot(p.x-c.ox,p.y-c.oy)>p.r+ORB_R+6)continue;
-    c.broken=2;const s=p.s;p.hp=Math.min(s.maxHp,p.hp+Math.max(15,s.maxHp*.12));dropFx(p.x,p.y-p.r-26,'heal','');return}}
+    c.broken=2;const s=p.s;p.hp=Math.min(s.maxHp,p.hp+Math.max(15,s.maxHp*.12));dropFx(p.x,p.y-p.r-62,'heal','');return}}
 const boxOver=(a,x,y,b)=>x<b.x+b.w&&x+a.w>b.x&&y<b.y+b.h&&y+a.h>b.y;
 const rideBlocks=c=>solids.filter(o=>o!==c&&!o.swing&&!(o.hang&&o.st===3)&&!(o.crate&&(o.gone>0||o.broken)));
 function rideCrush(c,p,dmg){if(game.mode==='online-guest'||c.hit.includes(p))return;c.hit.push(p);if(p.blockT>0){ring(p.x,p.y,'#ffffff',60);sfx('parry');return}
@@ -2957,6 +3088,11 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   liveFx();for(const p of players)drawPlayer(p);
   drawBossFx();
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+  { // pop-up texts (pickups, level-ups, PARRY): kept on screen and below the top HUD, and stacked so two never overlap
+    ctx.font='22px "Lilita One", sans-serif';const placed=[],x0=Math.max(0,cam.x),x1=Math.min(W,cam.x+VW/cam.z),y0=Math.max(0,cam.y)+(survOn()?130:70)/cam.z;
+    for(const q of parts){if(!q.text)continue;const hw=ctx.measureText(q.text).width/2+10,x=x1-x0>hw*2?clamp(q.x,x0+hw,x1-hw):(x0+x1)/2;let y=Math.max(y0,q.y);
+      for(let k=0;k<8;k++){const o=placed.find(o=>Math.abs(o.x-x)<o.hw+hw&&Math.abs(o.y-y)<26);if(!o)break;y=o.y-28<y0?o.y+28:o.y-28}
+      q.px=x;q.py=y;placed.push({x,y,hw})}}
   const glowK=bullets.length>24?Math.max(.3,24/bullets.length):1;
   for(const b of bullets){if(b.hide)continue;let tc;const t=b.trail,ga=b.phasing?.35:1,heat=b.grow?(((b.heat||(b.dist!=null?rangeMult(b):1))-1)/3):0;tc=heat>.33?(heat>.66?'#fff3c4':'#ffd27a'):b.phase?'#c9b8ff':b.slow?'#bfe9ff':b.homing?'#c9a0ff':b.explode?'#ffab1a':b.glow;
     {const ct=b.cosT??(b.owner&&b.owner.cos&&b.owner.cos.trail);if(ct&&tc===b.glow)tc=trailColor(ct,tc,b.id||0)}   // cosmetic trail (plain bullets only: effect colours stay readable)
@@ -2980,9 +3116,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
       ctx.globalAlpha=a;ctx.strokeStyle=gr;ctx.lineWidth=q.r*1.6*a+2;ctx.beginPath();ctx.moveTo(q.x+dx*(1-a)*.5,q.y+dy*(1-a)*.5);ctx.lineTo(q.x1,q.y1);ctx.stroke();continue}
     if(q.implode){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=3+3*a;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*a,0,TAU);ctx.stroke();continue}
-    if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;
-      const hw=ctx.measureText(q.text).width/2+12,x0=Math.max(0,cam.x),x1=Math.min(W,cam.x+VW/cam.z),y0=Math.max(0,cam.y)+40;   // kept on screen, never cut off at an edge
-      ctx.fillText(q.text,x1-x0>hw*2?clamp(q.x,x0+hw,x1-hw):(x0+x1)/2,Math.max(y0,q.y));ctx.textAlign='left';continue}
+    if(q.text){ctx.globalAlpha=a;ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=q.color;ctx.fillText(q.text,q.px,q.py);ctx.textAlign='left';continue}
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
@@ -3070,7 +3204,7 @@ function setTouchMode(on){touch.on=on;bodyCls('touch',on);phoneView();const d=do
 const mq=q=>typeof matchMedia==='function'&&matchMedia(q).matches;
 setTouchMode(mq('(pointer: coarse)')&&!mq('(pointer: fine)'));
 addEventListener('touchstart',()=>{if(!touch.on)setTouchMode(true)},{passive:true,capture:true});
-const touchLive=()=>!game.bg&&['play','ready','pointEnd'].includes(game.state)&&$('#pause').hidden&&$('#pick').hidden&&$('#sandbox').hidden&&$('#shop').hidden;
+const touchLive=()=>!game.bg&&['play','ready','pointEnd'].includes(game.state)&&$('#pause').hidden&&$('#pick').hidden&&$('#sandbox').hidden&&$('#shop').hidden&&$('#locker').hidden;
 const tKey=(k,on)=>{if(on)keys.add(k);else keys.delete(k)};
 function stickAt(el,x,y){el.style.left=x+'px';el.style.top=y+'px';el.classList.add('on')}
 function stickHome(el){el.style.left='';el.style.top='';el.classList.remove('on');const k=el.querySelector('.knob');if(k)k.style.transform=''}
@@ -3121,7 +3255,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-24-party4';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-locker';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3681,6 +3815,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party')startMatch(a);
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openShop();
+  else if(a==='locker')openLocker();
   else if(a==='fullscreen')toggleFull();
   else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
@@ -3714,7 +3849,7 @@ function togglePause(){
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;if(!fromSetting)saveSettings();refreshOpts()}
-function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#shop').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
+function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#shop').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)

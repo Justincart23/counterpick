@@ -15,9 +15,14 @@ const { load } = require('./env');
   win('sandbox', 'normal', 0); win('demo', 'normal', 0); check(W.coins === 3, 'Sandbox and the title-screen demo never pay out');
   // shop: can't buy what you can't afford; buying spends and equips; equipping owned items is free
   const crown = A.COS.hat.find((i) => i.id === 'crown'), party = A.COS.hat.find((i) => i.id === 'party');
-  A.shopClick('crown'); check(!W.owned.includes('hat:crown') && W.coins === 3, 'an item you cannot afford is not bought');
-  A.shopClick('party'); check(W.owned.includes('hat:party') && W.eq.hat === 'party' && W.coins === 3 - party.price, `buying spends coins and equips (${W.coins})`);
-  const c = W.coins; A.shopClick(''); A.shopClick('party'); check(W.coins === c && W.eq.hat === 'party', 'equipping something you own is free');
+  // a tap tries an item on (nothing is spent); the big button buys or equips it
+  A.shopClick('crown'); check(W.coins === 3 && W.eq.hat !== 'crown', 'tapping an item only tries it on');
+  A.shopGo(); check(!W.owned.includes('hat:crown') && W.coins === 3, 'an item you cannot afford is not bought');
+  A.shopClick('party'); A.shopGo(); check(W.owned.includes('hat:party') && W.eq.hat === 'party' && W.coins === 3 - party.price, `buying spends coins and equips (${W.coins})`);
+  W.eq.hat = ''; const c = W.coins; A.shopClick('party'); A.shopGo(); check(W.coins === c && W.eq.hat === 'party', 'equipping something you own is free');
+  // your shades: kept inside their colour family (they also arrive from other players online), and worn in a match
+  check(JSON.stringify(A.cleanCos({ co: [99, 10], cb: [0, 99] })) === JSON.stringify({ hat: '', pattern: '', trail: '', co: [40, 44], cb: [195, 68] }), 'a shade is kept inside its colour family');
+  check(!('co' in A.cleanCos({ co: 'red' })), 'a broken shade is dropped');
   check(crown.price > party.price, 'the crown is a prize');
   // only looks: equipping cosmetics never changes a fighter's stats
   A.startMatch('cpu'); const P = A.players[0]; check(P.cos.hat === 'party', 'your equipped hat goes on your fighter');
