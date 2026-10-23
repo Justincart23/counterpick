@@ -3078,10 +3078,15 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
       const W0=sides[w],full=W0.pts+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,k=clamp((1.4-game.endT-.15)/.45,0,1),ease=1-Math.pow(1-k,3);
       bigText(match?`${W0.nm} WINS`:`${full?'ROUND':'HALF'} ${W0.nm}`,84,VW/2,VH/2-70,W0.col);
       sides.forEach((S,i)=>{const cx=VW/2+(i?1:-1)*120,cy=VH/2+70,cr=74,from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease);
-        ctx.save();ctx.shadowColor=S.glow;ctx.shadowBlur=f>0?26:0;
-        ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.fillStyle='rgba(12,7,19,.55)';ctx.fill();
-        if(f>0){ctx.save();ctx.beginPath();ctx.rect(cx-cr,cy-cr,cr*2*f,cr*2);ctx.clip();ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.fillStyle=S.col;ctx.fill();ctx.restore()}
-        ctx.shadowBlur=0;ctx.lineWidth=5;ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.stroke();ctx.restore()})}
+        // everything stays inside the circle: the fill is liquid (a soft wavy edge that keeps rippling while it's half full),
+        // lit from within (lighter at the centre, a sheen at the top) and the glow is an inner rim, never spilling outside
+        ctx.save();ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.clip();ctx.fillStyle='rgba(12,7,19,.6)';ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);
+        if(f>0){const edge=cx-cr+cr*2*f,tt=performance.now()/1000,amp=f<.999?5+3*(1-ease):0;
+          ctx.beginPath();ctx.moveTo(cx-cr-2,cy-cr-2);for(let y=-cr-2;y<=cr+2;y+=3)ctx.lineTo(edge+Math.sin(y/13+tt*4.2)*amp+Math.sin(y/29-tt*2.3)*amp*.6,cy+y);ctx.lineTo(cx-cr-2,cy+cr+2);ctx.closePath();
+          try{const lg=ctx.createRadialGradient(cx-cr*.25,cy-cr*.3,cr*.1,cx,cy,cr);lg.addColorStop(0,S.glow);lg.addColorStop(.55,S.col);lg.addColorStop(1,S.col);ctx.fillStyle=lg}catch(e){ctx.fillStyle=S.col}ctx.fill();
+          ctx.fillStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.ellipse(cx-cr*.28,cy-cr*.52,cr*.42,cr*.16,-.35,0,TAU);ctx.fill()}
+        try{const rim=ctx.createRadialGradient(cx,cy,cr*.68,cx,cy,cr);rim.addColorStop(0,'rgba(0,0,0,0)');rim.addColorStop(1,f>0?S.glow:'rgba(0,0,0,0)');ctx.globalAlpha=.45;ctx.fillStyle=rim;ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);ctx.globalAlpha=1}catch(e){}
+        ctx.restore();ctx.lineWidth=5;ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,cr-2.5,0,TAU);ctx.stroke()})}
     else{const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
       bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}}
   ctx.restore()}
@@ -3285,7 +3290,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-closet';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-liquid';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
