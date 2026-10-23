@@ -385,7 +385,7 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
 .menu-screen{justify-content:flex-start;align-items:center;flex-direction:column;background:linear-gradient(90deg,rgba(14,8,22,.86) 0%,rgba(14,8,22,.6) 38%,rgba(14,8,22,.12) 72%,rgba(14,8,22,0));backdrop-filter:none}
 .menu-wrap{display:grid;gap:clamp(16px,4vh,40px);width:min(620px,100%);margin:auto auto auto clamp(0px,7vw,110px);align-content:center}
-.logo{font-family:var(--display);font-weight:400;font-size:clamp(56px,10vw,124px);line-height:.86;margin:0;transform:rotate(-4deg);transform-origin:left bottom;
+.logo{font-family:var(--display);font-weight:400;font-size:clamp(56px,min(10vw,13vh),124px);line-height:.86;margin:0;transform:rotate(-4deg);transform-origin:left bottom;
   text-shadow:0 7px 0 rgba(0,0,0,.35);animation:logoBob 4.5s ease-in-out infinite}
 .logo .a{color:var(--orange)} .logo .b{color:var(--blue);display:inline-block;transform:translateY(.08em)}
 /* the painted logo, once it has loaded (the lettering above stays as the fallback) */
@@ -437,7 +437,7 @@ body.touch .desk-only{display:none!important}
 .hp-wheel i{font-style:normal;color:var(--muted)}
 .hp-wheel .gold{color:#ffe39a;background:rgba(230,181,60,.18)}
 .hp-wheel .boss{color:#1a0e05;background:var(--orange)}
-@media (max-height:520px){.help{gap:8px}.hp-panel{padding:10px}.hp-tabs{margin-bottom:8px}.hp-tabs button{font-size:15px;padding:5px 4px}.hp-page{gap:7px}.hp-steps,.hp-tips{gap:5px}.hp-keys{gap:4px 10px}.hp-steps li,.hp-tips li,.hp-keys,.hp-note{font-size:13px}.hp-steps b,.hp-tips b,.hp-keys dt{font-size:16px}.hp-steps li::before{width:22px;height:22px;font-size:13px}.hp-wheel{padding:6px}.hp-wheel span{font-size:14px;padding:2px 8px}}
+@media (max-height:520px){.help{gap:8px}.hp-panel{padding:10px}.hp-page{max-height:calc(100dvh - 168px);overflow:auto}.help .mlist button{font-size:20px}.hp-tabs{margin-bottom:8px}.hp-tabs button{font-size:15px;padding:5px 4px}.hp-page{gap:7px}.hp-steps,.hp-tips{gap:5px}.hp-keys{gap:4px 10px}.hp-steps li,.hp-tips li,.hp-keys,.hp-note{font-size:13px}.hp-steps b,.hp-tips b,.hp-keys dt{font-size:16px}.hp-steps li::before{width:22px;height:22px;font-size:13px}.hp-wheel{padding:6px}.hp-wheel span{font-size:14px;padding:2px 8px}}
 @media (max-width:560px){.hp-steps li{grid-template-columns:28px 1fr}.hp-steps li span{grid-column:2}.hp-tips li,.hp-keys{grid-template-columns:86px 1fr}.hp-tabs button{font-size:15px}}
 .menu-foot{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));margin:0;font-size:12px;line-height:1.6;color:var(--muted);max-width:min(560px,calc(100% - 200px))}
 .menu-foot .touchnote{display:none;color:var(--hot);font-weight:800}
@@ -496,9 +496,10 @@ body.touch .desk-only{display:none!important}
 .card.theirs{filter:saturate(.75) brightness(.86)}
 /* a team draft: two sections, each headed by its picker's fighter and name; the fan sits a little lower so a lifted card never
    reaches the title */
-.tsec{position:absolute;top:calc(104px + env(safe-area-inset-top,0px));left:calc(50% - 1.9 * min(clamp(150px,16vw,222px), 14vw));transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;
+.tsec{position:absolute;top:calc(104px + env(safe-area-inset-top,0px));left:calc(50% - 1.75 * min(clamp(150px,16vw,222px), 12vw));transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;
   font-family:var(--display);font-size:24px;letter-spacing:.03em;color:var(--pc);padding:4px 16px 4px 8px;border-radius:999px;background:rgba(33,21,47,.85);border:2px solid var(--pc);pointer-events:none}
-.tsec.t2{left:calc(50% + 1.9 * min(clamp(150px,16vw,222px), 14vw))}.tsec canvas{width:34px;height:34px}
+.tsec.t2{left:calc(50% + 1.75 * min(clamp(150px,16vw,222px), 12vw))}
+@media (min-width:761px) and (max-width:1500px){#pick.team .card{width:clamp(130px,12.5vw,190px)}}.tsec canvas{width:34px;height:34px}
 #pick.team #fan{top:52%}
 #pick.team .card.g2{margin-left:0}
 @media (max-width:760px),(max-height:560px){.tsec{top:calc(52px + env(safe-area-inset-top,0px));left:27%;font-size:15px;padding:2px 10px 2px 4px}.tsec.t2{left:73%}.tsec canvas{width:22px;height:22px}#pick.team .card.g2{margin-left:18px}
@@ -506,6 +507,7 @@ body.touch .desk-only{display:none!important}
 .party-acts{display:flex;flex-wrap:wrap;gap:8px}.party-acts .btn[disabled]{opacity:.45;cursor:default}
 .party-acts [data-team='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}.party-acts [data-team='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
 .party-acts .go{background:#7ed321;border-color:#7ed321;color:#0e1a05}
+@media (max-height:820px) and (min-height:521px){.lobby:has(.roster:not([hidden])){gap:8px}.lobby:has(.roster:not([hidden])) .code{font-size:72px}.roster li{padding:6px 12px 6px 32px;font-size:18px}}
 /* a party lobby on a phone held sideways: a smaller code and seats, so the team buttons and Start fit on screen */
 @media (max-height:520px){.lobby:has(.roster:not([hidden])){gap:6px}.lobby:has(.roster:not([hidden])) .code{font-size:44px}.lobby:has(.roster:not([hidden])) .lobby-msg{font-size:13px}.roster{gap:5px}.roster li{font-size:15px;padding:4px 10px 4px 28px}.roster li::before{width:11px;height:11px;margin-top:-5.5px;left:9px}.roster .th{font-size:10px}.party-acts .btn{padding:6px 12px;font-size:15px}}
 .code{font-family:var(--display);font-size:clamp(64px,10vw,120px);line-height:.9;letter-spacing:.12em;color:var(--hot);text-shadow:0 6px 0 rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
@@ -806,7 +808,7 @@ const css=getComputedStyle(document.documentElement);
 const tok=n=>css.getPropertyValue(n).trim();
 const C={night:tok('--night'),night2:tok('--night-2'),text:tok('--text'),orange:tok('--orange'),blue:tok('--blue'),plank:tok('--plank'),hot:tok('--hot'),hp:tok('--hp'),
   oGlow:'#ffc06b',bGlow:'#8fcbff',poison:'#b6e33a',white:'#ffffff',dark:'#121820'};
-const VW=1600,VH=900,PG=3400,BGRAV=1560,TAU=Math.PI*2,BASE_R=18;
+const VW=1600,VH=900,PG=3400,BGRAV=1607,TAU=Math.PI*2,BASE_R=18;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -2053,9 +2055,9 @@ function showHand(p,h,sub,mode,own){pickFor=p;hand=h;if(!own){$('#pick').classLi
   $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
   $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
   const el=$('#fan');el.innerHTML='';el.style.setProperty('--n',h.length);
-  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=own&&hand.length===6?(i<3?i-2.9:i-2.1):i-(hand.length-1)/2;
+  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=own&&hand.length===6?(i<3?i-2.75:i-2.25):i-(hand.length-1)/2;
     b.style.setProperty('--pc',(own?own[i]:p).color);if(own&&!own[i].mine)b.classList.add('theirs');if(own&&hand.length===6&&i===3)b.classList.add('g2');b.style.setProperty('--cat',CAT[c.k]);
-    b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
+    b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${own&&hand.length===6?12:Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
     b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${c.char?'Character':c.up?'Power-up':RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
     b.querySelector('canvas')._card=c;const tl=b.querySelector('.tilt');
@@ -2443,7 +2445,7 @@ function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1
 /* ---------- shooting & blocking ---------- */
 function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1)*(twistOn('frenzy')?.625:1);p.burstLeft=p.s.burst;p.burstT=0}
 function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
-  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+rand(-.015,.015)*(n>1?3:1),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
+  for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
@@ -3284,11 +3286,17 @@ function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Mat
   for(const[w,a]of[[10,.12],[4,.35],[1.6,1]]){ctx.strokeStyle=`rgba(255,${Math.round(96+80*fl)},${Math.round(150+60*fl)},${a*pulse})`;ctx.lineWidth=w;
     ctx.strokeRect(FRAME-1,FRAME-1,W-FRAME*2+2,H-FRAME*2+2)}
   ctx.restore()}
-/* aim guide: the first stretch of your shot's real arc (same speed and drop as the bullet), so you learn how far to aim above */
+/* aim guide: the first stretch of your shot's real arc. It runs the bullet's own physics, step for step: the same spawn
+   point, speed (and the Fast Bullets twist), drop (low gravity, homing's lighter drop) and Accelerator's speed-up, in the
+   same 1/120 s steps, so the dots sit exactly where the shot will fly */
+function aimPath(p,secs=.33){const s=p.s,a=p.aim,c=Math.cos(a),sn=Math.sin(a),sp0=s.bulletSpeed*(twistOn('fast')?1.35:1),h=FIXED,out=[];
+  let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*sp0,vy=sn*sp0;const g=bulletG(s);
+  for(let i=1;i*h<=secs+1e-9;i++){if(s.accel){const v=Math.hypot(vx,vy);if(v<sp0*3.5){const f=1+1.3*h;vx*=f;vy*=f}}vy+=g*h;x+=vx*h;y+=vy*h;out.push([x,y,i*h])}
+  return out}
 function drawAimGuide(){const p=players.find(q=>q.ctrl==='mouse');if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
-  const s=p.s,a=p.aim,g=bulletG(s),c=Math.cos(a),sn=Math.sin(a);let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*s.bulletSpeed,vy=sn*s.bulletSpeed;
-  if(pointSolid(x,y))return;ctx.save();ctx.fillStyle=p.glow;const st=.022,N=15;
-  for(let i=1;i<=N;i++){vy+=g*st;x+=vx*st;y+=vy*st;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
+  const c=Math.cos(p.aim),sn=Math.sin(p.aim);if(pointSolid(p.x+c*(p.r+30),p.y+sn*(p.r+30)))return;
+  const path=aimPath(p),N=15;ctx.save();ctx.fillStyle=p.glow;
+  for(let i=1;i<=N;i++){const q=path[Math.min(path.length-1,Math.round(i*.022/FIXED)-1)];if(!q)break;const[x,y]=q;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
   if(game.hitMark>0){const a=game.hitMark/.22,o=10+(1-a)*5;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.lineCap='round';ctx.globalAlpha=a;
@@ -3363,7 +3371,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-26-draft';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-26-aim';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

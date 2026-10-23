@@ -32,6 +32,7 @@ const suite = [
   run('coop.js', 90, 45),
   run('pads.js'),   // bounce pads never throw a fighter into the top edge
   run('rides.js'),
+  run('aim.js'),   // the aim guide sits exactly on the shot's real path (builds, twists)
   run('party.js'),   // 2v2 online: four screens, lobby and teams, team drafts, a full match, smooth views, a leaver, a rematch
   run('party.js', 90, 45),   // crates push, fall and come back; rope drops fall, hurt and reset
   run('drops.js'),   // Boss Rush: a CPU stand-in fights each boss to the end
