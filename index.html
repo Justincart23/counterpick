@@ -1526,7 +1526,7 @@ function drawHelm(g,R,ex,ey){g.save();g.lineJoin='round';
   g.shadowBlur=0;g.strokeStyle='rgba(255,255,255,.22)';g.lineWidth=Math.max(1,R*.05);for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(x+i*R*.12,y+R*.26);g.lineTo(x+i*R*.12,y+R*.42);g.stroke()}   // the vent
   g.restore()}
 function trailColor(id,fallback,i){if(!id)return fallback;const t=performance.now();if(id==='rainbow')return`hsl(${(t/4+(i||0)*40)%360},95%,65%)`;
-  if(id==='plasma')return`hsl(${185+Math.sin(t/260+(i||0))*55+55},100%,66%)`;if(id==='spark')return((t/70+(i||0))|0)%3?'#fff6a0':'#ffffff';return TRAIL_COL[id]||fallback}
+  if(id==='plasma'){const z=Math.sin(t/37+(i||0)*1.7);return z>.82?'#f6e4ff':z>.2?'#c45bff':'#9b3dff'}   // electric violet that crackles white (Rainbow sweeps every colour; Spark is white and yellow)if(id==='spark')return((t/70+(i||0))|0)%3?'#fff6a0':'#ffffff';return TRAIL_COL[id]||fallback}
 function drawCosPreview(g,k,id){const W2=220,H2=164;g.clearRect(0,0,W2,H2);g.save();
   if(k==='trail'){const col=trailColor(id,'#ffc06b',1);g.lineCap='round';g.strokeStyle=col;const pts=[];for(let i=0;i<=20;i++){const t=i/20;pts.push([20+t*170,110-Math.sin(t*Math.PI)*70+t*20])}
     for(let s=0;s<3;s++){g.globalAlpha=.25+.25*s;g.lineWidth=3+s*3;g.beginPath();pts.slice(s*6).forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()}
@@ -3297,7 +3297,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-liquid';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-plasma';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
