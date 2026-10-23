@@ -218,7 +218,9 @@ body:not(.ingame) #hudbtns{display:none}
 .sb-info{margin:0;min-height:2.6em;color:var(--muted);font-size:14px;line-height:1.35}
 .sb-info b{color:var(--text)}
 .sb-foot{align-items:center}.sb-foot .btn{font-family:var(--display);font-size:16px;padding:8px 14px;border-radius:10px}.sb-foot .sb-go{margin-left:auto}
-#shop,#locker{z-index:2}
+#locker{z-index:2}
+.ward-code{display:flex;gap:8px}.ward-code .text-in{flex:1;min-width:0;text-align:center;font-size:20px;letter-spacing:.2em}.ward-code .btn{font-family:var(--display);border-radius:10px}
+.ward-item.secret .nm{letter-spacing:.2em}.ward-item.secret{border-style:dashed}
 /* the shop, the locker and the sandbox share one look: a rounded dark panel like the pause menu, a stage with your fighter,
    pill tabs, a tidy grid that scrolls inside itself, and a big main button */
 .ward-wrap{padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));box-sizing:border-box}
@@ -537,16 +539,15 @@ body.touch .desk-only{display:none!important}
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
     <p class="playing-as">Playing as <b data-myname>—</b>
-      <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: open the shop"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button></p>
+      <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
       <nav class="mlist" aria-label="Main menu">
         <button type="button" data-act="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0">Single player</button>
         <button type="button" data-act="multi" data-hint="Play with friends online: duel one-on-one, or team up against Survival's waves and bosses." style="--i:1">Multiplayer</button>
-        <button type="button" data-act="locker" data-hint="Your fighter's look: your shade of orange and of blue, and the hats, patterns and trails you own." style="--i:2">Customize</button>
-        <button type="button" data-act="shop" data-hint="Win matches to earn CUUED coins, then spend them on hats, patterns and bullet trails." style="--i:3">Shop</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:4">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:5">Settings</button>
+        <button type="button" data-act="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:2">Customize</button>
+        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
+        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4">Settings</button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
@@ -717,31 +718,19 @@ body.touch .desk-only{display:none!important}
   </div>
 </div>
 
-<div id="shop" class="overlay ward-wrap" hidden>
-  <div class="ward" role="dialog" aria-labelledby="shopTitle">
-    <div class="ward-stage"><canvas id="shopStage" width="360" height="300" aria-hidden="true"></canvas>
-      <div class="ward-name" id="shopPick">Tap an item to try it on</div>
-      <button type="button" class="ward-go" id="shopGo" data-shopact="go" hidden>Buy</button>
-      <p class="ward-msg" id="shopMsg" aria-live="polite"></p></div>
-    <div class="ward-main">
-      <div class="ward-head"><h2 id="shopTitle">Shop</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
-      <div class="ward-tabs" role="tablist" aria-label="Item type"><button type="button" role="tab" data-shopk="hat">Hats</button><button type="button" role="tab" data-shopk="pattern">Patterns</button><button type="button" role="tab" data-shopk="trail">Trails</button></div>
-      <div class="ward-grid" id="shopGrid"></div>
-      <div class="ward-foot"><button type="button" class="btn" data-shopact="locker">Customize</button><button type="button" class="btn" data-shopact="close">Back · Esc</button></div>
-    </div>
-  </div>
-</div>
-
 <div id="locker" class="overlay ward-wrap" hidden>
   <div class="ward" role="dialog" aria-labelledby="lockTitle">
     <div class="ward-stage"><canvas id="lockStage" width="360" height="300" aria-hidden="true"></canvas>
       <div class="ward-side" role="group" aria-label="Preview side"><button type="button" data-side="0">As Orange</button><button type="button" data-side="1">As Blue</button></div>
-      <p class="ward-msg" id="lockMsg" aria-live="polite">You play orange or blue depending on your side. Pick a shade of each.</p></div>
+      <div class="ward-name" id="lockPick" hidden></div>
+      <button type="button" class="ward-go" id="lockGo" data-lockact="go" hidden>Buy</button>
+      <form class="ward-code" id="lockCode" autocomplete="off" hidden><input id="lockCodeIn" class="text-in" inputmode="numeric" maxlength="8" placeholder="Code" aria-label="Secret code"><button type="submit" class="btn">Unlock</button></form>
+      <p class="ward-msg" id="lockMsg" aria-live="polite"></p></div>
     <div class="ward-main">
       <div class="ward-head"><h2 id="lockTitle">Customize</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
       <div class="ward-tabs" role="tablist" aria-label="What to change"><button type="button" role="tab" data-lockk="color">Colour</button><button type="button" role="tab" data-lockk="hat">Hats</button><button type="button" role="tab" data-lockk="pattern">Patterns</button><button type="button" role="tab" data-lockk="trail">Trails</button></div>
       <div class="ward-grid" id="lockGrid"></div>
-      <div class="ward-foot"><button type="button" class="btn" data-lockact="shop">Shop</button><button type="button" class="btn ward-done" data-lockact="close">Done · Esc</button></div>
+      <div class="ward-foot"><button type="button" class="btn ward-done" data-lockact="close">Done · Esc</button></div>
     </div>
   </div>
 </div>
@@ -1219,7 +1208,6 @@ const keys=new Set(),edges=new Set();
 const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0};
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
-  if(!$('#shop').hidden){if(e.code==='Escape'){e.preventDefault();closeShop()}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
   if(sbOpen()){if(e.code==='Escape'||e.code==='Tab'){e.preventDefault();closeSandbox()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
@@ -1386,10 +1374,15 @@ function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=a
 const SHADE={o:{h:[10,40],l:[44,66],s:96,def:[25,55],sw:[[12,52],[18,55],[25,55],[31,54],[37,52],[20,46],[28,62],[16,61]]},
   b:{h:[195,228],l:[46,68],s:92,def:[214,59],sw:[[214,59],[206,55],[199,52],[220,61],[226,63],[210,48],[217,67],[200,62]]}};
 const COS={
-  hat:[{id:'party',n:'Party Hat',price:3},{id:'band',n:'Headband',price:4},{id:'antenna',n:'Antenna',price:4},{id:'horns',n:'Horns',price:5},{id:'halo',n:'Halo',price:6},{id:'tophat',n:'Top Hat',price:8},{id:'crown',n:'Crown',price:12}],
-  pattern:[{id:'stripes',n:'Stripes',price:4},{id:'spots',n:'Spots',price:4},{id:'stars',n:'Stars',price:7}],
-  trail:[{id:'ember',n:'Ember',price:5},{id:'frost',n:'Frost',price:5},{id:'void',n:'Void',price:6},{id:'gold',n:'Gold',price:9},{id:'rainbow',n:'Rainbow',price:14}]};
-const TRAIL_COL={ember:'#ff7a3a',frost:'#9fe8ff',void:'#b874ff',gold:'#ffd36b'};
+  hat:[{id:'party',n:'Party Hat',price:3},{id:'band',n:'Headband',price:4},{id:'antenna',n:'Antenna',price:4},{id:'beanie',n:'Beanie',price:5},{id:'horns',n:'Horns',price:5},{id:'cat',n:'Cat Ears',price:6},{id:'halo',n:'Halo',price:6},
+    {id:'tophat',n:'Top Hat',price:8},{id:'cowboy',n:'Cowboy Hat',price:9},{id:'crown',n:'Crown',price:12},{id:'viking',n:'Viking Helm',price:12},{id:'wizard',n:'Wizard Hat',price:15},
+    {id:'darkhelm',n:'Dark Helm',price:0,secret:1}],   // the secret: shown as ??? until its code is entered
+  pattern:[{id:'stripes',n:'Stripes',price:4},{id:'spots',n:'Spots',price:4},{id:'checker',n:'Checker',price:6},{id:'zigzag',n:'Zigzag',price:6},{id:'stars',n:'Stars',price:7},{id:'hearts',n:'Hearts',price:8},{id:'bolt',n:'Lightning',price:10},{id:'galaxy',n:'Galaxy',price:16}],
+  trail:[{id:'ember',n:'Ember',price:5},{id:'frost',n:'Frost',price:5},{id:'void',n:'Void',price:6},{id:'toxic',n:'Toxic',price:6},{id:'sakura',n:'Sakura',price:8},{id:'shadow',n:'Shadow',price:8},{id:'gold',n:'Gold',price:9},
+    {id:'spark',n:'Spark',price:12},{id:'rainbow',n:'Rainbow',price:14},{id:'plasma',n:'Plasma',price:18}]};
+const TRAIL_COL={ember:'#ff7a3a',frost:'#9fe8ff',void:'#b874ff',gold:'#ffd36b',toxic:'#9be15d',sakura:'#ffa3c7',shadow:'#7b5cc0'};
+// the secret hat's code is checked by its hash, so it isn't sitting in the page as plain text
+const SECRET_H=847270965,secretOk=v=>strSeed('cuued:'+String(v||'').trim())===SECRET_H;
 const wallet={coins:0,earned:0,wins:0,streak:0,best:0,owned:[],eq:{hat:'',pattern:'',trail:''}};
 try{const w=JSON.parse(localStorage.getItem('cuued.wallet')||'{}');if(w&&typeof w==='object')Object.assign(wallet,w)}catch(e){}
 for(const k of['coins','earned','wins','streak','best'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
@@ -1406,7 +1399,7 @@ const shadeCol=(v,f)=>{const F=SHADE[f],[h,l]=v||F.def;return[hslHex(h,F.s,l),hs
 function applyShade(p){const c=p.cos;if(!c||!C.orange)return;const f=p.color===C.orange?'o':p.color===C.blue?'b':null;if(!f)return;const v=c[f==='o'?'co':'cb'];if(v)[p.color,p.glow]=shadeCol(v,f)}
 const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wallet))}catch(e){}};
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
-const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k]).id:'';return o};
+const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k].filter(i=>!i.secret)).id:'';return o};
 // coins for winning a full match, shown on the end screen (once per match)
 function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='online-host'?(game.party?net.hostId:0):game.mode==='cpu'||game.mode==='party'?0:-1;if(game.party&&me>=0)me=players[me].team;   // a party: your team's win is yours
   const el=$('#endCoins');if(el)el.hidden=true;
@@ -1414,55 +1407,53 @@ function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='onl
   if(w===me){const n=(game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2;wallet.coins+=n;wallet.earned+=n;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
-// ---- shop: tap an item to try it on (the stage shows your fighter wearing it), then one button buys or equips it
-let shopK='hat',shopSel='';
-function openShop(k,id){$('#locker').hidden=true;$('#shop').hidden=false;if(k){shopK=k;shopSel=id||''}renderShop();lookLoop();const b=$('#shop [data-shopk].on')||$('#shop [data-shopact=close]');b&&b.focus({preventScroll:true})}
-function closeShop(){$('#shop').hidden=true;focusFirst($('#menu'))}
+// ---- Customize: your look and the shop in one page. Colour: your shades. Hats, Patterns, Trails: everything, owned or not.
+// Tap one you own to wear it; tap one you don't to try it on (the stage shows it), then the big button buys it.
+// The secret hat shows as ??? and opens a code box instead
+let lockK='color',lockSide=0,lockSel=null;
 const COIN_HTML='<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i>';
-function renderShop(msg){refreshWallet();const grid=$('#shopGrid');if(!grid)return;
-  $('#shop').querySelectorAll('[data-shopk]').forEach(b=>{const on=b.dataset.shopk===shopK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-  grid.innerHTML='';
-  for(const it of COS[shopK]){const own=wallet.owned.includes(shopK+':'+it.id),on=wallet.eq[shopK]===it.id,b=document.createElement('button');b.type='button';
-    b.className='ward-item'+(on?' eq':'')+(it.id===shopSel?' sel':'');b.dataset.item=it.id;
-    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${on?'Equipped':own?'Owned':COIN_HTML+' '+it.price}</span>`;
-    const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);drawCosPreview(g,shopK,it.id)}grid.appendChild(b)}
-  const it=COS[shopK].find(i=>i.id===shopSel),go=$('#shopGo');$('#shopPick').textContent=it?it.n:'Tap an item to try it on';
-  if(go){go.hidden=!it;if(it){const own=wallet.owned.includes(shopK+':'+it.id),on=wallet.eq[shopK]===it.id;go.disabled=on||(!own&&wallet.coins<it.price);
-    go.innerHTML=on?'Equipped ✓':own?'Equip':wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}}
-  const m=$('#shopMsg');if(m)m.innerHTML=msg||'Win matches to earn coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise. Looks only: nobody can buy an edge.'}
-function shopClick(id){shopSel=id;sfx('tick',true);renderShop()}
-function shopGo(){const it=COS[shopK].find(i=>i.id===shopSel);if(!it)return;const key=shopK+':'+it.id;
-  if(wallet.owned.includes(key)){wallet.eq[shopK]=it.id;saveWallet();sfx('pick',true);renderShop(`Equipped <b>${it.n}</b>.`);return}
-  if(wallet.coins<it.price){sfx('empty',true);renderShop(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more.`);return}
-  wallet.coins-=it.price;wallet.owned.push(key);wallet.eq[shopK]=it.id;saveWallet();sfx('round',true);renderShop(`Bought and equipped <b>${it.n}</b>!`)}
-{const root=$('#shop');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
-  if((b=t.closest('[data-shopk]'))){shopK=b.dataset.shopk;shopSel='';sfx('tick',true);renderShop();return}
-  if((b=t.closest('[data-item]'))){shopClick(b.dataset.item);return}
-  if((b=t.closest('[data-shopact]'))){const a=b.dataset.shopact;if(a==='go')shopGo();else if(a==='locker'){$('#shop').hidden=true;openLocker()}else closeShop()}})}
-// ---- the locker (Customize): your shades, and equip anything you own; a locked item opens the shop on it
-let lockK='color',lockSide=0;
-function openLocker(){$('#shop').hidden=true;$('#locker').hidden=false;renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
+const owns=(k,id)=>!id||wallet.owned.includes(k+':'+id);
+function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??null}renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
-function renderLocker(){refreshWallet();const root=$('#locker'),grid=$('#lockGrid');if(!grid)return;
+const openShop=(k,id)=>openLocker(k||'hat',id);
+function lockLook(){const it=lockK!=='color'&&lockSel?COS[lockK].find(i=>i.id===lockSel):null;if(it&&it.secret&&!owns(lockK,it.id))return wallet.eq;   // a locked secret is never shown
+  return lockK!=='color'&&lockSel!=null?{...wallet.eq,[lockK]:lockSel}:wallet.eq}
+function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lockGrid');if(!grid)return;
   root.querySelectorAll('[data-lockk]').forEach(b=>{const on=b.dataset.lockk===lockK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
   root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));
-  grid.innerHTML='';
-  if(lockK==='color'){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
+  grid.innerHTML='';const col=lockK==='color';root.querySelector('.ward-side').hidden=!col;
+  if(col){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
       box.innerHTML=`<p class="lbl">${f==='o'?'Your orange':'Your blue'}</p><div class="sw">${F.sw.map(([h,l])=>`<button type="button" data-shade="${f}:${h}:${l}" style="background:${hslHex(h,F.s,l)}" class="${h===cur[0]&&l===cur[1]?'on':''}" aria-label="${f==='o'?'Orange':'Blue'} shade"></button>`).join('')}</div>
-        <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}
-    $('#lockMsg').textContent='You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.';return}
-  const items=[{id:'',n:'None',price:0},...COS[lockK]];
-  for(const it of items){const own=!it.id||wallet.owned.includes(lockK+':'+it.id),on=(wallet.eq[lockK]||'')===it.id,b=document.createElement('button');b.type='button';
-    b.className='ward-item'+(on?' eq sel':'')+(own?'':' locked');b.dataset.lock=it.id;
-    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${it.n}</span><span class="pr${own?' own':''}">${on?'Equipped':own?'Tap to wear':'🔒 '+COIN_HTML+' '+it.price}</span>`;
-    const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(it.id)drawCosPreview(g,lockK,it.id);else drawCosPreview(g,lockK==='trail'?'hat':lockK,'')}grid.appendChild(b)}
-  $('#lockMsg').textContent=`Tap one you own to wear it. Locked ones are in the shop.`}
+        <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}}
+  else for(const it of [{id:'',n:'None',price:0},...COS[lockK]]){const own=owns(lockK,it.id),wear=(wallet.eq[lockK]||'')===it.id,hid=it.secret&&!own,b=document.createElement('button');b.type='button';
+    b.className='ward-item'+(wear?' eq':'')+(lockSel===it.id||(lockSel==null&&wear)?' sel':'')+(hid?' secret':'');b.dataset.lock=it.id;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${wear?'Wearing':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
+    const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(hid)drawSecret(g);else drawCosPreview(g,lockK==='trail'&&!it.id?'hat':lockK,it.id)}grid.appendChild(b)}
+  // the stage's button: Wear, Wearing, Buy, Need more; a secret: the code box
+  const it=!col&&lockSel!=null?[{id:'',n:'None',price:0},...COS[lockK]].find(i=>i.id===lockSel):null,go=$('#lockGo'),nm=$('#lockPick'),code=$('#lockCode');
+  const own=it&&owns(lockK,it.id),hid=it&&it.secret&&!own;nm.hidden=!it;nm.textContent=it?(hid?'???':it.n):'';code.hidden=!hid;go.hidden=!it||hid;
+  if(it&&!hid){const wear=(wallet.eq[lockK]||'')===it.id;go.disabled=wear||(!own&&wallet.coins<it.price);
+    go.innerHTML=wear?'Wearing ✓':own?'Wear':wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
+  $('#lockMsg').innerHTML=msg||(col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
+    :hid?'Something special. Only a code unlocks it.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.')}
+// the secret's tile: a dark silhouette with a question mark
+function drawSecret(g){g.save();g.translate(110,92);g.fillStyle='#14141c';g.beginPath();g.arc(0,0,40,0,TAU);g.fill();g.fillStyle='#ffd36b';g.font='54px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',0,2);g.restore()}
+function lockPick(id){lockSel=id;const own=owns(lockK,id);if(own){wallet.eq[lockK]=id;saveWallet();sfx('pick',true)}else sfx('tick',true);renderLocker()}
+function lockGo(){const it=COS[lockK]&&COS[lockK].find(i=>i.id===lockSel);if(!it)return;const key=lockK+':'+it.id;
+  if(owns(lockK,it.id)){wallet.eq[lockK]=it.id;saveWallet();sfx('pick',true);renderLocker(`Wearing <b>${it.n}</b>.`);return}
+  if(it.secret)return;
+  if(wallet.coins<it.price){sfx('empty',true);renderLocker(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more.`);return}
+  wallet.coins-=it.price;wallet.owned.push(key);wallet.eq[lockK]=it.id;saveWallet();sfx('round',true);renderLocker(`Bought <b>${it.n}</b>, and you're wearing it!`)}
+function lockUnlock(v){const it=COS.hat.find(i=>i.secret);if(!it)return false;
+  if(!secretOk(v)){sfx('empty',true);renderLocker("That's not it.");return false}
+  if(!wallet.owned.includes('hat:'+it.id))wallet.owned.push('hat:'+it.id);wallet.eq.hat=it.id;lockK='hat';lockSel=it.id;saveWallet();sfx('round',true);renderLocker(`Unlocked the <b>${it.n}</b>!`);return true}
 {const root=$('#locker');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
-  if((b=t.closest('[data-lockk]'))){lockK=b.dataset.lockk;sfx('tick',true);renderLocker();return}
+  if((b=t.closest('[data-lockk]'))){lockK=b.dataset.lockk;lockSel=null;sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-side]'))){lockSide=+b.dataset.side;sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-shade]'))){const[f,h,l]=b.dataset.shade.split(':');wallet.eq[f==='o'?'co':'cb']=cleanShade([+h,+l],f);lockSide=f==='o'?0:1;saveWallet();sfx('tick',true);renderLocker();return}
-  if((b=t.closest('[data-lock]'))){const id=b.dataset.lock;if(id&&!wallet.owned.includes(lockK+':'+id)){sfx('tick',true);openShop(lockK,id);return}wallet.eq[lockK]=id;saveWallet();sfx('pick',true);renderLocker();return}
-  if((b=t.closest('[data-lockact]'))){if(b.dataset.lockact==='shop')openShop();else closeLocker()}});
+  if((b=t.closest('[data-lock]'))){lockPick(b.dataset.lock);if(!$('#lockCode').hidden){const i=$('#lockCodeIn');i.value='';i.focus()}return}
+  if((b=t.closest('[data-lockact]'))){if(b.dataset.lockact==='go')lockGo();else closeLocker()}});
+  $('#lockCode').addEventListener('submit',e=>{e.preventDefault();initAudio();lockUnlock($('#lockCodeIn').value)});
   root.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-light]');if(!r)return;const f=r.dataset.light,k=f==='o'?'co':'cb',cur=wallet.eq[k]||SHADE[f].def;
     wallet.eq[k]=cleanShade([cur[0],+r.value],f);lockSide=f==='o'?0:1;saveWallet();root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide))})}
 /* the stage: your fighter on a ledge under the moon, bobbing gently, in your shade, with your hat and pattern, and a shot
@@ -1479,19 +1470,31 @@ function drawLook(cvs,look,side,t){const g=cvs&&cvs.getContext('2d');if(!g)retur
   try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,col);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=col}
   g.beginPath();g.arc(0,0,R,0,TAU);g.fill();drawPattern(g,look.pattern,R);
   g.fillStyle='#16121c';const shut=(t%3.4)<.12;for(const s2 of[-1,1]){g.beginPath();g.ellipse(R*.2+s2*R*.24,-R*.12,R*.1,shut?R*.03:R*.2,0,0,TAU);g.fill()}
-  drawHat(g,look.hat,R,glow);g.restore()}
+  drawHat(g,look.hat,R,glow,R*.2,-R*.12);g.restore()}
 let lookRaf=0;
-function lookLoop(){if(lookRaf)return;const step=now=>{const sh=!$('#shop').hidden,lk=!$('#locker').hidden;if(!sh&&!lk){lookRaf=0;return}const t=now/1000;
-  if(sh)drawLook($('#shopStage'),{...wallet.eq,[shopK]:shopSel||wallet.eq[shopK]},0,t);
-  if(lk)drawLook($('#lockStage'),wallet.eq,lockSide,t);lookRaf=requestAnimationFrame(step)};lookRaf=requestAnimationFrame(step)}
+function lookLoop(){if(lookRaf)return;const step=now=>{if($('#locker').hidden){lookRaf=0;return}drawLook($('#lockStage'),lockLook(),lockSide,now/1000);lookRaf=requestAnimationFrame(step)};lookRaf=requestAnimationFrame(step)}
 // ---- drawing cosmetics (shared by fighters and shop previews). Body colour stays the team colour so fighters stay readable
 function drawPattern(g,id,R){if(!id)return;g.save();g.beginPath();g.arc(0,0,R,0,TAU);g.clip();g.fillStyle='rgba(255,255,255,.22)';
   if(id==='stripes')for(let i=-3;i<=3;i++){g.save();g.rotate(-.5);g.fillRect(i*R*.5-R*.1,-R*2,R*.22,R*4);g.restore()}
   else if(id==='spots')for(const[x,y,r]of[[-.45,-.35,.2],[.35,.45,.24],[.5,-.3,.14],[-.25,.55,.13],[-.05,-.05,.1]]){g.beginPath();g.arc(x*R,y*R,r*R,0,TAU);g.fill()}
+  else if(id==='checker'){const q=R*.42;for(let i=-3;i<3;i++)for(let j=-3;j<3;j++)if((i+j)&1)g.fillRect(i*q,j*q,q,q)}
+  else if(id==='zigzag'){g.strokeStyle='rgba(255,255,255,.26)';g.lineWidth=R*.14;g.lineJoin='miter';for(const yy of[-.35,.25]){g.beginPath();for(let i=0;i<=8;i++){const x=-R+i*R/4;g.lineTo(x,yy*R+(i%2?-1:1)*R*.13)}g.stroke()}}
+  else if(id==='hearts')for(const[x,y,r]of[[-.42,.32,.2],[.42,-.4,.17],[.45,.42,.13]]){const X=x*R,Y=y*R,S=r*R;g.beginPath();g.moveTo(X,Y+S*.9);g.bezierCurveTo(X-S*1.4,Y,X-S*.8,Y-S*1.1,X,Y-S*.35);g.bezierCurveTo(X+S*.8,Y-S*1.1,X+S*1.4,Y,X,Y+S*.9);g.fill()}
+  else if(id==='bolt'){g.fillStyle='rgba(255,236,120,.55)';g.beginPath();const P=[[.15,-1],[-.35,.08],[0,.08],[-.2,1],[.42,-.18],[.06,-.18],[.3,-1]];P.forEach(([x,y],i)=>i?g.lineTo(x*R,y*R):g.moveTo(x*R,y*R));g.closePath();g.fill()}
+  else if(id==='galaxy'){try{const gg=g.createRadialGradient(R*.2,-R*.2,R*.1,0,0,R);gg.addColorStop(0,'rgba(170,110,255,.55)');gg.addColorStop(.6,'rgba(60,40,140,.45)');gg.addColorStop(1,'rgba(10,8,40,.6)');g.fillStyle=gg;g.fillRect(-R,-R,R*2,R*2)}catch(e){}
+    const tw=performance.now()/500;g.fillStyle='#ffffff';for(let i=0;i<9;i++){const a=i*2.4,d=R*(.2+.7*((i*37%10)/10));g.globalAlpha=.5+.5*Math.sin(tw+i);g.beginPath();g.arc(Math.cos(a)*d,Math.sin(a)*d,R*.04,0,TAU);g.fill()}g.globalAlpha=1}
   else if(id==='stars')for(const[x,y,r]of[[-.42,.3,.22],[.4,-.42,.18],[.48,.42,.14]]){g.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,rr=(i%2?.45:1)*r*R;g.lineTo(x*R+Math.cos(a)*rr,y*R+Math.sin(a)*rr)}g.fill()}
   g.restore()}
-function drawHat(g,id,R,col){if(!id)return;g.save();g.translate(0,-R*.82);g.lineJoin='round';g.lineCap='round';const k=R/18;
-  if(id==='party'){g.fillStyle='#ff5a8a';g.beginPath();g.moveTo(-9*k,2*k);g.lineTo(0,-24*k);g.lineTo(9*k,2*k);g.closePath();g.fill();g.fillStyle='#ffd36b';for(const[x,y]of[[-3,-4],[3,-12],[-1,-17]]){g.beginPath();g.arc(x*k,y*k,1.8*k,0,TAU);g.fill()}g.fillStyle='#fff';g.beginPath();g.arc(0,-25*k,3.2*k,0,TAU);g.fill()}
+function drawHat(g,id,R,col,ex=0,ey=-R*.12){if(!id)return;if(id==='darkhelm'){drawHelm(g,R,ex,ey);return}g.save();g.translate(0,-R*.82);g.lineJoin='round';g.lineCap='round';const k=R/18;
+  if(id==='beanie'){g.fillStyle='#e84a5f';g.beginPath();g.arc(0,3*k,13*k,Math.PI,0);g.fill();g.fillStyle='#ff8394';g.fillRect(-14*k,0,28*k,5*k);g.fillStyle='#ffffff';g.beginPath();g.arc(0,-11*k,4.2*k,0,TAU);g.fill()}
+  else if(id==='cat'){for(const s of[-1,1]){g.fillStyle='#2b2236';g.beginPath();g.moveTo(s*3*k,3*k);g.lineTo(s*9*k,-14*k);g.lineTo(s*15*k,2*k);g.closePath();g.fill();g.fillStyle='#ff9ec4';g.beginPath();g.moveTo(s*6*k,1*k);g.lineTo(s*9*k,-8*k);g.lineTo(s*12*k,1*k);g.closePath();g.fill()}}
+  else if(id==='cowboy'){g.fillStyle='#9a5b2e';g.beginPath();g.ellipse(0,1*k,21*k,4.5*k,0,0,TAU);g.fill();g.beginPath();g.moveTo(-9*k,1*k);g.lineTo(-8*k,-12*k);g.quadraticCurveTo(0,-7*k,8*k,-12*k);g.lineTo(9*k,1*k);g.closePath();g.fill();
+    g.fillStyle='#5a3214';g.fillRect(-9*k,-3*k,18*k,3.5*k);g.fillStyle='rgba(255,255,255,.18)';g.beginPath();g.ellipse(-8*k,0,8*k,1.6*k,0,0,TAU);g.fill()}
+  else if(id==='viking'){for(const s of[-1,1]){g.fillStyle='#f1e6cf';g.beginPath();g.moveTo(s*10*k,-3*k);g.quadraticCurveTo(s*22*k,-6*k,s*21*k,-20*k);g.quadraticCurveTo(s*17*k,-10*k,s*8*k,-8*k);g.closePath();g.fill()}
+    g.fillStyle='#9aa3b2';g.beginPath();g.arc(0,3*k,13*k,Math.PI,0);g.fill();g.fillStyle='#c9a35a';g.fillRect(-14*k,0,28*k,4.5*k);g.fillRect(-1.5*k,-10*k,3*k,10*k);g.fillStyle='rgba(255,255,255,.25)';g.beginPath();g.arc(-4*k,-4*k,4*k,0,TAU);g.fill()}
+  else if(id==='wizard'){g.fillStyle='#5b3fa8';g.beginPath();g.moveTo(-11*k,1*k);g.quadraticCurveTo(-2*k,-14*k,7*k,-30*k);g.quadraticCurveTo(4*k,-12*k,11*k,1*k);g.closePath();g.fill();g.beginPath();g.ellipse(0,1*k,17*k,3.6*k,0,0,TAU);g.fill();
+    g.fillStyle='#ffd36b';for(const[x,y,r]of[[-2,-6,1.8],[3,-15,1.4],[5,-24,1.1],[-5,-1,1.2]]){g.beginPath();g.arc(x*k,y*k,r*k,0,TAU);g.fill()}}
+  else if(id==='party'){g.fillStyle='#ff5a8a';g.beginPath();g.moveTo(-9*k,2*k);g.lineTo(0,-24*k);g.lineTo(9*k,2*k);g.closePath();g.fill();g.fillStyle='#ffd36b';for(const[x,y]of[[-3,-4],[3,-12],[-1,-17]]){g.beginPath();g.arc(x*k,y*k,1.8*k,0,TAU);g.fill()}g.fillStyle='#fff';g.beginPath();g.arc(0,-25*k,3.2*k,0,TAU);g.fill()}
   else if(id==='crown'){g.fillStyle='#ffd36b';g.strokeStyle='#b8730a';g.lineWidth=1.5*k;g.beginPath();g.moveTo(-12*k,2*k);g.lineTo(-13*k,-12*k);g.lineTo(-6*k,-5*k);g.lineTo(0,-15*k);g.lineTo(6*k,-5*k);g.lineTo(13*k,-12*k);g.lineTo(12*k,2*k);g.closePath();g.fill();g.stroke();
     g.fillStyle='#ff5a6e';g.beginPath();g.arc(0,-3*k,2.2*k,0,TAU);g.fill()}
   else if(id==='halo'){g.strokeStyle='#fff3b0';g.lineWidth=3*k;g.globalAlpha=.85+.15*Math.sin(performance.now()/300);g.beginPath();g.ellipse(0,-12*k,12*k,4*k,0,0,TAU);g.stroke()}
@@ -1501,7 +1504,22 @@ function drawHat(g,id,R,col){if(!id)return;g.save();g.translate(0,-R*.82);g.line
     const w=Math.sin(performance.now()/160)*3*k;g.beginPath();g.moveTo(0,0);g.lineTo(-10*k,-4*k+w);g.lineTo(-9*k,2*k+w);g.closePath();g.fill();g.beginPath();g.moveTo(0,2*k);g.lineTo(-11*k,6*k-w);g.lineTo(-7*k,8*k-w);g.closePath();g.fill()}
   else if(id==='antenna'){g.strokeStyle='#1a1424';g.lineWidth=2*k;for(const s of[-1,1]){g.beginPath();g.moveTo(s*4*k,0);g.quadraticCurveTo(s*6*k,-12*k,s*10*k,-18*k);g.stroke();g.fillStyle=col||'#ffd36b';g.beginPath();g.arc(s*10*k,-18*k,3*k,0,TAU);g.fill()}}
   g.restore()}
-function trailColor(id,fallback,i){if(!id)return fallback;if(id==='rainbow')return`hsl(${(performance.now()/4+(i||0)*40)%360},95%,65%)`;return TRAIL_COL[id]||fallback}
+/* the secret Dark Helm: an original helmet in the game's own look: glossy black, a flared back that sweeps down past the
+   head, a brow ridge and a crest, and two glowing red eyes (they look where the fighter aims) above a small vent */
+function drawHelm(g,R,ex,ey){g.save();g.lineJoin='round';
+  try{const sh=g.createLinearGradient(-R,-R*1.3,R*.8,R*.8);sh.addColorStop(0,'#4a4a5c');sh.addColorStop(.45,'#1b1b26');sh.addColorStop(1,'#08080d');g.fillStyle=sh}catch(e){g.fillStyle='#14141c'}
+  g.beginPath();g.moveTo(-R*1.24,R*.66);g.lineTo(-R*1.04,R*.02);g.quadraticCurveTo(-R*1.08,-R*1.26,0,-R*1.3);g.quadraticCurveTo(R*1.08,-R*1.26,R*1.04,R*.02);g.lineTo(R*1.24,R*.66);
+  g.quadraticCurveTo(R*.96,R*.74,R*.78,R*.5);g.lineTo(R*.62,R*.62);g.quadraticCurveTo(0,R*.8,-R*.62,R*.62);g.lineTo(-R*.78,R*.5);g.quadraticCurveTo(-R*.96,R*.74,-R*1.24,R*.66);g.closePath();g.fill();
+  g.strokeStyle='rgba(255,255,255,.1)';g.lineWidth=Math.max(1.5,R*.06);g.stroke();
+  g.strokeStyle='rgba(255,255,255,.16)';g.lineWidth=Math.max(1.5,R*.07);g.beginPath();g.moveTo(0,-R*1.28);g.lineTo(0,-R*.42);g.stroke();   // the crest
+  g.strokeStyle='#05050a';g.lineWidth=Math.max(2,R*.12);g.beginPath();g.moveTo(-R*.82,-R*.36);g.quadraticCurveTo(0,-R*.56,R*.82,-R*.36);g.stroke();   // the brow ridge
+  g.fillStyle='rgba(255,255,255,.2)';g.beginPath();g.ellipse(-R*.48,-R*.82,R*.3,R*.12,-.5,0,TAU);g.fill();   // gloss
+  const x=ex*.7,y=ey*.6;g.shadowColor='#ff2a2a';g.shadowBlur=R*.6;g.fillStyle='#ff3b3b';   // the eyes, glowing red
+  for(const s of[-1,1]){g.beginPath();g.moveTo(x+s*R*.1,y-R*.12);g.lineTo(x+s*R*.46,y-R*.2);g.lineTo(x+s*R*.4,y+R*.06);g.lineTo(x+s*R*.12,y+R*.05);g.closePath();g.fill()}
+  g.shadowBlur=0;g.strokeStyle='rgba(255,255,255,.22)';g.lineWidth=Math.max(1,R*.05);for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(x+i*R*.12,y+R*.26);g.lineTo(x+i*R*.12,y+R*.42);g.stroke()}   // the vent
+  g.restore()}
+function trailColor(id,fallback,i){if(!id)return fallback;const t=performance.now();if(id==='rainbow')return`hsl(${(t/4+(i||0)*40)%360},95%,65%)`;
+  if(id==='plasma')return`hsl(${185+Math.sin(t/260+(i||0))*55+55},100%,66%)`;if(id==='spark')return((t/70+(i||0))|0)%3?'#fff6a0':'#ffffff';return TRAIL_COL[id]||fallback}
 function drawCosPreview(g,k,id){const W2=220,H2=164;g.clearRect(0,0,W2,H2);g.save();
   if(k==='trail'){const col=trailColor(id,'#ffc06b',1);g.lineCap='round';g.strokeStyle=col;const pts=[];for(let i=0;i<=20;i++){const t=i/20;pts.push([20+t*170,110-Math.sin(t*Math.PI)*70+t*20])}
     for(let s=0;s<3;s++){g.globalAlpha=.25+.25*s;g.lineWidth=3+s*3;g.beginPath();pts.slice(s*6).forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()}
@@ -2964,7 +2982,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   const hurt=p.hurtT>0,low=p.hp<p.s.maxHp*.35;
   const shut=hurt||performance.now()<(p.blinkT||0);for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,shut?R*.04:R*.2,0,0,TAU);ctx.fill()}
   if(low&&!hurt){ctx.strokeStyle='#16121c';ctx.lineWidth=Math.max(2,R*.08);ctx.lineCap='round';ctx.beginPath();for(const s of[-1,1]){ctx.moveTo(ex+s*R*.14,ey-R*.3);ctx.lineTo(ex+s*R*.36,ey-R*.38)}ctx.stroke()}
-  if(p.cos&&p.cos.hat)drawHat(ctx,p.cos.hat,R,p.glow);
+  if(p.cos&&p.cos.hat)drawHat(ctx,p.cos.hat,R,p.glow,ex,ey);
   ctx.restore();
   if(berserkOn(p)){ctx.save();ctx.globalCompositeOperation='lighter';const g2=ctx.createRadialGradient(0,0,R*.6,0,0,R+16);
     g2.addColorStop(0,'rgba(255,60,60,0)');g2.addColorStop(1,`rgba(255,70,60,${.35+.2*Math.sin(performance.now()/90)})`);ctx.fillStyle=g2;ctx.beginPath();ctx.arc(0,0,R+16,0,TAU);ctx.fill();ctx.restore()}
@@ -3216,7 +3234,7 @@ function setTouchMode(on){touch.on=on;bodyCls('touch',on);phoneView();const d=do
 const mq=q=>typeof matchMedia==='function'&&matchMedia(q).matches;
 setTouchMode(mq('(pointer: coarse)')&&!mq('(pointer: fine)'));
 addEventListener('touchstart',()=>{if(!touch.on)setTouchMode(true)},{passive:true,capture:true});
-const touchLive=()=>!game.bg&&['play','ready','pointEnd'].includes(game.state)&&$('#pause').hidden&&$('#pick').hidden&&$('#sandbox').hidden&&$('#shop').hidden&&$('#locker').hidden;
+const touchLive=()=>!game.bg&&['play','ready','pointEnd'].includes(game.state)&&$('#pause').hidden&&$('#pick').hidden&&$('#sandbox').hidden&&$('#locker').hidden;
 const tKey=(k,on)=>{if(on)keys.add(k);else keys.delete(k)};
 function stickAt(el,x,y){el.style.left=x+'px';el.style.top=y+'px';el.classList.add('on')}
 function stickHome(el){el.style.left='';el.style.top='';el.classList.remove('on');const k=el.querySelector('.knob');if(k)k.style.transform=''}
@@ -3267,7 +3285,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-walk';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-closet';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3826,8 +3844,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   const a=b.dataset.act,ov=b.closest('.overlay');sfx('pick',true);showMenuMsg('');
   if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party')startMatch(a);
   else if(a==='loadout')openSandbox();
-  else if(a==='shop')openShop();
-  else if(a==='locker')openLocker();
+  else if(a==='shop')openLocker('hat');
+  else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
   else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
@@ -3861,7 +3879,7 @@ function togglePause(){
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;if(!fromSetting)saveSettings();refreshOpts()}
-function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#shop').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
+function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
