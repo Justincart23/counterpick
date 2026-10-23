@@ -944,7 +944,7 @@ const MAPS=[
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,40],[740,404,120,16,3],[180,300,240,38],[1180,300,240,38]],sp:[[400,740],[1200,740]]},
  {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
  {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
- {name:'Piston',rects:[[0,780,1600,120],[520,520,40,260,1],[1040,520,40,260,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
+ {name:'Piston',rects:[[0,780,1600,120],[520,560,40,220,1],[1040,560,40,220,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
  {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],crates:[[560,720,60],[980,720,60]],sp:[[200,740],[1400,740]]},
  {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
@@ -995,15 +995,21 @@ for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.
 /* Party arenas (3 or 4 fighters, every one for themselves): 1920 x 1080, shown whole on any screen (phones too), with four
    spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
 MAPS.push(
- {name:'Plaza',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[120,840,320,40],[1480,840,320,40],[760,860,400,40],[420,690,300,40],[1200,690,300,40],[60,540,260,38],[1600,540,260,38],
-   [810,520,300,38],[880,360,160,38],[30,984,90,16,3],[1800,984,90,16,3]],crates:[[600,940,60],[1260,940,60]],sp:[[230,960],[1690,960],[190,500],[1730,500]]},
- {name:'Islands',party:1,big:1,w:1920,h:1080,rects:[[0,980,520,100],[1400,980,520,100],[760,900,400,180],[540,780,220,40],[1160,780,220,40],[160,700,260,40],[1500,700,260,40],
-   [820,740,280,38],[860,560,200,38],[380,520,220,38],[1320,520,220,38]],sp:[[260,940],[1660,940],[290,660],[1630,660]]},
- {name:'Gearworks',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[640,780,50,220,1],[1230,780,50,220,1],[470,870,200,40],[1250,870,200,40],[100,820,300,40],[1520,820,300,40],
-   [140,620,260,40],[1520,620,260,40],[810,700,300,40],[560,560,200,38],[1160,560,200,38],[830,420,260,38]],
-   movers:[{x:430,y:640,w:160,h:30,mx:0,my:200,period:4},{x:1330,y:640,w:160,h:30,mx:0,my:200,period:4,phase:.5}],swings:[{ax:960,len:500,w:160,h:30}],sp:[[230,960],[1690,960],[270,580],[1650,580]]},
- {name:'Ropeyard',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[80,820,260,40],[1580,820,260,40],[700,840,520,40],[360,660,240,40],[1320,660,240,40],[80,500,240,38],[1600,500,240,38],[810,480,300,38]],
-   hangs:[{x:440,y:830,w:180,ay:700},{x:1300,y:830,w:180,ay:700},{x:860,y:640,w:200,ay:518}],crates:[[700,940,60],[1160,940,60]],sp:[[200,960],[1720,960],[200,780],[1720,780]]});   // never under a rope drop (that makes a pocket)
+ // Plaza: wide open with long sightlines (long-range builds shine): two side towers, a low bridge, a crown perch
+ {name:'Plaza',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[120,760,180,240],[1620,760,180,240],[300,880,70,120],[1550,880,70,120],[660,820,600,40],[400,680,220,40],[1300,680,220,40],[860,560,200,38],
+   [30,984,80,16,3],[1810,984,80,16,3]],crates:[[520,940,60],[1340,940,60]],sp:[[210,720],[1710,720],[230,960],[1690,960]]},
+ // Islands: two shores over pits, islands and a rock in the middle, pads up to the high ledges (mobility and lobs shine)
+ {name:'Islands',party:1,big:1,w:1920,h:1080,rects:[[0,960,460,120],[1460,960,460,120],[580,840,220,40],[1120,840,220,40],[860,740,200,80],[160,620,220,38],[1540,620,220,38],
+   [820,520,280,38],[240,944,70,16,3],[1610,944,70,16,3]],sp:[[270,580],[1650,580],[230,920],[1690,920]]},
+ // Gearworks: close quarters. Two walls make a pit room with one lift; decks step up to a top bar (bouncing and blasting shots shine)
+ {name:'Gearworks',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[700,780,50,220,1],[1170,780,50,220,1],[100,800,320,40],[1500,800,320,40],[380,620,260,40],[1280,620,260,40],[760,460,400,38]],
+   movers:[{x:870,y:620,w:180,h:30,mx:0,my:300,period:4.5}],sp:[[260,760],[1660,760],[230,960],[1690,960]]},
+ // Ropeyard: three rope drops (the middle one hangs under the top platform), a middle plank, crates for cover, and side ledges a jump up (nothing hangs over them)
+ {name:'Ropeyard',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[60,780,240,38],[1620,780,240,38],[760,820,400,40],[860,420,200,38],[110,984,80,16,3],[1730,984,80,16,3]],
+   hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:458}],crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[200,960],[1720,960]]},
+ // Spire: hold the tower in the middle; stepped approaches and pads up to the outer perches (arcing and homing shots shine)
+ {name:'Spire',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[880,560,160,440],[520,860,180,40],[1220,860,180,40],[700,700,160,40],[1060,700,160,40],[300,900,40,100,1],[1580,900,40,100,1],
+   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[200,960],[1720,960]]});
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -2801,7 +2807,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     if(p.grounded&&Math.random()<dt*.18)jump=true}
   else if(ai.mode==='hunt'){dir=Math.sign(dx)||1;
     // stacked vertically with something between us: commit to one side and go around
-    if(Math.abs(dy)>110&&(ai.side||Math.abs(dx)<140)&&Math.abs(dx)<320){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
+    if((dy>110||dy<-110&&!onewayAbove(p)&&!(e.ground&&e.ground.oneway))&&(ai.side||Math.abs(dx)<140)&&Math.abs(dx)<320){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
       if(!ai.side){const g=p.ground;ai.sideG=g;const safeAt=x=>solids.some(r=>!r.bound&&!r.swing&&!r.oneway&&x>r.x&&x<r.x+r.w&&r.y>p.y&&r.y-p.y<420);   /* when only one end of the ledge drops onto solid ground, that end */
       const sl=g&&!g.bound&&safeAt(g.x-p.r-6),sr=g&&!g.bound&&safeAt(g.x+g.w+p.r+6);ai.side=sl!==sr?(sl?-1:1):p.x<W/2?1:-1}dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,p.r+30,5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
@@ -3306,7 +3312,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-embers';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-arenas2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3735,7 +3741,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     // the other fighter is drawn a little in the past (INTERP_MS), exactly along its real path between two snapshots,
     // so it moves smoothly however unevenly snapshots arrive; past the newest snapshot it coasts on its last velocity briefly
     // 60 snapshots a second on a direct or TURN link (the fast lane is open): a shorter buffer is enough
-    const base=net.relayed?INTERP_MS+35:fastLane()?INTERP_FAST:INTERP_MS,want=clamp(base+(net.lateMax||0)*.8-15,base,170),slew=dt*1000*.1;
+    const base=net.relayed?INTERP_MS+35:fastLane()?INTERP_FAST:INTERP_MS,want=clamp(base+(net.lateMax||0)*(players.length>2?1:.8)-(players.length>2?10:15),base,170),slew=dt*1000*.1;
     net.interpMs=net.interpMs==null?want:net.interpMs+clamp(want-net.interpMs,-slew,slew);
     if(net.clkS==null||Math.abs(net.clk-net.clkS)>250)net.clkS=net.clk;else net.clkS+=clamp(net.clk-net.clkS,-slew,slew);
     const rt=performance.now()-(net.clkS||0)-net.interpMs;

@@ -152,7 +152,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     // smoothly: no frame where the drawn speed suddenly jumps (judder)
     H.players.forEach((h, k) => { hist[k].push([frames, h.x, h.y, H.game.mapIdx]); if (hist[k].length > 30) hist[k].shift() });
     if (H.game.state === 'play') G.forEach((A, i) => { if (A === G[2] && left) return; if (A.game.state !== 'play' || A.game.mapIdx !== H.game.mapIdx) return;
-      for (const p of A.players) { if (p.id === A.net.me) continue; const h = H.players[p.id]; if (!p.alive || !h.alive || !Number.isFinite(p.x) || p.hurtT > -.25) { vel.delete(i + ':' + p.id); continue }
+      for (const p of A.players) { if (p.id === A.net.me) continue; const h = H.players[p.id]; if (!p.alive || !h.alive || !Number.isFinite(p.x) || p.hurtT > -.25 || h.padT > .35) { vel.delete(i + ':' + p.id); continue }   // a pad launch is a real, instant change of speed, not judder
         let best = 1e9; for (const e of hist[p.id]) if (e[3] === H.game.mapIdx) best = Math.min(best, Math.hypot(p.x - e[1], p.y - e[2])); if (best < 1e9) { err[i] += best; errN[i]++ }
         const key = i + ':' + p.id, o = vel.get(key); if (o) { const v = (p.x - o.x) / DT; if (o.v != null) { jud[i][1]++; if (Math.abs(v - o.v) > 300 && Math.abs(v - o.v) * DT > 3) jud[i][0]++ } vel.set(key, { x: p.x, v }) } else vel.set(key, { x: p.x, v: null }) }
       const me = A.players[A.net.me]; if (me && me.alive && last[i]) moved[i] += Math.abs(me.x - last[i]); last[i] = me && me.alive ? me.x : null });
