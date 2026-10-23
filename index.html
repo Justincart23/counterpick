@@ -432,6 +432,10 @@ body.touch .desk-only{display:none!important}
 .roster li::before{content:"";position:absolute;left:11px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--pc)}
 .roster li.open{border-style:dashed;border-color:var(--line);color:var(--muted)}.roster li.open::before{background:var(--line)}
 .card.theirs{filter:saturate(.75) brightness(.86)}
+/* a team draft: each card wears its owner's badge (their fighter and name, in their colour); on a phone the pairs sit apart */
+.card .owner{position:absolute;left:50%;bottom:calc(100% + 34px);transform:translateX(-50%);display:flex;align-items:center;gap:4px;white-space:nowrap;font-family:var(--display);font-size:17px;letter-spacing:.02em;color:var(--pc);text-shadow:0 2px 0 rgba(0,0,0,.45);pointer-events:none}
+.card .owner canvas{width:30px;height:30px}
+@media (max-width:760px),(max-height:560px){.card .owner{position:static;transform:none;justify-content:center;margin:0 auto 2px;font-size:13px}.card .owner canvas{width:22px;height:22px}.card.g2{margin-left:18px}}
 .party-acts{display:flex;flex-wrap:wrap;gap:8px}.party-acts .btn[disabled]{opacity:.45;cursor:default}
 .party-acts [data-team='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}.party-acts [data-team='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
 .party-acts .go{background:#7ed321;border-color:#7ed321;color:#0e1a05}
@@ -1189,8 +1193,8 @@ const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,ma
   slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
 let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
 
-// four fighter colours, in two teams: CUUED's orange with a gold teammate, its blue with a teal one
-const PCOL=()=>[[C.orange,C.oGlow,'Orange'],[C.blue,C.bGlow,'Blue'],['#ffbf2e','#ffe39a','Gold'],['#2fc6c9','#a6f4f5','Teal']];
+// four fighter colours, in two teams: teammates are shades of one colour (orange with a light apricot, blue with a light sky blue)
+const PCOL=()=>[[C.orange,C.oGlow,'Orange'],[C.blue,C.bGlow,'Blue'],['#ffb066','#ffe0bf','Apricot'],['#7ab8ff','#d2e8ff','Sky']];
 function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team??id,ctrl,name:name||pc[2],netJc:null,netBc:null,color:pc[0],glow:pc[1],cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
@@ -1826,7 +1830,12 @@ function beginTeamPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id
   tpick={ids,hands,chosen:ids.map(()=>-1),done,sub};showTeamHand();
   netSend({t:'tpick',ids,hands:hands.map(h=>h.map(c=>c.id)),sub});
   ids.forEach((id,g)=>{const p=players[id];if(p.ctrl==='cpu'||game.bg){const tk=game.token,i=cpuChoice(p,hands[g]);setTimeout(()=>{if(tk===game.token&&tpick&&tpick.chosen[g]<0)teamChoose(g,g*3+i)},game.bg?0:1300+g*600)}})}
-function showTeamHand(){const T=tpick,own=[],flat=[];T.ids.forEach((id,g)=>{const p=players[id],mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';for(const c of T.hands[g]){flat.push(c);own.push({color:p.color,mine})}});
+// a fighter's head and shoulders, for a card's owner badge: body in their colour, eyes, their hat
+function miniFighter(g,p){if(!g)return;const R=20,sk=skinOf(p.color);g.clearRect(0,0,64,64);g.save();g.translate(32,38);
+  try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,p.color);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=p.color}
+  g.beginPath();g.arc(0,0,R,0,TAU);g.fill();g.fillStyle='#16121c';for(const s of[-1,1]){g.beginPath();g.ellipse(s*R*.26,-R*.12,R*.1,R*.2,0,0,TAU);g.fill()}
+  if(p.cos&&p.cos.hat)drawHat(g,p.cos.hat,R,p.glow);g.restore()}
+function showTeamHand(){const T=tpick,own=[],flat=[];T.ids.forEach((id,g)=>{const p=players[id],mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';for(const c of T.hands[g]){flat.push(c);own.push({color:p.color,mine,p})}});
   const me=T.ids.map(id=>players[id]).find(p=>net.role==='guest'?p.id===net.me:p.ctrl==='mouse')||players[T.ids[0]],tm=players[T.ids[0]].team;
   const who=T.ids.map(id=>players[id].name),side=who.length>1?` · ${who[0]} left, ${who[1]} right`:'';
   showHand(me,flat,T.sub,'team',own);$('#pickTitle').textContent=`Team ${TEAM_N[tm]} drafts`;$('#pickTitle').style.color=players[T.ids[0]].color;
@@ -1855,11 +1864,12 @@ function showHand(p,h,sub,mode,own){pickFor=p;hand=h;hl=Math.floor((h.length-1)/
   $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
   const el=$('#fan');el.innerHTML='';el.style.setProperty('--n',h.length);
   hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=own&&hand.length===6?(i<3?i-2.9:i-2.1):i-(hand.length-1)/2;
-    b.style.setProperty('--pc',(own?own[i]:p).color);if(own&&!own[i].mine)b.classList.add('theirs');b.style.setProperty('--cat',CAT[c.k]);
+    b.style.setProperty('--pc',(own?own[i]:p).color);if(own&&!own[i].mine)b.classList.add('theirs');if(own&&hand.length===6&&i===3)b.classList.add('g2');b.style.setProperty('--cat',CAT[c.k]);
     b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
     b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${c.char?'Character':c.up?'Power-up':RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
     b.querySelector('canvas')._card=c;const tl=b.querySelector('.tilt');
+    if(own&&own[i].p){const o=own[i].p,t=document.createElement('span');t.className='owner';t.innerHTML='<canvas width="64" height="64" aria-hidden="true"></canvas><span></span>';t.lastChild.textContent=o.name+(own[i].mine?' (you)':'');b.prepend(t);miniFighter(t.firstChild.getContext('2d'),o)}   // whose card this is: their fighter and name
     {const m=b.querySelector('.medal'),mg=m&&m.getContext('2d');if(mg){mg.clearRect(0,0,96,96);drawIcon(mg,c.icon||c.n,48,48,56,'#ffffff',5)}}
     b.addEventListener('pointermove',ev=>{const r=b.getBoundingClientRect();tl.style.setProperty('--rx',((ev.clientX-r.left)/r.width-.5)*20+'deg');tl.style.setProperty('--ry',(.5-(ev.clientY-r.top)/r.height)*20+'deg')});
     b.addEventListener('pointerleave',()=>{tl.style.setProperty('--rx','0deg');tl.style.setProperty('--ry','0deg')});
@@ -2843,7 +2853,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
   const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
   const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
-  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);
+  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.party?PCOL()[p.team][1]:'rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);   // a party: name tags in the team's colour
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
   for(let i=0;i<n;i++){ctx.fillStyle=i<p.ammo?p.glow:'rgba(255,255,255,.15)';ctx.fillRect(x0+i*(pw+2),by+7,pw,3)}
@@ -3118,7 +3128,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-24-party3';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-24-party4';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
