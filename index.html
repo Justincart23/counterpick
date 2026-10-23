@@ -2915,6 +2915,7 @@ function liveFx(){const now=performance.now();
     if(p.ja==null){p.ja=0;p.jav=0;p.jl=0;p.jlv=0;p.jw=0;p.blinkAt=now+rand(1500,4000);p.wasG=p.grounded;p.wasHp=p.hp;p.lastVy=p.vy||0;p.lastVx=p.vx||0;p.gooT=0}
     if(!p.alive){p.ja=p.jl=p.jav=p.jlv=0;p.wasHp=p.hp;continue}
     const R=p.r,vx=p.vx||0,vy=p.vy||0,g=!!p.grounded;
+    {const dx=Math.abs(p.x-(p.lrx??p.x));p.lrx=p.x;if(dt>0&&dx<80){p.rv=(p.rv||0)+(dx/dt-(p.rv||0))*Math.min(1,dt*12);if(g)p.rw=(p.rw||0)+dx*.042}}   // the walk: distance covered on the ground drives the steps
     // events: landing, jumping, a hard turn, a hit
     if(g&&!p.wasG&&p.lastVy>380){const k=Math.min(1,p.lastVy/1300);p.jav-=3+7*k;goo(p.x,p.y+R,p.color,3+Math.round(5*k),180+260*k,true,3+2*k)}
     if(!g&&p.wasG&&vy<-250){p.jav+=4;goo(p.x,p.y+R,p.color,3,160,true,3)}
@@ -2933,14 +2934,19 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   const lw=Math.max(4,R*.36),sk=skinOf(p.color);
   if(p.grounded){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(0,R*1.2,R*.95,R*.17,0,0,TAU);ctx.fill()}
   // legs: stubby, a shade darker than the body
-  // legs swing on the ground; in the air they tuck on the way up and dangle apart on the way down. They lean with the body
-  const lean=(p.jl||0)*.55,vyA=p.vy||0;ctx.save();ctx.translate(0,R);ctx.rotate(lean*.6);ctx.translate(0,-R);
-  for(const s of[-1,1]){const ph=p.walk+(s>0?Math.PI:0),fx=s*R*(p.grounded?.38:.34+(vyA>150?.16:0))+(p.grounded?Math.sin(ph)*R*.45:-face*R*.18),
-    fy=R+(p.grounded?Math.max(0,-Math.cos(ph))*-R*.25:-R*.15+clamp(vyA/2600,-.18,.22)*R)+R*.08;
-    noodle(s*R*.32,R*.55,fx,fy,3+(p.grounded?0:clamp(vyA/300,-3,4)),lw,sk.lo)}
+  /* legs: on the ground the fighter WALKS: each foot plants and pushes back, then lifts and swings forward with the knee
+     bent, and the body bobs once a step (same speed and physics, it just looks like the legs carry it). In the air they
+     tuck on the way up and dangle apart on the way down. They lean with the body */
+  const lean=(p.jl||0)*.55,vyA=p.vy||0,amt=p.grounded?clamp((p.rv||0)/320,0,1):0,dirW=Math.sign(p.vx||0)||face,wph=p.rw||0,bob=-amt*Math.abs(Math.sin(wph))*R*.11;
+  ctx.save();ctx.translate(0,R);ctx.rotate(lean*.6);ctx.translate(0,-R);ctx.strokeStyle=sk.lo;ctx.lineWidth=lw;ctx.lineCap='round';
+  for(const s of[-1,1]){let hx0=s*R*.3,hy0=R*.55+bob,fx,fy,kx=0;
+    if(p.grounded){const ph=wph+(s>0?Math.PI:0),lift=Math.max(0,Math.cos(ph))*R*.32*amt;fx=s*R*.24*(1-amt*.35)+dirW*Math.sin(ph)*R*.44*amt;fy=R*1.08-lift;kx=dirW*R*(.06+.22*lift/(R*.32+1e-6))*amt}
+    else{fx=s*R*(.34+(vyA>150?.16:0))-face*R*.18;fy=R-R*.15+clamp(vyA/2600,-.18,.22)*R+R*.08;kx=0;hy0=R*.55}
+    ctx.beginPath();ctx.moveTo(hx0,hy0);ctx.quadraticCurveTo((hx0+fx)/2+kx,(hy0+fy)/2+(p.grounded?0:clamp(vyA/300,-3,4)),fx,fy);ctx.stroke()}
   ctx.restore();
+  ctx.translate(0,bob);   // the body (and its arms) rides the step
   // off hand with the block orb (white = block ready)
-  const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12)-clamp((p.vx||0)*.014,-12,12),R*.25+Math.sin(p.walk*.8)*2-clamp((p.vy||0)*.012,-12,12)];   // the free hand trails behind the motion
+  const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12)-clamp((p.vx||0)*.014,-12,12)-dirW*Math.sin(wph)*R*.3*amt,R*.25+Math.cos(wph*2)*1.5*amt-clamp((p.vy||0)*.012,-12,12)];   // the free hand trails behind the motion and swings against the stride
   noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
   ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
   if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}
@@ -2981,6 +2987,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   if(p.blockT>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff';ctx.globalAlpha=Math.min(1,p.blockT*5);ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.stroke();
     ctx.globalAlpha*=.3;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(0,0,R+14,0,TAU);ctx.fill();ctx.restore()}
   // name, health, ammo
+  ctx.translate(0,-bob);
   // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
   const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
   const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
@@ -3054,11 +3061,16 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,duel=!survOn()&&game.mode!=='sandbox'&&w>=0;
-    if(duel){   // like ROUNDS: the first kill fills half the winner's circle, the second fills it and wins the round
-      const p=game.party?{name:'Team '+TEAM_N[w],color:players[w].color}:players[w],nm=p.name.toUpperCase(),full=(game.points[w]||0)+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,cy=VH/2+34,cr=30;
-      bigText(match?`${nm} WINS THE MATCH`:full?`${nm} WINS`:nm,68,VW/2,VH/2-40,p.color);
-      ctx.save();ctx.lineWidth=5;ctx.strokeStyle=p.color;ctx.fillStyle=p.color;ctx.beginPath();if(full)ctx.arc(VW/2,cy,cr,0,TAU);else{ctx.moveTo(VW/2,cy-cr);ctx.arc(VW/2,cy,cr,-Math.PI/2,Math.PI/2,true);ctx.closePath()}ctx.fill();
-      ctx.beginPath();ctx.arc(VW/2,cy,cr,0,TAU);ctx.stroke();ctx.font='22px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=C.text;ctx.fillText(full?'ROUND':'HALF',VW/2,cy+cr+30);ctx.restore()}
+    if(duel){   /* like ROUNDS: 'HALF ORANGE' or 'ROUND ORANGE' (the match: 'ORANGE WINS'), and below it a big circle for each side
+       showing how much of the round they have. The scorer's circle fills in, a wipe from left to right */
+      const sides=game.party?[0,1].map(t=>({nm:'TEAM '+TEAM_N[t].toUpperCase(),col:players[t].color,glow:players[t].glow,pts:game.points[t]||0})):players.slice(0,2).map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.id]||0}));
+      const W0=sides[w],full=W0.pts+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,k=clamp((1.4-game.endT-.15)/.45,0,1),ease=1-Math.pow(1-k,3);
+      bigText(match?`${W0.nm} WINS`:`${full?'ROUND':'HALF'} ${W0.nm}`,84,VW/2,VH/2-70,W0.col);
+      sides.forEach((S,i)=>{const cx=VW/2+(i?1:-1)*120,cy=VH/2+70,cr=74,from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease);
+        ctx.save();ctx.shadowColor=S.glow;ctx.shadowBlur=f>0?26:0;
+        ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.fillStyle='rgba(12,7,19,.55)';ctx.fill();
+        if(f>0){ctx.save();ctx.beginPath();ctx.rect(cx-cr,cy-cr,cr*2*f,cr*2);ctx.clip();ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.fillStyle=S.col;ctx.fill();ctx.restore()}
+        ctx.shadowBlur=0;ctx.lineWidth=5;ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.stroke();ctx.restore()})}
     else{const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
       bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}}
   ctx.restore()}
@@ -3262,7 +3274,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-locker';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-walk';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
