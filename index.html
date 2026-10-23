@@ -3141,14 +3141,21 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     // tracer: a long thin trail that tapers to nothing, brightest at the head (ROUNDS-style)
     const n=t.length>>1;if(n>=3){ctx.strokeStyle=tc;
       for(let k=0;k<3;k++){const i0=Math.floor((n-1)*k/3),i1=Math.floor((n-1)*(k+1)/3);if(i1<=i0)continue;
-        ctx.globalAlpha=(.14+.24*k)*ga;ctx.lineWidth=b.r*(.45+.42*k);ctx.beginPath();ctx.moveTo(t[i0*2],t[i0*2+1]);for(let i=i0+1;i<=i1;i++)ctx.lineTo(t[i*2],t[i*2+1]);if(k===2)ctx.lineTo(b.x,b.y);ctx.stroke()}}
-    {const gr=Math.min(b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.9+heat*2.2)*1.7,b.r+26);ctx.globalAlpha=.55*ga*glowK;ctx.drawImage(glowSprite(tc),b.x-gr,b.y-gr,gr*2,gr*2)}   // soft glow (capped, and dimmer in a crowd)
+        ctx.globalAlpha=(.08+.14*k)*ga;ctx.lineWidth=b.r*(.3+.28*k);ctx.beginPath();ctx.moveTo(t[i0*2],t[i0*2+1]);for(let i=i0+1;i<=i1;i++)ctx.lineTo(t[i*2],t[i*2+1]);if(k===2)ctx.lineTo(b.x,b.y);ctx.stroke()}}
+    {const gr=Math.min(b.r*(b.explode?3+Math.sin(performance.now()/40)*.5:1.5+heat*2)*1.6,b.r+22);ctx.globalAlpha=.42*ga*glowK;ctx.drawImage(glowSprite(tc),b.x-gr,b.y-gr,gr*2,gr*2)}   // soft glow (capped, and dimmer in a crowd)
     if(b.stuck){const k=clamp((performance.now()-(b.stuckAt||performance.now()))/(MINE_FUSE*1000),0,1),on=Math.sin(k*k*44)>0;
       ctx.globalAlpha=1;ctx.strokeStyle=on?'#ff5a4f':'#ffd0c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(b.x,b.y,b.r+5+ (1-k)*8,-Math.PI/2,-Math.PI/2+TAU*(1-k));ctx.stroke()}
     // head: a bright streak stretched along the bullet's motion
     {const col=b.stuck&&Math.sin(clamp((performance.now()-(b.stuckAt||0))/(MINE_FUSE*1000),0,1)**2*44)>0?'#ff5a4f':b.poison?C.poison:b.phase?'#e6dcff':'#fff6e8',sp=Math.hypot(b.vx,b.vy);ctx.globalAlpha=ga;
-      if(sp>60&&!b.stuck){const L=Math.min(b.r*3.4,sp*.014),ux=b.vx/sp,uy=b.vy/sp;ctx.strokeStyle=col;ctx.lineWidth=b.r*1.8;ctx.beginPath();ctx.moveTo(b.x-ux*L,b.y-uy*L);ctx.lineTo(b.x,b.y);ctx.stroke();
-        ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(b.x,b.y,b.r*.6,0,TAU);ctx.fill()}   // white-hot core
+      /* a solid round, like the card art: a warm slug tapering back from a white-hot nose, two thin speed streaks in its
+         wake. Drawn normally (not added as light), so it reads as a thing with weight, not an orb */
+      if(sp>60&&!b.stuck){const w=b.r*1.18,L=clamp(sp*.012,b.r*3,b.r*5),o=(b.id||0)%2?1:-1;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.vy,b.vx));
+        ctx.strokeStyle=tc;ctx.lineCap='round';ctx.globalAlpha=.5*ga;ctx.lineWidth=Math.max(1.2,b.r*.26);ctx.beginPath();ctx.moveTo(-L*1.2,w*1.5*o);ctx.lineTo(-L*2.3,w*1.9*o);ctx.moveTo(-L*1.5,-w*1.25*o);ctx.lineTo(-L*2.1,-w*1.5*o);ctx.stroke();
+        ctx.globalCompositeOperation='source-over';ctx.globalAlpha=ga;
+        ctx.fillStyle=tc;ctx.beginPath();ctx.moveTo(-L,-w*.28);ctx.lineTo(0,-w);ctx.arc(0,0,w,-Math.PI/2,Math.PI/2);ctx.lineTo(-L,w*.28);ctx.closePath();ctx.fill();   // the warm body, in the shooter's colour
+        ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=Math.max(1,w*.32);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-L*.62,0);ctx.lineTo(0,0);ctx.stroke();   // its hot centre
+        try{const cg=ctx.createRadialGradient(w*.3,0,0,w*.05,0,w);cg.addColorStop(0,'#ffffff');cg.addColorStop(.55,col);cg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=cg}catch(e){ctx.fillStyle=col}
+        ctx.beginPath();ctx.ellipse(-w*.12,0,w*1.12,w*.78,0,0,TAU);ctx.fill();ctx.restore()}
       else{ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}}}
   // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
@@ -3297,7 +3304,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame()
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-25-plasma';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-25-slug2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
