@@ -331,14 +331,19 @@ body.touch.ingame #touchUI{display:block}
 .tbtn{pointer-events:auto;position:fixed;width:66px;height:66px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(20,12,30,.45);color:#fff;
   font:800 14px var(--body);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .tbtn.down{background:rgba(255,255,255,.3)}
-#tJump{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(112px + env(safe-area-inset-bottom,0px))}
-#tBlock{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));border-color:rgba(255,255,255,.6)}
-/* Thumb room: the aim thumb rests in the bottom of the right lane; Jump and Block sit smaller, stacked above it */
-body.room #tsAim{left:calc(100% - max(var(--gut,110px) * .5,62px) - env(safe-area-inset-right,0px))}
-body.room .tbtn{width:56px;height:56px;font-size:12px}
-body.room #tJump,body.room #tBlock{right:calc(max(var(--gut,110px) * .5 - 28px,6px) + env(safe-area-inset-right,0px))}
-body.room #tBlock{bottom:calc(146px + env(safe-area-inset-bottom,0px))}
-body.room #tJump{bottom:calc(210px + env(safe-area-inset-bottom,0px))}
+/* Jump and Block: two tall panels down the right edge, the same look as a Big Screen controller (chevron, shield; Block in your
+   colour, refilling as it recharges). The bottom of the right side stays free for the aim thumb */
+#touchUI{--tbw:clamp(80px,10.5vw,108px);--tbt:22%}
+body.room #touchUI{--tbw:max(calc(var(--gut,110px) - 14px),58px);--tbt:12%}
+#tJump,#tBlock{right:calc(7px + env(safe-area-inset-right,0px));width:var(--tbw);height:27%;border-radius:20px;border-width:3px;
+  font:400 clamp(13px,3.6vh,18px) var(--display);letter-spacing:.04em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .06s,background .06s}
+#tJump{top:calc(var(--tbt) + env(safe-area-inset-top,0px));border-color:rgba(255,255,255,.45);background:rgba(20,12,30,.5)}
+#tBlock{--cd:0;--pc:#ff7a1a;top:calc(var(--tbt) + 27% + 10px + env(safe-area-inset-top,0px));border-color:var(--pc);
+  background:linear-gradient(to top,rgba(0,0,0,.6) calc(var(--cd) * 100%),transparent 0),color-mix(in srgb,var(--pc) 16%,rgba(20,12,30,.6))}
+#tJump::before{content:"";width:16px;height:16px;border-left:4px solid currentColor;border-top:4px solid currentColor;transform:translateY(4px) rotate(45deg);border-radius:3px}
+#tBlock::before{content:"";width:19px;height:22px;border:4px solid currentColor;border-radius:4px 4px 12px 12px}
+#tJump.down,#tBlock.down{transform:scale(.96);background:rgba(255,255,255,.28)}
+@media (max-height:340px){#tJump::before,#tBlock::before{display:none}}
 #rotate{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;background:rgba(14,8,22,.94);color:var(--text);font:800 20px var(--body);text-align:center;padding:24px}
 @media (orientation:portrait){body.touch.ingame #rotate{display:flex}}
 .rot-ic{width:46px;height:76px;margin:0 auto 16px;border:4px solid #ffd36b;border-radius:10px;animation:rot 1.6s ease-in-out infinite}
@@ -512,6 +517,35 @@ body.touch .desk-only{display:none!important}
 .copy{font-family:var(--display);font-size:16px;letter-spacing:.04em;text-transform:uppercase;background:var(--blue);color:#fff;border:0;padding:8px 14px;cursor:pointer}
 .name-form{gap:14px}
 .form-err{margin:0;color:var(--bad);font-weight:800}
+/* settings rows: a value between real ‹ › arrows */
+.mlist .ov{display:inline-flex;align-items:baseline;gap:.15em;color:var(--hot);white-space:nowrap}
+.mlist .ov .val::before,.mlist .ov .val::after{content:none}.mlist .ov .val{margin:0}
+.mlist .ov i{font-style:normal;opacity:.45;cursor:pointer}.mlist .ov i:hover{opacity:1}
+/* phones and tablets: the settings become tiles you can actually hit. No pointer arrow or underline (they ran through the
+   words on a short screen); the tile you're on is outlined, and the arrows are buttons of their own */
+@media (max-height:520px),(pointer:coarse){
+  .opts-wrap .mlist.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(max(260px,40%),100%),1fr));gap:8px;width:100%;justify-items:stretch}
+  .opts-wrap:has(>.mlist.opts){justify-items:stretch;width:100%}
+  .menu-screen:has([data-sub="settings"]:not([hidden])) .menu-foot{display:none}
+  .mlist.opts button,.mlist.centered.opts button{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:46px;padding:4px 6px 4px 14px;
+    border-radius:14px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);color:rgba(241,236,247,.86);font-size:clamp(13px,4.1vh,18px);line-height:1.1;text-align:left;white-space:nowrap;transition:border-color .15s,background .15s}
+  .mlist.opts .ov{flex-shrink:0}
+  .mlist.opts button::before,.mlist.opts button::after{display:none}
+  .mlist.opts button:hover,.mlist.opts button:focus,.mlist.opts button:focus-visible{border-color:var(--orange);background:rgba(255,122,26,.12);color:var(--text);text-shadow:none}
+  .mlist.opts .ov{align-items:center;gap:4px}
+  .mlist.opts .ov i{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.08);opacity:1;font-size:1.15em;line-height:1;color:var(--hot);-webkit-tap-highlight-color:transparent}
+  .mlist.opts .ov i:active{background:rgba(255,122,26,.4);color:#fff}
+  .mlist.opts .val{min-width:2.6em;text-align:center}.mlist.opts .val.edit{padding-right:6px}
+  .mlist.opts [data-act="back"]{grid-column:1 / -1;justify-content:center;padding-left:6px}
+  .opts-wrap>.lbl{margin:0 0 6px 2px}.opts-wrap .menu-hint{margin:8px 2px 0}
+}
+/* a short (sideways phone) screen: settings take the whole width, the title column steps aside while they're open */
+@media (max-height:520px){
+  .menu-wrap:has(>.opts-wrap[data-sub="settings"]:not([hidden]))>:not(.opts-wrap){display:none}
+  .menu-wrap>.opts-wrap[data-sub="settings"]{grid-column:1 / -1;grid-row:auto}
+  .menu-wrap .opts-wrap .mlist.opts,.pause-screen .opts-wrap .mlist.opts{width:min(820px,100%)}.opts-wrap .mlist.opts button,.opts-wrap .mlist.centered.opts button{min-height:40px;padding-top:2px;padding-bottom:2px}
+  .opts-wrap .mlist.opts{gap:7px}.opts-wrap .mlist.opts [data-opt="pview"]{grid-column:1 / -1}.menu-wrap>.opts-wrap[data-sub="settings"]{width:min(820px,100%);justify-self:center}
+}
 @media (prefers-reduced-motion:reduce){.logo,.mlist button{animation:none}}
 
 /* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
@@ -3774,6 +3808,8 @@ cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touch
   bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
   const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
 function touchFrame(){const live=touchLive();bodyCls('ingame',live);
+  if(live){const me=game.mode==='online-guest'?players[net.me]:players.find(q=>q.ctrl==='mouse'),b=$('#tBlock');
+    if(me&&b&&b.style){const cd=me.blockCd>0&&me.s?clamp(me.blockCd/me.s.blockCd,0,1):0;if(b._cd!==cd){b._cd=cd;b.style.setProperty('--cd',cd.toFixed(3))}if(b._pc!==me.glow){b._pc=me.glow;b.style.setProperty('--pc',me.glow)}}}
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
@@ -3782,7 +3818,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-28-rigs2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-28-controls';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4584,6 +4620,9 @@ const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.sli
   bsBots:{vals:[0,1,2,3],label:v=>v?String(v):'None'},bsCpu:{vals:['normal','hard','easy'],label:v=>v[0].toUpperCase()+v.slice(1)},
   bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true],label:v=>v?'On':'Off'}};
 for(const k in OPT)if(k.startsWith('bs')&&!OPT[k].vals.includes(settings[k]))settings[k]=OPT[k].vals[0];   // a saved choice that no longer exists
+// each setting's value gets real ‹ › arrows: a tap on either steps it that way (a tap anywhere else on the row steps forward)
+for(const v of document.querySelectorAll('.mlist.opts button[data-opt]>.val')){const w=document.createElement('span');w.className='ov';v.replaceWith(w);
+  const a=(d,t)=>{const i=document.createElement('i');i.dataset.dir=d;i.setAttribute('aria-hidden','true');i.textContent=t;return i};w.append(a(-1,'‹'),v,a(1,'›'))}
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true);if(k.startsWith('bs'))bsLobbyChanged()}

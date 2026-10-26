@@ -7,7 +7,7 @@ const OUT = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mobi
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-mob-'));
 process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // the Chrome profile is ~100 MB: never leave it behind
 let html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8').replace('<head>', '<head><script>try{localStorage.setItem("cuued.name","Phone");localStorage.setItem("counterpick.settings",JSON.stringify({drops:false,v:2}))}catch(e){}</script>');
-html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,keys,mouse,recompute,get players(){return players},get bullets(){return bullets}};})();</script>');
+html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,keys,mouse,recompute,settings,get players(){return players},get bullets(){return bullets}};})();</script>');
 fs.writeFileSync(path.join(dir, 'm.html'), html);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]); return c };
@@ -36,10 +36,23 @@ const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]
   ok(await ev(`document.body.classList.contains('touch')`), 'phone: touch mode is on');
   ok(await ev(`getComputedStyle(document.querySelector('.mobile-row')).display!=='none'`), 'phone: the menu shows the phone row (Full screen / Add to Home Screen)');
   await shot('phone-menu.png');
+  // settings: tiles that never overlap, and the ‹ › arrows step a value
+  await ev(`document.querySelector('#menu [data-sub="main"] [data-act="settings"]').click()`); await sleep(1300);   // after the tiles' drop-in
+  const so = await ev(`(()=>{const els=[...document.querySelectorAll('#menu [data-sub="settings"] .mlist button')].filter(e=>e.offsetParent).map(e=>e.getBoundingClientRect());let o=0;
+    for(let i=0;i<els.length;i++)for(let j=i+1;j<els.length;j++){const a=els[i],b=els[j];if(a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1)o++}
+    return{n:els.length,o,small:els.filter(r=>r.height<36).length,off:els.filter(r=>r.bottom>innerHeight+1||r.right>innerWidth+1).length}})()`);
+  ok(so.n >= 9 && !so.o && !so.small && !so.off, `phone: settings are tappable tiles, none overlapping or off screen (${JSON.stringify(so)})`);
+  const lenTap = async (d) => { const p = await ev(`(()=>{const r=document.querySelector('#menu [data-sub="settings"] [data-opt="len"] [data-dir="${d}"]').getBoundingClientRect();return[r.x+r.width/2,r.y+r.height/2]})()`);
+    await touch('touchStart', [[p[0], p[1], 9]]); await sleep(40); await touch('touchEnd', []); await sleep(200); return ev(`window.__G.settings.len`) };
+  const l0 = await ev(`window.__G.settings.len`), l1 = await lenTap(-1), l2 = await lenTap(1);
+  ok(l1 !== l0 && l2 === l0, `phone: a setting's ‹ › arrows step it back and forward (${l0} → ${l1} → ${l2})`); await shot('phone-settings.png');
+  await ev(`document.querySelector('#menu [data-sub="settings"] [data-act="back"]').click()`); await sleep(300);
   await ev(`document.querySelector('[data-act="cpu"]').click()`); await until(`!document.querySelector('#pick').hidden`); await sleep(900);
   await ev(`document.querySelector('#pick .card').click()`);
   ok(await until(`window.__G.game.state==='play'`, 8000), 'phone: a practice match starts by tapping');
   ok(await ev(`getComputedStyle(document.querySelector('#touchUI')).display==='block'`), 'phone: the touch controls show during play');
+  const bs = await ev(`['tJump','tBlock'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return[Math.round(r.width),Math.round(r.height),Math.round(r.right),Math.round(r.bottom)]})`);
+  ok(bs.every(([w, h, r, b]) => w >= 56 && h >= 90 && r <= 845 && b <= 391) && bs[0][3] <= bs[1][3] - 90, `phone: Jump and Block are big panels down the right edge (${JSON.stringify(bs)})`);
   // a calm test: the CPU stands still and our fighter carries no cards (bursts would look like extra shots)
   await ev(`(()=>{const G=window.__G,[P,E]=G.players;E.ctrl='idle';E.input.fire=false;E.input.move=0;P.cards=[];G.recompute(P);E.s.maxHp=E.hp=1e9;P.s.maxHp=P.hp=1e9})()`);   // neither can die (our shots, pits and edges never end the point mid-test)
   const me = `window.__G.players[0]`; const x0 = await ev(`${me}.x`);
