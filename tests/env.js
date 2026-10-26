@@ -12,6 +12,7 @@ const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, sp
   net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch, MiniMqtt, RelayConn, RELAY_BROKERS,
   get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
   get spick() { return spick }, ctl, padSend, openBigScreen, closeBigScreen, bsStart, bsToLobby, restartHosted, screenChoose, padPick, padStatus, get bsJoinN() { return bsJoinN },
+  get rigs() { return rigs }, get lifts() { return lifts }, rigSnap, rigApply, guestRigs, updateRigs, hitNode, breakNode, nodePos,
   get hand() { return hand }, get pickFor() { return pickFor }, get pickMode() { return pickMode }, get pickLock() { return pickLock }`;
 
 // A function-shaped proxy that absorbs any property access or call (stands in for canvas contexts, DOM nodes, gradients).

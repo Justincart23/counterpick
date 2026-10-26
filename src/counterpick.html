@@ -798,7 +798,7 @@ body.touch .desk-only{display:none!important}
             <li><b>Planks</b><span>Bright-edged planks are one-way. Press down to drop through. Pink pads launch you.</span></li>
             <li><b>Swings</b><span>Shoot hanging blocks to swing them into your rival.</span></li>
             <li><b>Crates</b><span>Push one for cover, or off a ledge onto someone. Three hits break it for a little health.</span></li>
-            <li><b>Ropes</b><span>Shoot a red target to drop the platform it holds.</span></li>
+            <li><b>Supports</b><span>Bright rock never moves; dark iron does. Shoot a glowing hollow support and what it holds swings, drops or topples.</span></li>
           </ul>
         </div>
       </div>
@@ -1161,15 +1161,31 @@ const MAPS=[
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,40],[740,404,120,16,3],[180,300,240,38],[1180,300,240,38]],sp:[[400,740],[1200,740]]},
  {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
  {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
- {name:'Piston',rects:[[0,780,1600,120],[520,560,40,220,1],[1040,560,40,220,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
+ {name:'Piston',rects:[[0,780,1600,120],[520,590,40,190,1],[1040,590,40,190,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
  {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],crates:[[560,720,60],[980,720,60]],sp:[[200,740],[1400,740]]},
  {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
+ // rigs: dark pieces held up by hollow supports (shoot one out and physics takes over)
+ // Chandelier: a heavy beam on two ropes over the floor. One rope gone, it swings from the other; both gone, it crashes down
+ {name:'Chandelier',rects:[[0,800,1600,100],[60,660,250,40],[1290,660,250,40],[150,500,220,38],[1230,500,220,38],[700,330,200,38]],
+   rigs:[{t:'beam',x:560,y:470,w:480,h:34,ropes:[{ox:-200},{ox:200}]}],sp:[[185,620],[1415,620]]},
+ // Drawbridge: two bridges stand raised over the pit. Shoot a rope and its bridge slams down (onto anyone below); shoot a hinge and it drops away
+ {name:'Drawbridge',rects:[[0,700,560,200],[1040,700,560,200],[740,470,120,36],[700,300,200,36],[140,520,200,38],[1260,520,200,38]],
+   rigs:[{t:'bridge',px:560,py:700,L:240,dir:1,rx:500,ry:0},{t:'bridge',px:1040,py:700,L:240,dir:-1,rx:1100,ry:0}],sp:[[260,660],[1340,660]]},
+ // Wrecking Yard: an iron ball swings across the floor. Shots push it, it bowls over whoever it meets, and its chain can be shot
+ {name:'Wrecking Yard',rects:[[0,800,1600,100],[180,650,240,40],[1180,650,240,40],[60,490,180,38],[1360,490,180,38],[480,470,200,38],[920,470,200,38]],
+   rigs:[{t:'ball',ax:800,ay:0,len:690,z:84,amp:.5}],sp:[[300,610],[1300,610]]},
+ // Pulley: two lifts on one rope. Stand on one and it sinks while the other rises; shoot either rope and both fall
+ {name:'Pulley',rects:[[0,820,1600,80],[650,560,300,38],[60,400,160,38],[1380,400,160,38]],
+   rigs:[{t:'lift',a:{x:240,y:600,w:220,h:30},b:{x:1140,y:600,w:220,h:30},wy:110,range:190}],sp:[[140,780],[1460,780]]},
+ // Topple: two towers of iron blocks, each standing on a hollow keystone. Shoot it out and the top comes down, toppling inward
+ {name:'Topple',rects:[[0,800,1600,100],[690,620,220,40],[60,660,200,38],[1340,660,200,38],[620,460,360,38]],
+   rigs:[{t:'stack',x:440,y:800,lean:260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]},{t:'stack',x:1160,y:800,lean:-260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]}],sp:[[160,620],[1440,620]]},
  // big arenas (Survival's bigger waves only): larger than the screen, so the camera follows you
  // crates: push them into cover, shove one off the middle ledge onto someone, or break one (three hits) for a little health
  {name:'Quarry',rects:[[0,780,1600,120],[110,600,260,40],[1230,600,260,40],[620,450,360,40],[0,400,150,38],[1450,400,150,38]],crates:[[470,716,64],[1066,716,64],[768,716,64],[770,390,60]],sp:[[200,740],[1400,740]]},
- // platforms hung over a low floor: shoot the red target and the platform drops on whoever is under it, then stays as cover
+ // platforms hung over a low floor: shoot the hollow support and the platform drops on whoever is under it, then stays as cover
  {name:'Cutline',rects:[[0,820,1600,80],[0,680,300,140],[1300,680,300,140],[80,460,200,38],[1320,460,200,38],[700,250,200,38]],
    hangs:[{x:410,y:560,w:200},{x:990,y:560,w:200},{x:700,y:410,w:200,ay:288}],sp:[[150,640],[1450,640]]},
  {name:'Canyon',big:1,w:2400,h:1100,rects:[[0,960,900,140],[1500,960,900,140],[1040,820,320,40],[200,800,260,40],[1940,800,260,40],[560,680,260,40],[1580,680,260,40],[1030,560,340,40],
@@ -1208,7 +1224,7 @@ function fitArena(m,TW,TH){const kx=TW/(m.w||VW),dy=TH-(m.h||VH),X=v=>Math.round
 for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260);
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
    Chimes stay standard: their gaps, piston and hanging blocks are built for that width) */
-for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
+for(const m of MAPS.filter(q=>!q.big&&!q.rigs&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
 /* Party arenas (3 or 4 fighters, every one for themselves): 1920 x 1080, shown whole on any screen (phones too), with four
    spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
 MAPS.push(
@@ -1226,7 +1242,11 @@ MAPS.push(
    hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:458}],crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[330,960],[1590,960]]},
  // Spire: hold the tower in the middle; stepped approaches and pads up to the outer perches (arcing and homing shots shine)
  {name:'Spire',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[880,560,160,440],[520,860,180,40],[1220,860,180,40],[700,700,160,40],[1060,700,160,40],[300,900,40,100,1],[1580,900,40,100,1],
-   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[430,960],[1490,960]]});   // the floor spawns sit beside the pads, not on them
+   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[430,960],[1490,960]]},
+ // Foundry: a chandelier over the middle and a toppling tower each side (rigs, for four)
+ {name:'Foundry',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[80,800,280,40],[1560,800,280,40],[120,600,220,38],[1580,600,220,38],[840,380,240,38]],
+   rigs:[{t:'beam',x:700,y:560,w:520,h:34,ropes:[{ox:-220},{ox:220}]},{t:'stack',x:520,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80]]},{t:'stack',x:1400,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80]]}],
+   sp:[[220,760],[1700,760],[200,960],[1720,960]]});   // the floor spawns sit beside the pads, not on them
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -1251,8 +1271,8 @@ addEventListener('orientationchange',()=>{resize();setTimeout(resize,250);setTim
 const bgC=document.createElement('canvas');bgC.width=W;bgC.height=H;const bgx=bgC.getContext('2d');
 const platC=document.createElement('canvas');platC.width=W;platC.height=H;const platx=platC.getContext('2d');
 const decC=document.createElement('canvas');decC.width=W;decC.height=H;const dec=decC.getContext('2d');
-const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f']];
-const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6'];
+const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f'],['#5d514b','#73665e','#463b36']];
+const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6','#a39282'];   // kind 4: dark iron-and-timber, anything physical (it swings, falls or gets shot down)
 const isOneway=(h,k)=>!k&&h<=40;
 /* the look of the card art. Scenery uses its own seeded random stream, so dressing an arena never shifts the game's dice */
 function artRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
@@ -1549,20 +1569,20 @@ function startMatch(mode){
 function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h||VH;BOUNDS=mkBounds();
   for(const c of[bgC,platC,decC])if(c.width!==W||c.height!==H){c.width=W;c.height=H}
   swings=(game.map.swings||[]).map(d=>{const s={swing:true,ax:d.ax,ay:d.ay||0,len:d.len,w:d.w,h:d.h,ang:rand(-.04,.04),av:0,dx:0,dy:0,art:document.createElement('canvas')};
-    s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,0);edgeDecor(ag,0,0,d.w,d.h,0,false);s.x=s.ax+Math.sin(s.ang)*s.len-s.w/2;s.y=s.ay+Math.cos(s.ang)*s.len-s.h/2;s.px=s.x;s.py=s.y;return s});
+    s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,4);edgeDecor(ag,0,0,d.w,d.h,4,false);s.x=s.ax+Math.sin(s.ang)*s.len-s.w/2;s.y=s.ay+Math.cos(s.ang)*s.len-s.h/2;s.px=s.x;s.py=s.y;return s});
   // moving platforms ride the same carry/push/sync path as hanging blocks; their 'ang' is the phase of a smooth back-and-forth
   for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   buildRides();
-  solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,BOUNDS);
+  solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,rigs,BOUNDS);
   buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[];camSnap()}
 // crates back in their spots and ropes back up (a new map, or a Survival life lost on the same one)
-function buildRides(){const old=rides;
+function buildRides(){const old=rides,oldR=rigs;buildRigs();
   rides=[...(game.map.crates||[]).map(([x,y,z])=>({ride:true,crate:true,x,y,w:z,h:z,x0:x,y0:y,vx:0,vy:0,dx:0,dy:0,hits:0,broken:0,gone:0,art:crateArt(z)})),
     ...(game.map.hangs||[]).map(d=>{const c={ride:true,hang:true,x:d.x,y:d.y,w:d.w,h:d.h||30,ay:d.ay||0,st:0,vy:0,dx:0,dy:0,hit:[],art:document.createElement('canvas')};
-      c.tx=c.x+c.w/2;c.ty=c.y-56;c.art.width=c.w;c.art.height=c.h;const ag=c.art.getContext('2d');facets(ag,0,0,c.w,c.h,0);edgeDecor(ag,0,0,c.w,c.h,0,false);return c})];
+      c.tx=c.x+c.w/2;c.ty=c.y-56;c.art.width=c.w;c.art.height=c.h;const ag=c.art.getContext('2d');facets(ag,0,0,c.w,c.h,4);edgeDecor(ag,0,0,c.w,c.h,4,false);return c})];
   for(const c of rides){c.px=c.lx=c.x;c.py=c.ly=c.y}
-  if(old!==rides&&solids.length){solids=solids.filter(r=>!old.includes(r)&&!r.bound).concat(rides,BOUNDS)}}
+  if(old!==rides&&solids.length){solids=solids.filter(r=>!old.includes(r)&&!oldR.includes(r)&&!r.bound).concat(rides,rigs,BOUNDS)}}
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
@@ -1808,7 +1828,14 @@ function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)
   for(const d of m.movers||[])R(d.x,d.y,d.w,d.h,KIND[2][0]);
   g.strokeStyle='rgba(220,210,240,.5)';g.lineWidth=1;for(const d of m.swings||[]){const ay=d.ay||0;g.beginPath();g.moveTo(ox+d.ax*k,oy+ay*k);g.lineTo(ox+d.ax*k,oy+(ay+d.len)*k);g.stroke();R(d.ax-d.w/2,ay+d.len-d.h/2,d.w,d.h,KIND[0][0])}
   for(const d of m.hangs||[]){g.beginPath();g.moveTo(ox+(d.x+d.w/2)*k,oy+(d.ay||0)*k);g.lineTo(ox+(d.x+d.w/2)*k,oy+d.y*k);g.stroke();R(d.x,d.y,d.w,d.h||30,KIND[0][0]);R(d.x+d.w/2-8,d.y-62,16,16,'#e8455f')}
-  for(const[x,y,z]of m.crates||[])R(x,y,z,z,'#b98252')}
+  for(const[x,y,z]of m.crates||[])R(x,y,z,z,'#b98252');
+  const D=KIND[4][0],N='#ffb35a',ln=(x0,y0,x1,y1)=>{g.beginPath();g.moveTo(ox+x0*k,oy+y0*k);g.lineTo(ox+x1*k,oy+y1*k);g.stroke()};
+  for(const d of m.rigs||[]){
+    if(d.t==='beam'){R(d.x,d.y,d.w,d.h,D);for(const r of d.ropes){const x=d.x+d.w/2+r.ox;ln(x,r.ay||0,x,d.y);R(x-8,d.y-64,16,16,N)}}
+    else if(d.t==='ball'){ln(d.ax,d.ay||0,d.ax,(d.ay||0)+d.len);R(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,D);R(d.ax-8,(d.ay||0)+d.len-64,16,16,N)}
+    else if(d.t==='bridge'){R(d.dir>0?d.px:d.px-(d.th||30),d.py-d.L,d.th||30,d.L,D);ln(d.px,d.py-d.L,d.rx,d.ry)}
+    else if(d.t==='lift')for(const q of[d.a,d.b]){ln(q.x+q.w/2,d.wy,q.x+q.w/2,q.y);R(q.x,q.y,q.w,q.h,D)}
+    else if(d.t==='stack'){let y=d.y;for(const[w,h,key]of d.blocks){y-=h;R(d.x-w/2,y,w,h,key?N:D)}}}}
 function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;box.hidden=!sandbox.mapsOpen;grid.hidden=!!sandbox.mapsOpen;$('#sbArena').classList.toggle('on',!!sandbox.mapsOpen);
   if(!sandbox.mapsOpen)return;box.innerHTML='';
   for(const i of[-1,...MAPS.map((m,k)=>k).filter(k=>!MAPS[k].coop)]){const m=i<0?null:MAPS[i],b=document.createElement('button');b.type='button';b.className='sb-map'+(sandbox.arena===i?' on':'');b.dataset.sbmap=i;
@@ -1842,7 +1869,7 @@ let drops=[],dropSeq=0;
 const DRILL=160;   // Ghost Rounds: px of rock a shot drills through, per copy
 const dropsOn=()=>game.mode==='survival';   // power-ups drop only in Survival: duels stay pure
 // where a capsule can land: on top of a fixed platform, with room above, away from both fighters
-function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=70);
+function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&r.kind!==3&&r.w>=70);
   for(let k=0;k<40&&tops.length;k++){const r=pick(tops),x=rand(r.x+28,r.x+r.w-28),y=r.y-DROP_R-2;
     if(x<FRAME+40||x>W-FRAME-40||y<FRAME+60)continue;if(solidBoxP(x,y-30,DROP_R,40))continue;
     if(players.some(p=>p.alive&&Math.hypot(p.x-x,p.y-y)<220))continue;return{x,y}}return null}
@@ -2562,8 +2589,8 @@ function updateSwings(dt){
 /* ---------- crates and rope drops ----------
    A crate is cover you can move and break. Walk into it to push it (at a slower walk): put a wall where you need one, shove
    a rival along with it (off a ledge, too), or push it off a ledge onto whoever is below. Three hits crack it apart and
-   leave a small health orb for whoever grabs it first (in Survival, a hero). One that falls out of the arena comes back. A rope drop is a platform hung under a red target:
-   shoot the target and the platform falls, hurting whoever it lands on, and stays where it lands as new cover.
+   leave a small health orb for whoever grabs it first (in Survival, a hero). One that falls out of the arena comes back. A rope drop is a platform hung under a hollow support:
+   shoot the support and the platform falls, hurting whoever it lands on, and stays where it lands as new cover.
    The host decides; an online guest predicts the crates it pushes and is corrected by the host. Everything resets each point */
 const CRATE_HITS=3,CRATE_PUSH=230,CRUSH_V=520,ORB_R=11;
 function hitCrate(c){if(c.broken||c.gone>0)return;c.hits=(c.hits|0)+1;const cx=c.x+c.w/2,cy=c.y+c.h/2;
@@ -2574,7 +2601,7 @@ function orbTick(c){if(c.broken!==1||game.mode==='online-guest')return;
   for(const p of players){if(!p.alive||(survOn()&&p.team!==0)||Math.hypot(p.x-c.ox,p.y-c.oy)>p.r+ORB_R+6)continue;
     c.broken=2;const s=p.s;p.hp=Math.min(s.maxHp,p.hp+Math.max(15,s.maxHp*.12));dropFx(p.x,p.y-p.r-62,'heal','');return}}
 const boxOver=(a,x,y,b)=>x<b.x+b.w&&x+a.w>b.x&&y<b.y+b.h&&y+a.h>b.y;
-const rideBlocks=c=>solids.filter(o=>o!==c&&!o.swing&&!(o.hang&&o.st===3)&&!(o.crate&&(o.gone>0||o.broken)));
+const rideBlocks=c=>solids.filter(o=>o!==c&&!o.swing&&!(o.hang&&o.st===3)&&!(o.crate&&(o.gone>0||o.broken))&&!(o.rig&&o.mode==='gone'));
 function rideCrush(c,p,dmg){if(game.mode==='online-guest'||c.hit.includes(p))return;c.hit.push(p);if(p.blockT>0){ring(p.x,p.y,'#ffffff',60);sfx('parry');return}
   p.vx=(p.x<c.x+c.w/2?-1:1)*620;p.vy=-380;p.ground=null;p.grounded=false;p.kT=.35;damage(p,dmg,c.by&&c.by!==p?c.by:null);burst(p.x,p.y,'#cfd8e3',14,420,5,.35,0);addShake(9);sfx('crush')}
 function rideFall(c,dt,isCrate){const B=rideBlocks(c);let ny=c.y+c.vy*dt,landed=null;
@@ -2601,7 +2628,7 @@ function crateStep(c,dt){if(c.broken){orbTick(c);return}
     c.x=nx}
   rideFall(c,dt,true);if(c.y>H+80){c.gone=3;c.y=H+5000;c.vx=c.vy=0}}
 function hangStep(c,dt){if(c.st!==1)return;c.vy=Math.min(1600,c.vy+PG*gMul()*dt);if(rideFall(c,dt,false))c.st=2;if(c.y>H+80){c.st=3;c.y=H+5000}}
-function cutHang(c,by){if(c.st!==0)return;c.st=1;c.vy=0;c.by=by;burst(c.tx,c.ty,'#ff5a4f',16,420,4,.4,600);burst(c.tx,c.ty,'#ffd36b',8,300,3,.3,0,true);sfx('crush');addShake(5)}
+function cutHang(c,by){if(c.st!==0)return;c.st=1;c.vy=0;c.by=by;burst(c.tx,c.ty,'#6e625b',16,420,4,.4,900);burst(c.tx,c.ty,'#ffb35a',10,320,3,.3,0,true);sfx('crush');addShake(5)}
 function updateRides(dt){for(const c of rides){c.px=c.x;c.py=c.y;if(c.crate)crateStep(c,dt);else hangStep(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;
   if(Math.abs(c.dx)>200||Math.abs(c.dy)>200){c.dx=c.dy=0}}}   // a respawn or a reset is a jump, not a motion to carry riders along
 // online guest: step the crates locally (so pushing one feels instant), then pull each toward where the host says it is
@@ -2612,6 +2639,139 @@ function guestRides(h){updateRides(h);const k=Math.min(1,h*6);
       if(c.st===2&&c.gst===2&&Math.abs(c.gy-c.y)>30)c.y=c.ly=c.gy;continue}
     if(c.broken)continue;if(c.ggone){if(!(c.gone>0)){c.gone=99;c.y=H+5000}continue}if(c.gone>0){c.gone=0;c.x=c.lx=c.gx;c.y=c.ly=c.gy}
     const ex=c.gx-c.x,ey=c.gy-c.y;if(Math.hypot(ex,ey)>70){c.x=c.lx=c.gx;c.y=c.ly=c.gy}else if(!(c.pushT>0)){c.x+=ex*k;c.y+=ey*k}}}
+/* ---------- rigs: dark, physical pieces held up by hollow supports ----------
+   The colour rule: bright slabs never move; dark iron-and-timber pieces are physical. A hollow iron frame with a hot core is a
+   support: shoot it out and whatever it held does what its other supports allow (swings from the rope that's left, slams down
+   on its hinge, falls, brings a stack down, or drops a pair of lifts). Collision stays level, so standing and shooting stay
+   exact and online stays in step; the drawn piece leans a little while it moves and settles flat when it rests.
+   The host decides every break; a guest runs the same physics and is pulled to where the host says. */
+const NODE=15,NODE_D=56,RIG_M=['hold','swing','flip','fall','rest','lift','gone'];
+let rigs=[],lifts=[];
+function rigArt(w,h,ball){const c=document.createElement('canvas');c.width=Math.ceil(w);c.height=Math.ceil(h);const g=c.getContext('2d');
+  if(ball){const r=w/2;g.save();g.translate(r,r);try{const gr=g.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r);gr.addColorStop(0,'#8c7f74');gr.addColorStop(.6,'#5a4e47');gr.addColorStop(1,'#2f2724');g.fillStyle=gr}catch(e){g.fillStyle='#5a4e47'}
+    g.beginPath();g.arc(0,0,r-2,0,TAU);g.fill();g.strokeStyle='rgba(14,6,24,.78)';g.lineWidth=4;g.stroke();
+    g.fillStyle='#2a2220';for(let i=0;i<8;i++){const a=i/8*TAU;g.beginPath();g.arc(Math.cos(a)*r*.66,Math.sin(a)*r*.66,r*.07,0,TAU);g.fill()}
+    g.fillStyle='#3a312d';g.fillRect(-r*.16,-r+1,r*.32,r*.26);g.restore();return c}
+  facets(g,0,0,w,h,4);edgeDecor(g,0,0,w,h,4,false);
+  g.fillStyle='#2a2220';if(w>30)for(const x of[9,w-9])for(const y of h>50?[9,h-9]:[h/2]){g.beginPath();g.arc(x,y,2.8,0,TAU);g.fill()}   // bolts
+  return c}
+// a support: a hollow iron frame with a hot core. It is the one part of a rig you shoot, and it cracks as it's hit
+function drawNode(x,y,hp,max,t,s=NODE,sy=s){ctx.save();ctx.translate(x,y);const pu=RM?.5:.5+.5*Math.sin(t*4+x*.02),m=Math.min(s,sy),f=m*.48,ix=s-f,iy=sy-f;
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.2+.18*pu;ctx.drawImage(glowSprite('#ff9a3c'),-s-m*1.3,-sy-m*1.3,2*s+m*2.6,2*sy+m*2.6);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(14,6,24,.85)';ctx.fillRect(-s-2,-sy-2,2*s+4,2*sy+4);ctx.fillStyle='#5f534c';ctx.fillRect(-s,-sy,2*s,2*sy);ctx.fillStyle='#867769';ctx.fillRect(-s,-sy,2*s,3);
+  ctx.fillStyle='#140c16';ctx.fillRect(-ix,-iy,2*ix,2*iy);   // the hollow
+  ctx.fillStyle=`rgba(255,${150+60*pu|0},70,${.55+.4*pu})`;ctx.fillRect(-ix+f*.45,-iy+f*.45,2*ix-f*.9,2*iy-f*.9);   // the hot core
+  ctx.fillStyle='#2a2220';for(const[a,b]of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.beginPath();ctx.arc(a*(s-f*.5),b*(sy-f*.5),Math.max(1.6,m*.11),0,TAU);ctx.fill()}
+  if(hp<max){ctx.strokeStyle='rgba(255,226,190,.9)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(-s*.9,-sy*.2);ctx.lineTo(-s*.3,sy*.1);ctx.lineTo(s*.1,-sy*.35);ctx.lineTo(s*.8,sy*.3);ctx.stroke()}
+  ctx.restore()}
+const bridgeAxes=(c,ph)=>{const d=c.dir,co=Math.cos(ph),si=Math.sin(ph);return[d*co,-si,d*si,co]};
+function attachPt(c,n){if(c.bridge){const[ax,ay,bx,by]=bridgeAxes(c,c.phi);return[c.hx+ax*c.L+bx*c.th/2,c.hy+ay*c.L+by*c.th/2]}return[c.x+c.w/2+(n.ox||0),c.y]}
+function nodePos(c,n){if(n.k==='hinge')return[c.hx,c.hy+c.th/2];if(n.k==='self')return[c.x+c.w/2,c.y+c.h/2];
+  const[x0,y0]=attachPt(c,n),dx=n.ax-x0,dy=n.ay-y0,d=Math.hypot(dx,dy)||1,s=Math.min(NODE_D,d*.5);return[x0+dx/d*s,y0+dy/d*s]}
+function placeRig(c){c.x=c.ax+Math.sin(c.ang)*c.len-c.w/2-c.off;c.y=c.ay+Math.cos(c.ang)*c.len}
+function rigPend(ang,av,len,damp,h){av+=(-(1530/len)*Math.sin(ang)-damp*av)*h;ang=clamp(ang+av*h,-1.2,1.2);if(Math.abs(ang)>=1.2)av*=-.3;return[ang,av]}
+function buildRigs(){rigs=[];lifts=[];
+  const mk=(x,y,w,h,o={})=>{const c={rig:true,ride:true,kind:4,x,y,w,h,mode:'hold',vx:0,vy:0,ang:0,av:0,len:0,ax:0,ay:0,off:0,lean:0,damp:.3,mass:1,tilt:0,tv:0,nodes:[],hit:[],dx:0,dy:0,...o};
+    if(!c.art)c.art=c.prop?null:rigArt(w,h,o.ball);rigs.push(c);return c},rope=(ax,ay,ox=0)=>({k:'rope',ox,ax,ay,alive:true,hp:1,max:1});
+  for(const d of game.map.rigs||[]){
+    if(d.t==='beam'){const c=mk(d.x,d.y,d.w,d.h);c.nodes=d.ropes.map(r=>rope(d.x+d.w/2+r.ox,r.ay||0,r.ox))}
+    else if(d.t==='ball'){const c=mk(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,{ball:true,mode:'swing',ax:d.ax,ay:d.ay||0,len:d.len,ang:d.amp||0,damp:.05,mass:2.2});c.nodes=[rope(d.ax,d.ay||0)];placeRig(c)}
+    else if(d.t==='bridge'){const th=d.th||30,c=mk(d.dir>0?d.px:d.px-th,d.py-d.L,th,d.L,{bridge:true,dir:d.dir,hx:d.px,hy:d.py,L:d.L,th,phi:Math.PI/2,pv:0,art:rigArt(d.L,th)});
+      c.nodes=[rope(d.rx,d.ry),{k:'hinge',alive:true,hp:2,max:2}]}
+    else if(d.t==='lift'){const L={s:0,v:0,range:d.range||200,wy:d.wy,broken:false,b:[]};
+      for(const q of[d.a,d.b]){const c=mk(q.x,q.y,q.w,q.h,{lift:L,y0:q.y,mode:'lift'});c.nodes=[rope(q.x+q.w/2,d.wy)];L.b.push(c)}lifts.push(L)}
+    else if(d.t==='stack'){const S={lean:d.lean||0,broken:false};let y=d.y;
+      d.blocks.forEach(([w,h,key],i)=>{y-=h;const c=mk(d.x-w/2,y,w,h,{stack:S,lvl:i,mode:'rest',prop:!!key});if(key)c.nodes=[{k:'self',alive:true,hp:2,max:2}]})}}
+  for(const c of rigs){c.px=c.lx=c.x;c.py=c.ly=c.y;c.lphi=c.phi}}
+function hitNode(c,n,by){if(!n.alive||game.mode==='online-guest')return;n.hp--;const[x,y]=nodePos(c,n);
+  if(n.hp>0){burst(x,y,'#ffb35a',7,260,3,.25,0,true);burst(x,y,'#6e625b',5,220,3,.3,900);sfx('tink');return}breakNode(c,n,by)}
+function breakNode(c,n,by,quiet){if(!n.alive)return;n.alive=false;n.hp=0;
+  if(!quiet){const[x,y]=nodePos(c,n);burst(x,y,'#6e625b',14,440,4,.45,900);burst(x,y,'#ffb35a',10,340,3,.3,0,true);sfx('crush');addShake(5)}
+  c.by=by||c.by;rigReact(c)}
+function bridgeLower(c){if(c.down)return;c.down=true;c.x=c.dir>0?c.hx:c.hx-c.L;c.y=c.hy;c.w=c.L;c.h=c.th;c.lx=c.x;c.ly=c.y;
+  for(const p of players){if(!p.alive||!boxHit(p.x,p.y,p.r,p.r,c))continue;if(p.y<c.y+c.h/2)p.y=c.y-p.r-.5;else p.y=c.y+c.h+p.r+.5;rideCrush(c,p,24)}}
+function rigReact(c){
+  if(c.prop){c.mode='gone';c.y=H+5000;c.stack.broken=true;return}
+  if(c.lift){const L=c.lift;if(L.broken)return;L.broken=true;for(const b of L.b){b.mode='fall';b.vy=0;b.vx=0;b.tv=(b===L.b[0]?1:-1)*.9}return}
+  if(c.bridge){const rope=c.nodes[0],hinge=c.nodes[1];
+    if(!hinge.alive){if(c.mode!=='fall'&&c.mode!=='gone'){if(c.phi<1.2)bridgeLower(c);c.mode='fall';c.vx=0;c.vy=0;c.tv=c.dir*1.4}}
+    else if(!rope.alive&&c.mode==='hold'&&!c.down){c.mode='flip';c.pv=-1.1}return}
+  const up=c.nodes.filter(n=>n.alive&&n.k==='rope');
+  if(!up.length){if(c.mode!=='fall'&&c.mode!=='gone'){const sw=c.mode==='swing';c.mode='fall';c.vx=sw?clamp(c.dx/FIXED,-700,700):0;c.vy=sw?clamp(c.dy/FIXED,-600,600):0;c.tv=c.ball?0:(c.tilt>0?1:-1)*.6}return}
+  if(up.length===1&&c.mode==='hold'){const n=up[0];c.mode='swing';c.ax=n.ax;c.ay=n.ay;c.off=n.ox;c.len=Math.max(60,c.y-n.ay);c.ang=0;
+    c.av=Math.sign(n.ox)*Math.min(.9,300/c.len);c.lean=-Math.sign(n.ox)*.09;c.damp=.25;placeRig(c)}}
+const rigBlocked=c=>solids.some(o=>o!==c&&!o.bound&&!o.oneway&&!o.ride&&!o.swing&&boxOver(c,c.x,c.y,o));
+function rigThud(c,k=1){burst(c.x+c.w/2,c.y+c.h/2,'#cfd8e3',5,200,3,.25);sfx('thud');addShake(3*k)}
+function rigSwing(c,dt){const pa=c.ang;[c.ang,c.av]=rigPend(c.ang,c.av,c.len,c.damp,dt);placeRig(c);c.pa=pa;
+  if(rigBlocked(c)){const hit=Math.abs(c.av);c.ang=pa;c.av*=-.45;placeRig(c);if(hit>.35)rigThud(c,c.mass)}}
+function rigFlip(c,dt){c.pv-=(1.5*PG/c.L*Math.cos(c.phi)+1)*dt;c.phi+=c.pv*dt;if(c.phi<.5)bridgeLower(c);
+  if(c.phi<=0){c.phi=0;if(c.pv<-1.4){c.pv*=-.22;const[x,y]=attachPt(c,c.nodes[0]);burst(x,y,'#cfd8e3',10,280,3,.3);sfx('crush');addShake(7)}else{c.pv=0;c.mode='hold'}}}
+function rigFall(c,dt){const g=c.ground;
+  if(c.mode==='rest'&&g&&(g.ride||g.swing)&&!(g.rig&&g.mode==='gone')){c.x+=g.dx;c.y+=g.dy}
+  if(c.mode==='fall'&&c.vx){c.vx*=Math.max(0,1-dt*.8);let nx=c.x+c.vx*dt;
+    for(const o of rideBlocks(c))if(!o.bound&&!o.oneway&&boxOver(c,nx,c.y,o)&&c.y+c.h>o.y+2){nx=c.vx>0?Math.min(nx,o.x-c.w):Math.max(nx,o.x+o.w);c.vx*=-.2}c.x=nx}
+  c.vy=Math.min(1600,c.vy+PG*gMul()*dt);const was=c.mode;
+  if(rideFall(c,dt,false)){if(was==='fall'){c.mode='rest';c.vx=0;c.tv=-c.tilt*7}}
+  else if(was==='rest'&&c.vy>60){c.mode='fall';if(c.stack&&c.stack.broken){c.vx=c.stack.lean*(1+c.lvl*.4);c.tv=Math.sign(c.stack.lean)*(.5+c.lvl*.3)}}
+  if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0}}
+function rigTilt(c,dt){if(c.bridge&&c.mode!=='fall'){c.tilt=0;c.tv=0;return}
+  if(c.ball){if(c.mode==='swing')c.tilt=c.ang;else if(c.mode==='fall')c.tilt+=c.vx*.004*dt;return}
+  if(c.mode==='fall'){c.tilt=clamp(c.tilt+c.tv*dt,-.35,.35);return}
+  const tg=c.mode==='swing'?c.lean+clamp(-c.av*.06,-.1,.1):c.mode==='lift'?clamp(c.lift.v*.0005,-.06,.06)*(c===c.lift.b[0]?1:-1):0;
+  c.tv+=((tg-c.tilt)*60-c.tv*8)*dt;c.tilt=clamp(c.tilt+c.tv*dt,-.3,.3)}
+// a counterweight pair: whichever side carries more fighters (or fallen pieces) sinks and lifts the other; empty, they drift level
+function liftStep(L,dt){if(L.broken)return;const n=b=>players.filter(p=>p.alive&&p.grounded&&p.ground===b).length+rigs.filter(o=>o.ground===b).length;
+  L.v+=((n(L.b[0])-n(L.b[1]))*520-L.s*1.4-L.v*2.2)*dt;L.v=clamp(L.v,-210,210);   /* eases into each end instead of stopping dead (a rider never jolts) */
+  const room=L.range-Math.abs(L.s);if(L.s*L.v>0&&room<70)L.v*=Math.max(0,1-dt*(3+60/Math.max(6,room)));L.s+=L.v*dt;if(Math.abs(L.s)>L.range){L.s=clamp(L.s,-L.range,L.range);L.v=0}
+  liftPlace(L)}
+function liftPlace(L){L.b[0].y=L.b[0].y0+L.s;L.b[1].y=L.b[1].y0-L.s}
+function updateRigs(dt,keep){if(!rigs.length)return;
+  if(!keep)for(const c of rigs){c.px=c.x;c.py=c.y}
+  for(const L of lifts)liftStep(L,dt);
+  for(const c of rigs){if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
+    rigTilt(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0}}
+// a shot into a rig's body: it rocks, and a hanging one is pushed (a heavy ball barely)
+function rigShove(r,b){const k=clamp(b.dmg/55,.4,2.5)/r.mass;r.tv+=Math.sign(b.vx||1)*.5*k;if(r.mode==='swing'&&game.mode!=='online-guest')r.av=clamp(r.av+b.vx*.05*k/r.len,-2.4,2.4)}
+// a shot near a support: the host breaks it (a guest's shot only flies on until the host says)
+function shotNodes(b){if(game.mode==='online-guest')return false;
+  for(const c of rigs){if(c.mode==='gone')continue;for(const n of c.nodes){if(!n.alive||n.k==='self')continue;const[x,y]=nodePos(c,n);
+    if(Math.abs(b.x-x)<NODE+b.r&&Math.abs(b.y-y)<NODE+b.r){hitNode(c,n,b.owner);return true}}}return false}
+// a blast cracks every support it reaches and shoves what hangs
+function blastRigs(b,R){if(game.mode==='online-guest')return;
+  for(const c of rigs){if(c.mode==='gone')continue;for(const n of c.nodes){if(!n.alive)continue;const[x,y]=nodePos(c,n);if(Math.hypot(x-b.x,y-b.y)<R+NODE)hitNode(c,n,b.owner)}
+    if(c.mode==='swing'){const cx=c.x+c.w/2,cy=c.y+c.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)c.av=clamp(c.av+Math.sign(cx-b.x||1)*700*(1-d/(R*1.6))/c.len/c.mass,-2.4,2.4)}}}
+// the CPU: a support over (or holding up the ground under) its rival, with a clear line to it
+function rigTarget(p,e){for(const c of rigs){if(c.mode==='gone')continue;
+    if(c.bridge&&!c.down&&c.mode==='hold'&&c.nodes[0].alive){const n=c.nodes[0],[tx,ty]=nodePos(c,n);if(losClear(p.x,p.y,tx,ty))return{tx,ty,get st(){return n.alive?0:1}};continue}   // a raised bridge: bring it down to cross
+    const over=Math.abs(e.x-(c.x+c.w/2))<c.w/2+40&&(e.ground===c||e.y>c.y+c.h&&e.y-c.y<460),near=c.prop&&Math.abs(e.x-(c.x+c.w/2))<230;
+    if(!over&&!near)continue;for(const n of c.nodes){if(!n.alive)continue;let[tx,ty]=nodePos(c,n);
+      const sx=n.k==='self'?tx-Math.sign(tx-p.x||1)*(c.w/2+4):tx;if(losClear(p.x,p.y,sx,ty))return{tx,ty,get st(){return n.alive?0:1}}}}return null}
+function drawRigs(){if(!rigs.length)return;const t=performance.now()/1000,a=clamp(game.alpha||0,0,1);
+  for(const L of lifts){const[b0,b1]=L.b,x0=b0.x+b0.w/2,x1=b1.x+b1.w/2;chain(x0,0,x0,L.wy-16);chain(x1,0,x1,L.wy-16);if(!L.broken)chain(x0,L.wy-16,x1,L.wy-16);
+    for(const x of[x0,x1]){ctx.fillStyle='#3a312d';ctx.beginPath();ctx.arc(x,L.wy,17,0,TAU);ctx.fill();ctx.strokeStyle='#8f8278';ctx.lineWidth=3;ctx.stroke();
+      ctx.save();ctx.translate(x,L.wy);ctx.rotate(L.s*.03*(x===x0?1:-1));ctx.strokeStyle='#8f8278';ctx.lineWidth=2.5;ctx.beginPath();for(let k=0;k<3;k++){const q=k/3*Math.PI;ctx.moveTo(Math.cos(q)*13,Math.sin(q)*13);ctx.lineTo(-Math.cos(q)*13,-Math.sin(q)*13)}ctx.stroke();ctx.restore()}}
+  for(const c of rigs){if(c.mode==='gone')continue;
+    for(const n of c.nodes){if(n.k!=='rope')continue;if(n.alive){const[x0,y0]=attachPt(c,n);if(c.lift){chain(n.ax,n.ay,x0,y0)}else{if(n.ay>0){ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(n.ax,n.ay,6,0,TAU);ctx.fill()}chain(n.ax,n.ay,x0,y0)}}
+      else if(!c.lift)chain(n.ax,n.ay,n.ax,n.ay+34)}   // a snapped rope's stub
+    if(c.prop){drawNode(c.x+c.w/2,c.y+c.h/2,c.nodes[0].hp,c.nodes[0].max,t,c.w/2,c.h/2);continue}
+    if(c.bridge&&c.mode!=='fall'){const ph=c.lphi!=null&&c.mode==='flip'?c.lphi+(c.phi-c.lphi)*a:c.phi,[ax,ay,bx,by]=bridgeAxes(c,ph);ctx.save();ctx.translate(c.hx,c.hy);ctx.transform(ax,ay,bx,by,0,0);ctx.drawImage(c.art,0,0);ctx.restore()}
+    else{ctx.save();ctx.translate(c.x+c.w/2,c.y+c.h/2);ctx.rotate(c.tilt+(c.bridge&&!c.down?Math.PI/2:0));if(c.mode!=='rest'&&!c.ball&&!c.bridge){ctx.fillStyle='rgba(0,0,0,.28)';slabPath(ctx,-c.w/2+8,-c.h/2+10,c.w,c.h);ctx.fill()}
+      ctx.drawImage(c.art,-c.art.width/2,-c.art.height/2);ctx.restore()}
+    for(const n of c.nodes)if(n.alive&&n.k!=='self'){const[x,y]=nodePos(c,n);drawNode(x,y,n.hp,n.max,t)}}}
+// online guest: the same physics here, nudged toward the host's numbers (a break arrives as a cleared bit and plays out locally)
+function guestRigs(h){if(!rigs.length)return;const k=Math.min(1,h*6),lead=clamp((net.leadS||0)+2*FIXED,0,.45),ls=Math.round(lead/FIXED);
+  for(const c of rigs){c.px=c.x;c.py=c.y}
+  for(const L of lifts)if(L.gs!=null&&!L.broken){const ts=clamp(L.gs+L.gv*lead,-L.range,L.range);L.s+=(ts-L.s)*k;L.v+=(L.gv-L.v)*k;liftPlace(L)}
+  for(const c of rigs){const g=c.g;if(!g)continue;const hm=RIG_M[g[2]]||c.mode;
+    if(hm!==c.mode){c.gT=(c.gT||0)+h;if(c.gT>.3){c.gT=0;if(c.bridge&&g[6]<.5)bridgeLower(c);if(hm==='swing'&&!(c.len>0))continue;c.mode=hm;c.x=g[0];c.y=g[1];c.ang=g[4];c.av=g[5];if(c.bridge)c.phi=g[6];c.vx=c.vy=0;c.px=c.lx=c.x;c.py=c.ly=c.y}continue}c.gT=0;
+    if(hm==='swing'){let ang=g[4],av=g[5];for(let j=0;j<ls;j++)[ang,av]=rigPend(ang,av,c.len,c.damp,FIXED);const d=ang-c.ang;if(Math.abs(d)>.3){c.ang=ang;c.av=av}else{c.ang+=d*k;c.av+=(av-c.av)*k}placeRig(c)}
+    else if(hm==='hold'||hm==='rest'){if(c.bridge&&!c.down)continue;const ex=g[0]-c.x,ey=g[1]-c.y;if(Math.hypot(ex,ey)>60){c.x=g[0];c.y=g[1]}else{c.x+=ex*k;c.y+=ey*k}}
+    else if(hm==='fall'&&Math.hypot(g[0]-c.x,g[1]-c.y)>120){c.x=g[0];c.y=g[1]}}
+  updateRigs(h,true)}
+function rigSnap(){return rigs.map(c=>[r1(c.x),r1(c.y),RIG_M.indexOf(c.mode),c.nodes.reduce((m,n,i)=>m|(n.alive?0:1<<i),0),r3(c.ang),r3(c.av),r3(c.phi||0),c.nodes.map(n=>n.hp)])}
+function rigApply(s){(s.rg||[]).forEach((a,i)=>{const c=rigs[i];if(!c||!Array.isArray(a))return;c.g=a;
+    c.nodes.forEach((n,k)=>{if(Array.isArray(a[7])&&a[7][k]!=null&&a[7][k]<n.hp&&a[7][k]>0)n.hp=a[7][k];if(a[3]&1<<k&&n.alive)breakNode(c,n,null,true)})});
+  (s.lf||[]).forEach((a,i)=>{const L=lifts[i];if(L&&Array.isArray(a)){L.gs=a[0];L.gv=a[1]}})}
 /* a crate in the card-art style: chipped low-poly planks lit from above, dark corner brackets with bolts, and CUUED's
    orange chevron stencilled on the side */
 function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.height=z;const g=cv2.getContext('2d'),R=artRng(strSeed('crate'+z));
@@ -2656,11 +2816,9 @@ function drawRides(){for(const c of rides){
     ctx.fillStyle='#2f6b12';ctx.beginPath();ctx.arc(x,y,ORB_R+2,0,TAU);ctx.fill();ctx.fillStyle='#7ed321';ctx.beginPath();ctx.arc(x,y,ORB_R,0,TAU);ctx.fill();
     ctx.fillStyle='#ffffff';ctx.fillRect(x-6,y-2,12,4);ctx.fillRect(x-2,y-6,4,12);ctx.restore();continue}
   if(c.crate&&(c.gone>0||c.broken)||c.hang&&c.st===3)continue;
-  if(c.hang&&c.st===0){const cx=c.tx,cy=c.ty;ctx.save();ctx.strokeStyle='rgba(222,196,150,.8)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,c.ay);ctx.lineTo(cx,cy-13);ctx.stroke();
+  if(c.hang&&c.st===0){const cx=c.tx,cy=c.ty;chain(cx,c.ay,cx,cy-13);ctx.save();
     ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(cx-6,cy+13);ctx.lineTo(c.x+14,c.y);ctx.moveTo(cx+6,cy+13);ctx.lineTo(c.x+c.w-14,c.y);ctx.stroke();
-    const pulse=.5+.5*Math.sin(performance.now()/260);ctx.globalAlpha=.25+.2*pulse;ctx.fillStyle='#ff5a4f';ctx.beginPath();ctx.arc(cx,cy,22,0,TAU);ctx.fill();ctx.globalAlpha=1;
-    ctx.fillStyle='#7a1f2a';ctx.fillRect(cx-13,cy-13,26,26);ctx.fillStyle='#e8455f';ctx.fillRect(cx-11,cy-11,22,22);ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(cx,cy,6,0,TAU);ctx.stroke();
-    ctx.fillStyle='#ffffff';ctx.fillRect(cx-1.5,cy-1.5,3,3);ctx.restore()}
+    ctx.restore();drawNode(cx,cy,1,1,performance.now()/1000)}
   if(!c.ground&&c.st!==2){ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(c.x+7,c.y+9,c.w,c.h)}ctx.drawImage(c.art,c.x,c.y);   // a shadow only while it hangs or falls: never one lying across the ground
   if(c.crate&&c.hits>0){ctx.save();ctx.strokeStyle='rgba(30,14,6,.85)';ctx.lineWidth=2.5;ctx.lineJoin='round';const R=artRng(strSeed('k'+c.x0+c.y0)),cx=c.x+c.w/2,cy=c.y+c.h/2;   // cracks, more each hit
     for(let k=0;k<c.hits*2;k++){let x=cx+(R()-.5)*c.w*.3,y=cy+(R()-.5)*c.h*.3;ctx.beginPath();ctx.moveTo(x,y);for(let j=0;j<3;j++){x+=(R()-.5)*c.w*.5;y+=(R()-.5)*c.h*.5;ctx.lineTo(clamp(x,c.x+3,c.x+c.w-3),clamp(y,c.y+3,c.y+c.h-3))}ctx.stroke()}ctx.restore()}}}
@@ -2765,7 +2923,8 @@ function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x
   burst(b.x,b.y,b.glow,26,R*7,8,.5,300,true);burst(b.x,b.y,'#ffffff',8,R*4,5,.3,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive||(b.owner&&p!==b.owner&&p.team===b.owner.team))continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
     p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
-  for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}}
+  for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}
+  blastRigs(b,R)}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
 const MINE_FUSE=.5,INTERP_MS=55,INTERP_FAST=38,OUT_X=400;   // OUT_X: past this far off a side a shot is gone (a homing one may still curve back before it)   // Limpet Mines: stick, beep for half a second, then blow. Always the same timing.
 function killBullet(b,impact,wall,n){
@@ -2845,6 +3004,7 @@ function updateBullets(dt){
         // Ghost Rounds: drill on through rock until the depth runs out, then hit like any shot
         if(b.phase&&b.drill>0&&circleRect(b.x,b.y,wallR(b),r)){ghostIn=true;continue}
         const n=bulletRect(b,r);if(!n)continue;
+        if(r.rig){if(r.prop)hitNode(r,r.nodes[0],b.owner);else rigShove(r,b)}
         if(r.swing){pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));r.lastHit=b.owner}
         if(r.crate&&game.mode!=='online-guest')hitCrate(r)
         if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
@@ -2852,6 +3012,7 @@ function updateBullets(dt){
       if(b.phase){if(ghostIn){if(!b.phasing)burst(b.x,b.y,'#d8ccff',4,160,2,.2,0,true);b.drill-=Math.hypot(b.vx,b.vy)*sdt}b.phasing=ghostIn}
       if(b.dead)break;
       if(game.mode!=='online-guest')for(const c of rides)if(c.hang&&c.st===0&&Math.abs(b.x-c.tx)<13+b.r&&Math.abs(b.y-c.ty)<13+b.r){cutHang(c,b.owner);killBullet(b,b.explode>0);break}
+      if(!b.dead&&shotNodes(b))killBullet(b,b.explode>0);
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
@@ -2877,7 +3038,7 @@ function swingCrush(p,r,dt){if(r.mover||game.mode==='online-guest'||!(dt>0)||(p.
 /* a swinging block shoves a body aside, but if that would crush it into a wall the block yields and bounces back */
 function swingPush(p,r){const ox=p.x,oy=p.y,og=p.grounded,ogr=p.ground;pushOut(p,r);
   if(solids.some(o=>o!==r&&!o.oneway&&!o.bound&&boxHit(p.x,p.y,p.r-1,p.r-1,o))){p.x=ox;p.y=oy;p.grounded=og;p.ground=ogr;
-    r.ang=r.pa??r.ang;r.av*=-.3;placeSwing(r);if(boxHit(p.x,p.y,p.r,p.r,r)){r.ang-=Math.sign(r.av||1)*.02;placeSwing(r)}}}
+    const place=r.rig?placeRig:placeSwing;r.ang=r.pa??r.ang;r.av*=-.3;place(r);if(boxHit(p.x,p.y,p.r,p.r,r)){r.ang-=Math.sign(r.av||1)*.02;place(r)}}}
 /* movement is split from combat so an online guest can run the exact same movement code to predict its own fighter */
 // running, gravity, drop-through and jumping (with buffer and coyote time) from this step's input
 const berserkOn=p=>p.s.berserk&&p.hp<p.s.maxHp*.5;
@@ -2930,7 +3091,8 @@ function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
 function moveCollide(p,dt){
   // stacked knockbacks (several blasts in one frame, big Lob Shell stacks) can add up; cap the launch so nobody is flung off-screen
   p.vx=clamp(p.vx,-1900,1900);p.vy=clamp(p.vy,-2100,1900);
-  for(const r of swings)if(boxHit(p.x,p.y,p.r+3,p.r+3,r))swingCrush(p,r,dt);   // the blocks moved first this step: did one swing into us?
+  for(const r of swings)if(boxHit(p.x,p.y,p.r+3,p.r+3,r))swingCrush(p,r,dt);
+  for(const r of rigs)if(r.mode==='swing'&&boxHit(p.x,p.y,p.r+3,p.r+3,r))swingCrush(p,r,dt);   // the blocks moved first this step: did one swing into us?
   // sub-step by speed so a huge knockback can never carry a body through a wall (each move ≤ half its radius)
   const R=p.r,nSub=Math.min(12,Math.max(1,Math.ceil(Math.max(Math.abs(p.vx),Math.abs(p.vy))*dt/(R*.5)))),mdt=dt/nSub;
   for(let ms=0;ms<nSub;ms++){
@@ -2952,6 +3114,7 @@ function moveCollide(p,dt){
       if(or<=10&&!solidBoxP(p.x+or+.5,p.y,R,R)){p.x+=or+.5;continue}
       p.y=r.y+r.h+R;p.vy=0}}
   for(const r of swings)if(boxHit(p.x,p.y,R,R,r))swingPush(p,r);
+  for(const r of rigs)if(r.mode==='swing'&&boxHit(p.x,p.y,R,R,r))swingPush(p,r);
   }
   // safety net: never end a step with the body's centre inside a wall
   for(const r of solids)if(!r.oneway&&!r.bound&&p.x>r.x&&p.x<r.x+r.w&&p.y>r.y&&p.y<r.y+r.h){if(r.swing)swingPush(p,r);else pushOut(p,r)}
@@ -3073,7 +3236,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   if(ai.sx==null){ai.sx=e.x;ai.sy=e.y;ai.svx=0;ai.svy=0;ai.aim=p.aim}
   const k=Math.min(1,dt/sk.lag);ai.sx+=(e.x-ai.sx)*k;ai.sy+=(e.y-ai.sy)*k;ai.svx+=(e.vx-ai.svx)*k;ai.svy+=(e.vy-ai.svy)*k;
   // a rope drop over (or under) the rival, with a clear line to its target: cut it and drop the platform on them
-  if((ai.ropeT=(ai.ropeT||0)-dt)<=0){ai.ropeT=.15;ai.rope=rides.find(c=>c.hang&&c.st===0&&Math.abs(e.x-(c.x+c.w/2))<c.w/2+12&&(e.ground===c||e.y>c.y+c.h&&e.y-c.y<460)&&losClear(p.x,p.y,c.tx,c.ty))||null}
+  if((ai.ropeT=(ai.ropeT||0)-dt)<=0){ai.ropeT=.15;ai.rope=rides.find(c=>c.hang&&c.st===0&&Math.abs(e.x-(c.x+c.w/2))<c.w/2+12&&(e.ground===c||e.y>c.y+c.h&&e.y-c.y<460)&&losClear(p.x,p.y,c.tx,c.ty))||rigTarget(p,e)}
   if(ai.rope&&ai.rope.st!==0)ai.rope=null;
   const wantAim=ai.rope?aimSolutionAt(p,ai.rope.tx,ai.rope.ty,0,0,false)+ai.err*.3:aimSolutionAt(p,ai.sx,ai.sy,ai.svx*sk.lead,ai.svy*sk.lead,e.grounded)+ai.err;
   // the gun arm swings toward that aim at a human-ish speed instead of snapping
@@ -3136,7 +3299,7 @@ function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
-  updateSwings(h);updateRides(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
+  updateSwings(h);updateRides(h);updateRigs(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
   dropTick(h);strikeTick(h);if(game.mode==='survival')downTick(h);
   if(hostingNet()){const e=[performance.now()];for(const q of players)e.push(q.x,q.y);(net.h0=net.h0||[]).push(e);if(net.h0.length>60)net.h0.shift()}   // every fighter's recent path, for lag compensation
   updateBullets(h);
@@ -3153,7 +3316,7 @@ function simTick(h){const st=game.state;
     if(!game.overtime&&game.pointT>45){game.overtime=true;game.banner='OVERTIME';game.bannerT=1.4;sfx('horn')}return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
   return false}
-function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}
+function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}
 function update(dt){pollPads();bsHostTick(dt);
   if(game.mode==='online-guest'){guestTick(dt);return}
   if(game.paused){edges.clear();mouse.rEdge=false;return}
@@ -3392,7 +3555,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
 function render(){const saved=[],a=clamp(game.alpha||0,0,1),lerp=o=>{if(o.lx!=null&&Number.isFinite(o.x)&&Number.isFinite(o.lx)){saved.push([o,o.x,o.y]);o.x=o.lx+(o.x-o.lx)*a;o.y=o.ly+(o.y-o.ly)*a}};
-  for(const w of swings)lerp(w);for(const c of rides)lerp(c);
+  for(const w of swings)lerp(w);for(const c of rides)lerp(c);for(const c of rigs)lerp(c);
   if(game.mode==='online-guest'){const me=players[net.me];if(me&&me.phys){lerp(me);if(!saved.some(e=>e[0]===me))saved.push([me,me.x,me.y]);me.x+=net.offX;me.y+=net.offY}}
   else for(const o of[...players,...bullets])lerp(o);
   try{renderNow()}finally{for(const[o,x,y]of saved){o.x=x;o.y=y}}}
@@ -3412,7 +3575,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0);ctx.drawImage(decC,0,0);
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
-  drawPadGlow();drawRides();
+  drawPadGlow();drawRides();drawRigs();
   for(const q of parts)if(q.blob){ctx.globalAlpha=clamp(q.life/q.max,0,1)*.7;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(1.3-.3*q.life/q.max),0,TAU);ctx.fill()}
   ctx.globalAlpha=1;
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
@@ -3619,7 +3782,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-drill';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-28-rigs2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3918,7 +4081,7 @@ function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.m
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(',')]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
-  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>c.crate?[r1(c.x),r1(c.y),c.broken?c.broken+1:c.gone>0?1:0,c.hits|0,r1(c.ox||0),r1(c.oy||0)]:[r1(c.x),r1(c.y),c.st])}:{}),fx:[],...(game.coop?coopSnap():{})}}
+  sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>c.crate?[r1(c.x),r1(c.y),c.broken?c.broken+1:c.gone>0?1:0,c.hits|0,r1(c.ox||0),r1(c.oy||0)]:[r1(c.x),r1(c.y),c.st])}:{}),...(rigs.length?{rg:rigSnap(),lf:lifts.map(L=>[r1(L.s),r1(L.v)])}:{}),fx:[],...(game.coop?coopSnap():{})}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
   // host-clock offset: the smallest (arrival - send) seen is the least-delayed path; it drifts up slowly to follow clock drift
@@ -3961,6 +4124,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
     if(w.mover)ang=(ang+lead/w.period)%1;else for(let k=0;k<ls;k++)[ang,av]=swingPhys(ang,av,w.len,FIXED);
     w.gAng=ang;w.gAv=av;if(first){w.ang=ang;w.av=av;placeSwing(w);w.px=w.x;w.py=w.y;w.dx=0;w.dy=0}});
   (s.rd||[]).forEach((a,i)=>{const c=rides[i];if(!c||!Array.isArray(a))return;c.gx=a[0];c.gy=a[1];if(c.crate){c.ggone=a[2]===1;c.hits=a[3]|0;if(a[2]>=2){c.broken=a[2]-1;c.ox=a[4];c.oy=a[5];c.y=H+5000}else if(c.broken){c.broken=0}}else c.gst=a[2]});
+  rigApply(s);
   for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}}
 // guest's own fighter: compare the host's state for the newest input it has applied with what this screen predicted
 // for that same input; shift the prediction by the difference and fade the visual jump out over ~0.1 s
@@ -4008,7 +4172,7 @@ function guestSwings(h){const k=Math.min(1,h*5);
       if(s.gAng!=null){[s.gAng,s.gAv]=swingPhys(s.gAng,s.gAv,s.len,h);const d=s.gAng-s.ang;
         if(Math.abs(d)>.3){s.ang=s.gAng;s.av=s.gAv}else{s.ang+=d*k;s.av+=(s.gAv-s.av)*k}}}
     placeSwing(s)}}
-function guestStep(h,busy){guestSwings(h);guestRides(h);const me=players[net.me],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
+function guestStep(h,busy){guestSwings(h);guestRides(h);guestRigs(h);const me=players[net.me],live=game.state==='play'||game.state==='pointEnd',on=live&&!busy&&!(me&&me.frozen);let fired=false;
   // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
   // and an aim taken after it would point back the other way, so the host would teleport the other way
   if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
@@ -4049,7 +4213,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     if(me&&me.alive&&liveThen&&(ready||me.blockStock>0&&!(me.localBlockT>0))){if(!ready)me.blockStock--;else{me.gCd=me.s.blockCd;me.blockStock=me.s.blockStock}
       // the aim this block (and its dash or teleport) uses, recorded for the host too
       if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
-  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}guestStep(FIXED,busy)}
+  game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
   const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);

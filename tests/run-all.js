@@ -37,6 +37,7 @@ const suite = [
   run('party.js', 90, 45),
   run('bigscreen.js'),   // Big Screen: the computer is the screen, phones are the controllers: lobby, at-once drafts, a full match, a leaver who rejoins, a late friend, Teams 2v2
   run('bigscreen.js', 90, 45),
+  run('rigs.js'),   // dark pieces on hollow supports: every break, the falls, CPU play, and a guest kept in step
   run('drill.js'),   // Ghost Rounds drill through a wall or two (stopped by thick rock and by a block); Survival opponents grab power-ups
   run('drops.js'),   // Boss Rush: a CPU stand-in fights each boss to the end
   // 4 seeds x 5 game-minutes of CPU vs CPU
