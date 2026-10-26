@@ -2491,7 +2491,15 @@ function drawCardArt(cvs,c,t,hl){if(!c)return;const g=cvs.getContext('2d'),w=cvs
 /* the big fighter under the cards: the in-game fighter up close (shaded body, tall oval eyes, its colour, pattern and hat),
    alive: it breathes and bobs, blinks, its eyes follow the card you're on, and it squints happily at a pick */
 let bigFace=null;
-function drawBigFace(p,mood){bigFace={p,mood};paintBigFace(performance.now()/1000)}
+/* where the eyes look: the mouse pointer itself while a mouse moves over the draft (keys or touch: the highlighted card); eased, never snapped */
+const faceGaze={mouse:false,x:0,y:0};
+addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&!$('#pick').hidden){faceGaze.mouse=true;faceGaze.x=e.clientX;faceGaze.y=e.clientY}},{passive:true});
+addEventListener('keydown',()=>{faceGaze.mouse=false});
+function drawBigFace(p,mood){const o=bigFace;bigFace={p,mood,lx:o?o.lx:0,ly:o?o.ly:0,lt:o?o.lt:0};paintBigFace(performance.now()/1000)}
+function faceLook(B,t){const n=hand.length||1;let tx=n>1?(clamp(hl,0,n-1)/(n-1)-.5)*2:0,ty=0;
+  if(faceGaze.mouse){const fc=$('#face'),r=fc&&fc.getBoundingClientRect&&fc.getBoundingClientRect();
+    if(r&&r.width){const cx=r.left+r.width/2,cy=r.top+r.height*.4;tx=clamp((faceGaze.x-cx)/(innerWidth*.38),-1,1);ty=clamp((faceGaze.y-cy)/(innerHeight*.45),-1,1)}}
+  const dt=clamp(t-(B.lt||t),0,.1);B.lt=t;if(RM||!dt){B.lx=tx;B.ly=ty;return}const k=1-Math.exp(-dt*8);B.lx+=(tx-B.lx)*k;B.ly+=(ty-B.ly)*k}
 function paintBigFace(t){const B=bigFace,fc=$('#face'),g=fc&&fc.getContext&&fc.getContext('2d');if(!B||!g)return;const p=B.p,S=560,R=250,sk=skinOf(p.color);g.clearRect(0,0,S,S);
   const br=RM?0:Math.sin(t*2.2),bob=br*6;g.save();g.translate(S/2,S/2+20+bob);g.scale(1-br*.012,1+br*.012);
   try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,p.color);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=p.color}
@@ -2499,7 +2507,7 @@ function paintBigFace(t){const B=bigFace,fc=$('#face'),g=fc&&fc.getContext&&fc.g
   g.save();g.beginPath();g.arc(0,0,R,0,TAU);g.clip();g.fillStyle='rgba(255,255,255,.07)';g.beginPath();g.moveTo(-R,-R*.1);g.lineTo(R*.2,-R);g.lineTo(R,-R);g.lineTo(-R,R*.4);g.fill();
   g.fillStyle='rgba(0,0,0,.08)';g.beginPath();g.moveTo(R,R*.1);g.lineTo(-R*.3,R);g.lineTo(R,R);g.fill();g.restore();
   if(p.cos&&p.cos.pattern)drawPattern(g,p.cos.pattern,R);
-  const n=hand.length||1,look=n>1?(clamp(hl,0,n-1)/(n-1)-.5)*2:0,ex=look*R*.22,ey=-R*.14,shut=!RM&&(t%3.7)<.13,happy=B.mood==='happy';
+  faceLook(B,t);const ex=B.lx*R*.22,ey=-R*.14+B.ly*R*.07,shut=!RM&&(t%3.7)<.13,happy=B.mood==='happy';
   g.fillStyle='#16121c';g.strokeStyle='#16121c';g.lineCap='round';
   for(const s2 of[-1,1]){const x=ex+s2*R*.24;
     if(happy){g.lineWidth=R*.07;g.beginPath();g.arc(x,ey+R*.05,R*.09,Math.PI*1.1,Math.PI*1.9);g.stroke()}
@@ -3602,7 +3610,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-bold';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-gaze';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
