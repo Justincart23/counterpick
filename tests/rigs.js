@@ -53,7 +53,9 @@ const { load, flushTimers } = require('./env');
     check(top.some((c, i) => Math.abs(c.x - (key.x + key.w / 2 - c.w / 2)) > 20), 'Topple: and they topple sideways'); check(!embedded(H), 'Topple: nothing inside a block');
     check(near(12), 'Topple: the guest shows the same pile') }
   // every rig arena: a minute of CPU play never leaves a piece inside a fixed block, and nothing throws
-  for (const n of ['Chandelier', 'Drawbridge', 'Wrecking Yard', 'Pulley', 'Topple', 'Foundry']) { H.startMatch('cpu'); flushTimers(); H.loadMap(mi(H, n)); H.game.state = 'play';
+  // the wide (co-op) versions: the bridges still meet across the wider gap
+  both('Wide Drawbridge'); { const [L, R] = H.rigs; brk(L, 0); brk(R, 0); run(2.5, true); check(L.down && R.down && Math.abs(L.x + L.w - R.x) < 2, `Wide Drawbridge: the bridges come down and meet (${Math.round(L.x + L.w)} / ${Math.round(R.x)})`) }
+  for (const n of ['Chandelier', 'Drawbridge', 'Wrecking Yard', 'Pulley', 'Topple', 'Foundry', 'Wide Chandelier', 'Wide Drawbridge', 'Wide Wrecking Yard', 'Wide Pulley', 'Wide Topple']) { H.startMatch('cpu'); flushTimers(); H.loadMap(mi(H, n)); H.game.state = 'play';
     for (const p of H.players) { p.ctrl = 'cpu'; p.hp = 1e6 } let bad = 0; for (let i = 0; i < 60 / h; i++) { H.update(h); flushTimers(); if (i % 60 === 0 && embedded(H)) bad++ } check(!bad, `${n}: a piece ended up inside a block during CPU play`) }
   if (fail.length) { console.log('FAIL\n  - ' + fail.join('\n  - ')); process.exit(1) }
-  console.log(JSON.stringify({ arenas: 6, failures: 0 })) })();
+  console.log(JSON.stringify({ arenas: 11, failures: 0 })) })();

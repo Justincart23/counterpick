@@ -15,7 +15,7 @@ const root = path.join(__dirname, '..');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-flow-'));
 process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }) } catch (e) {} });   // the Chrome profile is ~100 MB: never leave it behind
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,die,sandbox,get players(){return players}};})();</script>');
+html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,die,sandbox,showEnd,startMatch,CARDS,get players(){return players}};})();</script>');
 fs.writeFileSync(path.join(dir, 'index.html'), html);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -95,6 +95,14 @@ async function tab(port, url) {
   ok(await A.until(shown('[data-sub="help"]'), 2000), 'How to play opens');
   await A.key('Escape', 'Escape');
   ok(await A.ev(`!!document.querySelector('#bPause')&&!!document.querySelector('#pFull')&&!document.querySelector('#pFull').hidden`), 'the pause button is there, with Full screen in the pause menu');
+  // the end screen: your fighter (happy on a win, sad on a loss), your build as cards, Play again
+  await A.ev(`(()=>{const G=window.__G;G.startMatch('cpu');document.querySelector('#pick').hidden=true;G.players[0].cards=G.CARDS.slice(0,4);G.game.wins=[5,2];G.showEnd(0)})()`); await sleep(1200);
+  const es = await A.ev(`(()=>{const c=document.querySelector('#endHero'),g=c.getContext('2d'),d=g.getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<d.length;i+=40)if(d[i]>0)n++;
+    return{painted:n,cards:document.querySelectorAll('#deck0 .ecard').length,ribbon:document.querySelector('#endRibbon').textContent,go:document.querySelector('#end .end-go').textContent,open:!document.querySelector('#end').hidden}})()`);
+  ok(es.open && es.painted > 500 && es.cards === 4 && es.ribbon === 'Victory' && es.go === 'Play again', `the end screen shows your fighter celebrating, your build as cards, and Play again (${JSON.stringify(es)})`);
+  await A.ev(`(()=>{const G=window.__G;G.game.wins=[3,5];G.showEnd(1)})()`); await sleep(400);
+  ok(await A.ev(`document.querySelector('#endRibbon').classList.contains('sad')`), 'and a sad one on a loss');
+  await A.ev(`document.querySelector('#end [data-act="menu"]').click()`); ok(await A.until(shown('#menu'), 3000), 'Main menu from the end screen');
   ok(A.errors.length === 0, `no page errors on the local build${A.errors.length ? ': ' + A.errors.slice(0, 3).join(' | ') : ''}`);
 
   // ---- live site: a real online match between two tabs ----

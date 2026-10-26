@@ -552,6 +552,44 @@ body.touch .desk-only{display:none!important}
   .menu-wrap .opts-wrap .mlist.opts,.pause-screen .opts-wrap .mlist.opts{width:min(820px,100%)}.opts-wrap .mlist.opts button,.opts-wrap .mlist.centered.opts button{min-height:40px;padding-top:2px;padding-bottom:2px}
   .opts-wrap .mlist.opts{gap:7px}.opts-wrap .mlist.opts [data-opt="pview"]{grid-column:1 / -1}.menu-wrap>.opts-wrap[data-sub="settings"]{width:min(820px,100%);justify-self:center}
 }
+/* ---- the end screen: your fighter up close (a hop and confetti for a win, a slump and a tear for a loss), your build dealt
+   out as cards, and one warm button to go again ---- */
+#end .end-wrap{width:min(1120px,100%);display:grid;grid-template-columns:minmax(220px,.85fr) 1.3fr;gap:clamp(14px,3vw,44px);align-items:center;text-align:left}
+.end-hero{position:relative;display:grid;place-items:center;min-width:0}
+#endHero{width:100%;max-width:440px;height:auto;aspect-ratio:1}
+.end-ribbon{position:absolute;top:3%;left:50%;--rc:var(--orange);transform:translateX(-50%) rotate(-4deg);font:400 clamp(24px,3.6vw,42px) var(--display);letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 22px 4px;border-radius:12px;background:var(--rc);color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.35),0 0 30px color-mix(in srgb,var(--rc) 55%,transparent);white-space:nowrap;animation:ribbonIn .6s .15s cubic-bezier(.2,1.6,.4,1) both}
+.end-ribbon.sad{--rc:#4b4466;transform:translateX(-50%) rotate(3deg);box-shadow:0 6px 0 rgba(0,0,0,.35)}
+@keyframes ribbonIn{from{opacity:0;transform:translateX(-50%) scale(.4) rotate(-12deg)}}
+.end-info{display:grid;gap:12px;justify-items:start;min-width:0}
+#end .end-info .screen-title.big{font-size:clamp(34px,5.2vw,66px);text-align:left;margin:0;line-height:1}
+.end-stats{display:flex;flex-wrap:wrap;gap:8px}
+.end-stats span{font:800 14px var(--body);padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--text)}
+.end-stats b{color:var(--hot);font-weight:900}
+.end-build,.end-rival{display:grid;gap:8px;width:100%}
+.ecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px;width:100%}
+.ecard{--c:#888;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:9px;padding:6px 10px 6px 6px;border-radius:12px;background:rgba(20,12,30,.78);
+  border:2px solid color-mix(in srgb,var(--c) 75%,transparent);box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--c) 35%,transparent);animation:dealIn .45s calc(var(--i) * 80ms + .35s) cubic-bezier(.2,1.4,.4,1) both;min-width:0}
+.ecard canvas{width:42px;height:42px;border-radius:10px;background:color-mix(in srgb,var(--c) 85%,#000)}
+.ecard b{display:block;font:400 15px var(--display);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ecard small{display:block;font:700 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ecard>div{min-width:0}
+.ecard .x{color:var(--hot)}
+.ecard.rare{box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--c) 35%,transparent),0 0 18px color-mix(in srgb,var(--c) 40%,transparent)}
+@keyframes dealIn{from{opacity:0;transform:translateY(16px) scale(.86) rotate(-3deg)}}
+.end-rival .lbl{opacity:.75}.end-rival .deck{opacity:.85}
+#end .end-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+#end .end-acts button{position:relative;font:400 clamp(18px,2.2vw,24px) var(--display);letter-spacing:.04em;text-transform:uppercase;padding:10px 22px;border-radius:14px;border:2px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;animation:none;transform:none;transition:transform .12s,background .12s,border-color .12s}
+#end .end-acts button::before,#end .end-acts button::after{display:none}
+#end .end-acts button:hover,#end .end-acts button:focus-visible,#end .end-acts button:focus{border-color:var(--orange);outline:none;transform:translateY(-2px)}
+#end .end-acts .end-go{background:var(--orange);border-color:var(--orange);color:#1b0f08;padding:12px 30px;box-shadow:0 5px 0 #a8460b,0 0 26px rgba(255,122,26,.45);animation:goPulse 1.8s 1.4s ease-in-out infinite}
+#end .end-acts .end-go:hover,#end .end-acts .end-go:focus{background:#ff8f3a;color:#1b0f08}
+@keyframes goPulse{50%{box-shadow:0 5px 0 #a8460b,0 0 42px rgba(255,122,26,.75)}}
+@media (prefers-reduced-motion:reduce){.end-ribbon,.ecard,#end .end-acts .end-go{animation:none}}
+@media (max-width:760px){#end .end-wrap{grid-template-columns:1fr;justify-items:center}#endHero{max-width:230px}.end-info{justify-items:center;text-align:center}#end .end-info .screen-title.big{text-align:center}.end-stats{justify-content:center}}
+@media (max-height:520px){#end .end-wrap{grid-template-columns:34% 1fr;gap:14px}#endHero{max-height:72vh;max-width:72vh}.end-info{gap:7px}#end .end-info .screen-title.big{font-size:clamp(26px,9vh,40px)}
+  .end-info>.end-score{display:none}.end-coins,.end-coins.none{font-size:13px}.end-stats span{font-size:12px;padding:4px 10px}.ecard small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}.end-build .lbl{display:none}.ecard .rr{display:none}.ecards{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}.ecard{grid-template-columns:32px 1fr;padding:4px 8px 4px 4px}.ecard canvas{width:32px;height:32px}.ecard b{font-size:13px}
+  .end-rival{display:none}#end .end-acts button{font-size:16px;padding:8px 16px}#end .end-acts .end-go{padding:9px 22px}.end-ribbon{font-size:22px}}
 @media (prefers-reduced-motion:reduce){.logo,.mlist button{animation:none}}
 
 /* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
@@ -940,19 +978,24 @@ body.touch .desk-only{display:none!important}
 </div>
 
 <div id="end" class="overlay pause-screen" hidden>
-  <div class="center-wrap">
-    <h2 id="endTitle" class="screen-title big">Orange wins</h2>
-    <p id="endScore" class="end-score"></p>
-    <p id="endCoins" class="end-coins" hidden></p>
-    <div class="endgrid">
-      <div><div class="lbl who-o" id="deckName0">Orange's deck</div><div class="deck" id="deck0"></div></div>
-      <div><div class="lbl who-b" id="deckName1">Blue's deck</div><div class="deck" id="deck1"></div></div>
+  <div class="center-wrap end-wrap">
+    <div class="end-hero">
+      <canvas id="endHero" width="520" height="520" aria-hidden="true"></canvas>
+      <div class="end-ribbon" id="endRibbon">Victory</div>
     </div>
-    <nav class="mlist centered" data-sub="main" aria-label="Match over">
-      <button type="button" data-act="again" style="--i:0">Rematch</button>
-      <button type="button" data-act="bsLobby" id="endLobby" style="--i:1" hidden>Back to lobby</button>
-      <button type="button" data-act="menu" style="--i:1">Main menu</button>
-    </nav>
+    <div class="end-info">
+      <h2 id="endTitle" class="screen-title big">Orange wins</h2>
+      <p id="endScore" class="end-score"></p>
+      <div class="end-stats" id="endStats"></div>
+      <p id="endCoins" class="end-coins" hidden></p>
+      <div class="end-build"><div class="lbl" id="deckName0">Your build</div><div class="ecards" id="deck0"></div></div>
+      <div class="end-rival"><div class="lbl" id="deckName1">Their deck</div><div class="deck" id="deck1"></div></div>
+      <nav class="mlist end-acts" data-sub="main" aria-label="Match over">
+        <button type="button" data-act="again" class="end-go" style="--i:0">Play again</button>
+        <button type="button" data-act="bsLobby" id="endLobby" style="--i:1" hidden>Back to lobby</button>
+        <button type="button" data-act="menu" style="--i:1">Main menu</button>
+      </nav>
+    </div>
   </div>
 </div>
 
@@ -1218,7 +1261,7 @@ const MAPS=[
  {name:'Wrecking Yard',rects:[[0,800,1600,100],[180,650,240,40],[1180,650,240,40],[60,490,180,38],[1360,490,180,38],[480,470,200,38],[920,470,200,38]],
    rigs:[{t:'ball',ax:800,ay:0,len:690,z:84,amp:.5}],sp:[[300,610],[1300,610]]},
  // Pulley: two lifts on one rope. Stand on one and it sinks while the other rises; shoot either rope and both fall
- {name:'Pulley',rects:[[0,820,1600,80],[650,560,300,38],[60,400,160,38],[1380,400,160,38]],
+ {name:'Pulley',rects:[[0,820,1600,80],[650,560,300,38],[50,600,170,38],[1380,600,170,38]],
    rigs:[{t:'lift',a:{x:240,y:600,w:220,h:30},b:{x:1140,y:600,w:220,h:30},wy:110,range:190}],sp:[[140,780],[1460,780]]},
  // Topple: two towers of iron blocks, each standing on a hollow keystone. Shoot it out and the top comes down, toppling inward
  {name:'Topple',rects:[[0,800,1600,100],[690,620,220,40],[60,660,200,38],[1340,660,200,38],[620,460,360,38]],
@@ -1260,12 +1303,18 @@ function fitArena(m,TW,TH){const kx=TW/(m.w||VW),dy=TH-(m.h||VH),X=v=>Math.round
     ...(m.movers?{movers:m.movers.map(d=>({...d,x:mid(d.x,d.w),y:d.y+dy,mx:X(d.mx)}))}:{}),
     ...(m.crates?{crates:m.crates.map(([x,y,z])=>[mid(x,z),y+dy,z])}:{}),
     ...(m.hangs?{hangs:m.hangs.map(d=>({...d,x:mid(d.x,d.w),y:d.y+dy,ay:d.ay?d.ay+dy:0}))}:{}),
+    // rigs keep their size and hang from the same ceiling; a bridge grows with the gap it spans, so the pair still meets
+    ...(m.rigs?{rigs:m.rigs.map(d=>d.t==='beam'?{...d,x:mid(d.x,d.w),y:d.y+dy,ropes:d.ropes.map(r=>({...r,ay:r.ay?r.ay+dy:0}))}
+      :d.t==='ball'?{...d,ax:X(d.ax),len:d.len+dy}
+      :d.t==='bridge'?{...d,px:X(d.px),py:d.py+dy,L:Math.round(d.L*kx),rx:X(d.rx),ry:d.ry?d.ry+dy:0}
+      :d.t==='lift'?{...d,a:{...d.a,x:mid(d.a.x,d.a.w),y:d.a.y+dy},b:{...d.b,x:mid(d.b.x,d.b.w),y:d.b.y+dy},wy:d.wy+dy}
+      :d.t==='stack'?{...d,x:X(d.x),y:d.y+dy}:d)}:{}),
     sp:m.sp.map(([x,y])=>[X(x),y+dy])}}
 // the big Survival arenas: 2240 x 1260 (1.4 screens)
 for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260);
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
    Chimes stay standard: their gaps, piston and hanging blocks are built for that width) */
-for(const m of MAPS.filter(q=>!q.big&&!q.rigs&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
+for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
 /* Party arenas (3 or 4 fighters, every one for themselves): 1920 x 1080, shown whole on any screen (phones too), with four
    spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
 MAPS.push(
@@ -1657,12 +1706,64 @@ function endMatch(w){
   game.state='over';game.overW=w;
   if(game.bg){setTimeout(()=>{if(game.bg)startMatch('demo')},1500);return}
   netSend({t:'end',w});showEnd(w)}
-function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=again]');if(a)a.textContent='Rematch'}
+/* ---------- the end screen's fighter: you, up close. A win: hopping, arms up, beaming, under confetti. A loss: slumped low,
+   eyes down, a tear. (No local fighter, like a Big Screen: the winner, celebrating) ---------- */
+let endHero=null,endRAF=0;
+function endMe(){if(game.mode==='online-guest')return players[net.me]||null;if(game.mode==='online-host')return game.screen?null:players[game.party?net.hostId:0]||null;
+  return['cpu','party','sandbox','survival'].includes(game.mode)?myHero():null}
+function endShow(p,mood){endHero={p,mood,t0:performance.now()/1000,conf:[],last:0};cancelAnimationFrame(endRAF);
+  const loop=now=>{if($('#end').hidden||!endHero){endHero=null;return}paintEndHero(now/1000);endRAF=requestAnimationFrame(loop)};endRAF=requestAnimationFrame(loop)}
+function paintEndHero(t){const E=endHero,cv2=$('#endHero'),g=cv2&&cv2.getContext&&cv2.getContext('2d');if(!E||!g)return;const p=E.p,S=520,R=150,win=E.mood==='win',a=t-E.t0,sk=skinOf(p.color),dt=Math.min(.05,t-(E.last||t));E.last=t;
+  g.clearRect(0,0,S,S);
+  try{const sp=g.createRadialGradient(S/2,S*.62,10,S/2,S*.62,S*.55);sp.addColorStop(0,win?'rgba(255,214,140,.22)':'rgba(120,140,200,.12)');sp.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sp;g.fillRect(0,0,S,S)}catch(e){}
+  const hop=win&&!RM?Math.abs(Math.sin(a*4.2))*R*.22:0,land=win&&!RM?Math.max(0,1-Math.abs(Math.sin(a*4.2))*6):0,gy=S*.86;
+  g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(S/2,gy,R*(.95-hop/R*.9),R*.16*(1-hop/R*.8),0,0,TAU);g.fill();   // its shadow
+  if(win&&!RM){if(E.conf.length<90&&Math.random()<.9)for(let i=0;i<2;i++)E.conf.push({x:Math.random()*S,y:-10,vx:(Math.random()-.5)*60,vy:60+Math.random()*80,r:Math.random()*TAU,vr:(Math.random()-.5)*8,c:[p.color,p.glow,'#ffd36b','#ffffff'][Math.random()*4|0],w:6+Math.random()*6});
+    for(const c of E.conf){c.x+=c.vx*dt;c.y+=c.vy*dt;c.r+=c.vr*dt;c.vx+=Math.sin(t*2+c.y*.02)*10*dt}E.conf=E.conf.filter(c=>c.y<S+20);
+    for(const c of E.conf){g.save();g.translate(c.x,c.y);g.rotate(c.r);g.fillStyle=c.c;g.fillRect(-c.w/2,-c.w/4,c.w,c.w/2);g.restore()}}
+  const sad=!win,br=RM?0:Math.sin(a*(sad?1.3:2.4)),sx=sad?1.07+br*.01:1+land*.1,sy=sad?.9-br*.012:1-land*.1+(hop>0?.04:0);
+  g.save();g.translate(S/2,gy-R*sy-hop);if(sad)g.rotate(Math.sin(a*.9)*.03);g.scale(sx,sy);
+  // hands: flung up and waving for a win, hanging low for a loss (drawn behind the body)
+  const hand=(x,y)=>{g.fillStyle='#f4eefa';g.strokeStyle='rgba(14,6,24,.8)';g.lineWidth=5;g.beginPath();g.arc(x,y,R*.15,0,TAU);g.fill();g.stroke()};
+  if(win){const w=RM?0:Math.sin(a*9)*.25;for(const s2 of[-1,1]){const an=-Math.PI/2+s2*(.75+w*s2);hand(Math.cos(an)*R*1.18,Math.sin(an)*R*1.18)}}
+  else for(const s2 of[-1,1])hand(s2*R*1.02,R*.62);
+  try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,p.color);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=p.color}
+  g.beginPath();g.arc(0,0,R,0,TAU);g.fill();g.strokeStyle='rgba(14,6,24,.8)';g.lineWidth=6;g.stroke();
+  g.save();g.beginPath();g.arc(0,0,R,0,TAU);g.clip();g.fillStyle='rgba(255,255,255,.08)';g.beginPath();g.moveTo(-R,-R*.1);g.lineTo(R*.2,-R);g.lineTo(R,-R);g.lineTo(-R,R*.4);g.fill();
+  if(sad){g.fillStyle='rgba(30,40,90,.18)';g.fillRect(-R,-R,2*R,2*R)}g.restore();
+  if(p.cos&&p.cos.pattern)drawPattern(g,p.cos.pattern,R);
+  g.fillStyle=g.strokeStyle='#16121c';g.lineCap='round';g.lineJoin='round';
+  if(win){g.lineWidth=R*.08;for(const s2 of[-1,1]){g.beginPath();g.arc(s2*R*.3,-R*.12,R*.12,Math.PI*1.1,Math.PI*1.9);g.stroke()}   // beaming: squeezed-shut happy eyes
+    g.beginPath();g.moveTo(-R*.3,R*.16);g.quadraticCurveTo(0,R*.62,R*.3,R*.16);g.closePath();g.fill();g.fillStyle='#ff6f8f';g.beginPath();g.ellipse(0,R*.36,R*.13,R*.07,0,0,TAU);g.fill();   // a wide open grin
+    g.fillStyle='rgba(255,120,140,.35)';for(const s2 of[-1,1]){g.beginPath();g.ellipse(s2*R*.55,R*.12,R*.12,R*.07,0,0,TAU);g.fill()}}
+  else{const look=R*.08;for(const s2 of[-1,1]){g.save();g.beginPath();g.rect(s2*R*.3-R*.14,-R*.06+look-R*.02,R*.28,R*.4);g.clip();g.beginPath();g.ellipse(s2*R*.3,-R*.02+look,R*.1,R*.19,0,0,TAU);g.fill();g.restore()}   // heavy lids, eyes down
+    g.lineWidth=R*.06;g.beginPath();for(const s2 of[-1,1]){g.moveTo(s2*R*.14,-R*.28);g.lineTo(s2*R*.44,-R*.2)}g.stroke();   // sad brows, high in the middle
+    g.lineWidth=R*.06;g.beginPath();g.arc(0,R*.5,R*.18,Math.PI*1.18,Math.PI*1.82);g.stroke();   // a small frown
+    if(!RM){const k=(a*.55)%1;g.globalAlpha=k<.85?1:(1-k)/.15;g.fillStyle='#8fd3ff';const ty=R*.2+k*R*.5;g.beginPath();g.moveTo(R*.3,ty-R*.09);g.quadraticCurveTo(R*.38,ty+R*.02,R*.3,ty+R*.05);g.quadraticCurveTo(R*.22,ty+R*.02,R*.3,ty-R*.09);g.fill();g.globalAlpha=1}}   // a tear
+  if(p.cos&&p.cos.hat)drawHat(g,p.cos.hat,R,p.glow,0,-R*.12);
+  g.restore()}
+// a deck as cards: icon, name and kind, copies stacked (×2), dealt out one after another
+function endDeck(el,list){el.innerHTML='';const m=new Map();for(const c of list){const e=m.get(c.n);if(e)e.k++;else m.set(c.n,{c,k:1})}let i=0;
+  for(const{c,k}of m.values()){const d=document.createElement('div');d.className='ecard'+(c.r>=2?' rare':'');d.style.setProperty('--c',CAT[c.k]||'#7a6c63');d.style.setProperty('--i',i++);
+    const cv3=document.createElement('canvas');cv3.width=cv3.height=84;const g=cv3.getContext&&cv3.getContext('2d');if(g)drawIcon(g,c.n,42,42,58,'#ffffff',5);
+    const t=document.createElement('div'),b=document.createElement('b'),sm=document.createElement('small');b.textContent=c.n;if(k>1){const x=document.createElement('span');x.className='x';x.textContent=' ×'+k;b.appendChild(x)}
+    sm.innerHTML=c.k?(CATNAME[c.k]||'')+(c.r!=null?`<span class="rr"> · ${RAR[c.r]}</span>`:''):'Character';t.append(b,sm);d.append(cv3,t);el.appendChild(d)}
+  if(!m.size){const n=document.createElement('p');n.className='end-score';n.textContent='No cards this time.';el.appendChild(n)}}
+function endStats(list){const el=$('#endStats');if(!el)return;el.innerHTML='';for(const[k,v]of list){const sp=document.createElement('span');sp.innerHTML=`${k} <b>${v}</b>`;el.appendChild(sp)}}
+function endRibbon(text,sad){const r=$('#endRibbon');if(!r)return;r.textContent=text;r.classList.toggle('sad',!!sad);r.style.animation='none';void r.offsetWidth;r.style.animation=''}
+function showEnd(w){game.state='over';awardMatch(w);
   {const b=$('#endLobby');if(b)b.hidden=!game.screen}
   const L=game.party&&!game.ffa?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
   $('#endScore').textContent=game.ffa?`${L.name} won ${game.wins[w]} rounds with ${L.cards.length} cards. Rounds ${game.wins.join('–')}.`:game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
-  const shown=game.ffa?[L,...players.filter(p=>p!==L).sort((a,b)=>game.wins[b.team]-game.wins[a.team])].slice(0,2):game.party?players.filter(p=>p.team===w):[players[0],players[1]];   // a party: the winning pair's decks
-  shown.forEach((P,k)=>{$('#deckName'+k).textContent=P.name+"'s deck";const el=$('#deck'+k);el.innerHTML='';P.cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
+  // you, and how you feel about it: your build up front, the rival's beside it
+  const me=endMe(),won=me?me.team===w:true,hero=me||(game.party&&!game.ffa?players.find(p=>p.team===w):players[w])||players[0],
+    rival=game.ffa?players.filter(p=>p!==hero).sort((a,b)=>game.wins[b.team]-game.wins[a.team])[0]:players.find(p=>p.team!==hero.team);
+  const close=!won&&Math.abs((game.wins[hero.team]||0)-(game.wins[w]||0))<=1;
+  endRibbon(won?(me?'Victory':'Champion'):close?'So close':'Defeated',!won);endShow(hero,won?'win':'lose');
+  $('#deckName0').textContent=me?'Your build':hero.name+"'s build";endDeck($('#deck0'),hero.cards);
+  {const el=$('#deck1');el.innerHTML='';$('#deckName1').textContent=rival?rival.name+"'s deck":'';if(rival)for(const c of rival.cards){const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)}}
+  endStats([['Rounds',game.ffa?game.wins[hero.team]||0:game.wins.join('–')],['Cards',hero.cards.length],...(wallet.streak>1&&won&&me?[['Streak',wallet.streak]]:[])]);
+  {const a=$('#end [data-act=again]');if(a)a.textContent=game.mode==='online-host'||game.mode==='online-guest'?'Rematch':'Play again'}
   $('#end').hidden=false;showSub($('#end'),'main');
 }
 
@@ -2263,8 +2364,10 @@ function survEnd(){if(game.coop&&net.role==='host')netSend({t:'cend',n:game.clea
   if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
   $('#endScore').textContent=`${ch}, level ${me.lvl||1}. `+(n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}${cb?`, ${cb} with ${ch}`:''}.`)+(opened.length?` Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
-  [0,1].forEach(k=>{const el=$('#deck'+k);el.innerHTML='';if(k===0){$('#deckName0').textContent=`${me.name}'s build`;[...(me.char?[me.char]:[]),...me.cards,...(me.ups||[])].forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}
-    else{const e=enemies().find(q=>q.boss)||enemies()[0];$('#deckName1').textContent=e?`Last enemy: ${e.name}`:'';(e?e.cards:[]).forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}});
+  $('#deckName0').textContent='Your build';endDeck($('#deck0'),[...(me.char?[me.char]:[]),...me.cards,...(me.ups||[])]);
+  {const el=$('#deck1');el.innerHTML='';const e=enemies().find(q=>q.boss)||enemies()[0];$('#deckName1').textContent=e?`Last enemy: ${e.name}`:'';(e?e.cards:[]).forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}
+  const fresh=n>best;endRibbon(fresh&&n?'New best':n?'Run over':'Knocked out',!fresh);endShow(me,fresh&&n?'win':'lose');
+  endStats([['Rounds',n],['Level',me.lvl||1],['Best',Math.max(best,n)]]);
   const el=$('#endCoins');if(el){el.hidden=!coins;if(coins){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`}}
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
@@ -2770,7 +2873,9 @@ function updateRigs(dt,keep){if(!rigs.length)return;
   if(!keep)for(const c of rigs){c.px=c.x;c.py=c.y}
   for(const L of lifts)liftStep(L,dt);
   for(const c of rigs){if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
-    rigTilt(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0}}
+    rigTilt(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0;
+    // a moving piece that sweeps over a shot stops it there (a falling beam can't pass over a bullet; Ghost Rounds still drill)
+    if((c.dx||c.dy)&&c.mode!=='gone'&&game.mode!=='online-guest')for(const b of bullets)if(!b.dead&&!b.phase&&!b.stuck&&b.x>c.x-b.r&&b.x<c.x+c.w+b.r&&b.y>c.y-b.r&&b.y<c.y+c.h+b.r){rigShove(c,b);killBullet(b,true,c)}}}
 // a shot into a rig's body: it rocks, and a hanging one is pushed (a heavy ball barely)
 function rigShove(r,b){const k=clamp(b.dmg/55,.4,2.5)/r.mass;r.tv+=Math.sign(b.vx||1)*.5*k;if(r.mode==='swing'&&game.mode!=='online-guest')r.av=clamp(r.av+b.vx*.05*k/r.len,-2.4,2.4)}
 // a shot near a support: the host breaks it (a guest's shot only flies on until the host says)
@@ -3305,7 +3410,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,p.r+30,5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
-    if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>0&&p.airJumps>0)jump=true}
+    if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}   // a tall wall: the double jump goes at the top of the first, not on the way down
     if(!p.grounded&&dy<-30&&p.vy>-160&&p.vy<140&&p.airJumps>0)jump=true;   // target above: spend the double jump at the top of the first
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
@@ -3317,7 +3422,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
       else if(p.ground&&p.ground.swing&&Math.random()<dt*1.2)jump=true;
       else{dir=-dir;ai.strafe=dir;if(!groundAhead(p,dir))dir=0}}
     if(ai.gapT>0){dir=ai.gapDir;if(!p.grounded&&p.vy>120&&!groundBelow(p)&&p.airJumps>0)jump=true}
-    if(dir&&p.wallDir===dir)jump=true}
+    if(dir&&p.wallDir===dir)jump=true;
+    if(ai.mode==='engage'&&!ai.los&&dir===Math.sign(dx)&&wallAhead(p,dir)){if(p.grounded)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}}   // closing in with a wall between: climb it
   else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
   inp.down=down;
   const bit=1<<p.id;
@@ -3825,7 +3931,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-28-controls';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-28-ship';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
