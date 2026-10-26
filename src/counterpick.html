@@ -3534,8 +3534,16 @@ function aimPath(p,secs=.33){const s=p.s,a=p.aim,c=Math.cos(a),sn=Math.sin(a),sp
   return out}
 function drawAimGuide(p=players.find(q=>q.ctrl==='mouse')){if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
   const c=Math.cos(p.aim),sn=Math.sin(p.aim);if(pointSolid(p.x+c*(p.r+30),p.y+sn*(p.r+30)))return;
-  const path=aimPath(p),N=15,dr=5,da=game.screen?.95:.85;ctx.save();ctx.fillStyle=p.glow;   // dots big and bright enough to read at a glance (a Big Screen: from the sofa)
-  for(let i=1;i<=N;i++){const q=path[Math.min(path.length-1,Math.round(i*.022/FIXED)-1)];if(!q)break;const[x,y]=q;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=da*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,dr,0,TAU);ctx.fill()}
+  /* the bullet's real path (same muzzle, speed and drop), dotted at an even spacing: small dots that taper and fade, drifting outward
+     so the direction reads at a glance, ending in a small ring where it would strike a wall */
+  const path=aimPath(p),big=game.screen,gap=big?28:24,max=big?560:440,r0=big?3.6:3,a0=big?.85:.7,drift=RM?0:(performance.now()/1000*38)%gap;
+  ctx.save();ctx.fillStyle=ctx.strokeStyle=p.glow;let px=p.x+c*(p.r+30),py=p.y+sn*(p.r+30),d=0,next=drift||gap*.5,hit=null;
+  for(const[x,y]of path){const seg=Math.hypot(x-px,y-py);if(!seg)continue;
+    let end=1;for(let j=1;j<=4;j++){const u=j/4;if(pointSolid(px+(x-px)*u,py+(y-py)*u)){end=(j-1)/4;hit=[px+(x-px)*end,py+(y-py)*end];break}}
+    while(next<=d+seg*end&&next<=max){const u=(next-d)/seg,qx=px+(x-px)*u,qy=py+(y-py)*u,k=next/max;
+      if(qy>=0&&qx>=0&&qx<=W&&qy<=H){ctx.globalAlpha=a0*(1-k*.85)*Math.min(1,next/gap);ctx.beginPath();ctx.arc(qx,qy,r0*(1-k*.45),0,TAU);ctx.fill()}next+=gap}
+    d+=seg;px=x;py=y;if(hit||d>=max||x<0||x>W||y>H)break}
+  if(hit&&Math.hypot(hit[0]-p.x,hit[1]-p.y)<max+p.r+30){ctx.globalAlpha=a0*.9;ctx.lineWidth=2;ctx.beginPath();ctx.arc(hit[0],hit[1],big?7:5.5,0,TAU);ctx.stroke()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
   if(game.hitMark>0){const a=game.hitMark/.22,o=10+(1-a)*5;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.lineCap='round';ctx.globalAlpha=a;
@@ -3610,7 +3618,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-gaze';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-aim2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
