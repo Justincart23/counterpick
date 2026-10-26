@@ -88,5 +88,5 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
   finish();
   function finish() { for (const [r, w] of results) console.log(`${r}  ${w}`); console.log('screenshots in ' + OUT);
     const failed = results.filter(([r]) => r === 'FAIL').length; console.log(failed ? `\n${failed} of ${results.length} failed` : `\nall ${results.length} passed`);
-    for (const T of [H, V]) { try { T.proc.kill() } catch {} } server.close(); setTimeout(() => process.exit(failed ? 1 : 0), 500) }
+    for (const T of [H, V]) { try { T.proc.kill('SIGKILL') } catch {} } server.close(); setTimeout(() => process.exit(failed ? 1 : 0), 500) }
 })();

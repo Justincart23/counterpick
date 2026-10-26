@@ -611,6 +611,37 @@ body.touch .desk-only{display:none!important}
   .mlist.tiles .mt.back{min-height:36px;font-size:14px;padding:4px 10px}.mlist.tiles .mt.back .mi{width:22px;height:22px;padding:3px}
 }
 @media (max-width:520px){.mlist.tiles .mt{grid-column:1 / -1}.mlist.tiles .mt.small{grid-column:span 2}}
+/* ---- Sandbox and Customize: one look with the menu tiles. Rounded panels, the same tabs, tiles that lift and light up ---- */
+.sb-panel,.ward{border-radius:20px;border:2px solid rgba(255,255,255,.1);background:rgba(22,13,33,.97);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.sb-tabs button,.sb-filter button,.ward-tabs button,.ward-side button{font-family:var(--display);font-weight:400;font-size:17px;letter-spacing:.03em;border-radius:12px;border:2px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);color:rgba(241,236,247,.75);padding:6px 14px;cursor:pointer;transition:transform .12s,border-color .12s,background .12s}
+.sb-tabs button:hover,.sb-filter button:hover,.ward-tabs button:hover,.ward-side button:hover,.sb-tabs button:focus-visible,.sb-filter button:focus-visible{border-color:var(--orange);color:#fff;outline:none;transform:translateY(-1px)}
+.sb-filter button.on,.ward-tabs button.on{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 3px 0 #a5520f}
+.sb-tabs button.on.who-o{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 3px 0 #a5520f}.sb-tabs button.on.who-b{background:var(--blue);border-color:var(--blue);color:#06142a;box-shadow:0 3px 0 #1d4e9e}
+.sb-tabs .sb-arena.on{background:#ffd36b;border-color:#ffd36b;color:#2a1a05;box-shadow:0 3px 0 #a98a2c}
+.sb-card,.ward-item,.sb-map{border-radius:14px;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s}
+.sb-card:hover,.ward-item:hover,.sb-map:hover,.sb-card:focus-visible,.ward-item:focus-visible,.sb-map:focus-visible{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.sb-map.on{box-shadow:0 0 0 2px #ffd36b,0 0 22px rgba(255,211,107,.3)}
+#sandbox.maps .sb-filter,#sandbox.maps .sb-deck,#sandbox.maps #sbClear{display:none}
+#sandbox.maps .sb-panel{grid-template-rows:auto minmax(0,1fr) auto auto}
+.sb-foot{align-items:center}.sb-foot .sb-go{margin-left:auto}
+.sb-foot .btn,.ward-foot .btn{border-radius:12px}
+.sb-back{color:var(--muted)}
+.shade{border-radius:14px}
+@media (max-height:520px),(max-width:700px){
+  .sb-panel{border-radius:14px}.sb-info{display:none}.sb-deck{flex-wrap:nowrap;overflow-x:auto;min-height:26px}.sb-deck button{white-space:nowrap}
+  .sb-tabs button,.sb-filter button,.ward-tabs button,.ward-side button{font-size:13px;padding:3px 9px;border-radius:9px}
+  .sb-head{gap:6px}.sb-panel h2{font-size:20px}.sb-foot{gap:6px}
+  .ward{grid-template-columns:minmax(120px,160px) minmax(0,1fr);border-radius:14px}.ward-stage canvas{aspect-ratio:4/3}.ward-msg{display:none}
+}
+/* ---- the online lobby (hosting, joining): the same buttons as everywhere else ---- */
+.lobby .mlist{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.lobby .mlist button{font:400 clamp(16px,1.8vw,20px) var(--display);letter-spacing:.04em;text-transform:uppercase;padding:10px 22px;border-radius:14px;border:2px solid rgba(255,255,255,.14);
+  background:rgba(22,13,33,.92);color:var(--text);animation:none;transform:none;transition:transform .12s,border-color .12s}
+.lobby .mlist button::before,.lobby .mlist button::after{display:none}
+.lobby .mlist button:hover,.lobby .mlist button:focus,.lobby .mlist button:focus-visible{border-color:var(--orange);transform:translateY(-2px);outline:none}
+.lobby .mlist button[type=submit]{background:var(--orange);border-color:var(--orange);color:#1b0f08;box-shadow:0 4px 0 #a8460b}
+.lobby .copy,.lobby .text-in,.lobby .btn{border-radius:12px}
 @media (prefers-reduced-motion:reduce){.logo,.mlist button{animation:none}}
 
 /* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
@@ -777,7 +808,7 @@ body.touch .desk-only{display:none!important}
       <div class="lbl sublbl">Single player</div>
       <nav class="mlist tiles" aria-label="Single player">
         <button type="button" class="mt" data-act="cpu" data-ic="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Practice vs CPU</span><span class="mt-d">A one-on-one duel against the computer</span></button>
-        <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Four fighters, every one for themselves: you against three CPUs on the party arenas." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">You against three CPUs, every one for themselves</span></button>
+        <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Two against two: you and a CPU teammate against a pair of CPUs, on the party arenas." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">2v2: you and a CPU teammate against two CPUs</span></button>
         <button type="button" class="mt" data-act="survival" data-ic="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2;--tc:#ff5a4f"><span class="mt-t">Survival</span><span class="mt-d">Waves, bosses, a shop. How far can you get?</span></button>
         <button type="button" class="mt" data-act="sandbox" data-ic="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Sandbox</span><span class="mt-d">Try any card, no drafting</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
@@ -935,7 +966,7 @@ body.touch .desk-only{display:none!important}
     <div class="sb-head">
       <h2 id="sbTitle">Sandbox</h2>
       <div class="sb-tabs" role="tablist" aria-label="Whose cards">
-        <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button>
+        <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button><button type="button" role="tab" data-sbact="arena" id="sbArena" class="sb-arena">Arena: Random</button>
       </div>
     </div>
     <div class="sb-deck" id="sbDeck" aria-live="polite"></div>
@@ -944,9 +975,9 @@ body.touch .desk-only{display:none!important}
     <div class="sb-maps" id="sbMaps" hidden></div>
     <p class="sb-info" id="sbInfo">Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.</p>
     <div class="sb-foot">
-      <button type="button" class="btn" data-sbact="clear">Clear these cards</button>
+      <button type="button" class="btn sb-back" data-sbact="back" id="sbBack">‹ Main menu</button>
+      <button type="button" class="btn" data-sbact="clear" id="sbClear">Clear these cards</button>
       <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
-      <button type="button" class="btn" data-sbact="arena" id="sbArena">Arena: Random</button>
       <button type="button" class="sb-go" data-sbact="go" id="sbGo">Play · Tab</button>
     </div>
   </div>
@@ -1122,7 +1153,7 @@ const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
  {n:'Overpressure',k:'gun',r:0,d:'Pack every round with extra powder.',st:[['+50%','Damage',1],['-1','Ammo',0],['+0.3s','Reload',0]],a:s=>{s.dmg*=1.5;s.ammo=Math.max(1,s.ammo-1);s.reload+=.3}},
  {n:'Hair Trigger',k:'gun',r:0,d:'Fire as fast as you can click.',st:[['+100%','Fire rate',1],['+2','Ammo',1],['-25%','Reload',1]],a:s=>{s.fireDelay*=.5;s.ammo+=2;s.reload*=.75}},
- {n:'Deep Magazine',k:'gun',r:0,d:'Three more rounds before you reload.',st:[['+3','Ammo',1]],a:s=>{s.ammo+=3}},
+ {n:'Deep Magazine',k:'gun',r:0,d:'Two more rounds before you reload.',st:[['+2','Ammo',1]],a:s=>{s.ammo+=2}},   /* was +3: the strongest common by far */
  {n:'Speed Loader',k:'gun',r:0,d:'Refill your magazine in a blink.',st:[['-50%','Reload',1]],a:s=>{s.reload*=.5}},
  {n:'Ricochet',k:'shot',r:0,d:'Bullets bounce off walls twice and hit 20% harder after every bounce.',st:[['+2','Bounces',1],['+20%','Damage per bounce',1]],a:s=>{s.bounces+=2;s.bounceDmg+=.2}},
  {n:'Scattergun',k:'gun',r:1,d:'Every trigger pull fires a fan of pellets.',st:[['+2','Bullets',1],['-40%','Damage',0]],a:s=>{s.projectiles+=2;s.spread+=.16;s.dmg*=.6}},
@@ -1335,7 +1366,7 @@ for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260)
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
    Chimes stay standard: their gaps, piston and hanging blocks are built for that width) */
 for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
-/* Party arenas (3 or 4 fighters, every one for themselves): 1920 x 1080, shown whole on any screen (phones too), with four
+/* Party arenas (2v2 parties, and Big Screen's free-for-all): 1920 x 1080, shown whole on any screen (phones too), with four
    spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
 MAPS.push(
  // Plaza: wide open with long sightlines (long-range builds shine): two side towers, a low bridge, a crown perch
@@ -1565,7 +1596,7 @@ const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0}
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
-  if(sbOpen()){if(e.code==='Escape'||e.code==='Tab'){e.preventDefault();closeSandbox()}else if(e.code==='KeyM')toggleMute();return}
+  if(sbOpen()){if(e.code==='Tab'||e.code==='Escape'&&sandbox.played){e.preventDefault();closeSandbox()}else if(e.code==='Escape'){e.preventDefault();toMenu()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
   if(e.code==='Enter'&&chatOn()&&$('#pause').hidden&&$('#chatForm').hidden&&!['pick','shop'].includes(game.state)){e.preventDefault();chatOpen();return}
   if(menuKey(e))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Slash','Period'].includes(e.code))e.preventDefault();
@@ -1652,7 +1683,7 @@ function startMatch(mode){
   const names={survival:[you,game.coop?net.remoteName||'Partner':'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],party:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
   {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||(game.coop?[mine,theirs]:[mine,{}]);players.forEach((p,k)=>p.cos=cos[k]||{})}
-  // a party: up to four fighters, every one for themselves (offline against CPUs, or online with the host's roster)
+  // a party: two teams of two (offline with CPUs, or online with the host's roster); a Big Screen can also play every one for themselves
   game.party=mode==='party'||!!net.party&&(mode==='online-host'||mode==='online-guest');
   if(game.party)players=partyPlayers(mode);
   else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
@@ -1952,8 +1983,8 @@ const sandbox={decks:[[],[]],tab:0,cpu:'fight',arena:-1,filter:'all',seen:false}
 const SB_CPU={fight:'Fights back',dodge:'Moves, never shoots',still:'Stands still'},SB_MAX=9;
 const sbOpen=()=>!$('#sandbox').hidden;
 function openSandbox(){if(game.mode!=='sandbox')return;game.paused=true;keys.clear();mouse.down=false;$('#pause').hidden=true;$('#sandbox').hidden=false;cv.style.cursor='default';
-  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();const b=$('#sbGo');b&&b.focus({preventScroll:true})}
-function closeSandbox(){if(!sbOpen())return;$('#sandbox').hidden=true;applySandbox();game.paused=false;cv.style.cursor='none';cv.focus()}
+  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();{const bk=$('#sbBack');if(bk)bk.textContent=sandbox.played?'‹ Main menu':'‹ Back'}const b=$('#sbGo');b&&b.focus({preventScroll:true})}
+function closeSandbox(){if(!sbOpen())return;sandbox.played=true;$('#sandbox').hidden=true;applySandbox();game.paused=false;cv.style.cursor='none';cv.focus()}
 // new loadouts take effect on a fresh point, so health, ammo and block charges start from the new stats
 function applySandbox(){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p)});const c=players[1];c.ctrl=sandbox.cpu==='still'?'idle':'cpu';
   Object.assign(c.input,{move:0,fire:false,jumpH:false,jumpP:false,blockP:false,down:false});newPoint()}
@@ -1998,7 +2029,9 @@ function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)
     else if(d.t==='bridge'){R(d.dir>0?d.px:d.px-(d.th||30),d.py-d.L,d.th||30,d.L,D);ln(d.px,d.py-d.L,d.rx,d.ry)}
     else if(d.t==='lift')for(const q of[d.a,d.b]){ln(q.x+q.w/2,d.wy,q.x+q.w/2,q.y);R(q.x,q.y,q.w,q.h,D)}
     else if(d.t==='stack'){let y=d.y;for(const[w,h,key]of d.blocks){y-=h;R(d.x-w/2,y,w,h,key?N:D)}}}}
-function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;box.hidden=!sandbox.mapsOpen;grid.hidden=!!sandbox.mapsOpen;$('#sbArena').classList.toggle('on',!!sandbox.mapsOpen);
+function setSbArenaInfo(){const el=$('#sbInfo');if(el&&sandbox.mapsOpen)el.textContent=`Arena for the next point: ${sandbox.arena<0?'a random one each point':MAPS[sandbox.arena].label||MAPS[sandbox.arena].name}. Pick another, or go back to the cards.`}
+function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;const mo=!!sandbox.mapsOpen;box.hidden=!mo;grid.hidden=mo;$('#sbArena').classList.toggle('on',mo);$('#sandbox').classList.toggle('maps',mo);
+  $('#sandbox').querySelectorAll('[data-sbtab]').forEach(b=>b.classList.toggle('on',!mo&&+b.dataset.sbtab===sandbox.tab));
   if(!sandbox.mapsOpen)return;box.innerHTML='';
   for(const i of[-1,...MAPS.map((m,k)=>k).filter(k=>!MAPS[k].coop)]){const m=i<0?null:MAPS[i],b=document.createElement('button');b.type='button';b.className='sb-map'+(sandbox.arena===i?' on':'');b.dataset.sbmap=i;
     b.innerHTML=`<canvas width="192" height="108" aria-hidden="true"></canvas><span class="nm">${i<0?'Random':m.label||m.name}</span>`;drawMapThumb(b.querySelector('canvas'),m);box.appendChild(b)}
@@ -2006,15 +2039,16 @@ function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;
 {const root=$('#sandbox'),card=t=>{const b=t.closest&&t.closest('[data-sbcard]');return b?CARDS.find(x=>x.id==b.dataset.sbcard):null};
   root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
     const c=card(t);if(c){sbAdd(c);setSbInfo(c);return}
-    if((b=t.closest('[data-sbmap]'))){sandbox.arena=+b.dataset.sbmap;sandbox.mapsOpen=false;sfx('pick',true);renderSandbox();renderSbMaps();return}
+    if((b=t.closest('[data-sbmap]'))){sandbox.arena=+b.dataset.sbmap;sfx('pick',true);renderSandbox();renderSbMaps();setSbArenaInfo();return}
     if((b=t.closest('[data-sbchip]'))){const x=CARDS.find(q=>q.id==b.dataset.sbchip);x&&sbRemove(x);return}
-    if((b=t.closest('[data-sbtab]'))){sandbox.tab=+b.dataset.sbtab;sfx('tick',true);renderSandbox();return}
+    if((b=t.closest('[data-sbtab]'))){sandbox.tab=+b.dataset.sbtab;const was=sandbox.mapsOpen;sandbox.mapsOpen=false;sfx('tick',true);renderSandbox(was);renderSbMaps();return}
     if((b=t.closest('[data-sbf]'))){sandbox.filter=b.dataset.sbf;sfx('tick',true);renderSandbox(true);return}
     if((b=t.closest('[data-sbact]'))){const a=b.dataset.sbact;
       if(a==='go'){sfx('pick',true);closeSandbox();return}
+      if(a==='back'){sfx('tick',true);toMenu();return}   // leave without playing
       if(a==='clear')sandbox.decks[sandbox.tab]=[];
       if(a==='cpu'){const o=Object.keys(SB_CPU);sandbox.cpu=o[(o.indexOf(sandbox.cpu)+1)%o.length]}
-      if(a==='arena'){sandbox.mapsOpen=!sandbox.mapsOpen;renderSbMaps()}
+      if(a==='arena'){sandbox.mapsOpen=true;renderSbMaps();setSbArenaInfo();sfx('tick',true);return}
       sfx('tick',true);renderSandbox()}});
   root.addEventListener('contextmenu',e=>{const c=card(e.target);if(c){e.preventDefault();sbRemove(c);setSbInfo(c)}});
   root.addEventListener('mouseover',e=>{const c=card(e.target);if(c)setSbInfo(c)});
@@ -2109,14 +2143,16 @@ const CHARS=[
 ];
 CHARS.forEach(c=>{c.char=true;c.illo=c.n+' character'});   // each character has its own portrait
 // level-up choices: small stat steps that stack (shown like cards; the art borrows a card's)
+/* Survival power-ups: small, cheap, and they stack with everything. Each is worth about a third of a common card and costs
+   about a third of one (see cardPrice), so stacking them is a fair way to grow a build */
 const UPGRADES=[
- {n:'+12% Damage',k:'gun',art:'Overpressure',a:s=>{s.dmg*=1.12}},{n:'+14% Fire rate',k:'gun',art:'Hair Trigger',a:s=>{s.fireDelay/=1.14}},
- {n:'+1 Ammo',k:'gun',art:'Deep Magazine',a:s=>{s.ammo+=1}},{n:'-12% Reload',k:'gun',art:'Speed Loader',a:s=>{s.reload*=.88}},
- {n:'+15% Bullet speed',k:'shot',art:'Rail Slug',a:s=>{s.bulletSpeed*=1.15}},{n:'+15% Bullet size',k:'shot',art:'Fat Rounds',a:s=>{s.bulletSize*=1.15}},
- {n:'+15% Knockback',k:'shot',art:'Haymaker',a:s=>{s.knock*=1.15}},{n:'+18% Health',k:'body',art:'Thick Skin',a:s=>{s.maxHp*=1.18}},
- {n:'+7% Speed',k:'body',art:'Sprinter',a:s=>{s.moveSpeed*=1.07}},{n:'+6% Life steal',k:'body',art:'Vampire Rounds',a:s=>{s.lifesteal+=.06}},
- {n:'+1% Regen',k:'body',art:'Regrowth',a:s=>{s.regen+=.01}},{n:'-12% Block cooldown',k:'guard',art:'Quick Guard',a:s=>{s.blockCd*=.88}},
- {n:'+8 Heal on block',k:'guard',art:'Mending Guard',a:s=>{s.blockHeal+=8}},{n:'+8% Jump',k:'body',art:'Spring Heels',a:s=>{s.jumpPower*=1.08}},
+ {n:'+15% Damage',k:'gun',art:'Overpressure',a:s=>{s.dmg*=1.15}},{n:'+15% Fire rate',k:'gun',art:'Hair Trigger',a:s=>{s.fireDelay/=1.15}},
+ {n:'+1 Ammo',k:'gun',art:'Deep Magazine',a:s=>{s.ammo+=1}},{n:'-15% Reload',k:'gun',art:'Speed Loader',a:s=>{s.reload*=.85}},
+ {n:'+20% Bullet speed',k:'shot',art:'Rail Slug',a:s=>{s.bulletSpeed*=1.2}},{n:'+20% Bullet size',k:'shot',art:'Fat Rounds',a:s=>{s.bulletSize*=1.2}},
+ {n:'+25% Knockback',k:'shot',art:'Haymaker',a:s=>{s.knock*=1.25}},{n:'+20% Health',k:'body',art:'Thick Skin',a:s=>{s.maxHp*=1.2}},
+ {n:'+8% Speed',k:'body',art:'Sprinter',a:s=>{s.moveSpeed*=1.08}},{n:'+8% Life steal',k:'body',art:'Vampire Rounds',a:s=>{s.lifesteal+=.08}},
+ {n:'+1% Regen',k:'body',art:'Regrowth',a:s=>{s.regen+=.01}},{n:'-15% Block cooldown',k:'guard',art:'Quick Guard',a:s=>{s.blockCd*=.85}},
+ {n:'+10 Heal on block',k:'guard',art:'Mending Guard',a:s=>{s.blockHeal+=10}},{n:'+10% Jump',k:'body',art:'Spring Heels',a:s=>{s.jumpPower*=1.1}},
 ];
 UPGRADES.forEach(u=>{u.up=true;u.r=0;u.icon=u.art;u.d='A power-up. Stacks with everything.';u.st=[[u.n.split(' ')[0],u.n.split(' ').slice(1).join(' '),1]]});
 // twist rounds: a rule that changes for one round
@@ -2139,7 +2175,7 @@ const bossTier=n=>Math.max(0,Math.round(n/BOSS_EVERY)-1);
 function makeBoss(p,B,cycle,n=5){p.boss=B;p.name=B.n;p.color=B.color;p.glow=B.glow;p.cos={hat:B.hat};p.cards=cardsNamed([...B.deck,...(B.extra||[]).slice(0,n>=45?2:n>=20?1:0)]);p.phase=0;p.hpMul=1+.08*bossTier(n)+.2*(cycle||0);
   p.bs={state:'idle',t:2.5,at:0,dir:1,lock:0}}
 function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=null;p.bs=null;p.color=R.color;p.glow=R.glow;p.cos={hat:R.hat};p.name=R.n;
-  const k=Math.min(10,Math.round(.55*(n-1))+Math.floor(n/6)-(count>2?1:0)),pool=CARDS.filter(c=>(c.r<2||n>=10)&&!['Second Wind','Aegis'].includes(c.n)),out=[];   // a gentle climb: about one card every two rounds, rares from round 10
+  const k=Math.min(10,Math.round(.5*(n-1))+Math.floor(n/8)-(count>2?1:0)),pool=CARDS.filter(c=>(c.r<2||n>=10)&&!['Second Wind','Aegis'].includes(c.n)),out=[];   // a gentle climb: about one card every two rounds, rares from round 10
   for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
   // a bigger wave splits the strength: more enemies, each a little weaker
   p.hpMul=(1+.07*(n-1))*(count>1?.62:1)}
@@ -2219,7 +2255,7 @@ function survRound(n){game.round=n;const B=survBossFor(n),kind=survKind(n);game.
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
   foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:count);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)}if(hs.length>1)e.hpMul*=e.boss?1.75:1.3;recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
   for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0;h.roundKills=0}game.waitMsg='';
-  game.diff=n<=3?'easy':n<=9?'normal':'hard';for(const h of hs){recompute(h);h.ammo=h.s.ammo}
+  game.diff=n<=3?'easy':n<=12?'normal':'hard';   /* the CPU's aim and dodging step up after round 12, not on top of round 10's bigger waves and rares */for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?(bossTier(n)?`${B.n.toUpperCase()} · TIER ${bossTier(n)+1}`:B.n.toUpperCase()):game.twist?`ROUND ${n} · ${game.twist.n}`:KIND_N[kind]?`ROUND ${n} · ${KIND_N[kind]}`:`ROUND ${n}`;game.bannerT=2;
   if(n<=1)game.newBest=false;{const best=wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
@@ -2330,8 +2366,14 @@ function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),up
 // ---- the shop between rounds: five cards on the draft fan, priced by rarity and leaning toward the kind of card you
 // started with. Click (or 1-5) to buy, lock one to keep it for the next shop, reroll for a fresh five (each costs more),
 // or sell a card from your build for half its price
-const SHOP_PRICE=[6,10,16],SHOP_N=5;
-const cardPrice=(c,p)=>(c.up?9:SHOP_PRICE[c.r])+Math.floor((game.round||1)/3)+Math.floor((((p&&p.cards.length)||0)+((p&&p.ups&&p.ups.length)||0))/3);   // and every 3 things you own add 1: a bigger build costs more to grow   // a power-up costs a bit more than a common card
+/* prices follow what a card is worth, not just its rarity: measured card strength nudges a card up or down a step or two
+   (CARD_VALUE), a power-up costs about a third of a common card, and both grow slowly with the round and your build */
+const SHOP_PRICE=[6,10,15],SHOP_N=5,UP_PRICE=4;
+const CARD_VALUE={'Deep Magazine':1,'Overpressure':1,'Hair Trigger':1,'Triple Tap':2,'Venom Tips':2,'Lob Shell':2,'Seeker':1,'Long Haul':1,'Accelerator':1,
+  'Sprinter':-1,'Haymaker':-1,'Cryo Rounds':-1,'Static Guard':-2,'Blink Guard':-2,'Glass Cannon':-2,'Regrowth':-1,'Quick Guard':-1,'Mending Guard':-1};
+const cardPrice=(c,p)=>{const r=Math.floor((game.round||1)/4);
+  if(c.up)return UP_PRICE+r+Math.floor(((p&&p.ups&&p.ups.length)||0)/4);   // every 4 power-ups you own add 1
+  return Math.max(4,SHOP_PRICE[c.r]+(CARD_VALUE[c.n]||0))+r+Math.floor(((p&&p.cards.length)||0)/3)};   // every 3 cards you own add 1: a bigger build costs more to grow
 // a stack is capped in the shop: 3 of any card, 1 of the cards that save you from a lethal hit (stacked, they made a hero unkillable)
 const SHOP_CAP={'Second Wind':1,'Aegis':1};
 function survOffers(p){const cnt={};for(const c of p.cards)cnt[c.n]=(cnt[c.n]||0)+1;const owned=new Set(p.cards.filter(c=>c.u||(cnt[c.n]||0)>=(SHOP_CAP[c.n]||3)).map(c=>c.id)),kind=p.starter&&p.starter.k,luck=Math.min(.25,game.round*.012);
@@ -3949,7 +3991,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-29-menus';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-29-balance';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4789,7 +4831,7 @@ document.addEventListener('mouseover',e=>{const b=e.target.closest('.mlist butto
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-opt]');if(!b)return;initAudio();
   if(b.dataset.opt){const d=e.target.closest&&e.target.closest('[data-dir]');cycleOpt(b.dataset.opt,d?+d.dataset.dir||1:1);return}
   const a=b.dataset.act,ov=b.closest('.overlay');sfx('pick',true);showMenuMsg('');
-  if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party')startMatch(a);
+  if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party'){if(a==='sandbox'){sandbox.seen=true;sandbox.played=false}startMatch(a);if(a==='sandbox')openSandbox()}   // Sandbox from the menu always opens on its card picker (Back leaves, Play starts)
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');

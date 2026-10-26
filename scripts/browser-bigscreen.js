@@ -17,7 +17,7 @@ const server = http.createServer((q, r) => { if (q.url.startsWith('/api/turn')) 
   r.writeHead(200, { 'content-type': 'text/html' }); r.end(html) }).listen(0);
 const URL0 = `http://127.0.0.1:${server.address().port}/`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const ALL = []; process.on('exit', () => { for (const T of ALL) { try { T.proc.kill() } catch {} } });
+const ALL = []; process.on('exit', () => { for (const T of ALL) { try { T.proc.kill('SIGKILL') } catch {} } });
 const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]); return c };
 async function browser(port, name, phone) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-bs-'));
@@ -128,4 +128,4 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
 })().catch((e) => { console.error(e); finish() });
 function finish() { for (const [r, w] of results) console.log(r.padEnd(5), w); const bad = results.filter((r) => r[0] === 'FAIL').length;
   console.log(bad ? `\n${bad} of ${results.length} failed` : `\nall ${results.length} passed`); console.log('screenshots:', OUT);
-  for (const T of ALL) { try { T.proc.kill() } catch {} } server.close(); process.exit(bad ? 1 : 0) }
+  for (const T of ALL) { try { T.proc.kill('SIGKILL') } catch {} } server.close(); process.exit(bad ? 1 : 0) }

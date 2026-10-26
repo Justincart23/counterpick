@@ -14,7 +14,7 @@ html = html.replace(/\}\)\(\);\s*<\/script>/, ';window.__G={game,net,keys,edges,
 const server = http.createServer((q, r) => { if (q.url.startsWith('/api/turn')) { r.writeHead(404); return r.end() } r.writeHead(200, { 'content-type': 'text/html' }); r.end(html) }).listen(0);
 const URL0 = `http://127.0.0.1:${server.address().port}/`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const ALL = []; process.on('exit', () => { for (const T of ALL) { try { T.proc.kill() } catch {} } });
+const ALL = []; process.on('exit', () => { for (const T of ALL) { try { T.proc.kill('SIGKILL') } catch {} } });
 const results = []; const ok = (c, w) => { results.push([c ? 'PASS' : 'FAIL', w]); return c };
 async function browser(port, name) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cuued-ol-'));
@@ -85,4 +85,4 @@ const autopick = `(()=>{const mine=[...document.querySelectorAll('#pick:not([hid
   finish();
 })();
 function finish() { for (const [r, w] of results) console.log(r.padEnd(5), w); const bad = results.filter((r) => r[0] === 'FAIL').length;
-  console.log(`\nscreenshots in ${OUT}\n`); console.log(bad ? `${bad} of ${results.length} failed` : `all ${results.length} passed`); for (const T of ALL) { try { T.proc.kill() } catch {} } server.close(); setTimeout(() => process.exit(bad ? 1 : 0), 500) }
+  console.log(`\nscreenshots in ${OUT}\n`); console.log(bad ? `${bad} of ${results.length} failed` : `all ${results.length} passed`); for (const T of ALL) { try { T.proc.kill('SIGKILL') } catch {} } server.close(); setTimeout(() => process.exit(bad ? 1 : 0), 500) }
