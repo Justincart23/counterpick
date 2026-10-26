@@ -1018,7 +1018,7 @@ const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1180,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
-  phase:false,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
+  phase:0,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
   split:0,grow:false,well:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
@@ -1056,7 +1056,7 @@ const CARDS=[
  {n:'Second Wind',k:'body',r:2,d:'Survive one lethal hit per point with a third of your health.',st:[['+1','Revive',1],['-35%','Health',0]],a:s=>{s.revive+=1;s.maxHp*=.65}},
  {n:'Fat Rounds',k:'shot',r:0,d:'Bigger bullets are easier to land.',st:[['+80%','Bullet size',1],['+15%','Damage',1],['-10%','Bullet speed',0]],a:s=>{s.bulletSize*=1.8;s.dmg*=1.15;s.bulletSpeed*=.9}},
  {n:'Haymaker',k:'shot',r:0,d:'Hits send your rival flying. Deadly near pits and edges.',st:[['+150%','Knockback',1],['+15%','Damage',1]],a:s=>{s.knock*=2.5;s.dmg*=1.15}},
- {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets slip through up to two walls and pass straight through blocks.',st:[['2 walls','Phasing',1],['Unblockable','Shots',1],['+10%','Damage',1]],a:s=>{s.phase=true;s.dmg*=1.1},u:1},
+ {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets drill through walls: a thick block or a few thin ledges. Blocks still stop them.',st:[['Drill','Walls',1],['+0.25s','Reload',0]],a:s=>{s.phase=(s.phase||0)+DRILL;s.reload+=.25}},   /* like ROUNDS' Drill Ammo: through a wall or two, never unblockable */
  {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+90%','Damage',1],['-45%','Health',0]],a:s=>{s.dmg*=1.9;s.maxHp*=.55}},
  {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
  {n:'Accelerator',k:'shot',r:1,d:'Bullets speed up and hit harder the longer they fly.',st:[['Up to x3.5','Speed & damage',1]],a:s=>{s.accel=true},u:1},
@@ -1846,6 +1846,7 @@ const DROPS={heal:{n:'HEALTH',col:'#7ed321'},over:{n:'OVERCHARGE',col:'#ff6a3a'}
 const WILD_SKIP=new Set(['Thick Skin','Pipsqueak']);
 const DROP_KINDS=Object.keys(DROPS),DROP_WARN=1.2,DROP_R=16,DROP_LIFE=12,OVER_T=8,RAPID_T=6;
 let drops=[],dropSeq=0;
+const DRILL=160;   // Ghost Rounds: px of rock a shot drills through, per copy
 const dropsOn=()=>game.mode==='survival';   // power-ups drop only in Survival: duels stay pure
 // where a capsule can land: on top of a fixed platform, with room above, away from both fighters
 function dropSpot(){const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=70);
@@ -1858,7 +1859,7 @@ function dropTick(h){if(!dropsOn()||game.state!=='play')return;
   for(const d of drops){d.t-=h;
     if(d.state==='warn'&&d.t<=0){d.state='fall';d.y=-30}
     if(d.state==='fall'){d.vy+=2600*h;d.y+=d.vy*h;if(d.y>=d.ty){d.y=d.ty;d.state='ready';d.t=DROP_LIFE;burst(d.x,d.y+DROP_R,'#cfd8e3',8,220,3,.3,0);sfx('thud')}}
-    if(d.state!=='warn')for(const p of players){if(!p.alive||p.boss||(game.mode==='survival'&&p.team!==0))continue;if(Math.hypot(p.x-d.x,p.y-d.y)<p.r+DROP_R+4){takeDrop(p,d);break}}}
+    if(d.state!=='warn')for(const p of players){if(!p.alive||p.boss)continue;if(Math.hypot(p.x-d.x,p.y-d.y)<p.r+DROP_R+4){takeDrop(p,d);break}}}
   drops=drops.filter(d=>!d.taken&&!(d.state==='ready'&&d.t<=0))}
 function takeDrop(p,d){d.taken=true;const s=p.s;
   if(d.kind==='heal')p.hp=Math.min(s.maxHp,p.hp+s.maxHp*.4);
@@ -2294,7 +2295,7 @@ function nextPick(){
 function pickNow(i){if(!hand[i])return;if(pickMode==='team'){teamClick(i);return}if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
 function animChosen(i){const b=$('#fan').children[i];b&&b.classList.add('chosen');[...$('#fan').children].forEach((o,k)=>{if(k!==i)o.classList.add('away')});sfx('pick',false,true);pickFor&&drawBigFace(pickFor,'happy')}
 /* CPU drafts by usefulness, not rarity, so it stops hoarding wall-phasing rares */
-const CPU_PREF={'Ghost Rounds':.45,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
+const CPU_PREF={'Ghost Rounds':.8,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
 function cpuChoice(p,h){let best=0,bs=-1;h.forEach((c,i)=>{const sc=(CPU_PREF[c.n]||1)*(1+c.r*.2)*(.6+Math.random()*.8);if(sc>bs){bs=sc;best=i}});return best}
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
 function choose(c,i){if(tpick&&i!=null){if(net.role!=='guest')teamChoose(i<3?0:1,i);return}if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
@@ -2698,7 +2699,7 @@ function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if
 function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed)*(twistOn('fast')?1.35:1);
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
-   homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase,phaseLeft:2,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
+   homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase>0,drill:plain?0:s.phase,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
    split:plain?0:s.split,grow:!plain&&s.grow,dist:0,well:plain?0:s.well,mines:!plain&&s.mines,stuck:false,fuse:0})}
 const BLOCK_T=.3;
 function doBlock(p){if(!p.alive)return;const s=p.s;
@@ -2848,21 +2849,21 @@ function updateBullets(dt){
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
       let ghostIn=false;
       for(const r of solids){if(r.bound)continue;   // the energy border stops fighters, not bullets: shots fly out over it (and lobs fall back in)
-        // Ghost Rounds: slip through the first wall only, then collide normally
-        if(b.phase&&!r.bound&&circleRect(b.x,b.y,wallR(b),r)&&(b.phasing||b.phaseLeft>0)){if(!b.phasing){b.phaseLeft--;b.phasing=true}ghostIn=true;continue}
+        // Ghost Rounds: drill on through rock until the depth runs out, then hit like any shot
+        if(b.phase&&b.drill>0&&circleRect(b.x,b.y,wallR(b),r)){ghostIn=true;continue}
         const n=bulletRect(b,r);if(!n)continue;
         if(r.swing){pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));r.lastHit=b.owner}
         if(r.crate&&game.mode!=='online-guest')hitCrate(r)
         if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
         else{killBullet(b,true,r,n);if(r.swing&&!b.stuck)sfx('thud')}break}
-      if(b.phase&&!ghostIn)b.phasing=false;
+      if(b.phase){if(ghostIn){if(!b.phasing)burst(b.x,b.y,'#d8ccff',4,160,2,.2,0,true);b.drill-=Math.hypot(b.vx,b.vy)*sdt}b.phasing=ghostIn}
       if(b.dead)break;
       if(game.mode!=='online-guest')for(const c of rides)if(c.hang&&c.st===0&&Math.abs(b.x-c.tx)<13+b.r&&Math.abs(b.y-c.ty)<13+b.r){cutHang(c,b.owner);killBullet(b,b.explode>0);break}
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
       for(const p of players){if(!p.alive)continue;if(p===b.owner||(b.owner&&p.team===b.owner.team))continue;
-        if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner&&!b.phase){mirrorBack(p,b);break}if(p.blockT>0&&!b.phase)blocked(p,b);else hitPlayer(p,b);break}}}
+        if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner){mirrorBack(p,b);break}if(p.blockT>0)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   bullets=bullets.filter(b=>!b.dead)}
 
@@ -3063,9 +3064,9 @@ function groundAhead(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<p.y+p.r
 function groundBelow(p){for(let y=p.y+p.r;y<H+40;y+=24)if(pointSolid(p.x,y)||pointSolid(p.x-p.r,y)||pointSolid(p.x+p.r,y))return true;return false}
 /* perception: simulate the real shot from the real muzzle, with the same wall rules bullets obey */
 function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.min(5*s.bulletSize,WALL_R),st=1/60,m=safeSpawn(p,ang,p.r+30,br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
-  let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,phaseLeft=s.phase?1:0,inW=false;
+  let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,drill=s.phase||0;
   for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(!r.bound&&circleRect(x,y,br,r)){hit=r;break}
-    if(hit){if(phaseLeft>0&&!hit.bound||inW&&!hit.bound){if(!inW){phaseLeft--;inW=true}}else return s.bounces>0&&Math.random()<.3}else inW=false;
+    if(hit){if(drill>0)drill-=Math.hypot(vx,vy)*st;else return s.bounces>0&&Math.random()<.3}
     if(Math.hypot(x-e.x,y-e.y)<e.r+br+10)return true;if(y>H+40)return false}return false}
 function landingSpot(p,dir){const up=140+(p.airJumps>0?75:0);for(let dx=70;dx<=360;dx+=24){const x=p.x+dir*dx;for(let dy=-up;dy<=280;dy+=14){const y=p.y+p.r+dy;if(pointSolid(x,y)&&!pointSolid(x,y-p.r*2))return true}}return false}
 function dropSafe(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<H;y+=16)if(pointSolid(x,y))return true;return false}
@@ -3625,7 +3626,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-aim2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-drill';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

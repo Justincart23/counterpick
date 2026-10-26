@@ -147,6 +147,7 @@ The tests load the game headlessly with a stubbed DOM and canvas, then check:
 - **`card-art.js`** renders all 44 card animations and icons for 12 seconds each.
 - **`turn.js`** checks the relay function: STUN fallback, Cloudflare credentials, port-53 filtering, CORS.
 - **`bigscreen.js`** links a Big Screen host and up to four phone controllers through the mock PeerJS (40 ms, and 90 ms ± 45 ms): phones become controllers, the lobby seats them, an at-once draft, a press reaching the screen within a few frames, Find me, a whole free-for-all, a phone leaving and getting its own seat back, a late friend taking the CPU's seat (or a new fighter when there are no CPUs), the result on every phone, back to the lobby, and Teams 2v2.
+- **`drill.js`** checks that Ghost Rounds drill like Drill Ammo (through a thin wall or a thick block, stopped by very thick rock and by a block, deeper with two copies, at a reload cost) and that Survival opponents pick up power-ups.
 - **`audio.js`** plays every sound effect into a mock Web Audio graph and checks its parameters.
 
 GitHub Actions runs the same suite on every push (`.github/workflows/test.yml`). The tests need Node 20 or newer.

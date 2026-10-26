@@ -146,7 +146,8 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   play(60 * 10); Fp.joinGame(code); play(60 * 3);
   check(H.players.length === 4 && H.players[3].name === 'Latecomer' && H.players[3].ctrl === 'pad' && Fp.ctl.me === 3 && H.game.wins.length === 4, `a friend joining mid-match gets a new fighter (${H.players.map((p) => p.name + ':' + p.ctrl)} me ${Fp.ctl.me})`);
   check(H.players[3].cards.length >= Math.min(...H.players.slice(0, 3).map((p) => p.cards.length)), 'the newcomer catches up on cards');
-  let spawned = false; for (let f = 0; f < 60 * 100 && !spawned; f++) { play(1); spawned = H.players[3].alive && Number.isFinite(H.players[3].x) && H.players[3].x > 0 }
+  let spawned = false; for (let f = 0; f < 60 * 100 && !spawned; f++) { play(1); spawned = H.players[3].alive && Number.isFinite(H.players[3].x) && H.players[3].x > 0;
+    if (f % (60 * 20) === 60 * 20 - 1 && H.game.state === 'play') { const up = H.players.filter((p) => p.alive); if (up.length > 1) H.die(up[0]) } }   // two test bots stuck in a standoff: end the point for them
   check(spawned, 'the newcomer plays from the next point');
   H.settings.bsBots = 0; H.bsToLobby(); frame(10); for (const A of [G[0], G[1], Fp]) A.leaveOnline(true); frame(30); H.bsStart(); frame(10);
   check(H.net.lobbyOpen && H.game.mode !== 'online-host', 'one phone and no CPUs: Start waits for a friend or a CPU');
