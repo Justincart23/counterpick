@@ -2623,8 +2623,20 @@ function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.he
 function chain(x0,y0,x1,y1){const L=Math.hypot(x1-x0,y1-y0);if(L<2)return;ctx.save();ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=3;ctx.setLineDash([7,4]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
   ctx.setLineDash([]);ctx.fillStyle='rgba(150,140,175,.9)';ctx.fillRect(x0-7,y0,14,5);ctx.restore()}
 // a bounce pad glows and an arrow bobs over it, so a pad is never a surprise (at a distance, a small spring is easy to miss)
+// a fighter lands on a bounce pad: the plate springs up and wobbles, a ring bursts out and the arrows shoot skyward (online: the host sends it as fx 'J')
+function padHit(x,y,col){fxRec('J',[x,y,col]);const r=solids.find(q=>q.kind===3&&Math.abs(q.y-y)<6&&x>q.x-24&&x<q.x+q.w+24);if(r){r.hitAt=performance.now()/1000;r.hitCol=col||'#ff8fc0'}}
+function drawPadHit(r,t){const a=t-r.hitAt;if(!(a>=0&&a<.75))return;const k=a/.75,cx=r.x+r.w/2,off=RM?0:Math.min(0,-17*Math.exp(-5*a)*Math.sin(a*24)),py=r.y+off;
+  ctx.save();ctx.fillStyle='#3a2f45';ctx.fillRect(r.x+6,py+6,r.w-12,r.y-py+4);ctx.strokeStyle='#d8d2e4';ctx.lineWidth=2.5;ctx.beginPath();   /* the spring, stretched under the lifted plate */
+  for(let i=0,n=Math.max(3,Math.round((r.w-12)/14));i<=n;i++){const px=r.x+10+(r.w-20)*i/n;ctx[i?'lineTo':'moveTo'](px,i%2?r.y+r.h-2:py+9)}ctx.stroke();
+  ctx.fillStyle='#ff6fa8';ctx.beginPath();ctx.roundRect?ctx.roundRect(r.x-2,py-1,r.w+4,9,4):ctx.rect(r.x-2,py-1,r.w+4,9);ctx.fill();ctx.fillStyle=`rgba(255,255,255,${.85*(1-k)})`;ctx.fillRect(r.x+4,py,r.w-8,3);
+  ctx.strokeStyle='rgba(14,6,24,.78)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect?ctx.roundRect(r.x-2,py-1,r.w+4,9,4):ctx.rect(r.x-2,py-1,r.w+4,9);ctx.stroke();
+  ctx.globalCompositeOperation='lighter';const e=1-Math.pow(1-k,3),rx=r.w*(.55+1.1*e);ctx.globalAlpha=1-k;ctx.strokeStyle=r.hitCol;ctx.lineWidth=2+5*(1-k);   /* a ring bursting out along the floor */
+  ctx.beginPath();ctx.ellipse(cx,r.y+2,rx,rx*.22,0,0,TAU);ctx.stroke();ctx.strokeStyle='#ffb3d1';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
+  if(!RM)for(const[d,dy]of[[0,0],[.12,14]]){const q=clamp((a-d)/.55,0,1);if(q<=0||q>=1)continue;const y=r.y-30-dy-190*(1-Math.pow(1-q,2)),s=1+q*.4;ctx.globalAlpha=1-q;   /* two chevrons fly up */
+    ctx.beginPath();ctx.moveTo(cx-12*s,y+8*s);ctx.lineTo(cx,y-3*s);ctx.lineTo(cx+12*s,y+8*s);ctx.stroke()}
+  ctx.restore()}
 function drawPadGlow(){const t=performance.now()/1000;ctx.save();
-  for(const r of solids){if(r.kind!==3)continue;const pu=RM?.5:.5+.5*Math.sin(t*3.2+r.x*.01),cx=r.x+r.w/2;
+  for(const r of solids){if(r.kind!==3)continue;const hk=r.hitAt!=null&&t-r.hitAt<.75?1-(t-r.hitAt)/.75:0,pu=Math.min(1.8,(RM?.5:.5+.5*Math.sin(t*3.2+r.x*.01))+hk*1.2),cx=r.x+r.w/2;drawPadHit(r,t);
     ctx.globalCompositeOperation='lighter';try{const g=ctx.createRadialGradient(cx,r.y,2,cx,r.y,r.w*.75);g.addColorStop(0,`rgba(255,110,170,${.32+.2*pu})`);g.addColorStop(1,'rgba(255,110,170,0)');ctx.fillStyle=g}catch(e){ctx.fillStyle='rgba(255,110,170,.3)'}
     ctx.fillRect(cx-r.w*.8,r.y-r.w*.75,r.w*1.6,r.w*.85);ctx.globalCompositeOperation='source-over';
     const y=r.y-22-pu*7;ctx.globalAlpha=.55+.4*pu;ctx.strokeStyle='#ffb3d1';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
@@ -2840,7 +2852,7 @@ function updateBullets(dt){
   bullets=bullets.filter(b=>!b.dead)}
 
 function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps;
-  if(r.kind===3){p.vy=-Math.min(1750,Math.sqrt(2*PG*gMul()*Math.max(60,p.y-p.r-FRAME-36)));p.padT=.6;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true)});return}   // bounce pad: a high pad throws you only as far as the arena top allows
+  if(r.kind===3){p.vy=-Math.min(1750,Math.sqrt(2*PG*gMul()*Math.max(60,p.y-p.r-FRAME-36)));p.padT=.6;p.grounded=false;p.ground=null;p.squash=1.3;moveFx(p,()=>{sfx('spring');burst(p.x,r.y,'#ff8fc0',8,260,3,.3,0,true);padHit(p.x,r.y,p.glow)});return}   // bounce pad: a high pad throws you only as far as the arena top allows
   if(!wasG){if(r.swing)pushSwing(r,p.vx*.25+vyIn*.05*Math.sign(p.x-(r.x+r.w/2)));if(vyIn>700){p.squash=.72;moveFx(p,()=>{sfx('land');burst(p.x,p.y+p.r,'#cfd8e3',6,200,3,.3,0)})}}}
 function pushOut(p,r){const R=p.r,l=p.x+R-r.x,rr=r.x+r.w-(p.x-R),t=p.y+R-r.y,bt=r.y+r.h-(p.y-R),m=Math.min(l,rr,t,bt);
   if(m===t){p.y=r.y-R;if(p.vy>0)p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps}else if(m===bt){p.y=r.y+r.h+R;if(p.vy<0)p.vy=0}
@@ -3277,8 +3289,8 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   ctx.translate(0,-bob);
   // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
   const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
-  const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}else if(game.screen){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger (a Big Screen: read from across the room)
-  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.ffa?p.glow:game.party?PCOL()[p.team][1]:'rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);   // a party: name tags in the team's colour
+  const bw=Math.max(46,R*2.2),by=-R-24-stack*34;ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6);   // bold tags in every mode: easy to read on a phone, a laptop or across the room
+  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.party&&!game.ffa?PCOL()[p.team][1]:p.glow;ctx.fillText(playerLabel(p),0,by-14);   // name tags in the fighter's colour (a party: the team's)
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
   for(let i=0;i<n;i++){ctx.fillStyle=i<p.ammo?p.glow:'rgba(255,255,255,.15)';ctx.fillRect(x0+i*(pw+2),by+7,pw,3)}
@@ -3514,7 +3526,7 @@ function aimPath(p,secs=.33){const s=p.s,a=p.aim,c=Math.cos(a),sn=Math.sin(a),sp
   return out}
 function drawAimGuide(p=players.find(q=>q.ctrl==='mouse')){if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
   const c=Math.cos(p.aim),sn=Math.sin(p.aim);if(pointSolid(p.x+c*(p.r+30),p.y+sn*(p.r+30)))return;
-  const path=aimPath(p),N=15,big=game.screen,dr=big?5:2.6,da=big?.95:.55;ctx.save();ctx.fillStyle=p.glow;   // a Big Screen: dots big and bright enough to read from the sofa
+  const path=aimPath(p),N=15,dr=5,da=game.screen?.95:.85;ctx.save();ctx.fillStyle=p.glow;   // dots big and bright enough to read at a glance (a Big Screen: from the sofa)
   for(let i=1;i<=N;i++){const q=path[Math.min(path.length-1,Math.round(i*.022/FIXED)-1)];if(!q)break;const[x,y]=q;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=da*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,dr,0,TAU);ctx.fill()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
@@ -3590,7 +3602,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-bigscreen2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-bold';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3615,7 +3627,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&hostingNet()&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k,p.id]);return}sfx(k,false,true)}
-const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:(k,pid)=>{if(pid==null||pid===net.me)sfx(k,false,true)},F:()=>{if(!RM)game.flash=.14}};
+const FXR={J:(x,y,c)=>padHit(x,y,c),D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:(k,pid)=>{if(pid==null||pid===net.me)sfx(k,false,true)},F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
    never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
