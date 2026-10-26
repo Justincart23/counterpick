@@ -21,6 +21,14 @@ const { load } = require('./env');
       if (P.hp < hp || top <= 10) fail.push(`${A.MAPS[mi].name}${low ? ' (low gravity)' : ''} pad at ${x}: thrown into the top edge (y=${Math.round(top)})`);
     }
   }
+  // every spawn on every arena: in the open (never inside a block) and not on a pad (a fighter would launch the moment it lands)
+  for (const m of A.MAPS) for (const [k, [x, y]] of m.sp.entries()) {
+    for (const r of m.rects) { if (r[4] === 1) continue; const dx = Math.max(r[0] - x, 0, x - (r[0] + r[2])), dy = Math.max(r[1] - y, 0, y - (r[1] + r[3])); if (Math.hypot(dx, dy) < 21) fail.push(`${m.name} spawn ${k} (${x},${y}) is inside a block`) }
+    for (const r of m.rects) if (r[4] === 3 && Math.abs(x - (r[0] + r[2] / 2)) < r[2] / 2 + 20 && Math.abs(y + 22 - r[1]) < 30) fail.push(`${m.name} spawn ${k} sits on a pad`) }
+  // two functions with one name: the later silently replaces the earlier (a phone helper once took the bounce pads' drawing name and every pad went invisible)
+  { const src = require('fs').readFileSync(require('./env').SOURCE, 'utf8'), seen = new Map();
+    for (const m of src.matchAll(/^function (\w+)\(/gm)) seen.set(m[1], (seen.get(m[1]) || 0) + 1);
+    for (const [n, c] of seen) if (c > 1) fail.push(`function ${n} is defined ${c} times`) }
   console.log(JSON.stringify({ pads: rows.length, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

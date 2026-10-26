@@ -48,16 +48,22 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
   const S = await browser(9361, 'Laptop', false); ALL.push(S);
   await S.cdp('Page.navigate', { url: URL0 }); await sleep(2500);
   await S.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200);
-  ok(await S.ev(`!!document.querySelector('[data-act="bigscreen"]')`), 'Multiplayer lists Big Screen');
-  await S.ev(`document.querySelector('[data-act="bigscreen"]').click()`);
+  ok(await S.ev(`!!document.querySelector('[data-act="bigscreenMenu"]')`), 'Multiplayer lists Big Screen');
+  await S.ev(`document.querySelector('[data-act="bigscreenMenu"]').click()`); await sleep(200);
+  ok(await S.ev(`!document.querySelector('[data-sub="bigscreen"]').hidden&&!!document.querySelector('[data-sub="bigscreen"] [data-act="bigscreen"]')&&!!document.querySelector('[data-sub="bigscreen"] [data-act="join"]')`), 'Big Screen offers Host or Join');
+  await S.shot('0-screen-bigscreen-menu.png');
+  await S.ev(`document.querySelector('[data-sub="bigscreen"] [data-act="bigscreen"]').click()`);
   if (!ok(await S.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'the screen opens a Big Screen room with a code')) return finish();
   const code = await S.ev(`document.querySelector('#bsCode').textContent`);
   ok(await S.until(`document.querySelector('.bs-qr').classList.contains('on')`, 15000), 'the QR code draws');
   await S.ev(FPS); await S.shot('1-screen-lobby.png');
   // two phones open the join link, as scanning the QR code does
   const P = [await browser(9362, 'Ana', true), await browser(9363, 'Ben', true)]; ALL.push(...P);
-  for (const T of P) { await T.cdp('Page.navigate', { url: URL0 + '#' + code }); }
-  await sleep(2500);
+  await P[0].cdp('Page.navigate', { url: URL0 + '#' + code });   // phone 1 scans the QR code (opens the link)
+  await P[1].cdp('Page.navigate', { url: URL0 }); await sleep(2500);   // phone 2 goes Multiplayer > Big Screen > Join with a code
+  for (const sel of ['[data-act="multi"]', '[data-act="bigscreenMenu"]', '[data-sub="bigscreen"] [data-act="join"]']) { const b = await P[1].box(sel); if (b) { await P[1].touch('touchStart', [b]); await P[1].touch('touchEnd', []); } await sleep(300) }
+  await P[1].ev(`(()=>{const i=document.querySelector('#joinCode');i.value=${JSON.stringify(code)};document.querySelector('#joinForm').requestSubmit()})()`);
+  await sleep(1500);
   for (const [i, T] of P.entries()) ok(await T.until(`window.__G.ctl.on&&window.__G.ctl.view==='lobby'&&/Player/.test(document.querySelector('#padLobbyT').textContent)`, 30000), `phone ${i + 1} becomes a controller in the lobby`);
   ok(await S.until(`document.querySelectorAll('#bsSeats li:not(.open):not(.cpu):not(.th)').length===2`, 8000), 'the screen seats both phones');
   ok(await S.ev(`document.querySelector('[data-act=bsStart]').disabled===false`), 'Start is ready with two phones and no CPUs');
@@ -77,21 +83,26 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
   for (const T of P) await T.ev(FPS);
   await sleep(500); await S.shot('7-screen-play.png'); await P[0].shot('8-phone-controls.png');
   // touches: phone 1 runs right with its left thumb, then fires with a drag-release, then a quick tap
-  const me = await P[0].ev(`window.__G.ctl.me`), x0 = await S.ev(`window.__G.players[${me}].x`), b0 = await S.ev(`window.__G.bullets.filter(b=>b.owner.id===${me}).length`);
-  const dir = x0 < 960 ? 1 : -1;
-  await P[0].touch('touchStart', [[180, 260, 1]]); for (let k = 1; k <= 6; k++) { await P[0].touch('touchMove', [[180 + dir * k * 12, 260, 1]]); await sleep(30) }
-  await sleep(700); const x1 = await S.ev(`window.__G.players[${me}].x`);
-  await P[0].touch('touchEnd', []);
+  const me = await P[0].ev(`window.__G.ctl.me`), b0 = 0;
+  let x0 = 0, x1 = 0, dir = 1;
+  for (let tries = 0; tries < 4 && Math.abs(x1 - x0) <= 60; tries++) {   // wait for this fighter to be up and the point live (the CPU may have knocked it out)
+    await S.until(`window.__G.game.state==='play'&&window.__G.players[${me}].alive`, 15000); await sleep(200);
+    x0 = await S.ev(`window.__G.players[${me}].x`); dir = x0 < 960 ? 1 : -1;
+    await P[0].touch('touchStart', [[180, 260, 1]]); for (let k = 1; k <= 6; k++) { await P[0].touch('touchMove', [[180 + dir * k * 12, 260, 1]]); await sleep(30) }
+    await sleep(700); x1 = await S.ev(`window.__G.players[${me}].x`); await P[0].touch('touchEnd', []) }
   ok(Math.abs(x1 - x0) > 60, `a drag on the left half runs that phone's fighter on the screen (${Math.round(x0)} → ${Math.round(x1)})`);
   let fired = 0; const seen = new Set(); const watch = setInterval(async () => { const ids = await S.ev(`window.__G.bullets.filter(b=>b.owner.id===${me}).map(b=>b.id)`); for (const i of ids || []) if (!seen.has(i)) { seen.add(i); fired++ } }, 40);
-  await sleep(400);
-  await P[0].touch('touchStart', [[640, 250, 2]]); for (let k = 1; k <= 5; k++) { await P[0].touch('touchMove', [[640 + dir * k * 8, 250 - k * 14, 2]]); await sleep(30) }
-  await sleep(200); const guide = await S.ev(`window.__G.players[${me}].padAiming`); await S.shot('9-screen-aimguide.png');
-  await P[0].touch('touchEnd', []); await sleep(500);
-  await P[0].touch('touchStart', [[640, 250, 3]]); await sleep(60); await P[0].touch('touchEnd', []); await sleep(600);
+  let guide = false;
+  for (let tries = 0; tries < 4 && !fired; tries++) {   // the CPU may knock this fighter out mid-check: then wait for the next point and try again
+    await S.until(`window.__G.game.state==='play'&&window.__G.players[${me}].alive`, 15000); await sleep(300);
+    await P[0].touch('touchStart', [[640, 250, 2]]); for (let k = 1; k <= 5; k++) { await P[0].touch('touchMove', [[640 + dir * k * 8, 250 - k * 14, 2]]); await sleep(30) }
+    await sleep(200); guide = guide || await S.ev(`window.__G.players[${me}].padAiming`); if (!tries) await S.shot('9-screen-aimguide.png');
+    await P[0].touch('touchEnd', []); await sleep(500);
+    await P[0].touch('touchStart', [[640, 250, 3]]); await sleep(60); await P[0].touch('touchEnd', []); await sleep(600) }
   clearInterval(watch);
+  const diag = await S.ev(`(()=>{const p=window.__G.players[${me}];return {state:window.__G.game.state,alive:p.alive,ammo:p.ammo,sc:p.padSc,ac:p.padAc,tap:p.padTap,frozen:p.frozenT>0}})()`), pdiag = await P[0].ev(`({sc:window.__G.ctl.sc,ac:window.__G.ctl.ac,view:window.__G.ctl.view,hand:!!window.__G.ctl.hand})`);
   ok(guide, 'dragging the aim stick shows that fighter\'s aim guide on the screen');
-  ok(fired >= 1, `a drag-and-release and a tap fire that fighter's gun on the screen (${fired} bullets)`);
+  ok(fired >= 1, `a drag-and-release and a tap fire that fighter's gun on the screen (${fired} bullets; screen ${JSON.stringify(diag)} phone ${JSON.stringify(pdiag)})`);
   const jb = await P[0].box('#pJump'); if (jb) { await P[0].touch('touchStart', [jb]); await sleep(80); await P[0].touch('touchEnd', []) }
   // phone 2 plays on its own for a while (in-page: steering by eye is out of reach here, so it just runs and fires)
   await P[1].ev(`(()=>{let k=0;window.__bot=setInterval(()=>{const c=window.__G.ctl;k++;c.mx=(k>>4)%2?1:-1;if(k%9===0)c.jc++;if(k%7===0){c.a=Math.random()*6.28;c.sc++}if(k%11===0)c.ac++},50)})()`);

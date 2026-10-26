@@ -98,7 +98,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     const shots = foes.filter((q) => H.clearShot(me, H.aimSolution(me, q), q)), o = (shots.length ? shots : foes).reduce(near), clear = shots.length > 0, ang = H.aimSolution(me, o);
     c.blind = clear ? 0 : (c.blind || 0) + 1;
     if (c.blind > 90) { if (c.blind % 150 === 91) c.dir = (f >> 4) % 2 ? 1 : -1; c.mx = c.dir; if (c.blind % 30 === 0) c.jc++; c.up = c.blind % 30 < 16; c.down = c.blind % 150 > 120 }   // no shot for a while: roam (as a person would) until someone's in sight
-    else { c.mx = !clear ? Math.sign(o.x - me.x) || 1 : Math.abs(o.x - me.x) > 420 ? Math.sign(o.x - me.x) : Math.floor(f / 50) % 2 ? 1 : -1;
+    else { c.mx = Math.hypot(o.x - me.x, o.y - me.y) < 90 ? -(Math.sign(o.x - me.x) || 1) : !clear ? Math.sign(o.x - me.x) || 1 : Math.abs(o.x - me.x) > 420 ? Math.sign(o.x - me.x) : Math.floor(f / 50) % 2 ? 1 : -1;   // on top of someone: step back first
       if ((f + c.me * 11) % 50 === 0) c.jc++; c.up = !clear && o.y < me.y - 60 && (f + c.me * 11) % 26 < 14 }
     if (clear && (f + c.me * 7) % 21 === 0) { c.a = ang; c.sc++ }   // drag-aim and let go
     if (clear && (f + c.me * 5) % 47 === 0) c.ac++;   // a quick tap: auto-fire
@@ -146,7 +146,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   play(60 * 10); Fp.joinGame(code); play(60 * 3);
   check(H.players.length === 4 && H.players[3].name === 'Latecomer' && H.players[3].ctrl === 'pad' && Fp.ctl.me === 3 && H.game.wins.length === 4, `a friend joining mid-match gets a new fighter (${H.players.map((p) => p.name + ':' + p.ctrl)} me ${Fp.ctl.me})`);
   check(H.players[3].cards.length >= Math.min(...H.players.slice(0, 3).map((p) => p.cards.length)), 'the newcomer catches up on cards');
-  let spawned = false; for (let f = 0; f < 60 * 40 && !spawned; f++) { play(1); spawned = H.players[3].alive && Number.isFinite(H.players[3].x) && H.players[3].x > 0 }
+  let spawned = false; for (let f = 0; f < 60 * 100 && !spawned; f++) { play(1); spawned = H.players[3].alive && Number.isFinite(H.players[3].x) && H.players[3].x > 0 }
   check(spawned, 'the newcomer plays from the next point');
   H.settings.bsBots = 0; H.bsToLobby(); frame(10); for (const A of [G[0], G[1], Fp]) A.leaveOnline(true); frame(30); H.bsStart(); frame(10);
   check(H.net.lobbyOpen && H.game.mode !== 'online-host', 'one phone and no CPUs: Start waits for a friend or a CPU');

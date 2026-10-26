@@ -543,14 +543,23 @@ body.touch .desk-only{display:none!important}
 .bs-join .code{font-size:clamp(56px,9vh,96px)}
 .bs-side{display:grid;gap:10px;justify-items:start;min-width:0}
 .bs-side>.lbl{margin:0}.bs-setl{margin-top:4px!important}
-.bs-seats{width:min(520px,100%)}.bs-seats:not(.teams) .th{display:none}
+.bs-seats{width:min(560px,100%)}.bs-seats:not(.teams) .th{display:none}
 .bs-seats li{display:flex;justify-content:space-between;gap:8px}
 .bs-seats .ping{font:700 12px var(--mono);align-self:center;color:var(--muted)}.bs-seats .ping.good{color:var(--good)}.bs-seats .ping.ok{color:#ffd36b}.bs-seats .ping.bad{color:var(--bad)}
-.mlist.opts.bs-opts{width:min(520px,100%)}.mlist.opts.bs-opts button{font-size:clamp(17px,2.6vh,24px);padding-left:0}
-.bs-side .menu-hint{margin:0;min-height:2.6em;max-width:52ch}
+#bigLobby{background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.86)}
+.bs-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(560px,100%)}
+.bs-opt{display:grid;gap:3px;text-align:left;padding:7px 10px 8px 12px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--line);color:var(--text);cursor:pointer;font:inherit;transition:border-color .12s,background .12s;min-width:0}
+.bs-opt:hover,.bs-opt:focus{border-color:var(--hot);background:rgba(48,31,68,.96);outline:none}
+.bs-ol{font:700 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.bs-ov{display:flex;align-items:center;gap:6px;font:400 clamp(17px,2.5vh,21px) var(--display);letter-spacing:.03em;color:var(--hot);min-width:0}
+.bs-ov .val{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bs-ov i{flex:none;font-style:normal;width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:rgba(255,255,255,.06);color:var(--muted);font-size:20px;line-height:1}
+.bs-ov i:hover{background:rgba(255,255,255,.16);color:var(--text)}
+.bs-acts .go[disabled]{background:var(--night-2);border-color:var(--line);color:var(--muted);opacity:1}
+.bs-side .menu-hint{margin:0;min-height:2.9em;max-width:560px;font-size:14px;line-height:1.45;color:var(--muted)}
 .bs-acts .btn{font-size:20px;padding:10px 26px}
 @media (max-width:860px){.bs-grid{grid-template-columns:1fr}.bs-join{grid-template-columns:auto auto;align-items:center;justify-items:start;text-align:left}.bs-qr{grid-row:span 3;width:150px}}
-@media (max-height:700px){.bs-wrap .screen-title{font-size:34px}.mlist.opts.bs-opts button{font-size:17px}.bs-seats li{padding:5px 10px 5px 30px;font-size:17px}}
+@media (max-height:700px){.bs-wrap .screen-title{font-size:34px}.bs-opt{padding:4px 8px 5px 10px}.bs-ov{font-size:16px}.bs-seats li{padding:5px 10px 5px 30px;font-size:17px}}
 /* ---- Big Screen draft on the big screen: one column per picker, a face-down card that ticks when they lock in, then flips ---- */
 .bsp-wrap{display:grid;justify-items:center;gap:clamp(10px,2.4vh,22px);width:min(1180px,100%);margin:auto;text-align:center}
 .bsp-sub{margin:0;font:800 clamp(16px,2.2vh,20px) var(--body);color:var(--muted)}
@@ -593,13 +602,19 @@ body.touch .desk-only{display:none!important}
 #pad:not(.live) .pad-hp,#pad:not(.live) #padFind,#pad:not(.live) .pad-score{visibility:hidden}
 .pad-live::after{content:"";position:absolute;left:50%;top:76px;bottom:18px;width:2px;margin-left:-1px;background:rgba(255,255,255,.06)}
 .pad-zl{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));font:700 12px var(--body);color:rgba(241,236,247,.38);pointer-events:none}
-.pad-zl.l{left:calc(16px + env(safe-area-inset-left,0px))}.pad-zl.r{right:calc(96px + env(safe-area-inset-right,0px))}
-#pMove{left:24%;top:62%;opacity:.4}#pAim{left:66%;top:62%;opacity:.4}#pMove.on,#pAim.on{opacity:1}
+.pad-zl.l{left:calc(16px + env(safe-area-inset-left,0px))}.pad-zl.r{left:calc(50% + 16px);right:calc(clamp(108px,15vw,150px) + 28px + env(safe-area-inset-right,0px));text-align:center}
+#pMove{left:24%;top:62%;opacity:.4}#pAim{left:calc(50% + (50% - clamp(108px,15vw,150px) - 12px) / 2);top:62%;opacity:.4}#pMove.on,#pAim.on{opacity:1}
 #pad .tstick{width:140px;height:140px;margin:-70px 0 0 -70px;pointer-events:none}
 #pad .tbtn{position:absolute;width:76px;height:76px;font-size:15px;pointer-events:auto;background:rgba(20,12,30,.6)}
-.pad-jump{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(118px + env(safe-area-inset-bottom,0px))}
-.pad-block{--cd:0;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));border-color:var(--pc)!important;
-  background:conic-gradient(rgba(0,0,0,.55) calc(var(--cd) * 360deg),transparent 0),rgba(20,12,30,.6)!important}
+/* Jump and Block: two big panels down the right edge (most of the screen's height between them), easy to hit without looking */
+#pad .tbtn.pad-jump,#pad .tbtn.pad-block{right:calc(12px + env(safe-area-inset-right,0px));width:clamp(108px,15vw,150px);height:calc((100% - 76px - 14px - 10px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) / 2);
+  border-radius:24px;border-width:3px;font:400 clamp(18px,4.6vh,24px) var(--display);letter-spacing:.04em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .06s,background .06s}
+#pad .tbtn.pad-jump{top:calc(76px + env(safe-area-inset-top,0px));border-color:rgba(255,255,255,.45)}
+#pad .tbtn.pad-block{--cd:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));border-color:var(--pc);
+  background:linear-gradient(to top,rgba(0,0,0,.6) calc(var(--cd) * 100%),transparent 0),color-mix(in srgb,var(--pc) 16%,rgba(20,12,30,.7))}
+#pad .tbtn.pad-jump::before{content:"";width:22px;height:22px;border-left:5px solid currentColor;border-top:5px solid currentColor;transform:translateY(5px) rotate(45deg);border-radius:3px}
+#pad .tbtn.pad-block::before{content:"";width:26px;height:30px;border:5px solid currentColor;border-radius:4px 4px 16px 16px}
+#pad .tbtn.down{transform:scale(.96);background:rgba(255,255,255,.28)}
 .pad-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);margin:0;padding:10px 18px;border-radius:12px;background:rgba(14,8,22,.82);border:2px solid var(--pc);font:400 22px var(--display);letter-spacing:.02em;text-align:center;pointer-events:none;max-width:80vw}
 .pad-rot{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px;text-align:center;font:800 20px var(--body);background:rgba(14,8,22,.94)}
 @media (orientation:portrait){.pad-rot{display:flex}}
@@ -675,11 +690,20 @@ body.touch .desk-only{display:none!important}
       <nav class="mlist" aria-label="Multiplayer">
         <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1">Party · 2v2</button>
-        <button type="button" data-act="bigscreen" data-hint="This computer is the screen everyone watches. Up to 4 friends join on their phones, which become their controllers." style="--i:2">Big Screen</button>
+        <button type="button" data-act="bigscreenMenu" data-hint="One screen everyone watches (a laptop or a TV); 1 to 4 friends play with their phones as controllers." style="--i:2">Big Screen</button>
         <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:3">Co-op Survival</button>
         <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:4">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
+    </div>
+    <div data-sub="bigscreen" hidden>
+      <div class="lbl" style="margin:0 0 4px 40px">Big Screen</div>
+      <nav class="mlist" aria-label="Big Screen">
+        <button type="button" data-act="bigscreen" data-hint="This computer is the screen everyone watches. You host: friends scan your code and play on their phones." style="--i:0">Host on this screen</button>
+        <button type="button" data-act="join" data-from="bigscreen" data-hint="On your phone: type the code shown on the big screen, and your phone becomes your controller." style="--i:1">Join with a code</button>
+        <button type="button" data-act="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2">Back</button>
+      </nav>
+      <p class="menu-hint" aria-live="polite">This computer is the screen everyone watches. You host: friends scan your code and play on their phones.</p>
     </div>
     <div data-sub="online" hidden>
       <div class="lbl" id="onlineLbl" style="margin:0 0 4px 40px">Duel a friend</div>
@@ -906,16 +930,16 @@ body.touch .desk-only{display:none!important}
         <ul class="roster bs-seats" id="bsSeats" aria-label="Players"></ul>
         <p class="lobby-msg" id="bsMsg" role="status">Opening a room…</p>
         <div class="lbl bs-setl">Game settings</div>
-        <nav class="mlist opts bs-opts" aria-label="Big Screen settings">
-          <button type="button" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone." style="--i:0">Mode <span class="val">Free-for-all</span></button>
-          <button type="button" data-opt="bsLen" data-hint="Rounds needed to win the match. Two points win a round." style="--i:1">Rounds to win <span class="val">5</span></button>
-          <button type="button" data-opt="bsCards" data-hint="Who picks a card after each round. Everyone picks one at the start either way." style="--i:2">Card picks <span class="val">Round losers</span></button>
-          <button type="button" data-opt="bsBots" data-hint="Computer fighters to add (up to four fighters in all). Playing alone? Add at least one. A friend who joins mid-match takes over a CPU's seat." style="--i:3">CPU players <span class="val">None</span></button>
-          <button type="button" data-opt="bsCpu" data-hint="How well the CPU players aim, dodge and block." style="--i:3">CPU skill <span class="val">Normal</span></button>
-          <button type="button" data-opt="bsMap" data-hint="Every party arena in turn, or one favourite." style="--i:4">Arena <span class="val">All arenas</span></button>
-          <button type="button" data-opt="bsHp" data-hint="Everyone's health. More health makes longer, more tactical points." style="--i:5">Health <span class="val">100%</span></button>
-          <button type="button" data-opt="bsTwist" data-hint="Now and then a point plays with a twist: low gravity, fast bullets, frenzy or glass." style="--i:6">Round twists <span class="val">Off</span></button>
-        </nav>
+        <div class="bs-opts" role="group" aria-label="Big Screen settings">
+          <button type="button" class="bs-opt" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone."><span class="bs-ol">Mode</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Free-for-all</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsLen" data-hint="Rounds needed to win the match. Two points win a round."><span class="bs-ol">Rounds to win</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">5</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsCards" data-hint="Who picks a card after each round. Everyone picks one at the start either way."><span class="bs-ol">Card picks</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Round losers</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsBots" data-hint="Computer fighters to add (up to four fighters in all). Playing alone? Add at least one. A friend who joins mid-match takes over a CPU's seat."><span class="bs-ol">CPU players</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">None</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsCpu" data-hint="How well the CPU players aim, dodge and block."><span class="bs-ol">CPU skill</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Normal</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsMap" data-hint="Every party arena in turn, or one favourite."><span class="bs-ol">Arena</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">All arenas</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsHp" data-hint="Everyone's health. More health makes longer, more tactical points."><span class="bs-ol">Health</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">100%</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsTwist" data-hint="Now and then a point plays with a twist: low gravity, fast bullets, frenzy or glass."><span class="bs-ol">Round twists</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Off</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        </div>
         <p class="menu-hint" aria-live="polite">Free-for-all: every fighter for themselves.</p>
         <div class="party-acts bs-acts"><button type="button" class="btn go" data-act="bsStart" disabled>Start</button><button type="button" class="btn" data-act="bsCancel">Close</button></div>
       </section>
@@ -1190,19 +1214,19 @@ for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.
 MAPS.push(
  // Plaza: wide open with long sightlines (long-range builds shine): two side towers, a low bridge, a crown perch
  {name:'Plaza',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[120,760,180,240],[1620,760,180,240],[300,880,70,120],[1550,880,70,120],[660,820,600,40],[400,680,220,40],[1300,680,220,40],[860,560,200,38],
-   [30,984,80,16,3],[1810,984,80,16,3]],crates:[[520,940,60],[1340,940,60]],sp:[[210,720],[1710,720],[230,960],[1690,960]]},
+   [30,984,80,16,3],[1810,984,80,16,3]],crates:[[520,940,60],[1340,940,60]],sp:[[210,720],[1710,720],[445,960],[1475,960]]},   // floor spawns on open ground (they were inside the corner blocks)
  // Islands: two shores over pits, islands and a rock in the middle, pads up to the high ledges (mobility and lobs shine)
  {name:'Islands',party:1,big:1,w:1920,h:1080,rects:[[0,960,460,120],[1460,960,460,120],[580,840,220,40],[1120,840,220,40],[860,740,200,80],[160,620,220,38],[1540,620,220,38],
-   [820,520,280,38],[240,944,70,16,3],[1610,944,70,16,3]],sp:[[270,580],[1650,580],[230,920],[1690,920]]},
+   [820,520,280,38],[240,944,70,16,3],[1610,944,70,16,3]],sp:[[270,580],[1650,580],[390,920],[1530,920]]},
  // Gearworks: close quarters. Two walls make a pit room with one lift; decks step up to a top bar (bouncing and blasting shots shine)
  {name:'Gearworks',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[700,780,50,220,1],[1170,780,50,220,1],[100,800,320,40],[1500,800,320,40],[380,620,260,40],[1280,620,260,40],[760,460,400,38]],
    movers:[{x:870,y:620,w:180,h:30,mx:0,my:300,period:4.5}],sp:[[260,760],[1660,760],[230,960],[1690,960]]},
  // Ropeyard: three rope drops (the middle one hangs under the top platform), a middle plank, crates for cover, and side ledges a jump up (nothing hangs over them)
  {name:'Ropeyard',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[60,780,240,38],[1620,780,240,38],[760,820,400,40],[860,420,200,38],[110,984,80,16,3],[1730,984,80,16,3]],
-   hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:458}],crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[200,960],[1720,960]]},
+   hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:458}],crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[330,960],[1590,960]]},
  // Spire: hold the tower in the middle; stepped approaches and pads up to the outer perches (arcing and homing shots shine)
  {name:'Spire',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[880,560,160,440],[520,860,180,40],[1220,860,180,40],[700,700,160,40],[1060,700,160,40],[300,900,40,100,1],[1580,900,40,100,1],
-   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[200,960],[1720,960]]});
+   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[430,960],[1490,960]]});   // the floor spawns sit beside the pads, not on them
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -1294,7 +1318,7 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
       g.save();g.globalCompositeOperation='lighter';g.fillStyle=lg;g.beginPath();g.moveTo(mx-40,my);g.lineTo(mx+40,my);g.lineTo(bx+bw*2,H);g.lineTo(bx-bw*2,H);g.fill();g.restore()}
     // drifting sandstone cubes, far off: small, dim, and never behind a real platform so they can't be mistaken for one
     const clear=(cx,cy,sz)=>map.rects.every(r=>cx+sz+40<r[0]||cx-40>r[0]+r[2]||cy+sz+40<r[1]||cy-40>r[1]+r[3]);
-    let made=0;for(let t=0;t<40&&made<Math.round(4*W/VW);t++){const sz=16+R()*26,cx=R()*(W-80)+40,cy=40+R()*H*.5;if(!clear(cx,cy,sz)||Math.hypot(cx+sz/2-mx,cy+sz/2-my)<130)continue;/* and clear of the moon */made++;
+    let made=0;for(let t=0;t<40&&made<Math.min(4,Math.round(4*W/VW));t++){const sz=16+R()*26,cx=R()*(W-80)+40,cy=40+R()*H*.5;if(!clear(cx,cy,sz)||Math.hypot(cx+sz/2-mx,cy+sz/2-my)<130)continue;/* and clear of the moon */made++;
       const d=sz*.32,[base,hi2,lo2]=KIND[0];g.save();g.globalAlpha=.42+R()*.2;
       g.fillStyle=hi2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+d,cy-d);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz,cy);g.fill();   // top
       g.fillStyle=lo2;g.beginPath();g.moveTo(cx+sz,cy);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz+d,cy+sz-d);g.lineTo(cx+sz,cy+sz);g.fill();   // side
@@ -1306,7 +1330,10 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
   platx.fillStyle='rgba(10,4,18,.4)';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0]+10,r[1]+12,r[2],r[3]);platx.fill()}
   const sitsOn=r=>map.rects.some(o=>o!==r&&Math.abs(o[1]-(r[1]+r[3]))<3&&o[0]<r[0]+r[2]&&o[0]+o[2]>r[0]);
   for(const r of map.rects)if(!r[4]&&r[1]+r[3]<H-12&&!sitsOn(r))rockBelly(platx,r[0],r[1],r[2],r[3],0);
-  for(const r of map.rects){if(r[4]===3){padArt(platx,r[0],r[1],r[2],r[3]);continue}facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
+  for(const r of map.rects)if(r[4]!==3){facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
+  // a bold dark outline round every platform (like ROUNDS' crisp shapes): the arena reads at a glance, even from across a room
+  platx.save();platx.strokeStyle='rgba(14,6,24,.78)';platx.lineWidth=4;platx.lineJoin='round';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0],r[1],r[2],r[3]);platx.stroke()}platx.restore();
+  for(const r of map.rects)if(r[4]===3)padArt(platx,r[0],r[1],r[2],r[3]);   // pads on top of everything
   dec.clearRect(0,0,W,H);
   motes=Array.from({length:RM?0:46},()=>({x:rand(0,W),y:rand(0,H),vx:rand(-8,8),vy:rand(-14,-3),s:rand(1,2.6),a:rand(.08,.25)}))}
 let motes=[];
@@ -2595,6 +2622,14 @@ function crateArt(z){const cv2=document.createElement('canvas');cv2.width=cv2.he
 /* a chain from its anchor down to what it holds */
 function chain(x0,y0,x1,y1){const L=Math.hypot(x1-x0,y1-y0);if(L<2)return;ctx.save();ctx.strokeStyle='rgba(205,195,225,.55)';ctx.lineWidth=3;ctx.setLineDash([7,4]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
   ctx.setLineDash([]);ctx.fillStyle='rgba(150,140,175,.9)';ctx.fillRect(x0-7,y0,14,5);ctx.restore()}
+// a bounce pad glows and an arrow bobs over it, so a pad is never a surprise (at a distance, a small spring is easy to miss)
+function drawPadGlow(){const t=performance.now()/1000;ctx.save();
+  for(const r of solids){if(r.kind!==3)continue;const pu=RM?.5:.5+.5*Math.sin(t*3.2+r.x*.01),cx=r.x+r.w/2;
+    ctx.globalCompositeOperation='lighter';try{const g=ctx.createRadialGradient(cx,r.y,2,cx,r.y,r.w*.75);g.addColorStop(0,`rgba(255,110,170,${.32+.2*pu})`);g.addColorStop(1,'rgba(255,110,170,0)');ctx.fillStyle=g}catch(e){ctx.fillStyle='rgba(255,110,170,.3)'}
+    ctx.fillRect(cx-r.w*.8,r.y-r.w*.75,r.w*1.6,r.w*.85);ctx.globalCompositeOperation='source-over';
+    const y=r.y-22-pu*7;ctx.globalAlpha=.55+.4*pu;ctx.strokeStyle='#ffb3d1';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
+    for(const dy of[0,11]){ctx.beginPath();ctx.moveTo(cx-11,y+dy+7);ctx.lineTo(cx,y+dy-3);ctx.lineTo(cx+11,y+dy+7);ctx.stroke()}ctx.globalAlpha=1}
+  ctx.restore()}
 function drawRides(){for(const c of rides){
   if(c.crate&&c.broken===1){const b=Math.sin(performance.now()/300)*3,x=c.ox,y=c.oy+b;ctx.save();ctx.globalAlpha=.35;ctx.drawImage(glowSprite('#7ed321'),x-26,y-26,52,52);ctx.globalAlpha=1;
     ctx.fillStyle='#2f6b12';ctx.beginPath();ctx.arc(x,y,ORB_R+2,0,TAU);ctx.fill();ctx.fillStyle='#7ed321';ctx.beginPath();ctx.arc(x,y,ORB_R,0,TAU);ctx.fill();
@@ -3356,7 +3391,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0);ctx.drawImage(decC,0,0);
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
-  drawRides();
+  drawPadGlow();drawRides();
   for(const q of parts)if(q.blob){ctx.globalAlpha=clamp(q.life/q.max,0,1)*.7;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(1.3-.3*q.life/q.max),0,TAU);ctx.fill()}
   ctx.globalAlpha=1;
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
@@ -3555,7 +3590,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-27-bigscreen';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-bigscreen2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4071,7 +4106,7 @@ function bsMsg(t){setText('#bsMsg',t)}
 function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen)bsMsg(t)}
 function openBigScreen(){net.wantScreen=true;net.wantParty=false;net.wantCoop=false;$('#menu').hidden=true;$('#bigLobby').hidden=false;
   setText('#bsCode','····');bsQr('');hostGame();bsLobbyChanged();refreshOpts();showSub($('#bigLobby'),'main')}
-function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();showSub($('#menu'),'multi')}
+function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();showSub($('#menu'),'bigscreen')}
 const bsJoinUrl=()=>`${location.origin}${location.pathname}#${net.code}`;
 function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
@@ -4266,12 +4301,12 @@ function padHand(m){ctl.hand=(m.hand||[]).slice(0,3).map(decodeCard).filter(Bool
     b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
     const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
     b.querySelector('canvas')._card=c;b.addEventListener('click',()=>padPick(i));el.appendChild(b)});
-  const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();padArt();buzz(15)}
+  const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();ctlCardArt();buzz(15)}
 function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:'ppick',i});padPicked(i)}
 function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').children].forEach((b,k)=>{b.classList.toggle('chosen',k===i);b.classList.toggle('away',k!==i)});
   $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS','Watch the big screen for the reveal')}
 let padArtRaf=0;
-function padArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
+function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
 function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');
   setText('#padOverT',win?(ctl.sides.length>2?'You win!':'Your team wins!'):`${s?s.n:'They'} win${s&&/^Team /.test(s.n)?'s':ctl.sides.length>2?'s':''}`);
@@ -4314,7 +4349,7 @@ function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost t
 /* ---------- names ---------- */
 const cleanName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){}
-let pendingJoin='';
+let pendingJoin='',joinBack='online';   // joinBack: where Back on the join screen goes (Duel/Party, or Big Screen)
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 function openNameScreen(){$('#nameInput').value=myName;$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
@@ -4375,22 +4410,23 @@ function menuKey(e){if(!$('#pick').hidden)return false;const l=visibleList();if(
   if(c==='Escape'){const back=l.querySelector('[data-act=back]');if(back){back.click();return true}if(!$('#pause').hidden){togglePause();return true}}
   return['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)}
 document.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('[data-hint]');if(!b)return;const h=b.closest('[data-sub]')&&b.closest('[data-sub]').querySelector('.menu-hint');if(h)h.textContent=b.dataset.hint});
-document.addEventListener('mouseover',e=>{const b=e.target.closest('.mlist button');if(b&&document.activeElement!==b){b.focus({preventScroll:true})}});
+document.addEventListener('mouseover',e=>{const b=e.target.closest('.mlist button,.bs-opt');if(b&&document.activeElement!==b){b.focus({preventScroll:true})}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-opt]');if(!b)return;initAudio();
-  if(b.dataset.opt){cycleOpt(b.dataset.opt,1);return}
+  if(b.dataset.opt){const d=e.target.closest&&e.target.closest('[data-dir]');cycleOpt(b.dataset.opt,d?+d.dataset.dir||1:1);return}
   const a=b.dataset.act,ov=b.closest('.overlay');sfx('pick',true);showMenuMsg('');
   if(a==='cpu'||a==='2p'||a==='watch'||a==='sandbox'||a==='party')startMatch(a);
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
+  else if(a==='bigscreenMenu'){net.wantScreen=false;net.wantParty=false;net.wantCoop=false;joinBack='bigscreen';showSub(ov,'bigscreen')}
   else if(a==='bigscreen')openBigScreen();
   else if(a==='bsStart')bsStart();
   else if(a==='bsCancel')closeBigScreen();
   else if(a==='bsLobby')bsToLobby();
   else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
   else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
-  else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantScreen=false;net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
+  else if(a==='online'||a==='coop'||a==='partyOnline'){joinBack='online';net.wantScreen=false;net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
   else if(a==='partyStart')partyStart();
   else if(a==='solo')showSub(ov,'solo');
@@ -4398,7 +4434,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='survival')startSurvival();
   else if(a==='host'){showSub(ov,'hosting');hostGame()}
   else if(a==='join'){showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
-  else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,'online')}
+  else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};
     try{navigator.clipboard.writeText(v).then(done,()=>{inp.select();b.textContent='Press Ctrl+C'})}catch(err){inp.select();b.textContent='Press Ctrl+C'}}
