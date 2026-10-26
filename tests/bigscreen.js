@@ -74,7 +74,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(G.every((A) => A.ctl.view === 'live' && A.game.mode !== 'online-guest'), 'phones should show the controls and never run the game');
   // --- the opening draft: everyone picks on their phone at once
   frame(30);
-  check(G.every((A) => A.ctl.hand && A.ctl.hand.length === 3), `every phone should get three cards to pick from (${G.map((A) => A.ctl.hand && A.ctl.hand.length)})`);
+  check(G.every((A) => A.ctl.hand && A.ctl.hand.length === 5), `every phone should get five cards to pick from (${G.map((A) => A.ctl.hand && A.ctl.hand.length)})`);
   check(H.spick && H.spick.ids.length === 4, 'the screen should show all four pickers');
   G.forEach((A, i) => A.padPick(i % 3)); frame(30);
   check(G.every((A) => A.ctl.picked >= 0), 'each phone should show its pick locked in');

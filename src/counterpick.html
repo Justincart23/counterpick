@@ -755,7 +755,9 @@ body.touch .desk-only{display:none!important}
 .pad-p{margin:0;font:800 16px var(--body);max-width:46ch}
 .pad-tip{margin:4px 0 0;font-size:14px;color:var(--muted);max-width:52ch;line-height:1.45}
 #padTeams [data-pteam='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}#padTeams [data-pteam='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
-.pad-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(820px,100%)}
+.pad-cards{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px;width:min(980px,100%)}
+/* five to choose from: narrower cards, so the name and the numbers lead and the blurb steps aside on a short screen */
+@media (orientation:landscape) and (max-height:560px){.pad-cards[style*="--n: 5"]{gap:6px}.pad-cards[style*="--n: 5"] .pcard .ds{display:none}.pad-cards[style*="--n: 5"] .pcard .nm{font-size:clamp(13px,3.6vmin,17px)}.pad-cards[style*="--n: 5"] .pcard ul{font-size:10.5px;padding:3px 6px 6px}}
 .pcard{--cat:#888;display:grid;grid-template-rows:auto auto auto 1fr;text-align:left;font:inherit;color:var(--text);background:var(--night-2);border:3px solid var(--line);border-top:7px solid var(--cat);border-radius:12px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,opacity .2s,border-color .15s;touch-action:manipulation}
 .pcard.r1{border-color:#7ab8ff;border-top-color:var(--cat)}.pcard.r2{border-color:#ffab1a;border-top-color:var(--cat)}
 .pcard canvas{width:100%;aspect-ratio:360/150;object-fit:cover;display:block}
@@ -768,7 +770,7 @@ body.touch .desk-only{display:none!important}
 .pad-timer{margin:0;font:400 22px var(--display);color:var(--hot);min-height:1.1em}
 #padPick.locked .pad-timer{visibility:hidden}
 @media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pcard canvas{aspect-ratio:360/88}.pcard .nm{font-size:17px;padding-top:4px}.pcard .ds{font-size:11px;line-height:1.25}.pcard ul{font-size:11px;padding:2px 8px 6px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
-@media (orientation:portrait){.pad-cards{grid-template-columns:1fr;gap:8px}.pcard{grid-template-columns:38% 1fr;grid-template-rows:auto auto auto 1fr}.pcard canvas{grid-row:1/5;height:100%;aspect-ratio:auto}}
+@media (orientation:portrait){.pad-cards{grid-template-columns:1fr;gap:8px;max-height:calc(100dvh - 150px);overflow:auto}.pcard{grid-template-columns:38% 1fr;grid-template-rows:auto auto auto 1fr}.pcard canvas{grid-row:1/5;height:100%;aspect-ratio:auto}}
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
@@ -3991,7 +3993,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-29-balance';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-29-bs5';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4618,9 +4620,10 @@ function drawFinds(){if(!game.screen)return;const t=performance.now()/1000;
 /* a Big Screen draft: everyone who picks gets three cards on their own phone and they all choose at once (CPUs too). The big
    screen shows a face-down card per picker that ticks as each one locks in, then flips them face up one by one, so the room
    sees every pick. Nobody can stall it: after 25 s a card is picked for anyone still choosing */
+const BS_HAND=5;   // a Big Screen draft: five cards to choose from on each phone
 function screenPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id].left);if(!ids.length){done&&done();return}
   game.state='pick';const S={ids,hands:{},chosen:{},done,sub,left:SPICK_T,revealed:false};spick=S;
-  for(const id of ids){const p=players[id],h=dealHand(p).slice(0,3);p.nextHand=null;S.hands[id]=h;
+  for(const id of ids){const p=players[id],h=dealHand(p).slice(0,BS_HAND);p.nextHand=null;S.hands[id]=h;
     if(p.ctrl==='pad'&&p.peer)linkSend(p.peer,{t:'phand',hand:h.map(cardCode),sub,secs:SPICK_T});
     else{const i=cpuChoice(p,h);setTimeout(()=>{if(spick===S)screenChoose(id,i)},p.ctrl==='cpu'?1400+Math.random()*2400:500)}}
   showScreenPick();
@@ -4696,7 +4699,7 @@ function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
   if(ctl.view==='live'&&!ctl.hand&&m){if(m.st==='paused')t='Paused on the big screen';else if(m.st==='pick')t='Cards being picked · watch the big screen';
     else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next point";else if(m.st==='pointEnd'&&m.lw===ctl.team)t='Point to you!'}
   el.textContent=t;el.hidden=!t}
-function padHand(m){ctl.hand=(m.hand||[]).slice(0,3).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
+function padHand(m){ctl.hand=(m.hand||[]).slice(0,5).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}{const pc=$('#padCards');if(pc&&pc.style)pc.style.setProperty('--n',ctl.hand.length)}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
   setText('#padPickT','Pick a card');setText('#padPickS',String(m.sub||'').slice(0,80));const el=$('#padCards');el.innerHTML='';
   ctl.hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='pcard r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
     b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul>';
