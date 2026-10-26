@@ -1,6 +1,5 @@
-// Point scoring: the first death decides the point. A second death only makes a trade when it lands within the
-// trade window (crossing bullets, a shared explosion); a survivor who jumps off the map or takes damage afterwards
-// keeps the point.
+// Point scoring: the first death decides the point (there are no trades). A second death never counts: crossing bullets,
+// a shared explosion, a survivor who jumps off the map or takes damage afterwards all leave the point with the survivor.
 //   node tests/points.js
 const { load, flushTimers } = require('./env');
 
@@ -35,15 +34,13 @@ const check = (ok, msg) => { if (!ok) fail.push(msg) };
   finishPoint();
   check(A.game.points[P0] === 1, `a late hit should not cancel the point (points ${A.game.points})`);
 
-  // true trades still exist: both die in the same moment
+  // no trades: two deaths in the same moment, or a few frames apart, still give the point to whoever fell second
   setup(); A.die(A.players[P1]); A.die(A.players[P0]);
-  check(A.game.lastWinner === -1, 'two deaths at the same moment should be a trade');
+  check(A.game.lastWinner === P0 && A.players[P0].alive, 'two deaths at the same moment: the first decides, the survivor stands');
   finishPoint();
-  check(A.game.points[P0] === 0 && A.game.points[P1] === 0, `a trade should score nobody (points ${A.game.points})`);
-
-  // ...or within the short trade window (a few frames apart)
-  setup(); A.die(A.players[P1]); A.update(1 / 60); A.update(1 / 60); A.die(A.players[P0]);
-  check(A.game.lastWinner === -1, 'a second death a couple of frames later should still be a trade');
+  check(A.game.points[P0] === 1 && A.game.points[P1] === 0, `the point should go to the survivor (points ${A.game.points})`);
+  setup(); A.die(A.players[P1]); A.update(1 / 60); A.update(1 / 60); A.die(A.players[P0]); A.damage(A.players[P0], 1000, null);
+  check(A.game.lastWinner === P0 && A.players[P0].alive, 'a hit a couple of frames later changes nothing');
 
   // the sky's dawn tracks match progress: night at the start, nearly dawn at match point
   setup(); A.game.target = 5; A.game.wins = [0, 0]; A.game.points = [0, 0];

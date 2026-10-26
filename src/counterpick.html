@@ -382,7 +382,7 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
 #hudbtns .kh{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px;line-height:15px}   /* the shortcut as a small keycap */
 @media (prefers-reduced-motion:reduce){.card,.btn{transition:none}}
 /* title / pause: a big tilted wordmark over the live arena and a plain list of big text options */
-.menu-screen{justify-content:flex-start;align-items:center;flex-direction:column;background:linear-gradient(90deg,rgba(14,8,22,.86) 0%,rgba(14,8,22,.6) 38%,rgba(14,8,22,.12) 72%,rgba(14,8,22,0));backdrop-filter:none}
+.menu-screen{justify-content:flex-start;align-items:center;flex-direction:column;background:linear-gradient(90deg,rgba(14,8,22,.9) 0%,rgba(14,8,22,.72) 42%,rgba(14,8,22,.3) 76%,rgba(14,8,22,.12));backdrop-filter:none}
 .menu-wrap{display:grid;gap:clamp(16px,4vh,40px);width:min(620px,100%);margin:auto auto auto clamp(0px,7vw,110px);align-content:center}
 .logo{font-family:var(--display);font-weight:400;font-size:clamp(56px,min(10vw,13vh),124px);line-height:.86;margin:0;transform:rotate(-4deg);transform-origin:left bottom;
   text-shadow:0 7px 0 rgba(0,0,0,.35);animation:logoBob 4.5s ease-in-out infinite}
@@ -523,7 +523,8 @@ body.touch .desk-only{display:none!important}
 .mlist .ov i{font-style:normal;opacity:.45;cursor:pointer}.mlist .ov i:hover{opacity:1}
 /* phones and tablets: the settings become tiles you can actually hit. No pointer arrow or underline (they ran through the
    words on a short screen); the tile you're on is outlined, and the arrows are buttons of their own */
-@media (max-height:520px),(pointer:coarse){
+@media all{
+  .menu-wrap>.opts-wrap[data-sub="settings"]{width:min(760px,100%)}
   .opts-wrap .mlist.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(max(260px,40%),100%),1fr));gap:8px;width:100%;justify-items:stretch}
   .opts-wrap:has(>.mlist.opts){justify-items:stretch;width:100%}
   .menu-screen:has([data-sub="settings"]:not([hidden])) .menu-foot{display:none}
@@ -584,6 +585,32 @@ body.touch .desk-only{display:none!important}
 @media (max-height:520px){#end .end-wrap{grid-template-columns:34% 1fr;gap:14px}#endHero{max-height:72vh;max-width:72vh}.end-info{gap:7px}#end .end-info .screen-title.big{font-size:clamp(26px,9vh,40px)}
   .end-info>.end-score{display:none}.end-coins,.end-coins.none{font-size:13px}.end-stats span{font-size:12px;padding:4px 10px}.ecard small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}.end-build .lbl{display:none}.ecard .rr{display:none}.ecards{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}.ecard{grid-template-columns:32px 1fr;padding:4px 8px 4px 4px}.ecard canvas{width:32px;height:32px}.ecard b{font-size:13px}
   .end-rival{display:none}#end .end-acts button{font-size:16px;padding:8px 16px}#end .end-acts .end-go{padding:9px 22px}.end-ribbon{font-size:22px}}
+/* ---- home and mode select: tiles. Two big ones to start (Single player, Multiplayer), small ones for the rest; every mode says
+   what it is right on its tile. Each tile has its own colour, lifts and outlines when you point at it ---- */
+.menu-wrap{width:min(640px,100%)}
+.sublbl{margin:0 0 6px 2px}
+.mlist.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;width:100%;justify-items:stretch}
+.mlist.tiles .mt{--tc:#ff7a1a;grid-column:span 3;position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:14px;row-gap:2px;align-items:center;align-content:center;
+  text-align:left;padding:14px 16px;border-radius:18px;background:rgba(22,13,33,.92);border:2px solid rgba(255,255,255,.1);color:var(--text);font:400 clamp(19px,2vw,23px) var(--display);letter-spacing:.03em;
+  text-transform:uppercase;box-shadow:0 5px 0 rgba(0,0,0,.35);min-height:76px;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s}
+.mlist.tiles .mt::before,.mlist.tiles .mt::after{display:none}
+.mlist.tiles .mt .mi{grid-row:1 / 3;width:44px;height:44px;padding:9px;border-radius:13px;background:color-mix(in srgb,var(--tc) 20%,transparent);color:var(--tc);fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mlist.tiles .mt .mt-t{align-self:end;line-height:1.02;min-width:0}.mlist.tiles .mt>*{min-width:0}.mlist.tiles .mt .mt-d{align-self:start;font:600 13px/1.3 var(--body);text-transform:none;letter-spacing:0;color:var(--muted)}
+.mlist.tiles .mt:not(:has(.mt-d)) .mt-t{grid-row:1 / 3;align-self:center}
+.mlist.tiles .mt:hover,.mlist.tiles .mt:focus,.mlist.tiles .mt:focus-visible{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,rgba(20,12,30,.85));transform:translateY(-3px);box-shadow:0 8px 0 rgba(0,0,0,.35),0 0 26px color-mix(in srgb,var(--tc) 30%,transparent);outline:none;color:#fff;text-shadow:none}
+.mlist.tiles .mt.big{min-height:118px;padding:16px;font-size:clamp(19px,1.85vw,24px);column-gap:12px}.mlist.tiles .mt.big .mi{width:50px;height:50px;padding:11px;border-radius:15px}
+.mlist.tiles .mt.small{grid-column:span 2;min-height:62px;padding:10px 12px;font-size:clamp(15px,1.5vw,18px);column-gap:10px}.mlist.tiles .mt.small .mi{width:36px;height:36px;padding:7px;border-radius:11px}
+.mlist.tiles .mt.back{grid-column:1 / -1;min-height:46px;padding:8px 14px;justify-content:center;grid-template-columns:auto auto;font-size:17px;background:rgba(255,255,255,.04);box-shadow:none;--tc:#b9a7e6}
+.mlist.tiles .mt.back .mi{width:28px;height:28px;padding:5px;border-radius:9px}
+[data-sub]:has(>.mlist.tiles)>.menu-hint{display:none}
+@media (max-height:520px){
+  .mlist.tiles{gap:7px}.mlist.tiles .mt{min-height:58px;padding:8px 10px;font-size:16px;column-gap:10px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .mlist.tiles .mt .mi{width:34px;height:34px;padding:7px;border-radius:10px}.mlist.tiles .mt .mt-d{font-size:11px}
+  .mlist.tiles .mt.big{min-height:84px;padding:10px;font-size:15px;column-gap:8px}.mlist.tiles .mt.big .mi{width:36px;height:36px;padding:7px}
+  .mlist.tiles .mt.small{min-height:60px;font-size:12px;padding:6px 4px;grid-template-columns:1fr;grid-template-rows:auto auto;justify-items:center;text-align:center;row-gap:4px}.mlist.tiles .mt.small .mi{grid-row:1;width:28px;height:28px;padding:5px}.mlist.tiles .mt.small .mt-t{grid-row:2!important}
+  .mlist.tiles .mt.back{min-height:36px;font-size:14px;padding:4px 10px}.mlist.tiles .mt.back .mi{width:22px;height:22px;padding:3px}
+}
+@media (max-width:520px){.mlist.tiles .mt{grid-column:1 / -1}.mlist.tiles .mt.small{grid-column:span 2}}
 @media (prefers-reduced-motion:reduce){.logo,.mlist button{animation:none}}
 
 /* short, wide screens (a phone held sideways): a compact title and menu that fits without scrolling */
@@ -736,53 +763,53 @@ body.touch .desk-only{display:none!important}
       <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
-      <nav class="mlist" aria-label="Main menu">
-        <button type="button" data-act="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0">Single player</button>
-        <button type="button" data-act="multi" data-hint="Play with friends online: duel one-on-one, or team up against Survival's waves and bosses." style="--i:1">Multiplayer</button>
-        <button type="button" data-act="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:2">Customize</button>
-        <button type="button" data-act="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3">How to play</button>
-        <button type="button" data-act="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4">Settings</button>
+      <nav class="mlist tiles" aria-label="Main menu">
+        <button type="button" class="mt big" data-act="solo" data-ic="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Single player</span><span class="mt-d">Practice, party, Survival, Sandbox</span></button>
+        <button type="button" class="mt big" data-act="multi" data-ic="multi" data-hint="Play with friends: duel one-on-one, team up 2v2, put it on a Big Screen, or take on Survival together." style="--i:1;--tc:#3d8bff"><span class="mt-t">Multiplayer</span><span class="mt-d">Duel, 2v2, Big Screen, co-op</span></button>
+        <button type="button" class="mt small" data-act="locker" data-ic="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:2;--tc:#ff6fa8"><span class="mt-t">Customize</span></button>
+        <button type="button" class="mt small" data-act="help" data-ic="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3;--tc:#3fd0b0"><span class="mt-t">How to play</span></button>
+        <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
       <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
     </div>
     <div data-sub="solo" hidden>
-      <div class="lbl" style="margin:0 0 4px 40px">Single player</div>
-      <nav class="mlist" aria-label="Single player">
-        <button type="button" data-act="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0">Practice vs CPU</button>
-        <button type="button" data-act="party" data-hint="Four fighters, every one for themselves: you against three CPUs on the party arenas." style="--i:1">Party vs CPUs</button>
-        <button type="button" data-act="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2">Survival</button>
-        <button type="button" data-act="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3">Sandbox</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:4">Back</button>
+      <div class="lbl sublbl">Single player</div>
+      <nav class="mlist tiles" aria-label="Single player">
+        <button type="button" class="mt" data-act="cpu" data-ic="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Practice vs CPU</span><span class="mt-d">A one-on-one duel against the computer</span></button>
+        <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Four fighters, every one for themselves: you against three CPUs on the party arenas." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">You against three CPUs, every one for themselves</span></button>
+        <button type="button" class="mt" data-act="survival" data-ic="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2;--tc:#ff5a4f"><span class="mt-t">Survival</span><span class="mt-d">Waves, bosses, a shop. How far can you get?</span></button>
+        <button type="button" class="mt" data-act="sandbox" data-ic="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Sandbox</span><span class="mt-d">Try any card, no drafting</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">A duel against the computer. Pick its skill in Settings.</p>
     </div>
     <div data-sub="multi" hidden>
-      <div class="lbl" style="margin:0 0 4px 40px">Multiplayer</div>
-      <nav class="mlist" aria-label="Multiplayer">
-        <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
-        <button type="button" data-act="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1">Party · 2v2</button>
-        <button type="button" data-act="bigscreenMenu" data-hint="One screen everyone watches (a laptop or a TV); 1 to 4 friends play with their phones as controllers." style="--i:2">Big Screen</button>
-        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:3">Co-op Survival</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:4">Back</button>
+      <div class="lbl sublbl">Multiplayer</div>
+      <nav class="mlist tiles" aria-label="Multiplayer">
+        <button type="button" class="mt" data-act="online" data-ic="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0;--tc:#3d8bff"><span class="mt-t">Duel a friend</span><span class="mt-d">One-on-one online, join with a code</span></button>
+        <button type="button" class="mt" data-act="partyOnline" data-ic="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1;--tc:#7c5cf0"><span class="mt-t">Party · 2v2</span><span class="mt-d">Two against two; CPUs fill empty seats</span></button>
+        <button type="button" class="mt" data-act="bigscreenMenu" data-ic="bigscreenMenu" data-hint="One screen everyone watches (a laptop or a TV); 1 to 4 friends play with their phones as controllers." style="--i:2;--tc:#ffb547"><span class="mt-t">Big Screen</span><span class="mt-d">One screen, phones as controllers</span></button>
+        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
     </div>
     <div data-sub="bigscreen" hidden>
-      <div class="lbl" style="margin:0 0 4px 40px">Big Screen</div>
-      <nav class="mlist" aria-label="Big Screen">
-        <button type="button" data-act="bigscreen" data-hint="This computer is the screen everyone watches. You host: friends scan your code and play on their phones." style="--i:0">Host on this screen</button>
-        <button type="button" data-act="join" data-from="bigscreen" data-hint="On your phone: type the code shown on the big screen, and your phone becomes your controller." style="--i:1">Join with a code</button>
-        <button type="button" data-act="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2">Back</button>
+      <div class="lbl sublbl">Big Screen</div>
+      <nav class="mlist tiles" aria-label="Big Screen">
+        <button type="button" class="mt" data-act="bigscreen" data-ic="bigscreenMenu" data-hint="This computer is the screen everyone watches. You host: friends scan your code and play on their phones." style="--i:0;--tc:#ffb547"><span class="mt-t">Host on this screen</span><span class="mt-d">Friends scan your code and play on their phones</span></button>
+        <button type="button" class="mt" data-act="join" data-ic="join" data-from="bigscreen" data-hint="On your phone: type the code shown on the big screen, and your phone becomes your controller." style="--i:1;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Your phone becomes your controller</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">This computer is the screen everyone watches. You host: friends scan your code and play on their phones.</p>
     </div>
     <div data-sub="online" hidden>
-      <div class="lbl" id="onlineLbl" style="margin:0 0 4px 40px">Duel a friend</div>
-      <nav class="mlist" aria-label="Play online">
-        <button type="button" data-act="host" data-hint="Get a 4-letter code and a link to send your friend." style="--i:0">Host a game</button>
-        <button type="button" data-act="join" data-hint="Type the code your friend sent you." style="--i:1">Join with a code</button>
-        <button type="button" data-act="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2">Back</button>
+      <div class="lbl sublbl" id="onlineLbl">Duel a friend</div>
+      <nav class="mlist tiles" aria-label="Play online">
+        <button type="button" class="mt" data-act="host" data-ic="host" data-hint="Get a 4-letter code and a link to send your friend." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Host a game</span><span class="mt-d">Get a code and a link to send</span></button>
+        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Type the code your friend sent you." style="--i:1;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Type the code your friend sent</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">Get a 4-letter code and a link to send your friend.</p>
     </div>
@@ -3037,25 +3064,23 @@ function blinkFx(x0,y0,x1,y1,r,color,glow){fxRec('T',[x0,y0,x1,y1,r,color,glow])
 /* ---------- damage ---------- */
 // overtime escalates: +50% damage for every 10s past the overtime horn, so long stalemates always end
 const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
-/* the first death decides the point. Only a second death within TRADE_WINDOW (crossing bullets, a shared explosion) is a trade;
-   after that the survivor can't be hurt and can't die from a fall while the point wraps up */
-const POINT_END=1.7,TRADE_WINDOW=.12;
-const pointDecided=()=>game.state==='pointEnd'&&POINT_END-game.endT>TRADE_WINDOW;
+/* the first death decides the point: there are no trades. From that moment the survivor can't be hurt and can't die (a bullet
+   already in the air, a shared explosion, a fall) while the point wraps up, so every point goes to Orange or Blue */
+const POINT_END=1.7;
+const pointDecided=()=>game.state==='pointEnd';
 function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;
   if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,Math.min(amt,had),p.hp<=0&&!(p.revives>0));   // overkill earns nothing
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
-function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
+function die(p){if(!p.alive||pointDecided()&&!survOn())return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
   if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=[8,12,16][Math.min(2,p.downs||0)];p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
     if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
     if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
-  if(game.party){   // a party: the point ends when one side is left standing (none: a trade). lastWinner is that side (a team; in a free-for-all, a fighter)
-    const up=t=>players.some(q=>q.team===t&&q.alive),sides=[...new Set(players.filter(q=>q.alive).map(q=>q.team))];
-    if((game.state==='play'||game.state==='ready')&&sides.length<=1){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=sides.length?sides[0]:-1}
-    else if(game.state==='pointEnd'&&game.lastWinner>=0&&!up(game.lastWinner)&&!pointDecided())game.lastWinner=-1;return}
-  if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
-  else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
+  if(game.party){   // a party: the point ends when one side is left standing; lastWinner is that side (a team; in a free-for-all, a fighter)
+    const sides=[...new Set(players.filter(q=>q.alive).map(q=>q.team))];
+    if((game.state==='play'||game.state==='ready')&&sides.length<=1){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=sides.length?sides[0]:p.team}return}
+  if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}}
 // your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
 const SELF_BLAST=.4;
 function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);flashFx(b.x,b.y,R*1.1,.25,b.glow);
@@ -3670,7 +3695,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(game.screen){const free=players.some(p=>p.left||p.ctrl==='cpu'),h=String(location.host||'cuued.com').replace(/^www\./,'').toUpperCase();ctx.font='700 15px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';
     ctx.fillText(free?`BIG SCREEN · JOIN ON A PHONE: ${h} · CODE ${net.code}`:`BIG SCREEN · CODE ${net.code}`,VW/2,VH-14)}
   else if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
-  if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
+  if(!game.bg&&(game.state==='ready'||game.bannerT>0)){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,duel=!survOn()&&game.mode!=='sandbox'&&w>=0;
@@ -3689,8 +3714,8 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
           ctx.fillStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.ellipse(cx-cr*.28,cy-cr*.52,cr*.42,cr*.16,-.35,0,TAU);ctx.fill()}
         try{const rim=ctx.createRadialGradient(cx,cy,cr*.68,cx,cy,cr);rim.addColorStop(0,'rgba(0,0,0,0)');rim.addColorStop(1,f>0?S.glow:'rgba(0,0,0,0)');ctx.globalAlpha=.45;ctx.fillStyle=rim;ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);ctx.globalAlpha=1}catch(e){}
         ctx.restore();ctx.lineWidth=5;ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,cr-2.5,0,TAU);ctx.stroke()})}
-    else{const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):w<0?'TRADE':players[w].name.toUpperCase()+' SCORES';
-      bigText(t,68,VW/2,VH/2-40,w<0?C.text:players[w].color)}}
+    else if(!game.bg){const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):players[Math.max(0,w)].name.toUpperCase()+' SCORES';
+      bigText(t,68,VW/2,VH/2-40,players[Math.max(0,w)].color)}}
   ctx.restore()}
 /* physics runs in fixed 1/120 s steps; a frame lands between two of them, so everything stepped is drawn at that point
    between its last two positions (otherwise a 60/120/144 Hz screen shows uneven 1-, 2- or 3-step jumps: judder) */
@@ -3924,7 +3949,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-28-ship';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-29-menus';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4739,10 +4764,22 @@ function showSub(ov,which){ov.querySelectorAll('[data-sub]').forEach(n=>n.hidden
 function focusFirst(ov){const l=ov.querySelector('[data-sub]:not([hidden])')||ov;const b=l.querySelector('input:not([readonly]),button');b&&b.focus({preventScroll:true})}
 function visibleList(){for(const id of['#pause','#end','#bigLobby','#menu']){const o=$(id);if(o&&!o.hidden)return o.querySelector('[data-sub]:not([hidden])')}return null}
 /* keyboard menus: ↑↓ or W/S move, Enter/Space choose, ←→ or A/D change a setting, Esc goes back */
+// tile icons (line art in each tile's colour)
+const MI={solo:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/>',multi:'<circle cx="8.5" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 6.5-5.5S15 16.5 15 20"/><circle cx="16.5" cy="7" r="3"/><path d="M15.5 13.6c3.3-.3 6.5 1.4 6.5 5"/>',
+  locker:'<path d="M3 17h18"/><path d="M6 17c0-6 2.7-10 6-10s6 4 6 10"/><path d="M10 7.5 12 3l2 4.5"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.9"/><path d="M12 17h.01"/>',
+  settings:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  cpu:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12h.01"/>',party:'<circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/>',
+  survival:'<path d="M5 11a7 7 0 1 1 14 0v3.5h-2.5V18h-9v-3.5H5z"/><path d="M9.5 11h.01M14.5 11h.01M11 15h2"/>',sandbox:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12 4 7.5"/>',
+  online:'<path d="M4 8.5h15l-3.5-3.5"/><path d="M20 15.5H5l3.5 3.5"/>',partyOnline:'<circle cx="6" cy="8.5" r="2.6"/><circle cx="11" cy="8.5" r="2.6"/><circle cx="13" cy="15.5" r="2.6"/><circle cx="18" cy="15.5" r="2.6"/>',
+  bigscreenMenu:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20.5h8M12 16v4.5"/>',coop:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+  host:'<circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
+  join:'<path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>',back:'<path d="M15 5l-7 7 7 7"/>'};
+for(const b of document.querySelectorAll('.mlist.tiles .mt[data-ic]')){const k=b.dataset.ic;if(!MI[k])continue;const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('class','mi');sv.setAttribute('aria-hidden','true');sv.innerHTML=MI[k];b.prepend(sv)}
 function menuKey(e){if(!$('#pick').hidden)return false;const l=visibleList();if(!l)return false;const items=[...l.querySelectorAll('button')];if(!items.length)return false;
   let i=items.indexOf(document.activeElement);const c=e.code;
   if(['ArrowUp','KeyW','ArrowDown','KeyS'].includes(c)){e.preventDefault();const d=c==='ArrowDown'||c==='KeyS'?1:-1;i=i<0?0:(i+d+items.length)%items.length;items[i].focus();sfx('tick',true);return true}
   if(['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)&&l.dataset.sub==='help'){e.preventDefault();helpTab(c==='ArrowRight'||c==='KeyD'?1:-1);const t=l.querySelector('[data-htab].on');t&&t.focus();sfx('tick',true);return true}
+  if(['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)&&l.querySelector('.mlist.tiles')&&!(i>=0&&items[i].dataset.opt)){e.preventDefault();const d=c==='ArrowRight'||c==='KeyD'?1:-1;i=i<0?0:(i+d+items.length)%items.length;items[i].focus();sfx('tick',true);return true}   // tiles: ← → move between them
   if(['ArrowLeft','KeyA','ArrowRight','KeyD'].includes(c)&&i>=0&&items[i].dataset.opt){e.preventDefault();cycleOpt(items[i].dataset.opt,c==='ArrowRight'||c==='KeyD'?1:-1);return true}
   if(c==='Enter'||c==='Space'){e.preventDefault();(items[i>=0?i:0]).click();return true}
   if(c==='Escape'){const back=l.querySelector('[data-act=back]');if(back){back.click();return true}if(!$('#pause').hidden){togglePause();return true}}
