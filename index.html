@@ -493,6 +493,7 @@ body.touch .desk-only{display:none!important}
 .roster li{--pc:var(--orange);font-family:var(--display);font-size:20px;letter-spacing:.03em;padding:8px 12px 8px 34px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--pc);position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .roster li::before{content:"";position:absolute;left:11px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--pc)}
 .roster li.open{border-style:dashed;border-color:var(--line);color:var(--muted)}.roster li.open::before{background:var(--line)}
+.roster li.cpu{border-style:dashed;color:var(--muted)}
 .card.theirs{filter:saturate(.75) brightness(.86)}
 /* a team draft: two sections, each headed by its picker's fighter and name; the fan sits a little lower so a lifted card never
    reaches the title */
@@ -537,6 +538,98 @@ body.touch .desk-only{display:none!important}
   .mobile-row{margin:4px 0 0 34px}.mobile-row .btn{font-size:14px;padding:6px 12px}
   .menu-foot{font-size:11px;max-width:calc(100% - 32px)}
 }
+/* ---- Big Screen: the host's lobby (QR code and code on the left; seats, settings and Start on the right) ---- */
+.bs-wrap{display:grid;justify-items:center;gap:clamp(10px,2.4vh,22px);width:min(1080px,100%);margin:auto}
+.bs-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start;width:100%}
+.bs-join{display:grid;justify-items:center;gap:10px;text-align:center}
+.bs-qr{position:relative;width:clamp(170px,26vh,248px);aspect-ratio:1;border-radius:14px;background:#fff;padding:8px;box-shadow:0 0 0 3px var(--orange),0 18px 50px rgba(0,0,0,.5)}
+.bs-qr canvas{width:100%;height:100%;display:block;image-rendering:pixelated;opacity:0}.bs-qr.on canvas{opacity:1}
+.bs-qr-wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 13px var(--mono);color:#5a4a70}.bs-qr.on .bs-qr-wait{display:none}
+.bs-or{margin:0;font-size:16px;color:var(--muted)}.bs-or b{color:var(--text)}
+.bs-join .code{font-size:clamp(56px,9vh,96px)}
+.bs-side{display:grid;gap:10px;justify-items:start;min-width:0}
+.bs-side>.lbl{margin:0}.bs-setl{margin-top:4px!important}
+.bs-seats{width:min(520px,100%)}.bs-seats:not(.teams) .th{display:none}
+.bs-seats li{display:flex;justify-content:space-between;gap:8px}
+.bs-seats .ping{font:700 12px var(--mono);align-self:center;color:var(--muted)}.bs-seats .ping.good{color:var(--good)}.bs-seats .ping.ok{color:#ffd36b}.bs-seats .ping.bad{color:var(--bad)}
+.mlist.opts.bs-opts{width:min(520px,100%)}.mlist.opts.bs-opts button{font-size:clamp(17px,2.6vh,24px);padding-left:0}
+.bs-side .menu-hint{margin:0;min-height:2.6em;max-width:52ch}
+.bs-acts .btn{font-size:20px;padding:10px 26px}
+@media (max-width:860px){.bs-grid{grid-template-columns:1fr}.bs-join{grid-template-columns:auto auto;align-items:center;justify-items:start;text-align:left}.bs-qr{grid-row:span 3;width:150px}}
+@media (max-height:700px){.bs-wrap .screen-title{font-size:34px}.mlist.opts.bs-opts button{font-size:17px}.bs-seats li{padding:5px 10px 5px 30px;font-size:17px}}
+/* ---- Big Screen draft on the big screen: one column per picker, a face-down card that ticks when they lock in, then flips ---- */
+.bsp-wrap{display:grid;justify-items:center;gap:clamp(10px,2.4vh,22px);width:min(1180px,100%);margin:auto;text-align:center}
+.bsp-sub{margin:0;font:800 clamp(16px,2.2vh,20px) var(--body);color:var(--muted)}
+.bsp-row{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(14px,2.4vw,34px)}
+.bsp-col{--pc:var(--orange);width:clamp(150px,17vw,230px);display:grid;justify-items:center;gap:8px}
+.bsp-face{width:58px;height:58px}
+.bsp-name{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.2vw,28px);letter-spacing:.03em;color:var(--pc);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bsp-card{position:relative;width:100%;aspect-ratio:3/4;perspective:900px}
+.bsp-back,.bsp-front{position:absolute;inset:0;border-radius:14px;border:3px solid var(--pc);backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .55s cubic-bezier(.3,1.4,.5,1),background .2s;overflow:hidden}
+.bsp-back{display:flex;align-items:center;justify-content:center;padding:12px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 10px,transparent 10px 20px),linear-gradient(160deg,var(--night-2),var(--panel))}
+.bsp-back::before{content:"?";position:absolute;font:400 96px var(--display);color:var(--pc);opacity:.35;animation:bspq 1.2s ease-in-out infinite alternate}
+@keyframes bspq{to{transform:scale(1.08);opacity:.55}}
+.bsp-st{position:relative;align-self:flex-end;font:800 14px var(--body);color:var(--muted)}
+.bsp-col.done .bsp-back{background:linear-gradient(160deg,color-mix(in srgb,var(--pc) 32%,var(--night-2)),var(--panel))}
+.bsp-col.done .bsp-back::before{content:"✓";opacity:.9;animation:none;color:#fff}.bsp-col.done .bsp-st{color:var(--text)}
+.bsp-front{transform:rotateY(180deg);background:var(--night-2);display:grid;grid-template-rows:auto auto 1fr;border-top:8px solid var(--cat,var(--pc))}
+.bsp-front canvas{width:100%;aspect-ratio:360/236;display:block}
+.bsp-front .nm{font:400 clamp(18px,1.9vw,24px) var(--display);letter-spacing:.02em;padding:8px 8px 2px}
+.bsp-front .ds{font-size:13px;line-height:1.35;color:var(--muted);padding:0 10px 10px}
+.bsp-col.flip .bsp-back{transform:rotateY(-180deg)}.bsp-col.flip .bsp-front{transform:rotateY(0)}
+.bsp-col.flip{animation:bspPop .5s ease-out}
+@keyframes bspPop{40%{transform:translateY(-10px) scale(1.04)}}
+.bsp-deck{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;min-height:22px}.bsp-deck .chip{font-size:11px;padding:2px 6px;border-color:var(--pc)}
+.bsp-timer{margin:0;font:400 28px var(--display);color:var(--hot);min-height:1.2em}
+@media (prefers-reduced-motion:reduce){.bsp-back,.bsp-front{transition:none}.bsp-col.flip,.bsp-back::before{animation:none}}
+/* ---- Big Screen on a phone: the controller. No game is drawn; the screen is tinted the player's colour ---- */
+#pad{--pc:var(--orange);position:fixed;inset:0;z-index:30;color:var(--text);background:var(--night);background:radial-gradient(ellipse at 50% 130%,color-mix(in srgb,var(--pc) 38%,transparent),transparent 70%),var(--night);
+  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overflow:hidden}
+.pad-bar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) 8px calc(12px + env(safe-area-inset-left,0px));z-index:3}
+.pad-me{display:flex;align-items:center;gap:8px;font:400 22px var(--display);letter-spacing:.03em;min-width:0}.pad-me b{font-weight:400;color:var(--pc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
+.pad-dot{width:18px;height:18px;border-radius:50%;background:var(--pc);box-shadow:0 0 12px var(--pc);flex:none}
+.pad-score{flex:1;display:flex;justify-content:center;gap:12px;font:700 13px var(--mono);min-width:0;overflow:hidden}
+.pad-score span{--sc:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;color:var(--muted)}.pad-score span::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--sc)}
+.pad-score span.mine{color:var(--text)}.pad-score b{color:var(--text);font-size:15px}
+.pad-b{font:400 15px var(--display);letter-spacing:.03em;color:var(--text);background:rgba(33,21,47,.9);border:2px solid var(--line);border-radius:999px;padding:6px 12px;flex:none;touch-action:manipulation}
+#padFind{border-color:var(--pc)}
+.pad-hp{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));top:calc(52px + env(safe-area-inset-top,0px));height:10px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden;z-index:3}
+.pad-hp i{display:block;height:100%;width:100%;background:var(--hp);border-radius:6px;transition:width .12s}
+.pad-live{position:absolute;inset:0;z-index:1}
+#pad:not(.live) .pad-hp,#pad:not(.live) #padFind,#pad:not(.live) .pad-score{visibility:hidden}
+.pad-live::after{content:"";position:absolute;left:50%;top:76px;bottom:18px;width:2px;margin-left:-1px;background:rgba(255,255,255,.06)}
+.pad-zl{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));font:700 12px var(--body);color:rgba(241,236,247,.38);pointer-events:none}
+.pad-zl.l{left:calc(16px + env(safe-area-inset-left,0px))}.pad-zl.r{right:calc(96px + env(safe-area-inset-right,0px))}
+#pMove{left:24%;top:62%;opacity:.4}#pAim{left:66%;top:62%;opacity:.4}#pMove.on,#pAim.on{opacity:1}
+#pad .tstick{width:140px;height:140px;margin:-70px 0 0 -70px;pointer-events:none}
+#pad .tbtn{position:absolute;width:76px;height:76px;font-size:15px;pointer-events:auto;background:rgba(20,12,30,.6)}
+.pad-jump{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(118px + env(safe-area-inset-bottom,0px))}
+.pad-block{--cd:0;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));border-color:var(--pc)!important;
+  background:conic-gradient(rgba(0,0,0,.55) calc(var(--cd) * 360deg),transparent 0),rgba(20,12,30,.6)!important}
+.pad-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);margin:0;padding:10px 18px;border-radius:12px;background:rgba(14,8,22,.82);border:2px solid var(--pc);font:400 22px var(--display);letter-spacing:.02em;text-align:center;pointer-events:none;max-width:80vw}
+.pad-rot{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px;text-align:center;font:800 20px var(--body);background:rgba(14,8,22,.94)}
+@media (orientation:portrait){.pad-rot{display:flex}}
+.pad-sheet{position:absolute;left:0;right:0;bottom:0;top:calc(68px + env(safe-area-inset-top,0px));z-index:5;overflow:auto;display:grid;align-content:center;justify-items:center;gap:10px;text-align:center;
+  padding:12px calc(16px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:rgba(14,8,22,.94)}
+.pad-sheet .lbl{margin:0}
+.pad-h{font:400 clamp(28px,7vmin,44px) var(--display);letter-spacing:.03em;margin:0;color:var(--pc)}
+.pad-p{margin:0;font:800 16px var(--body);max-width:46ch}
+.pad-tip{margin:4px 0 0;font-size:14px;color:var(--muted);max-width:52ch;line-height:1.45}
+#padTeams [data-pteam='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}#padTeams [data-pteam='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
+.pad-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(820px,100%)}
+.pcard{--cat:#888;display:grid;grid-template-rows:auto auto auto 1fr;text-align:left;font:inherit;color:var(--text);background:var(--night-2);border:3px solid var(--line);border-top:7px solid var(--cat);border-radius:12px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,opacity .2s,border-color .15s;touch-action:manipulation}
+.pcard.r1{border-color:#7ab8ff;border-top-color:var(--cat)}.pcard.r2{border-color:#ffab1a;border-top-color:var(--cat)}
+.pcard canvas{width:100%;aspect-ratio:360/150;object-fit:cover;display:block}
+.pcard .nm{font:400 clamp(16px,4.6vmin,22px) var(--display);letter-spacing:.02em;padding:6px 8px 0}
+.pcard .meta{font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 8px}
+.pcard .ds{font-size:12px;line-height:1.3;padding:3px 8px 0;color:var(--text)}
+.pcard ul{list-style:none;margin:0;padding:4px 8px 8px;font-size:12px;align-self:end}.pcard li.up b{color:var(--good)}.pcard li.down b{color:var(--bad)}
+.pcard:active{transform:scale(.97)}
+.pcard.chosen{border-color:var(--pc);transform:translateY(-4px);box-shadow:0 0 0 2px var(--pc),0 0 26px var(--pc)}.pcard.away{opacity:.28}
+.pad-timer{margin:0;font:400 22px var(--display);color:var(--hot);min-height:1.1em}
+#padPick.locked .pad-timer{visibility:hidden}
+@media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pcard canvas{aspect-ratio:360/88}.pcard .nm{font-size:17px;padding-top:4px}.pcard .ds{font-size:11px;line-height:1.25}.pcard ul{font-size:11px;padding:2px 8px 6px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
+@media (orientation:portrait){.pad-cards{grid-template-columns:1fr;gap:8px}.pcard{grid-template-columns:38% 1fr;grid-template-rows:auto auto auto 1fr}.pcard canvas{grid-row:1/5;height:100%;aspect-ratio:auto}}
 </style>
 </head>
 <body>
@@ -589,8 +682,9 @@ body.touch .desk-only{display:none!important}
       <nav class="mlist" aria-label="Multiplayer">
         <button type="button" data-act="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0">Duel a friend</button>
         <button type="button" data-act="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1">Party · 2v2</button>
-        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:2">Co-op Survival</button>
-        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:3">Back</button>
+        <button type="button" data-act="bigscreen" data-hint="This computer is the screen everyone watches. Up to 4 friends join on their phones, which become their controllers." style="--i:2">Big Screen</button>
+        <button type="button" data-act="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:3">Co-op Survival</button>
+        <button type="button" data-act="back" data-hint="Back to the main menu." style="--i:4">Back</button>
       </nav>
       <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
     </div>
@@ -648,6 +742,7 @@ body.touch .desk-only{display:none!important}
           </ol>
           <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
           <p class="hp-note"><b>Party</b> Two against two. Pick Team Orange or Team Blue; CPUs fill empty seats. The losing pair draft together.</p>
+          <p class="hp-note"><b>Big Screen</b> This computer is the screen. 1 to 4 friends scan the code and play with their phones as controllers.</p>
         </div>
         <div class="hp-page" data-hpage="controls" hidden>
           <dl class="hp-keys desk-only">
@@ -767,6 +862,7 @@ body.touch .desk-only{display:none!important}
       <div class="pp-row"><button type="button" data-opt="sound" data-hint="All game sound on or off (M)." style="--i:1">Sound <span class="val">On</span></button><button type="button" data-act="fullscreen" id="pFull" style="--i:1">Full screen</button></div>
       <button type="button" data-act="settings" style="--i:2">Settings</button>
       <button type="button" data-act="restart" id="pRestart" style="--i:3">Restart match</button>
+      <button type="button" data-act="bsLobby" id="pLobby" style="--i:3" hidden>Back to lobby</button>
       <button type="button" data-act="menu" id="pMenu" class="pp-quit" style="--i:4">Main menu</button>
     </nav>
     <div class="opts-wrap centered" data-sub="settings" hidden>
@@ -796,8 +892,89 @@ body.touch .desk-only{display:none!important}
     </div>
     <nav class="mlist centered" data-sub="main" aria-label="Match over">
       <button type="button" data-act="again" style="--i:0">Rematch</button>
+      <button type="button" data-act="bsLobby" id="endLobby" style="--i:1" hidden>Back to lobby</button>
       <button type="button" data-act="menu" style="--i:1">Main menu</button>
     </nav>
+  </div>
+</div>
+
+<div id="bigLobby" class="overlay pause-screen" hidden>
+  <div class="bs-wrap" data-sub="main">
+    <h2 class="screen-title">Big Screen</h2>
+    <div class="bs-grid">
+      <section class="bs-join" aria-label="How to join">
+        <div class="lbl">Scan with a phone camera</div>
+        <div class="bs-qr"><canvas id="bsQr" width="240" height="240" aria-label="QR code that opens this game on a phone"></canvas><span class="bs-qr-wait">QR code loading…</span></div>
+        <p class="bs-or">or open <b id="bsHost">cuued.com</b> and join with</p>
+        <div class="code" id="bsCode" aria-live="polite">····</div>
+      </section>
+      <section class="bs-side">
+        <div class="lbl">Players · up to 4</div>
+        <ul class="roster bs-seats" id="bsSeats" aria-label="Players"></ul>
+        <p class="lobby-msg" id="bsMsg" role="status">Opening a room…</p>
+        <div class="lbl bs-setl">Game settings</div>
+        <nav class="mlist opts bs-opts" aria-label="Big Screen settings">
+          <button type="button" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone." style="--i:0">Mode <span class="val">Free-for-all</span></button>
+          <button type="button" data-opt="bsLen" data-hint="Rounds needed to win the match. Two points win a round." style="--i:1">Rounds to win <span class="val">5</span></button>
+          <button type="button" data-opt="bsCards" data-hint="Who picks a card after each round. Everyone picks one at the start either way." style="--i:2">Card picks <span class="val">Round losers</span></button>
+          <button type="button" data-opt="bsBots" data-hint="Computer fighters to add (up to four fighters in all). Playing alone? Add at least one. A friend who joins mid-match takes over a CPU's seat." style="--i:3">CPU players <span class="val">None</span></button>
+          <button type="button" data-opt="bsCpu" data-hint="How well the CPU players aim, dodge and block." style="--i:3">CPU skill <span class="val">Normal</span></button>
+          <button type="button" data-opt="bsMap" data-hint="Every party arena in turn, or one favourite." style="--i:4">Arena <span class="val">All arenas</span></button>
+          <button type="button" data-opt="bsHp" data-hint="Everyone's health. More health makes longer, more tactical points." style="--i:5">Health <span class="val">100%</span></button>
+          <button type="button" data-opt="bsTwist" data-hint="Now and then a point plays with a twist: low gravity, fast bullets, frenzy or glass." style="--i:6">Round twists <span class="val">Off</span></button>
+        </nav>
+        <p class="menu-hint" aria-live="polite">Free-for-all: every fighter for themselves.</p>
+        <div class="party-acts bs-acts"><button type="button" class="btn go" data-act="bsStart" disabled>Start</button><button type="button" class="btn" data-act="bsCancel">Close</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="bsPick" class="overlay pause-screen" hidden>
+  <div class="bsp-wrap">
+    <h2 class="screen-title" id="bspTitle">Draft</h2>
+    <p class="bsp-sub" id="bspSub"></p>
+    <div class="bsp-row" id="bspRow"></div>
+    <p class="bsp-timer" id="bspTimer" aria-live="polite"></p>
+  </div>
+</div>
+
+<div id="pad" hidden>
+  <div class="pad-bar">
+    <span class="pad-me"><i class="pad-dot" aria-hidden="true"></i><b id="padName">You</b></span>
+    <span class="pad-score" id="padScore"></span>
+    <button type="button" class="pad-b" id="padFind">Find me</button>
+    <button type="button" class="pad-b" data-act="padLeave">Leave</button>
+  </div>
+  <div class="pad-hp" aria-hidden="true"><i id="padHp"></i></div>
+  <div class="pad-live" id="padLive">
+    <span class="pad-zl l">Move · flick up to jump</span>
+    <span class="pad-zl r">Drag to aim, let go to fire · tap to auto-fire</span>
+    <div class="tstick" id="pMove"><div class="knob"></div></div>
+    <div class="tstick aim" id="pAim"><div class="knob"></div></div>
+    <button type="button" class="tbtn pad-jump" id="pJump">Jump</button>
+    <button type="button" class="tbtn pad-block" id="pBlock">Block</button>
+    <p class="pad-msg" id="padMsg" hidden></p>
+    <div class="pad-rot"><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways for the controls</div>
+  </div>
+  <div class="pad-sheet" id="padLobby">
+    <div class="lbl">Big Screen</div>
+    <h2 class="pad-h" id="padLobbyT">Connecting…</h2>
+    <p class="pad-p" id="padLobbyS">Watch the big screen. The host starts the game.</p>
+    <div class="party-acts" id="padTeams" hidden><button type="button" class="btn" data-act="padTeam" data-pteam="0">Team Orange</button><button type="button" class="btn" data-act="padTeam" data-pteam="1">Team Blue</button></div>
+    <p class="pad-tip">Your phone is your controller: hold it sideways and watch your fighter on the big screen. Left thumb moves, right thumb aims and fires.</p>
+  </div>
+  <div class="pad-sheet" id="padPick" hidden>
+    <h2 class="pad-h" id="padPickT">Pick a card</h2>
+    <p class="pad-p" id="padPickS"></p>
+    <div class="pad-cards" id="padCards"></div>
+    <p class="pad-timer" id="padTimer"></p>
+  </div>
+  <div class="pad-sheet" id="padOver" hidden>
+    <h2 class="pad-h" id="padOverT">Match over</h2>
+    <p class="pad-p" id="padOverS"></p>
+    <p class="end-coins" id="padCoins" hidden></p>
+    <p class="pad-tip">Waiting for the host: a rematch, or back to the lobby.</p>
   </div>
 </div>
 
@@ -1280,7 +1457,8 @@ const BOTN=['Bolt','Pip','Rook','Nova'];
 function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team??id,ctrl,name:name||pc[2],netJc:null,netBc:null,color:pc[0],glow:pc[1],cards:[],s:{...BASE},r:BASE_R,
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
-function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   // Survival levels: +5% health, +4% damage each, up to level 15if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   /* Survival levels: +5% health, +4% damage each, up to level 15 */
+  if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   /* soft caps: every extra copy still pays off, with shrinking returns, and no build floods the screen (or the network) with
      shots: bullets grow to about 2.6x, a fan holds 7 pellets, a burst 4 shots, and the gun puts out at most 24 pellets a second.
@@ -1309,11 +1487,14 @@ const foes=(a,b)=>a&&b&&a!==b&&a.team!==b.team;
 const playerLabel=p=>p.boss||survOn()?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
 
 function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{cpu:1},{cpu:1}]:net.roster||[];
-  return R.map((e,k)=>{const ctrl=mode==='party'?(k?'cpu':'mouse'):mode==='online-host'?(e.host?'mouse':e.cpu?'cpu':'net'):(k===net.me?'mouse':'net');
-    const p=makePlayer(k,ctrl,e.cpu?(mode==='online-guest'?BOTN[k%4]+' · CPU':BOTN[k%4]):e.n);p.team=k%2;p.cos=e.cpu?randomCos():cleanCos(e.cos);if(e.peer)p.peer=e.peer;if(e.cpu&&mode!=='online-guest')p.skill='normal';return p})}
+  return R.map((e,k)=>{const ctrl=mode==='party'?(k?'cpu':'mouse'):mode==='online-host'?(e.host?'mouse':e.cpu?'cpu':game.screen?'pad':'net'):(k===net.me?'mouse':'net');
+    const p=makePlayer(k,ctrl,e.cpu?(mode==='online-guest'?BOTN[k%4]+' · CPU':BOTN[k%4]):e.n);p.team=k%2;p.cos=e.cpu?randomCos():cleanCos(e.cos);if(e.peer)p.peer=e.peer;if(e.cpu&&mode!=='online-guest')p.skill='normal';
+    if(game.screen){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=settings.bsHp;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
+    return p})}
 function startMatch(mode){
   game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.target=game.bg||mode==='sandbox'||mode==='survival'?99:settings.len;
+  game.screen=mode==='online-host'&&!!net.screen;game.ffa=game.screen&&!bsTeams();   // Big Screen: Free-for-all, or Teams 2v2
+  game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
   game.coop=!!net.coopLive&&net.connected&&(mode==='survival'||mode==='online-guest');   // Co-op Survival: the host runs it, the guest draws it
   const you=myName||'You';
@@ -1326,7 +1507,7 @@ function startMatch(mode){
   if(game.party)players=partyPlayers(mode);
   else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
   for(const p of players)if(p.peer){const L=p.peer;L.inQ=[];L.lastQ=-1;L.heldIn=null;L.lagSteps=0}
-  game.wins=game.party?[0,0]:players.map(()=>0);game.points=game.party?[0,0]:players.map(()=>0);   // a party scores by team
+  game.wins=game.party&&!game.ffa?[0,0]:players.map(()=>0);game.points=game.wins.slice();   // a party scores by team (a free-for-all by fighter)
   players.forEach(recompute);players.forEach(applyShade);bullets=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
@@ -1340,7 +1521,8 @@ function startMatch(mode){
     heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
         ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
-  if(game.party){const ids=t=>players.filter(p=>p.team===t&&!p.left).map(p=>p.id);beginTeamPick(ids(0),'Opening draft · Team Orange',()=>beginTeamPick(ids(1),'Opening draft · Team Blue',()=>{game.state='ready';game.stT=1.1}))}
+  if(game.screen){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else screenPick(players.map(p=>p.id),'Opening draft · everyone picks a card',go)}
+  else if(game.party){const ids=t=>players.filter(p=>p.team===t&&!p.left).map(p=>p.id);beginTeamPick(ids(0),'Opening draft · Team Orange',()=>beginTeamPick(ids(1),'Opening draft · Team Blue',()=>{game.state='ready';game.stT=1.1}))}
   else beginPick(players.map(p=>p.id),'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
 }
@@ -1364,13 +1546,15 @@ function buildRides(){const old=rides;
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
-  else if(game.party&&players.length>2)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
+  else if(game.screen&&settings.bsMap!=='all'&&MAPS.some(m=>m.party&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.party&&m.name===settings.bsMap);
+  else if(game.party&&(players.length>2||game.screen))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
   else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].party&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&!MAPS[k].party&&k!==game.mapIdx));
   else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
-  game.banner=finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase();game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  if(game.screen){game.twist=settings.bsTwist&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
+  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -1383,18 +1567,20 @@ function resolvePoint(){
     game.wins[w]++;game.points=players.map(()=>0);
     if(game.wins[w]>=game.target){endMatch(w);return}
     // every round loser drafts a card, one after another (a party's fighter who left sits it out)
-    const losers=players.filter(q=>q.team!==w&&!q.left).map(q=>q.id);newPoint(true);game.state='pick';
+    const rule=game.screen?settings.bsCards:'losers',losers=rule==='none'?[]:players.filter(q=>(rule==='all'||q.team!==w)&&!q.left).map(q=>q.id);newPoint(true);game.state='pick';
+    if(game.screen){const wn=game.ffa?players[w].name:'Team '+TEAM_N[w];screenPick(losers,`${wn} took the round · ${rule==='all'?'everyone picks':'everyone else picks'}`,()=>{game.state='ready';game.stT=1.1});return}
     (game.party?beginTeamPick:beginPick)(losers,`Lost the round · ${game.wins.join('–')}`,()=>{game.state='ready';game.stT=1.1});
   }else newPoint();
 }
 function endMatch(w){
-  game.state='over';
+  game.state='over';game.overW=w;
   if(game.bg){setTimeout(()=>{if(game.bg)startMatch('demo')},1500);return}
   netSend({t:'end',w});showEnd(w)}
 function showEnd(w){game.state='over';awardMatch(w);{const a=$('#end [data-act=again]');if(a)a.textContent='Rematch'}
-  const L=game.party?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
-  $('#endScore').textContent=game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
-  const shown=game.party?players.filter(p=>p.team===w):[players[0],players[1]];   // a party: the winning pair's decks
+  {const b=$('#endLobby');if(b)b.hidden=!game.screen}
+  const L=game.party&&!game.ffa?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
+  $('#endScore').textContent=game.ffa?`${L.name} won ${game.wins[w]} rounds with ${L.cards.length} cards. Rounds ${game.wins.join('–')}.`:game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
+  const shown=game.ffa?[L,...players.filter(p=>p!==L).sort((a,b)=>game.wins[b.team]-game.wins[a.team])].slice(0,2):game.party?players.filter(p=>p.team===w):[players[0],players[1]];   // a party: the winning pair's decks
   shown.forEach((P,k)=>{$('#deckName'+k).textContent=P.name+"'s deck";const el=$('#deck'+k);el.innerHTML='';P.cards.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c.n;el.appendChild(s)})});
   $('#end').hidden=false;showSub($('#end'),'main');
 }
@@ -1725,7 +1911,7 @@ const UPGRADES=[
 UPGRADES.forEach(u=>{u.up=true;u.r=0;u.icon=u.art;u.d='A power-up. Stacks with everything.';u.st=[[u.n.split(' ')[0],u.n.split(' ').slice(1).join(' '),1]]});
 // twist rounds: a rule that changes for one round
 const TWISTS=[{id:'low',n:'LOW GRAVITY',sub:'everything floats'},{id:'fast',n:'FAST BULLETS',sub:'every shot flies 35% faster'},{id:'frenzy',n:'FRENZY',sub:'everyone fires 60% faster'},{id:'glass',n:'GLASS',sub:'everything hits 50% harder'}];
-const twistOn=id=>survOn()&&game.twist&&game.twist.id===id;
+const twistOn=id=>(survOn()||game.screen)&&game.twist&&game.twist.id===id;
 const gMul=()=>twistOn('low')?.6:1;
 const heroes=()=>players.filter(p=>p.team===0),enemies=()=>players.filter(p=>p.team===1);
 const bossOf=()=>players.find(p=>p.boss&&p.alive)||players.find(p=>p.boss);
@@ -2518,9 +2704,9 @@ function die(p){if(!p.alive)return;p.alive=false;burst(p.x,p.y,p.color,40,900,10
   if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=[8,12,16][Math.min(2,p.downs||0)];p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
     if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
     if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
-  if(game.party){   // 2v2: the point ends when a whole team is down (both at once: a trade). lastWinner is the team
-    const up=t=>players.some(q=>q.team===t&&q.alive);
-    if((game.state==='play'||game.state==='ready')&&!up(p.team)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=up(1-p.team)?1-p.team:-1}
+  if(game.party){   // a party: the point ends when one side is left standing (none: a trade). lastWinner is that side (a team; in a free-for-all, a fighter)
+    const up=t=>players.some(q=>q.team===t&&q.alive),sides=[...new Set(players.filter(q=>q.alive).map(q=>q.team))];
+    if((game.state==='play'||game.state==='ready')&&sides.length<=1){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=sides.length?sides[0]:-1}
     else if(game.state==='pointEnd'&&game.lastWinner>=0&&!up(game.lastWinner)&&!pointDecided())game.lastWinner=-1;return}
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}
   else if(game.state==='pointEnd'&&!other(p).alive&&!pointDecided())game.lastWinner=-1}
@@ -2788,6 +2974,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
       if(padBtn(pad,7)||padBtn(pad,5))inp.fire=true;if(padEdge(pad,4)||padEdge(pad,6)||padEdge(pad,1))inp.blockP=true;
       const rx=pad.axes[2]||0,ry=pad.axes[3]||0;if(Math.hypot(rx,ry)>.35)aim=Math.atan2(ry,rx)}
     inp.move=mv;const e=other(p);inp.aim=aim??(e.alive?aimSolution(p,e):p.aim)}
+  else if(p.ctrl==='pad')padInput(p);
   else if(p.ctrl==='net'){const L=p.peer,r=L&&L.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
     inp.fire=false;if(Number.isFinite(r.a))inp.aim=r.a;   // shots come from the guest's step records (below), aligned to its physics steps
     // movement replays the guest's own physics steps one for one, so the host moves the guest exactly as the guest's
@@ -2906,6 +3093,7 @@ function step(h){
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
   edges.clear();mouse.rEdge=false;tapStep(players.find(p=>p.ctrl==='mouse'),h,!!players.find(p=>p.ctrl==='mouse'&&p.sinceShot===0))   // a press is consumed by the first step that sees it
+  if(game.screen)for(const p of players)if(p.ctrl==='pad')padTapStep(p,h)
 }
 function simTick(h){const st=game.state;
   if(st==='ready'&&game.dropT>0){game.dropT-=h;const e=clamp(1-game.dropT/.6,0,1),c1=1.70158,c3=c1+1,eb=1+c3*Math.pow(e-1,3)+c1*Math.pow(e-1,2);
@@ -2917,7 +3105,7 @@ function simTick(h){const st=game.state;
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
   return false}
 function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}}
-function update(dt){pollPads();
+function update(dt){pollPads();bsHostTick(dt);
   if(game.mode==='online-guest'){guestTick(dt);return}
   if(game.paused){edges.clear();mouse.rEdge=false;return}
   if(game.hitstop>0){game.hitstop-=dt;return}
@@ -2930,7 +3118,7 @@ function update(dt){pollPads();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
   parts=parts.filter(q=>q.life>0);
   if(hostingNet()){net.pingT-=dt;const fx=net.fx.splice(0);let sn=null;
-    for(const pr of net.peers.slice()){if(!pr.open)continue;if(fx.length)pr.fxQ.push(...fx);pr.sendT-=dt;
+    for(const pr of net.peers.slice()){if(!pr.open||pr.pad||net.screen)continue;if(fx.length)pr.fxQ.push(...fx);pr.sendT-=dt;   /* a Big Screen phone draws nothing: it gets its status instead (bsHostTick) */
       if(pr.sendT<=1e-4){pr.sendT=Math.max(-.05,pr.sendT)+(pr.relayed?1/20:fastLane(pr)?1/60:1/30);   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
         sn=sn||snapshot();const out={...sn,rt:Math.round(pr.rtt||0)},q=pr.fxQ.splice(0);
         if(pr.fast&&pr.fast.readyState==='open'){if(q.length)linkSend(pr,{t:'fx',fx:q});delete out.fx}else out.fx=q;linkSend(pr,out)}
@@ -3061,8 +3249,8 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   ctx.translate(0,-bob);
   // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
   const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
-  const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger
-  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.party?PCOL()[p.team][1]:'rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);   // a party: name tags in the team's colour
+  const bw=Math.max(46,R*2.2),by=-R-24-stack*34;if(touch.on){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}else if(game.screen){ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6)}   // phones: a small screen, so the bars are drawn bigger (a Big Screen: read from across the room)
+  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.ffa?p.glow:game.party?PCOL()[p.team][1]:'rgba(232,238,245,.9)';ctx.fillText(playerLabel(p),0,by-14);   // a party: name tags in the team's colour
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
   for(let i=0;i<n;i++){ctx.fillStyle=i<p.ammo?p.glow:'rgba(255,255,255,.15)';ctx.fillRect(x0+i*(pw+2),by+7,pw,3)}
@@ -3116,7 +3304,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
   if(game.mode==='sandbox'){ctx.textAlign='left';ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.text;ctx.fillText('SANDBOX',20,26);
     ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';ctx.fillText(`${players[0].name} ${game.wins[0]} – ${game.wins[1]} CPU · Tab: change cards`,20,50)}
   for(const p of players){if(survOn()&&p.team!==0)continue;const y=24+p.id*24;
-    const si=game.party?p.team:p.id,pips=!sb&&!(game.party&&p.id>1);
+    const si=game.party?p.team:p.id,pips=!sb&&!(game.party&&!game.ffa&&p.id>1);
     if(pips)for(let i=0;i<tot;i++){const x=26+i*22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,i<game.wins[si]?8:2.5,0,TAU);ctx.fill()}
     if(pips)for(let i=0;i<2;i++){const x=26+tot*22+10+i*16;ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.stroke();if(i<game.points[si]){ctx.fillStyle=p.color;ctx.fill()}}
     const list=chipList(p);ctx.font='700 14px "JetBrains Mono", monospace';ctx.textAlign='center';
@@ -3127,17 +3315,19 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     ctx.textAlign='left'}
   ctx.textAlign='center';
   if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.peers.filter(q=>q.away).map(q=>q.name).join(', ')||net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
-  if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
+  if(game.screen){const free=players.some(p=>p.left||p.ctrl==='cpu'),h=String(location.host||'cuued.com').replace(/^www\./,'').toUpperCase();ctx.font='700 15px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';
+    ctx.fillText(free?`BIG SCREEN · JOIN ON A PHONE: ${h} · CODE ${net.code}`:`BIG SCREEN · CODE ${net.code}`,VW/2,VH-14)}
+  else if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
   if(game.state==='ready'||game.bannerT>0){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
     const [t1,...rest]=String(t).split(' · '),t2=rest.join(' · ');bigText(t1,96,VW/2,VH/2-40,C.text);if(t2)bigText(t2,40,VW/2,VH/2+28,C.hot)}
   if(game.waitMsg&&$('#pick').hidden&&(game.state==='pick'||game.state==='shop')){ctx.font='40px "Lilita One", sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillText(game.waitMsg,VW/2+3,VH/2+3);ctx.fillStyle=C.text;ctx.fillText(game.waitMsg,VW/2,VH/2)}
   if(game.state==='pointEnd'&&game.endT<1.4){const w=game.lastWinner,duel=!survOn()&&game.mode!=='sandbox'&&w>=0;
     if(duel){   /* like ROUNDS: 'HALF ORANGE' or 'ROUND ORANGE' (the match: 'ORANGE WINS'), and below it a big circle for each side
        showing how much of the round they have. The scorer's circle fills in, a wipe from left to right */
-      const sides=game.party?[0,1].map(t=>({nm:'TEAM '+TEAM_N[t].toUpperCase(),col:players[t].color,glow:players[t].glow,pts:game.points[t]||0})):players.slice(0,2).map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.id]||0}));
+      const sides=game.ffa?players.map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.team]||0})):game.party?[0,1].map(t=>({nm:'TEAM '+TEAM_N[t].toUpperCase(),col:players[t].color,glow:players[t].glow,pts:game.points[t]||0})):players.slice(0,2).map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.id]||0}));
       const W0=sides[w],full=W0.pts+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,k=clamp((1.4-game.endT-.15)/.45,0,1),ease=1-Math.pow(1-k,3);
       bigText(match?`${W0.nm} WINS`:`${full?'ROUND':'HALF'} ${W0.nm}`,84,VW/2,VH/2-70,W0.col);
-      sides.forEach((S,i)=>{const cx=VW/2+(i?1:-1)*120,cy=VH/2+70,cr=74,from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease);
+      sides.forEach((S,i)=>{const cx=VW/2+(i-(sides.length-1)/2)*240,cy=VH/2+70,cr=74,from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease);
         // everything stays inside the circle: the fill is liquid (a soft wavy edge that keeps rippling while it's half full),
         // lit from within (lighter at the centre, a sheen at the top) and the glow is an inner rim, never spilling outside
         ctx.save();ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.clip();ctx.fillStyle='rgba(12,7,19,.6)';ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);
@@ -3250,7 +3440,8 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   drawCardTip();worldT();
   if(!game.bg&&players.some(p=>p.ctrl==='mouse')&&$('#pick').hidden&&$('#pause').hidden&&$('#end').hidden){
     // on a phone the arc shows only while the aim stick is dragged out (not in its cancel zone), and there's no pointer to draw
-    if(touch.on){if(settings.aim&&touchAiming())drawAimGuide()}else{if(settings.aim)drawAimGuide();drawCrosshair()}}}
+    if(touch.on){if(settings.aim&&touchAiming())drawAimGuide()}else{if(settings.aim)drawAimGuide();drawCrosshair()}}
+  if(game.screen){drawFinds();if($('#bsPick').hidden&&$('#end').hidden)for(const p of players)if(p.ctrl==='pad'&&p.padAiming)drawAimGuide(p)}}   // Big Screen: a phone dragging its aim stick shows its arc here
 /* the camera: arenas that fit the screen are shown whole (z 1, no motion). A big arena is followed: the view centres on the
    heroes (leaning a little toward where you aim), eased so it never jerks, and clamped to the arena. Phones sit a bit closer */
 const cam={x:0,y:0,z:1,t:0};
@@ -3293,10 +3484,10 @@ function aimPath(p,secs=.33){const s=p.s,a=p.aim,c=Math.cos(a),sn=Math.sin(a),sp
   let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*sp0,vy=sn*sp0;const g=bulletG(s);
   for(let i=1;i*h<=secs+1e-9;i++){if(s.accel){const v=Math.hypot(vx,vy);if(v<sp0*3.5){const f=1+1.3*h;vx*=f;vy*=f}}vy+=g*h;x+=vx*h;y+=vy*h;out.push([x,y,i*h])}
   return out}
-function drawAimGuide(){const p=players.find(q=>q.ctrl==='mouse');if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
+function drawAimGuide(p=players.find(q=>q.ctrl==='mouse')){if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
   const c=Math.cos(p.aim),sn=Math.sin(p.aim);if(pointSolid(p.x+c*(p.r+30),p.y+sn*(p.r+30)))return;
-  const path=aimPath(p),N=15;ctx.save();ctx.fillStyle=p.glow;
-  for(let i=1;i<=N;i++){const q=path[Math.min(path.length-1,Math.round(i*.022/FIXED)-1)];if(!q)break;const[x,y]=q;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=.55*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill()}
+  const path=aimPath(p),N=15,big=game.screen,dr=big?5:2.6,da=big?.95:.55;ctx.save();ctx.fillStyle=p.glow;   // a Big Screen: dots big and bright enough to read from the sofa
+  for(let i=1;i<=N;i++){const q=path[Math.min(path.length-1,Math.round(i*.022/FIXED)-1)];if(!q)break;const[x,y]=q;if(pointSolid(x,y)||x<0||x>W||y>H)break;if(y<0)continue;ctx.globalAlpha=da*(1-i/(N+1));ctx.beginPath();ctx.arc(x,y,dr,0,TAU);ctx.fill()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
   if(game.hitMark>0){const a=game.hitMark/.22,o=10+(1-a)*5;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.lineCap='round';ctx.globalAlpha=a;
@@ -3366,12 +3557,12 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */update(dt);render();requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */update(dt);render();requestAnimationFrame(frame)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-26-aim';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-27-bigscreen';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -3402,7 +3593,7 @@ const FXR={D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
    self-contained (full state; inputs repeat the last 24 steps), so a lost one is simply skipped and the next one
    (16-33 ms later) carries on. Picks, results, effects and everything else stay on the reliable channel. */
-const FAST_T={s:1,i:1,ping:1,pong:1};
+const FAST_T={s:1,i:1,ping:1,pong:1,c:1,ps:1};   // c: a Big Screen phone's controls · ps: its status
 const fastLane=(L=net)=>!(L.relayed??net.relayed)&&!!L.fast&&L.fast.readyState==='open';
 function netSend(m){if(net.role==='host'){for(const pr of net.peers)if(pr.open)linkSend(pr,m);return}
   if(!net.conn||!net.connected)return;linkSend(net,m)}
@@ -3480,7 +3671,7 @@ function onRelayToHost(c,code,raw){let m;try{m=JSON.parse(raw)}catch(e){return}i
   if(m.t!=='rhello')return;
   if(roomFull()){reply({t:'full'});return}
   const rc=new RelayConn(c,relayTopic(code,'g/'+m.from));rc.relayFrom=m.from;net.relayed=true;
-  attachConn(rc);reply({t:'ack'});rc.open();if(!net.party)setText('#hostMsg','A challenger is connecting through a relay…')}
+  attachConn(rc);reply({t:'ack'});rc.open();if(!net.party)hostMsg('A challenger is connecting through a relay…')}
 // guest: the direct link failed, so try each broker in turn until the host answers
 function joinViaRelay(code){
   if(!relayAvailable()){setText('#joinMsg',linkFailMsg(code));leaveOnline(true);return}
@@ -3501,24 +3692,24 @@ function joinViaRelay(code){
       to=setTimeout(()=>{if(!acked){clearInterval(iv);c.close();next()}},6000)})};
   next()}
 function hostGame(){leaveOnline(true);
-  if(!peerReady()){setText('#hostMsg',inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
-  net.role='host';net.party=!!net.wantParty;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');setText('#hostMsg','Opening a room…');$('#hostLink').value='';
+  if(!peerReady()){hostMsg(inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
+  net.role='host';net.screen=!!net.wantScreen;net.party=!!net.wantParty||net.screen;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');hostMsg('Opening a room…');$('#hostLink').value='';
   $('#partyRoster').hidden=$('#partyActs').hidden=!net.party;
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
-function showRoom(){if(net.role!=='host')return;setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
+function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
   if(net.party){partyLobbyChanged();return}
-  setText('#hostMsg','Waiting for a challenger. Share the code, or send them the link.')}
+  hostMsg('Waiting for a challenger. Share the code, or send them the link.')}
 function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
   peer.on('open',()=>{if(net.peer===peer)showRoom()});
   peer.on('error',err=>{if(net.peer!==peer)return;if(err.type==='unavailable-id'){hostGame();return}
     if(net.relayReady)return;   // the matchmaker is unreachable, but relayed joins still work
-    setTimeout(()=>{if(net.peer===peer&&!net.relayReady&&!net.connected){setText('#hostMsg',netErr(err));leaveOnline(true)}},6500)});
+    setTimeout(()=>{if(net.peer===peer&&!net.relayReady&&!net.connected){hostMsg(netErr(err));leaveOnline(true)}},6500)});
   peer.on('disconnected',()=>{if(net.peer===peer&&!net.connected)try{peer.reconnect()}catch(e){}});
   peer.on('connection',conn=>{if(net.peer!==peer)return;
     if(roomFull()){conn.on('open',()=>{conn.send({t:'full',party:net.party?1:0,started:net.party&&!net.lobbyOpen?1:0});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // time for the message to arrive (a lost packet is resent) before the link closes
-    attachConn(conn);if(!net.party)setText('#hostMsg','A challenger is connecting…')})}
+    attachConn(conn);if(!net.party)hostMsg('A challenger is connecting…')})}
 // a duel or co-op room holds one guest; a party room up to three, and only while its lobby is open
-const roomFull=()=>net.party?!net.lobbyOpen||net.peers.length>=3:net.peers.length>=1;
+const roomFull=()=>net.screen?net.peers.length>=4:net.party?!net.lobbyOpen||net.peers.length>=3:net.peers.length>=1;
 function joinGame(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length!==4||[...code].some(ch=>!ROOM_ALPHA.includes(ch))){setText('#joinMsg','Room codes are 4 letters or numbers, like KX7Q.');return}
   leaveOnline(true);
@@ -3540,18 +3731,18 @@ function directFailed(code){if(net.role!=='guest'||net.connected||net.relayTryin
   joinViaRelay(code)}
 function attachConn(conn){if(net.role==='host'){hostAttach(conn);return}net.conn=conn;
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
-    if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}setText('#hostMsg','A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
+    if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}hostMsg('A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0,tok:padTok()})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
 /* ---------- the host's links: one per guest (a duel or co-op has one; a party up to three) ---------- */
 function hostAttach(conn){const pr={conn,fast:null,open:false,pid:-1,name:'',cos:{},sb:0,inQ:[],lastQ:-1,heldIn:null,lagSteps:0,remote:null,lastInAt:0,rtt:0,away:false,
     lastRecv:performance.now(),sendT:0,fxQ:[],relayed:!!conn.relayFrom};net.peers.push(pr);if(!net.conn)net.conn=conn;
-  conn.on('iceStateChanged',st=>{if(pr.open||st!=='failed'||!net.peers.includes(pr))return;dropPeer(pr);setText('#hostMsg','A player tried to join, but your networks could not connect. Still waiting. They can try again.')});
+  conn.on('iceStateChanged',st=>{if(pr.open||st!=='failed'||!net.peers.includes(pr))return;dropPeer(pr);hostMsg('A player tried to join, but your networks could not connect. Still waiting. They can try again.')});
   conn.on('open',()=>{if(!net.peers.includes(pr))return;pr.open=true;pr.lastRecv=net.lastRecv=performance.now();if(!net.party)net.connected=true;openFast(conn,pr);
-    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.wantCoop?1:0,party:net.party?1:0,sb:wallet.survBest||0})});
+    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.wantCoop?1:0,party:net.party?1:0,screen:net.screen?1:0,sb:wallet.survBest||0})});
   conn.on('data',m=>{if(net.peers.includes(pr)&&m&&typeof m==='object'){pr.lastRecv=net.lastRecv=performance.now();onNet(m,pr)}});
   conn.on('close',()=>{if(net.peers.includes(pr))peerGone(pr,`${pr.name||'A player'} left the match.`)});
   conn.on('error',()=>{if(net.peers.includes(pr))peerGone(pr,`The connection to ${pr.name||'a player'} dropped.`)})}
@@ -3559,6 +3750,7 @@ function dropPeer(pr){net.peers=net.peers.filter(q=>q!==pr);if(net.conn===pr.con
 // a guest left: a duel or co-op ends; a party carries on without them (their fighter sits out), unless nobody is left
 function peerGone(pr,msg){const wasOpen=pr.open;dropPeer(pr);
   if(!net.party){if(wasOpen||net.connected)netLost(msg);return}
+  if(net.screen){bsGone(pr);return}
   if(net.lobbyOpen){partyLobbyChanged();return}
   const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;
     if(tpick){const g=tpick.ids.indexOf(p.id);if(g>=0&&tpick.chosen[g]<0)setTimeout(()=>{if(tpick&&tpick.chosen[g]<0)teamChoose(g,g*3)},300)}}
@@ -3566,6 +3758,7 @@ function peerGone(pr,msg){const wasOpen=pr.open;dropPeer(pr);
 function hostNet(m,pr){
   if(m.t==='hello'){pr.name=cleanName(m.name)||'Player';pr.cos=cleanCos(m.cos);pr.sb=Math.max(0,m.sb|0);
     if(m.v!==BUILD){linkSend(pr,{t:'oldver'});if(net.party){dropPeer(pr);partyLobbyChanged(`${pr.name} is on a different version of CUUED: they need to refresh the page.`)}else netLost(`${pr.name} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
+    if(net.screen){bsHello(pr,m);return}
     if(net.party){partyLobbyChanged();return}
     // a duel or Co-op Survival starts as soon as the one guest says hello
     Object.assign(net,{connected:true,remoteName:pr.name,remoteCos:pr.cos,remoteBest:pr.sb,coopLive:!!net.wantCoop,snap:null,lateMax:0,roster:null});
@@ -3573,15 +3766,17 @@ function hostNet(m,pr){
   if(m.t==='away'||m.t==='back'){pr.away=m.t==='away';net.awayR=net.peers.some(q=>q.away);return}
   if(m.t==='chat'){chatRecv(m,pr);return}
   if(m.t==='bye'){peerGone(pr,`${pr.name||'A player'} left the match.`);return}
-  if(m.t==='team'){partyTeam(pr,m.k|0);return}
+  if(m.t==='team'){if(net.screen)bsTeam(pr,m.k|0);else partyTeam(pr,m.k|0);return}
+  if(m.t==='c'){if(!pr.pad)return;pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!Number.isFinite(m.a))m.a=0;if(!pr.padIn||!(m.s<=pr.padIn.s))pr.padIn=m;return}   // unordered: an older packet is ignored
+  if(m.t==='ppick'){const p=players.find(q=>q.peer===pr);if(p&&spick)screenChoose(p.id,m.i|0);return}
   if(m.t==='tchoose'){const T=tpick,i=m.i|0,g=i>=3?1:0;if(T&&players[T.ids[g]]&&players[T.ids[g]].peer===pr)teamChoose(g,i);return}
   if(m.t==='i'){pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!pr.remote||!(m.s<pr.remote.s))pr.remote=m;
     if(Array.isArray(m.st))for(const q of m.st)if(q[0]>pr.lastQ){pr.inQ.push(q);pr.lastQ=q[0]}}
   else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.peer===pr&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
   else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
   else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop))restartHosted()}
-  else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0))}}
-function restartHosted(){if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
+  else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0));if(net.screen&&net.lobbyOpen)bsLobbyChanged()}}
+function restartHosted(){if(net.screen){const L=net.roster.filter(e=>!e.peer||net.peers.includes(e.peer));if(L.some(e=>e.peer)&&L.length>=2)bsBegin(L);else bsToLobby('Not enough players for a rematch. Scan the code to join.');return}if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
 /* ---------- a party room: 2v2. Everyone in the room (the host too) picks Team Orange or Team Blue, two to a team; a friend
    who joins lands on the team with fewer players; CPUs fill any empty seat at the start. Fighters 1 and 3 are Team Orange
    (orange, gold), 2 and 4 Team Blue (blue, teal) ---------- */
@@ -3599,7 +3794,7 @@ function renderRoster(el,list){if(!el)return;el.hidden=false;el.innerHTML='';
   for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=PCOL()[k];if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.cpu?`${BOTN[k]} · CPU`:e.n}else{li.className='open';li.textContent='Open seat (CPU)'}el.appendChild(li)}}
 function partyLobbyChanged(msg){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(false),humans=list.filter(e=>e&&e.peer).length;
   renderRoster($('#partyRoster'),list);const st=$('[data-act=partyStart]');if(st)st.disabled=!humans;teamButtons(net.hostTeam,list);
-  setText('#hostMsg',msg||(!humans?'Share the code or the link. Friends who join pick a team; CPUs fill the empty seats.':humans<3?`${humans+1} players in. Start now (CPUs fill the empty seats), or wait for more.`:'The party is full. Press Start!'));
+  hostMsg(msg||(!humans?'Share the code or the link. Friends who join pick a team; CPUs fill the empty seats.':humans<3?`${humans+1} players in. Start now (CPUs fill the empty seats), or wait for more.`:'The party is full. Press Start!'));
   for(const pr of net.peers)if(pr.open&&pr.name)linkSend(pr,{t:'lobby',list:list.map(e=>e?{n:e.n}:null),you:pr.team})}
 // team buttons: yours lit, a full team (two players) greyed out
 function teamButtons(mine,list){const full=t=>[list[t],list[t+2]].filter(Boolean).length>=2;
@@ -3621,8 +3816,11 @@ function onNet(m,pr){
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     // the host's room decides the game: a duel, or Co-op Survival (the guest learns which from the host's hello)
     net.coopLive=net.role==='host'?!!net.wantCoop:!!m.coop;net.remoteBest=Math.max(0,m.sb|0);
+    if(net.role!=='host'&&m.screen){net.pad=true;padOpen();return}   // a Big Screen room: this phone becomes a controller
     if(net.role==='host')startMatch(net.coopLive?'survival':'online-host');else{net.party=!!m.party;net.me=1;net.roster=null;if(net.party)partyJoined();else startMatch('online-guest')}return}
+  if(net.pad&&padNet(m))return;
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
+  if(m.t==='full'&&m.screen){const t=m.started?'That Big Screen game is full (4 players). A seat opens when someone leaves.':'That Big Screen game is full (4 players).';const wasPad=ctl.on;leaveOnline(true);padClose();if(wasPad)toMenu();showSub($('#menu'),'joining');$('#menu').hidden=false;setText('#joinMsg',t);return}
   if(m.t==='full'){setText('#joinMsg',m.started?'That party has already started. Ask the host to start a new one.':m.party?'That party is full (4 players).':'That room already has two players.');leaveOnline(true);return}
   if(m.t==='lobby'){partyRoster((m.list||[]).slice(0,4),m.you);return}
   if(m.t==='start'){net.me=clamp(m.me|0,1,3);net.roster=(m.roster||[]).slice(0,4).map(e=>({n:cleanName(e.n)||'Player',cos:cleanCos(e.cos),cpu:!!e.cpu}));startMatch('online-guest');return}
@@ -3646,16 +3844,17 @@ function onNet(m,pr){
 function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
   else if(net.role==='host')restartHosted();else startMatch(game.mode)}
-function leaveOnline(silent){clearTimeout(net.joinTimer);net.seq++;const c=net.conn,pe=net.peer;
+function leaveOnline(silent){clearTimeout(net.joinTimer);padClose();net.seq++;const c=net.conn,pe=net.peer;
   if(c&&net.connected&&net.role!=='host')try{c.send({t:'bye'})}catch(e){}
   for(const pr of net.peers){if(pr.open)try{pr.conn.send({t:'bye'})}catch(e){}dropPeer(pr)}
   for(const rc of net.relayClients)rc.close();
   if(net.fast)try{net.fast.close()}catch(e){}
-  Object.assign(net,{peers:[],party:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false,me:1,awayR:false,coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
+  Object.assign(net,{screen:false,pad:false,bsOpen:false,bsKey:'',peers:[],party:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false,me:1,awayR:false,coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
-function netLost(msg){if(!net.role)return;const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
-  if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);setText('#hostMsg',msg)}}
+function netLost(msg){if(!net.role)return;if(ctl.on){leaveOnline(true);padClose();toMenu();showMenuMsg(msg);return}
+  const wasPlaying=game.mode.startsWith('online');leaveOnline(true);
+  if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);hostMsg(msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
@@ -3865,6 +4064,260 @@ function guestSend(){const me=players[net.me];if(!me||!net.connected)return;
   netSend({t:'i',s:net.inSeq,st:net.steps.slice(-24),m:busy?0:(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp'))?1:0,jc:net.out.jc,
     f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0)})}
 
+/* ---------- Big Screen: this computer is the screen and has no fighter of its own. Up to four phones join with the code
+   (or by scanning the QR code) and become controllers: a phone never draws the game, it sends its sticks and buttons and
+   shows your health, the score and your card picks; you watch your fighter on the big screen. The host runs the match like
+   a party, Free-for-all or Teams 2v2, and applies each phone's newest input the moment it arrives (no buffer, no replay) ---------- */
+const BS_COL=()=>[[C.orange,C.oGlow,'Orange'],[C.blue,C.bGlow,'Blue'],['#3fd170','#bff7d0','Green'],['#ff5fae','#ffc9e3','Pink']];
+const bsTeams=()=>settings.bsMode==='teams';
+const bsSeatCol=(k,teams)=>(teams?PCOL():BS_COL())[k%4];
+const buzz=p=>{try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}};
+let bsJoinN=0,spick=null,bspRaf=0,qrLib=null;
+const SPICK_T=25;
+function bsMsg(t){setText('#bsMsg',t)}
+function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen)bsMsg(t)}
+function openBigScreen(){net.wantScreen=true;net.wantParty=false;net.wantCoop=false;$('#menu').hidden=true;$('#bigLobby').hidden=false;
+  setText('#bsCode','····');bsQr('');hostGame();bsLobbyChanged();refreshOpts();showSub($('#bigLobby'),'main')}
+function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();showSub($('#menu'),'multi')}
+const bsJoinUrl=()=>`${location.origin}${location.pathname}#${net.code}`;
+function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
+// the QR code: drawn with a small library fetched on first use (the code and the address work without it)
+function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.parentNode,g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
+  const QR=()=>typeof window!=='undefined'&&typeof window.qrcode==='function'?window.qrcode:null;
+  const draw=()=>{const lib=QR();if(!lib||$('#bsQr')!==c||bsJoinUrl()!==url)return;try{const q=lib(0,'M');q.addData(url);q.make();const n=q.getModuleCount(),s=Math.floor(c.width/(n+4)),o=Math.floor((c.width-s*n)/2);
+    g.fillStyle='#ffffff';g.fillRect(0,0,c.width,c.height);g.fillStyle='#170f22';for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.isDark(y,x))g.fillRect(o+x*s,o+y*s,s,s);if(box&&box.classList)box.classList.toggle('on',true)}catch(e){}};
+  if(QR()){draw();return}
+  if(!qrLib&&typeof document!=='undefined'&&document.createElement&&document.head){qrLib=document.createElement('script');qrLib.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';qrLib.async=true;document.head.appendChild(qrLib)}
+  if(qrLib&&qrLib.addEventListener)qrLib.addEventListener('load',draw)}
+// the seats, in fighter order. Free-for-all: in the order the phones joined. Teams: [orange 1, blue 1, orange 2, blue 2]
+function bsSeats(fill){const ps=net.peers.filter(p=>p.open&&p.name&&p.pad).sort((a,b)=>a.joinN-b.joinN).slice(0,4),teams=bsTeams();let list;
+  if(teams){const n=t=>ps.filter(p=>p.team===t).length;
+    for(const p of ps)if(p.team!==0&&p.team!==1)p.team=n(1)<n(0)?1:0;   // the team with fewer players (a tie: Orange)
+    for(const t of[0,1])while(n(t)>2){const p=ps.filter(q=>q.team===t).pop();p.team=1-t}
+    const T=[0,1].map(t=>ps.filter(p=>p.team===t));list=[T[0][0],T[1][0],T[0][1],T[1][1]]}
+  else list=[0,1,2,3].map(k=>ps[k]);
+  list=list.map((p,k)=>p?{n:p.name,cos:p.cos,peer:p,team:teams?p.team:k,seat:k}:null);
+  if(!fill)return list;
+  return bsFill(list).filter(Boolean)}
+// the CPU players the host asked for, in empty seats (never more than four fighters); Teams: on the side with fewer players
+function bsFill(list){list=list.slice();const teams=bsTeams();let n=Math.min(settings.bsBots|0,list.filter(e=>!e).length);
+  while(n-->0){const side=t=>list.filter((e,k)=>e&&k%2===t).length,free=list.map((e,k)=>e?-1:k).filter(k=>k>=0);
+    const k=teams?free.sort((a,b)=>side(a%2)-side(b%2)||a-b)[0]:free[0];list[k]={cpu:1,n:'CPU',team:teams?k%2:k,seat:k}}
+  return list}
+function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
+  if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
+    if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
+    for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=bsSeatCol(k,teams);
+      if(!e&&shown[k]){li.className='cpu';li.style.setProperty('--pc',c[0]);li.textContent=`${BOTN[k]} · CPU`}
+      else if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.n;const r=e.peer.rtt||0,q=document.createElement('span');q.className='ping'+(!r?'':r<60?' good':r<130?' ok':' bad');q.textContent=r?Math.round(r)+' ms':'…';li.appendChild(q)}
+      else{li.className='open';li.textContent='Open seat'}el.appendChild(li)}}
+  const ok=hum>=1&&hum+bots>=2,st=$('[data-act=bsStart]');if(st)st.disabled=!ok;
+  bsMsg(msg||(!net.bsOpen?'Opening a room…':!hum?'Scan the code with a phone camera to join. 1 to 4 players.':!ok?'Playing solo? Add a CPU player in the settings, or wait for a friend.':hum+bots<4?`${hum} player${hum>1?'s':''}${bots?` and ${bots} CPU${bots>1?'s':''}`:''} in. Start when you're ready; friends can still join mid-match.`:'Everyone is in. Press Start!'));
+  const key=JSON.stringify([list.map(e=>e&&[e.n,e.peer.joinN,e.team]),settings.bsMode]);
+  if(key!==net.bsKey){net.bsKey=key;list.forEach((e,k)=>{if(e)linkSend(e.peer,{t:'plobby',seat:k,col:bsSeatCol(k,teams)[0],team:teams?e.team:-1,teams:teams?1:0,n:hum})})}}
+function bsTeam(pr,t){if(!net.lobbyOpen||!bsTeams()||(t!==0&&t!==1)||pr.team===t)return;if(net.peers.filter(p=>p.pad&&p.open&&p.name&&p.team===t).length>=2)return;pr.team=t;bsLobbyChanged()}
+function bsStart(){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(true);if(!list.some(e=>e.peer)||list.length<2)return;
+  for(const pr of net.peers.slice())if(!list.some(e=>e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr)}
+  net.lobbyOpen=false;bsBegin(list)}
+function bsBegin(list){net.roster=list;net.connected=true;net.remoteName='';net.hostId=-1;net.bsKey='';spick=null;$('#bigLobby').hidden=true;$('#end').hidden=true;$('#bsPick').hidden=true;
+  startMatch('online-host');for(const p of players)if(p.peer)bsSendSeat(p)}
+const bsSides=()=>game.ffa?players.map(p=>({n:p.name,c:p.color})):[0,1].map(t=>({n:'Team '+TEAM_N[t],c:PCOL()[t][0]}));
+function bsSendSeat(p){linkSend(p.peer,{t:'pstart',me:p.id,n:p.name,col:p.color,glow:p.glow,team:p.team,teams:game.ffa?0:1,sides:bsSides(),tg:game.target})}
+// back to the lobby between matches: the phones stay connected, the host changes settings and starts again
+function bsToLobby(msg){if(net.role!=='host'||!net.screen)return;net.lobbyOpen=true;net.bsKey='';spick=null;game.paused=false;
+  for(const id of['#bsPick','#end','#pause','#pick'])$(id).hidden=true;startMatch('demo');   // the arena plays itself behind the lobby
+  $('#menu').hidden=true;$('#bigLobby').hidden=false;showSub($('#bigLobby'),'main');refreshOpts();bsLobbyChanged(msg)}
+// a phone said hello. In the lobby it takes a seat; mid-match it takes back its own seat (same phone), or a CPU's seat (its
+// cards come along), or a new fighter of its own (in from the next point), or else a seat someone left
+function bsHello(pr,m){pr.pad=true;pr.joinN=++bsJoinN;pr.tok=String(m.tok||'').replace(/[^a-z0-9]/gi,'').slice(0,24);pr.padIn=null;
+  if(net.lobbyOpen){if(!bsSeats(false).some(e=>e&&e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1});dropPeer(pr);return}bsLobbyChanged();return}
+  const seat=pr.tok&&players.find(p=>p.left&&p.padTok===pr.tok)||players.find(p=>p.ctrl==='cpu')||(players.length<4?bsAddFighter(pr):null)||players.find(p=>p.left&&!p.peer);   // a newcomer takes a CPU's seat, or a new fighter, before a seat whose player may be coming back
+  if(!seat){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr);return}
+  const back=!!pr.tok&&seat.padTok===pr.tok;
+  Object.assign(seat,{peer:pr,padTok:pr.tok,ctrl:'pad',left:false,name:pr.name,cos:cleanCos(pr.cos),padJc:null,padBc:null,padSc:null,padAc:null,padFc:null,padTap:0,findT:2.4});applyShade(seat);
+  if(net.roster&&net.roster[seat.id])net.roster[seat.id]={n:pr.name,cos:pr.cos,peer:pr,team:seat.team,seat:seat.id};
+  game.banner=`${pr.name.toUpperCase()} ${back?'IS BACK':'JOINED'}`;game.bannerT=1.8;bsSendSeat(seat);
+  for(const p of players)if(p.peer&&p!==seat)bsSendSeat(p);   // everyone's scoreboard gets the new name
+  const S=spick;if(S&&S.hands[seat.id]&&S.chosen[seat.id]==null&&!S.revealed)linkSend(pr,{t:'phand',hand:S.hands[seat.id].map(cardCode),sub:S.sub,secs:Math.max(3,S.left)});
+  if(game.state==='over')linkSend(pr,{t:'end',w:game.overW})}
+// a friend who joins mid-match with a seat to spare: a fighter of their own, in from the next point, with as many cards as the
+// player with the fewest (so they aren't starting from nothing against built-up decks)
+function bsAddFighter(pr){const k=players.length,team=game.ffa?k:[0,1].sort((a,b)=>players.filter(p=>p.team===a&&!p.left).length-players.filter(p=>p.team===b&&!p.left).length||a-b)[0];
+  const p=makePlayer(k,'pad',pr.name),c=game.ffa?BS_COL()[k%4]:PCOL()[team+(players.some(q=>q.team===team)?2:0)];Object.assign(p,{team,color:c[0],glow:c[1],cos:cleanCos(pr.cos),hpMul:settings.bsHp,peer:pr,padTok:pr.tok,findT:0});
+  const fewest=Math.min(...players.map(q=>q.cards.length));for(let i=0;i<fewest;i++){const h=dealHand(p);if(h.length)takeChoice(p,h[cpuChoice(p,h)])}
+  recompute(p);applyShade(p);resetPlayer(p,spawnFor(p,k));p.alive=false;p.x=-9999;players.push(p);
+  if(game.ffa){game.wins.push(0);game.points.push(0)}if(net.roster)net.roster.push({n:pr.name,cos:pr.cos,peer:pr,team,seat:k});return p}
+function bsGone(pr){if(net.lobbyOpen){bsLobbyChanged();return}
+  const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';p.padAiming=false;if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;bsAutoPick(p.id)}
+  game.banner=`${(pr.name||'A player').toUpperCase()} LEFT · SCAN THE CODE TO REJOIN`;game.bannerT=2.2}
+// every frame on the host: pings and lost links in the lobby, and each phone's status (15 a second) during a match
+function bsHostTick(dt){if(net.role!=='host'||!net.screen)return;net.bsPing=(net.bsPing||0)-dt;
+  if(net.lobbyOpen&&net.bsPing<=0){net.bsPing=1;netSend({t:'ping',at:performance.now()})}
+  const live=!net.lobbyOpen&&game.mode==='online-host';
+  for(const pr of net.peers.slice()){if(!pr.open)continue;
+    if(live&&pr.pad){pr.psT=(pr.psT||0)-dt;if(pr.psT<=0){pr.psT=Math.max(-.05,pr.psT)+1/15;bsStatus(pr)}}
+    if(performance.now()-pr.lastRecv>15000)peerGone(pr,`Lost the connection to ${pr.name||'a player'}.`)}
+  if(game.screen)for(const p of players)if(p.findT>0)p.findT=Math.max(0,p.findT-dt)}
+function bsStatus(pr){const p=players.find(q=>q.peer===pr),s=p&&p.s;
+  linkSend(pr,{t:'ps',st:game.paused?'paused':game.state,hp:p?Math.max(0,Math.round(p.hp)):0,mh:s?Math.round(s.maxHp):100,al:p&&p.alive?1:0,
+    bk:p&&s?r2(clamp(p.blockCd/s.blockCd,0,1)):0,w:game.wins,pt:game.points,lw:game.lastWinner,rt:Math.round(pr.rtt||0)})}
+// a phone's controls on the host: the newest packet wins; presses, shots and taps are running counters, so none is lost
+function padInput(p){const inp=p.input,L=p.peer,r=L&&L.padIn;
+  if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
+  const stale=performance.now()-(L.lastInAt||0)>300;   // no word from the phone for a moment (it locked, or the link hiccuped): stand still
+  inp.move=stale?0:clamp(r.m|0,-1,1);inp.jumpH=!stale&&!!r.jh;inp.down=!stale&&!!r.d;
+  const up=(k,c)=>{const v=r[c]|0;if(p[k]==null){p[k]=v;return 0}const n=Math.max(0,v-p[k]);p[k]=Math.max(p[k],v);return n};
+  if(up('padJc','jc'))inp.jumpP=true;if(up('padBc','bc'))inp.blockP=true;if(up('padFc','fc'))p.findT=2.2;
+  const shots=up('padSc','sc'),autos=up('padAc','ac');
+  if(shots||autos){p.padTap=Math.min(3,(p.padTap||0)+shots+autos);p.padTapT=TAP_BUF;p.padAuto=!shots;if(shots)p.padAimA=r.a}
+  p.padAiming=!!r.ag&&!stale;
+  const e=other(p),auto=e&&e.alive&&e!==p?aimSolution(p,e):null;
+  if(p.padTap>0){inp.fire=true;inp.aim=p.padAuto?auto??p.aim:p.padAimA??r.a}
+  else{inp.fire=false;inp.aim=p.padAiming?r.a:auto??p.aim}}   // between shots the gun follows the nearest rival
+// a queued shot is used up by the step that fires it; one the gun can't fire soon (empty, or out) is dropped
+function padTapStep(p,h){if(!(p.padTap>0))return;if(p.sinceShot===0){p.padTap--;p.padTapT=TAP_BUF;return}
+  if(!p.alive||p.ammo<=0&&!(p.burstLeft>0)||(p.padTapT-=h)<=0)p.padTap=0}
+// "Find me", and every point's start: rings and an arrow with the name over that phone's fighter
+function drawFinds(){if(!game.screen)return;const t=performance.now()/1000;
+  for(const p of players){if(!(p.findT>0)||!p.alive||!Number.isFinite(p.x))continue;const k=Math.min(1,p.findT/.4),pu=RM?0:.5+.5*Math.sin(t*9),nm=p.name.toUpperCase();
+    ctx.save();ctx.strokeStyle=p.glow;ctx.lineWidth=5;
+    for(let i=0;i<2;i++){const ph=RM?.3+i*.3:(t*1.3+i*.5)%1;ctx.globalAlpha=.85*k*(1-ph);ctx.beginPath();ctx.arc(p.x,p.y,p.r+12+ph*70,0,TAU);ctx.stroke()}
+    const y=p.y-p.r-86-pu*8;ctx.globalAlpha=k;ctx.fillStyle=p.color;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(p.x,y+28);ctx.lineTo(p.x-17,y+5);ctx.lineTo(p.x+17,y+5);ctx.closePath();ctx.stroke();ctx.fill();
+    ctx.font='30px "Lilita One", sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.lineWidth=7;ctx.lineJoin='round';ctx.strokeText(nm,p.x,y-8);ctx.fillStyle=p.glow;ctx.fillText(nm,p.x,y-8);ctx.restore()}}
+/* a Big Screen draft: everyone who picks gets three cards on their own phone and they all choose at once (CPUs too). The big
+   screen shows a face-down card per picker that ticks as each one locks in, then flips them face up one by one, so the room
+   sees every pick. Nobody can stall it: after 25 s a card is picked for anyone still choosing */
+function screenPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id].left);if(!ids.length){done&&done();return}
+  game.state='pick';const S={ids,hands:{},chosen:{},done,sub,left:SPICK_T,revealed:false};spick=S;
+  for(const id of ids){const p=players[id],h=dealHand(p).slice(0,3);p.nextHand=null;S.hands[id]=h;
+    if(p.ctrl==='pad'&&p.peer)linkSend(p.peer,{t:'phand',hand:h.map(cardCode),sub,secs:SPICK_T});
+    else{const i=cpuChoice(p,h);setTimeout(()=>{if(spick===S)screenChoose(id,i)},p.ctrl==='cpu'?1400+Math.random()*2400:500)}}
+  showScreenPick();
+  const tick=()=>{if(spick!==S||S.revealed)return;S.left--;bspTimer();if(S.left<=0){for(const id of S.ids)if(S.chosen[id]==null)screenChoose(id,Math.floor(Math.random()*S.hands[id].length));return}setTimeout(tick,1000)};
+  setTimeout(tick,1000)}
+function screenChoose(id,i){const S=spick;if(!S||S.revealed||S.chosen[id]!=null||!S.hands[id]||!S.hands[id][i])return;S.chosen[id]=i;const p=players[id];
+  if(p&&p.peer)linkSend(p.peer,{t:'ppicked',i});sfx('tick',true);bspMark(id);
+  if(S.ids.every(q=>S.chosen[q]!=null))screenReveal(S)}
+function bsAutoPick(id){const S=spick;if(S&&S.hands[id]&&S.chosen[id]==null)setTimeout(()=>{if(spick===S)screenChoose(id,cpuChoice(players[id],S.hands[id]))},300)}
+function screenReveal(S){S.revealed=true;bspTimer();const gap=650,tk=game.token;
+  S.ids.forEach((id,k)=>setTimeout(()=>{if(spick!==S||tk!==game.token)return;bspFlip(id,S.hands[id][S.chosen[id]]);sfx('pick',false,true)},400+k*gap));
+  setTimeout(()=>{if(spick!==S||tk!==game.token)return;
+    for(const id of S.ids){const p=players[id];takeChoice(p,S.hands[id][S.chosen[id]]);recompute(p);resetPlayer(p,spawnFor(p,id));if(p.left){p.alive=false;p.x=-9999}}
+    spick=null;$('#bsPick').hidden=true;netSend({t:'pdone'});S.done&&S.done()},400+S.ids.length*gap+1900)}
+function showScreenPick(){const S=spick,row=$('#bspRow');if(!row)return;const all=S.ids.length===players.filter(p=>!p.left).length;
+  setText('#bspTitle',all?'Everyone picks':'Draft');setText('#bspSub',`${S.sub} · pick on your phone`);row.innerHTML='';
+  for(const id of S.ids){const p=players[id],col=document.createElement('div');col.className='bsp-col';col.dataset.id=id;col.style.setProperty('--pc',p.color);
+    col.innerHTML='<canvas class="bsp-face" width="64" height="64" aria-hidden="true"></canvas><b class="bsp-name"></b><div class="bsp-card"><div class="bsp-back"><span class="bsp-st"></span></div><div class="bsp-front"><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><span class="nm"></span><span class="ds"></span></div></div><div class="bsp-deck"></div>';
+    const q=s=>col.querySelector(s);q('.bsp-name').textContent=playerLabel(p);q('.bsp-st').textContent=p.ctrl==='cpu'?'CPU is choosing':'Choosing on their phone';
+    try{miniFighter(q('canvas').getContext('2d'),p)}catch(e){}
+    const dk=q('.bsp-deck');for(const c of p.cards.slice(-6)){const s=document.createElement('span');s.className='chip';s.textContent=c.n;dk.appendChild(s)}
+    row.appendChild(col)}
+  for(const id of S.ids)if(S.chosen[id]!=null)bspMark(id);
+  $('#bsPick').hidden=false;bspTimer();bspArt()}
+const bspCol=id=>[...(($('#bspRow')||{}).children||[])].find(c=>c.dataset&&c.dataset.id===String(id));
+function bspMark(id){const c=bspCol(id);if(!c)return;c.classList.toggle('done',true);const st=c.querySelector('.bsp-st');if(st)st.textContent='Locked in'}
+function bspFlip(id,card){const c=bspCol(id);if(!c||!card)return;const f=c.querySelector('.bsp-front');f.style.setProperty('--cat',CAT[card.k]||'#888');
+  f.querySelector('.nm').textContent=card.n;f.querySelector('.ds').textContent=card.d;f.querySelector('canvas')._card=card;c.classList.toggle('flip',true)}
+function bspTimer(){const S=spick;setText('#bspTimer',!S||S.revealed?'':`${Math.max(0,S.left)}s`)}
+function bspArt(){cancelAnimationFrame(bspRaf);const t0=performance.now();
+  const loop=now=>{if($('#bsPick').hidden)return;for(const c of document.querySelectorAll('#bspRow .flip canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);bspRaf=requestAnimationFrame(loop)};bspRaf=requestAnimationFrame(loop)}
+
+/* ---------- the phone in a Big Screen game: a controller. Left half: a move stick wherever your thumb lands; right half:
+   the Brawl Stars aim stick (drag to aim, let go to fire, a quick tap auto-fires at the nearest rival); Jump and Block. It sends
+   on every touch and at least every frame; the host's status comes back 15 times a second ---------- */
+const ctl={on:false,view:'',me:-1,team:-1,seq:0,jc:0,bc:0,sc:0,ac:0,fc:0,a:0,mx:0,up:false,down:false,jump:false,move:null,aim:null,sent:0,st:null,hand:null,picked:-1,pickEnd:0,sides:[],tg:5,wake:null,awarded:false,tok:''};
+function padTok(){if(ctl.tok)return ctl.tok;let t='';try{t=localStorage.getItem('cuued.pad')||''}catch(e){}
+  if(!/^[a-z0-9]{6,24}$/.test(t)){t=ctl.tok||Math.random().toString(36).slice(2,12);try{localStorage.setItem('cuued.pad',t)}catch(e){}}return ctl.tok=t}
+function padOpen(){ctl.on=true;bodyCls('padmode',true);for(const id of['#menu','#end','#pause','#pick'])$(id).hidden=true;$('#pad').hidden=false;ctl.hand=null;ctl.st=null;
+  setText('#padLobbyT','Connecting…');setText('#padLobbyS','Watch the big screen. The host starts the game.');$('#padTeams').hidden=true;padView('lobby');padWake(true)}
+function padClose(){if(!ctl.on)return;ctl.on=false;bodyCls('padmode',false);$('#pad').hidden=true;$('#padPick').hidden=true;ctl.hand=null;ctl.move=ctl.aim=null;ctl.view='';padWake(false)}
+function padView(v){ctl.view=v;{const el=$('#pad');if(el&&el.classList)el.classList.toggle('live',v==='live')}$('#padLobby').hidden=v!=='lobby';$('#padOver').hidden=v!=='over';$('#padPick').hidden=!ctl.hand;padMsg()}
+function padTint(col){const el=$('#pad');if(el&&col)el.style.setProperty('--pc',col)}
+function padWake(on){try{if(!on){if(ctl.wake&&ctl.wake.release)ctl.wake.release();ctl.wake=null;return}
+  if(navigator.wakeLock&&navigator.wakeLock.request)navigator.wakeLock.request('screen').then(w=>{ctl.wake=w},()=>{})}catch(e){}}   // the phone's screen stays on while it's a controller
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctl.on)padWake(true)});
+function padNet(m){
+  if(m.t==='plobby'){padTint(m.col);setText('#padName',myName||'You');setText('#padLobbyT',`You're in! Player ${(m.seat|0)+1}`);
+    setText('#padLobbyS',m.teams?'Pick your team, then watch the big screen. The host starts the game.':'Watch the big screen. The host starts the game.');
+    $('#padTeams').hidden=!m.teams;document.querySelectorAll('[data-pteam]').forEach(b=>b.classList.toggle('primary',+b.dataset.pteam===m.team));
+    ctl.hand=null;padView('lobby');return true}
+  if(m.t==='pstart'){ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
+    padTint(m.col);setText('#padName',cleanName(m.n)||myName||'You');if(ctl.view!=='live'){ctl.awarded=false;ctl.st=null}padView('live');padScore();return true}
+  if(m.t==='ps'){padStatus(m);return true}
+  if(m.t==='phand'){padHand(m);return true}
+  if(m.t==='ppicked'){padPicked(m.i|0);return true}
+  if(m.t==='pdone'){ctl.hand=null;$('#padPick').hidden=true;padMsg();return true}
+  if(m.t==='end'){padOver(m.w|0);return true}
+  if(m.t==='ping'){netSend({t:'pong',at:m.at});return true}
+  if(m.t==='bye'){netLost('The Big Screen game ended.');return true}
+  return m.t==='s'||m.t==='fx'||m.t==='chat'||m.t==='restart'}   // nothing to draw on a controller
+function padStatus(m){const was=ctl.st;ctl.st=m;const hp=clamp((m.hp||0)/(m.mh||1),0,1),bar=$('#padHp');if(bar)bar.style.width=(m.al?hp*100:0)+'%';
+  const b=$('#pBlock');if(b)b.style.setProperty('--cd',m.al?m.bk||0:0);
+  if(was){const live=m.st==='play'||m.st==='pointEnd';
+    if(was.al&&m.al&&live&&m.hp<was.hp-.5)buzz(Math.round(Math.min(60,14+(was.hp-m.hp)*.8)));   // hit: a buzz as strong as the hit
+    if(was.al&&!m.al&&live)buzz([70,50,150]);   // out
+    const mine=t=>(t.pt||[])[ctl.team]|0,won=t=>(t.w||[])[ctl.team]|0;if(won(m)>won(was)||mine(m)>mine(was))buzz([25,45,25])}
+  padScore();padMsg()}
+function padScore(){const el=$('#padScore'),m=ctl.st;if(!el)return;el.innerHTML='';
+  ctl.sides.forEach((s,i)=>{const sp=document.createElement('span');sp.style.setProperty('--sc',s.c);if(i===ctl.team)sp.className='mine';
+    const w=m&&m.w?m.w[i]|0:0,half=m&&m.pt&&m.pt[i]?'½':'';sp.textContent=(ctl.sides.length>2?s.n.slice(0,8):s.n)+' ';const n=document.createElement('b');n.textContent=w+half;sp.appendChild(n);el.appendChild(sp)})}
+function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
+  if(ctl.view==='live'&&!ctl.hand&&m){if(m.st==='paused')t='Paused on the big screen';else if(m.st==='pick')t='Cards being picked · watch the big screen';
+    else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next point";else if(m.st==='pointEnd'&&m.lw===ctl.team)t='Point to you!'}
+  el.textContent=t;el.hidden=!t}
+function padHand(m){ctl.hand=(m.hand||[]).slice(0,3).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
+  setText('#padPickT','Pick a card');setText('#padPickS',String(m.sub||'').slice(0,80));const el=$('#padCards');el.innerHTML='';
+  ctl.hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='pcard r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
+    b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul>';
+    b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
+    const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
+    b.querySelector('canvas')._card=c;b.addEventListener('click',()=>padPick(i));el.appendChild(b)});
+  const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();padArt();buzz(15)}
+function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:'ppick',i});padPicked(i)}
+function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').children].forEach((b,k)=>{b.classList.toggle('chosen',k===i);b.classList.toggle('away',k!==i)});
+  $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS','Watch the big screen for the reveal')}
+let padArtRaf=0;
+function padArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
+  const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
+function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');
+  setText('#padOverT',win?(ctl.sides.length>2?'You win!':'Your team wins!'):`${s?s.n:'They'} win${s&&/^Team /.test(s.n)?'s':ctl.sides.length>2?'s':''}`);
+  setText('#padOverS',win?'Nice. That one was yours.':'So close. Get them in the rematch.');
+  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;
+    if(win){wallet.coins+=2;wallet.earned+=2;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +2 CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
+    else{wallet.streak=0;saveWallet();el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`}el.hidden=false}}
+// the sticks: the same feel as phone play (a flick up jumps, pulling down drops through ledges)
+function padSticks(){const R=56,m=ctl.move,a=ctl.aim;let mx=0,up=false,down=false;
+  const knob=(id,x,y)=>{const k=$(id+' .knob');if(k)k.style.transform=`translate(${x}px,${y}px)`};
+  if(m){if(m.dx>16)mx=1;else if(m.dx<-16)mx=-1;up=m.dy<-R*.55&&-m.dy>Math.abs(m.dx)*.6;down=m.dy>R*.55&&m.dy>Math.abs(m.dx)*.8;const d=Math.hypot(m.dx,m.dy)||1,c=Math.min(1,R/d);knob('#pMove',m.dx*c,m.dy*c)}
+  if(up&&!ctl.up)ctl.jc++;ctl.up=up;ctl.mx=mx;ctl.down=down;
+  if(a){const d=Math.hypot(a.dx,a.dy);a.maxD=Math.max(a.maxD||0,d);if(d>12)ctl.a=Math.atan2(a.dy,a.dx);const c=Math.min(1,R/(d||1));knob('#pAim',a.dx*c,a.dy*c);$('#pAim').classList.toggle('cancel',d<AIM_DEAD&&a.maxD>=AIM_DEAD)}}
+function padSend(force){if(!ctl.on||!net.connected)return;const now=performance.now();if(!force&&now-pad.sent<(net.relayed?30:7))return;ctl.sent=now;
+  const a=ctl.aim,live=ctl.view==='live'&&!ctl.hand,ag=live&&!!a&&(a.maxD||0)>=TAP_MOVE&&Math.hypot(a.dx,a.dy)>=AIM_DEAD;
+  netSend({t:'c',s:++ctl.seq,m:live?ctl.mx:0,jh:live&&(ctl.up||ctl.jump)?1:0,d:live&&ctl.down?1:0,jc:ctl.jc,bc:ctl.bc,sc:ctl.sc,ac:ctl.ac,fc:ctl.fc,a:r3(ctl.a||0),ag:ag?1:0})}
+function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost the connection to the big screen.');return}
+  if(ctl.hand&&ctl.picked<0)setText('#padTimer',`${Math.max(0,Math.ceil((ctl.pickEnd-now)/1000))}s`);padSend()}
+{const live=$('#padLive');
+  if(live&&live.addEventListener){
+    live.addEventListener('touchstart',e=>{if(ctl.view!=='live'||ctl.hand)return;e.preventDefault();autoFull();
+      for(const t of e.changedTouches){const left=t.clientX<innerWidth*.5;
+        if(left&&!ctl.move){ctl.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#pMove'),t.clientX,t.clientY)}
+        else if(!left&&!ctl.aim){ctl.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0,t0:performance.now(),maxD:0};stickAt($('#pAim'),t.clientX,t.clientY)}}
+      padSticks();padSend(true)},{passive:false});
+    live.addEventListener('touchmove',e=>{if(!ctl.move&&!ctl.aim)return;e.preventDefault();
+      for(const t of e.changedTouches)for(const s of[ctl.move,ctl.aim])if(s&&s.id===t.identifier){s.dx=t.clientX-s.ox;s.dy=t.clientY-s.oy}padSticks();padSend()},{passive:false});
+    const end=e=>{for(const t of e.changedTouches){if(ctl.move&&ctl.move.id===t.identifier){ctl.move=null;stickHome($('#pMove'))}
+        if(ctl.aim&&ctl.aim.id===t.identifier){const a=ctl.aim;ctl.aim=null;stickHome($('#pAim'));$('#pAim').classList.toggle('cancel',false);
+          if(e.type==='touchend'){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;if(quick)ctl.ac++;else if(d>=AIM_DEAD){ctl.a=Math.atan2(a.dy,a.dx);ctl.sc++}}}}   // a tap auto-fires; a drag fires where it points; let go in the middle to cancel
+      padSticks();padSend(true)};
+    live.addEventListener('touchend',end);live.addEventListener('touchcancel',end)}
+  const hold=(id,down,upFn)=>{const b=$(id);if(!b||!b.addEventListener)return;
+    b.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();b.classList.toggle('down',true);down();padSend(true)},{passive:false});
+    const off=e=>{e.preventDefault();e.stopPropagation();b.classList.toggle('down',false);upFn&&upFn();padSend(true)};b.addEventListener('touchend',off);b.addEventListener('touchcancel',off)};
+  hold('#pJump',()=>{ctl.jump=true;ctl.jc++},()=>{ctl.jump=false});
+  hold('#pBlock',()=>{ctl.bc++;buzz(8)});
+  const f=$('#padFind');if(f&&f.addEventListener)f.addEventListener('click',()=>{ctl.fc++;padSend(true);buzz(10)})}
+
 /* ---------- names ---------- */
 const cleanName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){}
@@ -3876,7 +4329,7 @@ function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el
 
 /* ---------- UI wiring ---------- */
 /* settings: per-viewer conveniences, remembered in this browser when storage is available */
-const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,pview:'room',chat:true,v:2};   // the aim guide starts off: turn it on in Settings
+const settings={diff:'normal',len:5,sound:true,vol:.75,music:true,aim:false,pview:'room',chat:true,v:2,bsMode:'ffa',bsLen:5,bsCards:'losers',bsBots:0,bsCpu:'normal',bsMap:'all',bsHp:1,bsTwist:false};   // the aim guide starts off: turn it on in Settings
 try{const o=JSON.parse(localStorage.getItem('counterpick.settings')||'{}');if(o&&typeof o==='object'){if((o.v|0)<2)delete o.aim;Object.assign(settings,o,{v:2})}}catch(e){}   // older saves always stored aim:on (the old default), so they start from the new default
 phoneView();   // a saved Phone view applies from the start
 const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.stringify(settings))}catch(e){}};
@@ -3884,7 +4337,7 @@ const saveSettings=()=>{try{localStorage.setItem('counterpick.settings',JSON.str
    shown as text (never as HTML); 120 characters at most, one every 0.7 s ---------- */
 const chat={last:0,was:false};
 const chatClean=t=>String(t==null?'':t).replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,120);
-const chatOn=()=>!!(net.role&&net.connected&&settings.chat!==false);
+const chatOn=()=>!!(net.role&&net.connected&&settings.chat!==false&&!net.screen&&!net.pad);   // Big Screen: nobody has a keyboard to chat with
 function chatAdd(name,text,col){const log=$('#chatLog');if(!log)return;const d=document.createElement('div');d.className='cm';const b=document.createElement('b');b.textContent=name;b.style.color=col;
   d.appendChild(b);d.appendChild(document.createTextNode(text));log.appendChild(d);while(log.children.length>5)log.removeChild(log.firstChild)}
 function chatColor(mine){const i=(game.mode==='online-guest'||net.role==='guest')?(mine?net.me:0):(mine?(game.party?net.hostId:0):1),p=players[i];return p&&p.color||(i?C.blue:C.orange)}
@@ -3904,16 +4357,21 @@ function chatSync(){const on=chatOn(),b=$('#bChat');if(b&&b.hidden===on)b.hidden
   $('#chatIn').addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();e.stopPropagation();chatClose()}});
   $('#chatIn').addEventListener('blur',()=>setTimeout(()=>{const a=document.activeElement;if(!f.contains(a))chatClose()},150))}
   const b=$('#bChat');if(b)b.onclick=()=>{b.blur();$('#chatForm').hidden?chatOpen():chatClose()}}
-const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},chat:{vals:[true,false],label:v=>v?'On':'Off'},pview:{vals:['room','fill'],label:v=>v==='fill'?'Fill screen':'Thumb room'}};
+const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},chat:{vals:[true,false],label:v=>v?'On':'Off'},pview:{vals:['room','fill'],label:v=>v==='fill'?'Fill screen':'Thumb room'},
+  bsMode:{vals:['ffa','teams'],label:v=>v==='teams'?'Teams 2v2':'Free-for-all'},bsLen:{vals:[3,5,7],label:v=>String(v)},
+  bsCards:{vals:['losers','all','none'],label:v=>({losers:'Round losers',all:'Everyone',none:'Off'})[v]||'Round losers'},
+  bsBots:{vals:[0,1,2,3],label:v=>v?String(v):'None'},bsCpu:{vals:['normal','hard','easy'],label:v=>v[0].toUpperCase()+v.slice(1)},
+  bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true],label:v=>v?'On':'Off'}};
+for(const k in OPT)if(k.startsWith('bs')&&!OPT[k].vals.includes(settings[k]))settings[k]=OPT[k].vals[0];   // a saved choice that no longer exists
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
 function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
-  if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true)}
+  if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true);if(k.startsWith('bs'))bsLobbyChanged()}
 function helpTab(t){const h=$('[data-sub=help]');if(!h)return;const tabs=[...h.querySelectorAll('[data-htab]')];if(typeof t==='number'){const i=tabs.findIndex(b=>b.classList.contains('on'));t=tabs[(i+t+tabs.length)%tabs.length].dataset.htab}
   tabs.forEach(b=>{const on=b.dataset.htab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});h.querySelectorAll('[data-hpage]').forEach(p=>p.hidden=p.dataset.hpage!==t)}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-htab]');if(b){helpTab(b.dataset.htab);sfx('tick',true)}});
 function showSub(ov,which){ov.querySelectorAll('[data-sub]').forEach(n=>n.hidden=n.dataset.sub!==which);focusFirst(ov)}
 function focusFirst(ov){const l=ov.querySelector('[data-sub]:not([hidden])')||ov;const b=l.querySelector('input:not([readonly]),button');b&&b.focus({preventScroll:true})}
-function visibleList(){for(const id of['#pause','#end','#menu']){const o=$(id);if(o&&!o.hidden)return o.querySelector('[data-sub]:not([hidden])')}return null}
+function visibleList(){for(const id of['#pause','#end','#bigLobby','#menu']){const o=$(id);if(o&&!o.hidden)return o.querySelector('[data-sub]:not([hidden])')}return null}
 /* keyboard menus: ↑↓ or W/S move, Enter/Space choose, ←→ or A/D change a setting, Esc goes back */
 function menuKey(e){if(!$('#pick').hidden)return false;const l=visibleList();if(!l)return false;const items=[...l.querySelectorAll('button')];if(!items.length)return false;
   let i=items.indexOf(document.activeElement);const c=e.code;
@@ -3933,7 +4391,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
-  else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
+  else if(a==='bigscreen')openBigScreen();
+  else if(a==='bsStart')bsStart();
+  else if(a==='bsCancel')closeBigScreen();
+  else if(a==='bsLobby')bsToLobby();
+  else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
+  else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
+  else if(a==='online'||a==='coop'||a==='partyOnline'){net.wantScreen=false;net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
   else if(a==='partyStart')partyStart();
   else if(a==='solo')showSub(ov,'solo');
@@ -3951,7 +4415,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='back')showSub(ov,b.dataset.back||'main');
   else if(a==='resume')togglePause();
   else if(a==='again')requestRematch();
-  else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
+  else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.screen&&net.role==='host'){restartHosted();return}if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
   else if(a==='menu'){leaveOnline(true);toMenu()}});
 $('#nameForm').addEventListener('submit',e=>{e.preventDefault();const n=cleanName($('#nameInput').value);
   if(!n){$('#nameErr').hidden=false;return}setName(n);$('#nameScreen').hidden=true;sfx('pick',true);
@@ -3960,12 +4424,12 @@ $('#nameForm').addEventListener('submit',e=>{e.preventDefault();const n=cleanNam
 $('#joinForm').addEventListener('submit',e=>{e.preventDefault();joinGame($('#joinCode').value)});
 $('#joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4)});
 function togglePause(){
-  if(net.role&&net.connected){const show=$('#pause').hidden;$('#pause').hidden=!show;   // online: the match keeps running
-    if(show){refreshOpts();$('#pLoadout').hidden=true;$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
-  $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pMenu').textContent='Main menu';setText('#pauseTitle','Paused');
+  if(net.role&&net.connected&&!game.screen){const show=$('#pause').hidden;$('#pause').hidden=!show;   // online: the match keeps running
+    if(show){refreshOpts();$('#pLoadout').hidden=true;$('#pLobby').hidden=true;$('#pRestart').hidden=net.role!=='host';$('#pMenu').textContent='Leave match';setText('#pauseTitle','Menu');showSub($('#pause'),'main')}else cv.focus();return}
+  $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pLobby').hidden=!game.screen;$('#pMenu').textContent=game.screen?'Close Big Screen':'Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;if(!fromSetting)saveSettings();refreshOpts()}
-function toMenu(){if(net.role)leaveOnline(true);game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
+function toMenu(){if(net.role)leaveOnline(true);padClose();spick=null;$('#bigLobby').hidden=true;$('#bsPick').hidden=true;game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
