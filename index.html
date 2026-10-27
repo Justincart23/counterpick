@@ -4429,7 +4429,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-09-audit';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-smooth';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4485,7 +4485,7 @@ const setText=(id,t)=>{const el=$(id);if(el)el.textContent=t};
 
 /* ---------- relay fallback: when a direct browser-to-browser link fails, messages go through free public MQTT
    brokers over secure WebSockets (no account needed). The host listens on every broker; the guest uses the first that works. ---------- */
-const RELAY_BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081'];   // fastest first (EMQX ~40 ms, Mosquitto ~80 ms one way)
+const RELAY_BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081'];   // the most reliable first (checked live with scripts/relay-smoke.js); the host listens on all, a guest uses the first that answers
 const relayTopic=(code,leaf)=>`cuued/v1/${code}/${leaf}`;
 // A minimal MQTT 3.1.1 client (QoS 0): connect, subscribe, publish, keepalive. Enough to pass game messages along.
 class MiniMqtt{
@@ -4813,10 +4813,10 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   if(!clear(cx,cy)){if(clear(cx,0))cy=0;else if(clear(0,cy))cx=0;
     else{const ox=p.x,oy=p.y;if(!solidBoxP(a[0],a[1],p.r-1,p.r-1)){initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p)}return}}
   const fvx=cx===ex*part?evx*part:0,fvy=cy===ey*part?evy*part:0;
-  p.x+=cx;p.y+=cy;if(p.lx!=null){p.lx+=cx;p.ly+=cy}p.vx+=fvx;p.vy+=fvy;net.offX=clamp(net.offX-cx,-80,80);net.offY=clamp(net.offY-cy,-80,80);
+  p.x+=cx;p.y+=cy;if(p.lx!=null){p.lx+=cx;p.ly+=cy}p.vx+=fvx;p.vy+=fvy;net.offX=clamp(net.offX-cx,-80,80);net.offY=clamp(net.offY-cy,-150,150);
   net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=cx;h.y+=cy;h.vx+=fvx;h.vy+=fvy}}
 // a snap still glides on screen: the drawn body starts where it was and catches up over a few frames
-function snapGlide(ox,oy,p){net.offX=clamp(net.offX+ox-p.x,-80,80);net.offY=clamp(net.offY+oy-p.y,-80,80)}
+function snapGlide(ox,oy,p){net.offX=clamp(net.offX+ox-p.x,-80,80);net.offY=clamp(net.offY+oy-p.y,-150,150)}   // a jump the two sides timed differently: a taller glide, so it never pops
 function swingPhys(ang,av,len,h){av+=(-(1500/len)*Math.sin(ang)-.35*av)*h;ang=clamp(ang+av*h,-1.1,1.1);if(Math.abs(ang)>=1.1)av*=-.3;return[ang,av]}
 function guestSwings(h){const k=Math.min(1,h*5);
   for(const s of swings){s.pa=s.ang;s.px=s.x;s.py=s.y;
