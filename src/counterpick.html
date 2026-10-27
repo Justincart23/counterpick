@@ -1744,7 +1744,19 @@ function noise(t0,dur,peak,type,f0,f1=f0,q=1,dest=master){const sr=actx.createBu
    claps on 2 and 4, off-beat open hats, a pumping octave bass, a soft pad, and a bright arpeggio lead that comes in for the
    second half of the loop (so it builds, then drops back) ---------- */
 const MUSIC={bpm:126,chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],bass:[45,41,36,43]};   // Am, F, C, G (MIDI notes)
-let musicTimer=0,musicStep=0,musicAt=0;
+let musicTimer=0,musicStep=0,musicAt=0,musicFills=[],musicFill=-1,musicFillAt=-9,musicSplash=false;
+/* now and then a drum fill: the last bar of a four-bar phrase turns into a snare roll or a hi-hat stutter, and a light splash
+   lands on the next downbeat. About one every 40 s (a little more when a fight is hot: a boss, a last life, match point), never two phrases close together */
+function snare(t,v){noise(t,.12,.11*v,'bandpass',1900,1400,.8,musicGain);noise(t,.05,.06*v,'highpass',5200,5200,1,musicGain);tone('triangle',200,150,t,.07,.08*v,musicGain)}
+function hat(t,v,open){noise(t,open?.11:.022,(open?.06:.04)*v,'highpass',open?7000:9200,open?6200:9200,1,musicGain)}
+function musicHot(){if(game.bg||game.state!=='play')return false;if(survOn())return enemies().some(e=>e.boss&&e.alive)||game.lives<=1;return game.target<99&&Math.max(...game.wins)>=game.target-1}
+function drumFill(type,beat,t,s16){const half=s16/2;
+  if(type===0){   // a snare roll that climbs into the next phrase
+    if(beat===8||beat===10)snare(t,.55);if(beat>=12){snare(t,.6+(beat-12)*.12);if(beat>=14)snare(t+half,.5+(beat-14)*.2)}}
+  else if(type===1){   // a hi-hat stutter (thirty-seconds, opening up), then two snare hits
+    if(beat<10){hat(t,.6+beat*.05);hat(t+half,.45+beat*.05)}if(beat===10||beat===11)hat(t,.9,true);if(beat===12||beat===14)snare(t,.85);if(beat===15){snare(t,.6);snare(t+half,.9)}}
+  else{   // a syncopated groove: off-beat snares with ghost hats skittering between
+    if([3,6,11,14].includes(beat))snare(t,beat===14?1:.7);else hat(t,.5);if(beat>=8&&beat%2===1)hat(t+half,.45);if(beat===15)snare(t+half,.8)}}
 const midiHz=m=>440*Math.pow(2,(m-69)/12);
 function musicLevel(){return(!muted&&settings.music)?(game.state==='pick'?.11:.2):0}
 const ARP=[0,1,2,1,0,1,2,3, 0,2,1,2,0,1,2,3];   // which chord tone (3 = the root an octave up) on each sixteenth
@@ -1752,15 +1764,22 @@ function startMusic(){if(!actx||musicTimer)return;musicAt=actx.currentTime+.1;mu
   musicTimer=setInterval(()=>{if(!actx)return;try{musicGain.gain.setTargetAtTime(musicLevel(),actx.currentTime,.4)}catch(e){}
     const sixteenth=60/MUSIC.bpm/4;
     while(musicAt<actx.currentTime+.25){const st=musicStep%128,bar=Math.floor(st/16)%4,half=st>=64,beat=st%16,t=musicAt,ch=MUSIC.chords[bar],root=MUSIC.bass[bar];
+      const ph=Math.floor(musicStep/64),inPh=musicStep%64;
+      if(inPh===0){musicFill=-1;if(ph-musicFillAt>=3&&ph>0&&Math.random()<(musicHot()?.5:.3)){musicFill=Math.floor(Math.random()*3);musicFillAt=ph;musicFills.push(ph)}}
+      const filling=musicFill>=0&&inPh>=48;
       if(musicLevel()>0){
         if(beat===0){for(const n of ch)pad(midiHz(n),t,sixteenth*16)}
+        if(inPh===0&&musicSplash){noise(t,.55,.05,'highpass',5200,3800,.7,musicGain);musicSplash=false}   // the fill lands: a light splash
+        if(filling){drumFill(musicFill,beat,t,sixteenth);if(inPh===63)musicSplash=true}
+        else if(beat===0&&!half&&Math.random()<.12)hat(t+sixteenth*1.5,.7);   // a stray hi-hat now and then, off the grid
         if(beat%2===0)tone('triangle',midiHz(root+(beat%4===2?12:0)),midiHz(root+(beat%4===2?12:0)),t,sixteenth*1.6,beat%4===2?.13:.2,musicGain);   // pumping octave bass
         if(beat%4===0)tone('sine',120,42,t,.15,.36,musicGain);                        // kick, every beat
-        if(beat%8===4){noise(t,.13,.14,'bandpass',1700,1300,.9,musicGain);noise(t+.012,.08,.08,'bandpass',2400,1900,1.2,musicGain)}   // clap
-        if(beat%4===2)noise(t,.09,.07,'highpass',6500,6500,1,musicGain);              // off-beat open hat
+        if(beat%8===4&&!(filling&&musicFill!==1)){noise(t,.13,.14,'bandpass',1700,1300,.9,musicGain);noise(t+.012,.08,.08,'bandpass',2400,1900,1.2,musicGain)}   // clap
+        if(filling&&musicFill!==0){}   // the fill plays its own hats
+        else if(beat%4===2)noise(t,.09,.07,'highpass',6500,6500,1,musicGain);              // off-beat open hat
         else if(beat%2===1)noise(t,.025,.03,'highpass',8500,8500,1,musicGain);        // light closed hats between
         if(half){const k=ARP[beat],n=k===3?ch[0]+12:ch[k];tone('square',midiHz(n+12),midiHz(n+12),t,sixteenth*.9,beat%4===0?.05:.035,musicGain)}   // the lead arpeggio
-        if(st===124||st===126)noise(t,.06,.05,'highpass',3000,9000,1,musicGain)}     // a little riser into the loop
+        if((st===124||st===126)&&!filling)noise(t,.06,.05,'highpass',3000,9000,1,musicGain)}     // a little riser into the loop
       musicAt+=sixteenth;musicStep++}},90)}
 function pad(f,t,dur){for(const d of[-6,6]){const o=actx.createOscillator(),lp=actx.createBiquadFilter(),g=actx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f,t);o.detune.setValueAtTime(d,t);
   lp.type='lowpass';lp.frequency.setValueAtTime(900,t);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.045,t+.4);g.gain.linearRampToValueAtTime(.0001,t+dur);
@@ -4227,7 +4246,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-31-bssurv';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-01-fills';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

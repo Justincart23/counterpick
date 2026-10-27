@@ -47,7 +47,11 @@ class MockAudioContext {
   for (let i = 0; i < 200; i++) { MockAudioContext.now += 0.1; advance(100) }
   const musicNotes = started - beforeMusic;
   if (musicNotes < 50) silent.push('music');
-  console.log(JSON.stringify({ effects: keys.length, musicNotes, silent, invalidParams: problems.length }));
+  // drum fills (snare rolls, hi-hat stutters) come now and then: run four minutes and count them (never two within three phrases)
+  for (let i = 0; i < 2400; i++) { MockAudioContext.now += 0.1; advance(100) }
+  const fills = A.musicFills, phrases = Math.floor(240 / (60 / 126 * 16)), back2back = fills.some((p, i) => i && p - fills[i - 1] < 3);
+  if (fills.length < 3 || fills.length > phrases / 3 || back2back) problems.push(`drum fills: ${fills.length} in ${phrases} phrases (${fills.join(',')})`);
+  console.log(JSON.stringify({ effects: keys.length, musicNotes, fills: A.musicFills.length, silent, invalidParams: problems.length }));
   if (problems.length) console.error(problems.slice(0, 10).join('\n'));
   process.exit(silent.length || problems.length ? 1 : 0);
 })();

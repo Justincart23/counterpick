@@ -102,7 +102,7 @@ If a point drags past 45 seconds, overtime starts. Bullets begin to seek their t
 - **Smooth online play:** the joining player's game runs hanging blocks and moving platforms itself and steers toward the host's, and draws the other fighter a few milliseconds in the past along its true path, so nothing shakes between network updates. `net.js` checks both.
 - **Online 1v1** by room code or invite link, peer-to-peer, with no accounts.
 - **CPU opponent** at three skill levels. It reacts to where you *were* a moment ago, swings its aim at a human speed, crosses gaps, climbs walls and blocks.
-- **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, and effects with a room reverb so impacts boom. Music and volume settings; no audio files.
+- **Original music and sound**, generated live with the Web Audio API: a looping minor-key groove that ducks during card picks, with a surprise drum fill now and then (a snare roll, a hi-hat stutter or an off-beat snare groove at the end of a phrase, landing on a light splash: about one every 40 s, a little more often on a boss, a last life or match point), and effects with a room reverb so impacts boom. Music and volume settings; no audio files.
 - **The sky tells the score:** each match starts at night and moves toward dawn as the leader nears the winning score. The last round is announced as FINAL ROUND.
 - Reduced-motion support: screen shake and flashes are toned down when the OS asks for less motion.
 
