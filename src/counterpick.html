@@ -621,6 +621,9 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   .mlist.tiles .mt.back{min-height:36px;font-size:14px;padding:4px 10px}.mlist.tiles .mt.back .mi{width:22px;height:22px;padding:3px}
 }
 @media (max-width:520px){.mlist.tiles .mt{grid-column:1 / -1}.mlist.tiles .mt.small{grid-column:span 2}}
+/* a smaller, secondary row (Join with a code under the two ways to host) */
+.mlist.tiles .mt.mt.sub{grid-column:1 / -1;min-height:46px!important;padding:6px 14px!important;justify-content:center;grid-template-columns:auto auto;font-size:16px!important;border-style:dashed;border-color:color-mix(in srgb,var(--tc) 45%,transparent);background:rgba(255,255,255,.03);box-shadow:none}
+.mlist.tiles .mt.sub .mi{grid-row:auto;width:30px;height:30px;padding:5px;border-radius:9px}.mlist.tiles .mt.sub .mt-t{grid-row:auto!important;align-self:center}
 /* ---- Sandbox and Customize: one look with the menu tiles. Rounded panels, the same tabs, tiles that lift and light up ---- */
 .sb-panel,.ward{border-radius:20px;border:2px solid rgba(255,255,255,.1);background:rgba(22,13,33,.97);box-shadow:0 20px 60px rgba(0,0,0,.45)}
 .sb-tabs button,.sb-filter button,.ward-tabs button,.ward-side button{font-family:var(--display);font-weight:400;font-size:17px;letter-spacing:.03em;border-radius:12px;border:2px solid rgba(255,255,255,.1);
@@ -1045,9 +1048,9 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <div data-sub="online" hidden>
       <div class="lbl sublbl"><span id="onlineLbl">Duel a friend</span> · where is everyone?</div>
       <nav class="mlist tiles" aria-label="Where to play">
-        <button type="button" class="mt" data-act="host" data-ic="host" data-hint="Everyone plays on their own phone or computer, from anywhere. You get a 4-letter code and a link to send." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Own screens</span><span class="mt-d">Host online: friends join from anywhere</span></button>
-        <button type="button" class="mt" data-act="bigscreen" data-ic="bigscreenMenu" id="mpBig" data-hint="This computer is the screen everyone watches (a laptop or a TV). Friends scan the code and their phones become controllers." style="--i:1;--tc:#ffb547"><span class="mt-t">One big screen</span><span class="mt-d">This screen is the TV; phones are the controllers</span></button>
-        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Type the code your friend sent you, or the code on the big screen." style="--i:2;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Type the code your friend sent</span></button>
+        <button type="button" class="mt big" data-act="host" data-ic="host" data-hint="Everyone plays on their own phone or computer, from anywhere. You get a 4-letter code and a link to send." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Own screens</span><span class="mt-d">Host online: friends join from anywhere</span></button>
+        <button type="button" class="mt big" data-act="bigscreen" data-ic="bigscreenMenu" id="mpBig" data-hint="This computer is the screen everyone watches (a laptop or a TV). Friends scan the code and their phones become controllers." style="--i:1;--tc:#ffb547"><span class="mt-t">One big screen</span><span class="mt-d">This screen is the TV; phones are the controllers</span></button>
+        <button type="button" class="mt sub" data-act="join" data-ic="join" data-hint="Type the code your friend sent you, or the code on the big screen." style="--i:2;--tc:#3d8bff"><span class="mt-t">Got a code? Join a game</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:3"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">Everyone plays on their own phone or computer, from anywhere. You get a 4-letter code and a link to send.</p>
@@ -4383,7 +4386,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-06-hats';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-07-mp';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
