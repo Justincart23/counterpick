@@ -11,7 +11,7 @@ const EXPOSE = `game, MAPS, CARDS, ART, BOUNDS, newPoint, update, startMatch, sp
   loadMap, resetPlayer, recompute, clearShot, aimSolutionAt, BOSSES, startSurvival, survNext, survBuy, survReroll, survBossFor, survSell, survLock, survRound, CHARS, beginPick, DROPS, dropTick, get drops() { return drops }, set drops(v) { drops = v }, die, damage, matchProgress, newPoint, chipAt, dealHand, shotSound, BASE, doBlock, render, sandbox, applySandbox, shieldsLen: () => shields.length, wallet, awardMatch, lockPick, lockUnlock, openLocker, get lockK() { return lockK }, set lockK(v) { lockK = v }, cleanCos, COS, showEnd, updateSwings, get swings() { return swings }, get rides() { return rides }, CRATE_HITS, CRATE_PUSH, get tpick() { return tpick }, pickNow, aimPath, FIXED, lockGo, cleanCos, applyShade, partyStart, partyTeam,
   net, hostGame, joinGame, leaveOnline, setName, choose, netChoose, requestRematch, MiniMqtt, RelayConn, RELAY_BROKERS,
   get players() { return players }, get bullets() { return bullets }, get solids() { return solids },
-  get spick() { return spick }, ctl, padSend, openBigScreen, closeBigScreen, bsStart, bsToLobby, restartHosted, screenChoose, padPick, padStatus, get bsJoinN() { return bsJoinN },
+  get spick() { return spick }, ctl, padSend, padShopOp, heroes, enemies, openBigScreen, closeBigScreen, bsStart, bsToLobby, restartHosted, screenChoose, padPick, padStatus, get bsJoinN() { return bsJoinN },
   get rigs() { return rigs }, get lifts() { return lifts }, rigSnap, rigApply, guestRigs, updateRigs, hitNode, breakNode, nodePos,
   get hand() { return hand }, get pickFor() { return pickFor }, get pickMode() { return pickMode }, get pickLock() { return pickLock }`;
 

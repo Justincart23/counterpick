@@ -693,6 +693,8 @@ body.touch .desk-only{display:none!important}
 .bs-seats li{display:flex;justify-content:space-between;gap:8px}
 .bs-seats .ping{font:700 12px var(--mono);align-self:center;color:var(--muted)}.bs-seats .ping.good{color:var(--good)}.bs-seats .ping.ok{color:#ffd36b}.bs-seats .ping.bad{color:var(--bad)}
 #bigLobby{background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.86)}
+.bs-survnote{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+#bigLobby.surv .bs-opt:not([data-opt=bsMode]),#bigLobby.surv .menu-hint{display:none}
 .bs-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(560px,100%)}
 .bs-opt{display:grid;gap:3px;text-align:left;padding:7px 10px 8px 12px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--line);color:var(--text);cursor:pointer;font:inherit;transition:border-color .12s,background .12s;min-width:0}
 .bs-opt:hover,.bs-opt:focus{border-color:var(--hot);background:rgba(48,31,68,.96);outline:none}
@@ -774,6 +776,8 @@ body.touch .desk-only{display:none!important}
 /* ---- a phone held upright: the menus are built for it (one column, big tiles, thumbs at the bottom); a match asks you to turn sideways ---- */
 @media (orientation:portrait) and (max-width:760px){
   .menu-foot{display:none}
+  .menu-screen{background:linear-gradient(180deg,rgba(14,8,22,.55),rgba(14,8,22,.35) 45%,rgba(14,8,22,.6))}   /* the arena fills the screen behind, evenly dimmed */
+  .menu-wrap{margin:auto}
   .mlist.tiles{gap:10px}
   .mlist.tiles .mt.small{grid-column:span 2;min-height:92px;padding:12px 6px;grid-template-columns:1fr;grid-template-rows:auto auto;justify-items:center;text-align:center;row-gap:8px;font-size:15px}
   .mlist.tiles .mt.small .mi{grid-row:1;width:42px;height:42px;padding:9px}
@@ -872,6 +876,30 @@ body.touch .desk-only{display:none!important}
 #a2hs.ios .a2-acts{grid-template-columns:1fr}#a2hs.ios .a2-acts [data-a2="later"]{display:none}
 .a2-btn i{font-style:normal;font-weight:900;color:var(--orange);margin-right:2px}
 @media (max-height:520px){.a2-card{width:min(560px,100%);grid-template-columns:auto 1fr;text-align:left;justify-items:start;column-gap:18px;padding:14px 16px}.a2-home{grid-row:1 / span 4;align-self:center;transform:scale(.8)}.a2-card h3{font-size:21px}.a2-acts{grid-column:2}}
+/* the phone's shop in a Big Screen run */
+@media (orientation:portrait){#pad .pad-score{display:none}}   /* upright, the sheet says it all (and a fight turns the phone sideways) */
+#padShop{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto;padding-left:0;padding-right:0;overflow:hidden;gap:6px}
+#padShop>*:not(.pad-cards){padding-left:16px;padding-right:16px;box-sizing:border-box;width:100%}
+.psh-top{display:flex;align-items:center;justify-content:center;gap:12px}
+#padShop .scrapchip{font:400 20px var(--display);color:#ffd36b;background:rgba(255,211,107,.12);border:2px solid rgba(255,211,107,.4);border-radius:12px;padding:3px 12px}
+.pcard.shopc{grid-template-rows:minmax(56px,30%) auto auto auto minmax(0,1fr) auto}
+.pc-buy{display:flex;align-items:center;gap:8px;padding:0 12px 12px}
+.pc-price{flex:1;text-align:center;font:400 18px var(--display);letter-spacing:.02em;background:var(--orange);color:#1a0e05;border-radius:10px;padding:7px 8px;box-shadow:0 3px 0 #a5520f}
+.pc-price.poor{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:none}
+.pc-lock{font:400 15px var(--display);color:var(--muted);border:2px solid rgba(255,255,255,.18);border-radius:10px;padding:5px 10px}
+.pcard.locked .pc-lock{color:#ffd36b;border-color:#ffd36b}
+.pcard.sold{opacity:.4}.pcard.sold .pc-price{background:rgba(155,225,93,.2);color:var(--good);box-shadow:none}
+.psh-build{display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:none;min-height:32px}.psh-build::-webkit-scrollbar{display:none}
+.psh-build .lbl{margin:0 4px 0 0;white-space:nowrap}.psh-build .chip{white-space:nowrap;font:700 13px var(--body);color:var(--text);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 9px}
+.psh-build .chip.sell{border-color:var(--bad);color:#ff8a80;background:rgba(255,90,79,.12)}.psh-none{color:var(--muted);font-size:13px}
+.psh-msg{margin:0;font:600 13px/1.35 var(--body);color:var(--muted);text-align:center;min-height:1.35em}
+.psh-acts{display:grid;grid-template-columns:1fr 2fr;gap:8px;padding-bottom:4px}
+.psh-acts .btn{font:400 18px var(--display);letter-spacing:.03em;padding:9px 10px;border-radius:12px}
+.psh-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
+.psh-acts .btn[disabled]{opacity:.55}
+#padShop.ready .pad-cards,#padShop.ready .psh-build{opacity:.45;pointer-events:none}
+@media (orientation:landscape) and (max-height:560px){#padShop{gap:3px;padding-top:4px;grid-template-rows:auto minmax(0,1fr) auto auto auto}#padShop .pad-p,#padShop .pad-dots{display:none}#padShop .pad-h{font-size:22px}
+  #padShop .pcard .ds,#padShop .pcard .meta{display:none}#padShop .pcard.shopc{grid-template-rows:minmax(30px,1fr) auto auto auto auto auto}#padShop .pcard .nm{font-size:19px;padding-top:4px}#padShop .pcard ul{font-size:12.5px;line-height:1.3;padding:3px 12px 5px}.pc-buy{padding:0 10px 8px}.pc-price{font-size:15px;padding:5px 6px}.pc-lock{font-size:13px;padding:3px 8px}.psh-msg{font-size:12px}.psh-acts .btn{font-size:15px;padding:6px 8px}}
 /* the Big Screen draft on a phone: full-size cards in a row you swipe through (one in the middle, its neighbours peeking in); tap one to pick it */
 #padPick{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto;padding-left:0;padding-right:0;overflow:hidden}
 #padPick .pad-h,#padPick .pad-p{padding:0 16px}
@@ -956,7 +984,7 @@ body.touch .desk-only{display:none!important}
       <nav class="mlist tiles" aria-label="Multiplayer">
         <button type="button" class="mt" data-act="online" data-ic="online" data-hint="One-on-one against a friend: online from anywhere, or on one big screen with phones as controllers." style="--i:0;--tc:#3d8bff"><span class="mt-t">Duel a friend</span><span class="mt-d">One-on-one, online or on one big screen</span></button>
         <button type="button" class="mt" data-act="partyOnline" data-ic="partyOnline" data-hint="Two against two, online or on one big screen. CPUs fill any empty seats." style="--i:1;--tc:#7c5cf0"><span class="mt-t">Party · 2v2</span><span class="mt-d">Two against two; CPUs fill empty seats</span></button>
-        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up in Survival: waves, bosses, big arenas. Online with a friend, or up to four on one big screen with phones as controllers. Revive each other; everyone shops for their own build." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves, online or on one big screen</span></button>
         <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:3;--tc:#ffb547"><span class="mt-t">Join with a code</span><span class="mt-d">A friend's room, or the code on a big screen</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
@@ -1252,7 +1280,7 @@ body.touch .desk-only{display:none!important}
         <p class="lobby-msg" id="bsMsg" role="status">Opening a room…</p>
         <div class="lbl bs-setl">Game settings</div>
         <div class="bs-opts" role="group" aria-label="Big Screen settings">
-          <button type="button" class="bs-opt" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone."><span class="bs-ol">Mode</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Free-for-all</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone. Co-op Survival: everyone on one side against waves and bosses, shopping on their phones between rounds."><span class="bs-ol">Mode</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Free-for-all</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsLen" data-hint="Rounds needed to win the match. Two points win a round."><span class="bs-ol">Rounds to win</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">5</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsCards" data-hint="Who picks a card after each round. Everyone picks one at the start either way."><span class="bs-ol">Card picks</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Round losers</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsBots" data-hint="Computer fighters to add (up to four fighters in all). Playing alone? Add at least one. A friend who joins mid-match takes over a CPU's seat."><span class="bs-ol">CPU players</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">None</span><i data-dir="1" aria-hidden="true">›</i></span></button>
@@ -1262,6 +1290,7 @@ body.touch .desk-only{display:none!important}
           <button type="button" class="bs-opt" data-opt="bsTwist" data-hint="Now and then a point plays with a twist: low gravity, fast bullets, frenzy or glass."><span class="bs-ol">Round twists</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Off</span><i data-dir="1" aria-hidden="true">›</i></span></button>
         </div>
         <p class="menu-hint" aria-live="polite">Free-for-all: every fighter for themselves.</p>
+        <p class="bs-survnote" id="bsSurvNote" hidden>Co-op Survival: 1 to 4 players team up against waves, elites and bosses. Everyone picks a character and shops for cards on their phone between rounds. 3 lives for the team; a teammate who goes down is back in seconds, or at once if someone stands by them.</p>
         <div class="party-acts bs-acts"><button type="button" class="btn go" data-act="bsStart" disabled>Start</button><button type="button" class="btn" data-act="bsCancel">Close</button></div>
       </section>
     </div>
@@ -1308,6 +1337,15 @@ body.touch .desk-only{display:none!important}
     <div class="pad-cards" id="padCards"></div>
     <div class="pad-dots" id="padDots" aria-hidden="true"></div>
     <p class="pad-timer" id="padTimer"></p>
+  </div>
+  <div class="pad-sheet" id="padShop" hidden>
+    <div class="psh-top"><h2 class="pad-h" id="pshT">Shop</h2><span class="scrapchip"><b id="pshScrap">0</b>&nbsp;scrap</span></div>
+    <p class="pad-p" id="pshS"></p>
+    <div class="pad-cards" id="pshCards"></div>
+    <div class="pad-dots" id="pshDots" aria-hidden="true"></div>
+    <div class="psh-build" id="pshBuild"></div>
+    <p class="psh-msg" id="pshMsg" aria-live="polite"></p>
+    <div class="psh-acts"><button type="button" class="btn" data-act="pshReroll" id="pshReroll">Reroll</button><button type="button" class="btn go" data-act="pshNext" id="pshNext">Ready · next round</button></div>
   </div>
   <div class="pad-sheet" id="padOver" hidden>
     <h2 class="pad-h" id="padOverT">Match over</h2>
@@ -1863,7 +1901,7 @@ function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{c
     return p})}
 function startMatch(mode){
   game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.screen=mode==='online-host'&&!!net.screen;game.ffa=game.screen&&!bsTeams();   // Big Screen: Free-for-all, or Teams 2v2
+  game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.ffa=game.screen&&!bsTeams()&&!game.bsSurv;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
   game.coop=!!net.coopLive&&net.connected&&(mode==='survival'||mode==='online-guest');   // Co-op Survival: the host runs it, the guest draws it
@@ -1875,6 +1913,7 @@ function startMatch(mode){
   // a party: two teams of two (offline with CPUs, or online with the host's roster); a Big Screen can also play every one for themselves
   game.party=mode==='party'||!!net.party&&(mode==='online-host'||mode==='online-guest');
   if(game.party)players=partyPlayers(mode);
+  else if(game.bsSurv)players=bsHeroes(net.roster||[]);
   else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
   for(const p of players)if(p.peer){const L=p.peer;L.inQ=[];L.lastQ=-1;L.heldIn=null;L.lagSteps=0}
   game.wins=game.party&&!game.ffa?[0,0]:players.map(()=>0);game.points=game.wins.slice();   // a party scores by team (a free-for-all by fighter)
@@ -1886,9 +1925,10 @@ function startMatch(mode){
   if(mode==='sandbox'){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p);resetPlayer(p,game.map.sp[k])});game.state='ready';game.stT=1.1;cv.focus();
     if(!sandbox.seen){sandbox.seen=true;openSandbox()}return}
   if(mode==='survival'){game.bossOrder=[0,1,2,3,4].sort(()=>Math.random()-.5);
-    for(const p of game.coop?players:[players[0]])Object.assign(p,{team:0,xp:0,lvl:1,ups:[],char:null,scrap:0,starter:null,offers:[],downs:0,downT:0});
+    for(const p of game.coop||game.bsSurv?players:[players[0]])Object.assign(p,{team:0,xp:0,lvl:1,ups:[],char:null,scrap:0,starter:null,offers:[],downs:0,downT:0});
+    game.bsPend=[];if(game.bsSurv){game.state='pick';bsBoard()}
     // every hero (one, or two in co-op, each on their own screen) chooses a character and drafts a first card; then round 1
-    heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
+    heroFlows((p,done)=>{const best=heroLocal(p)?wallet.survBest||0:p.ctrl==='pad'?(p.peer&&p.peer.sb)|0:net.remoteBest||0,next=CHARS.find(c=>best<c.unlock);
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
         ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
   if(game.screen){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else screenPick(players.map(p=>p.id),'Opening draft · everyone picks a card',go)}
@@ -1916,15 +1956,15 @@ function buildRides(){const old=rides,oldR=rigs;buildRigs();
 function newPoint(fresh){
   let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
-  else if(game.screen&&settings.bsMap!=='all'&&MAPS.some(m=>m.party&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.party&&m.name===settings.bsMap);
+  else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.party&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.party&&m.name===settings.bsMap);
   else if(game.party&&(players.length>2||game.screen))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
   else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].party&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&!MAPS[k].party&&k!==game.mapIdx));
   else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
-  if(game.screen){game.twist=settings.bsTwist&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
-  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  if(game.screen){if(!game.bsSurv)game.twist=settings.bsTwist&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
+  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -2378,26 +2418,33 @@ function makeElite(p,n){p.name='Elite '+p.name;p.color='#e6b53c';p.glow='#ffe39a
    at once if their partner stands beside them for 2 s; both down at once costs a life ---------- */
 const survOn=()=>game.mode==='survival'||game.coop&&game.mode==='online-guest';
 const myHero=()=>game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse'&&p.team===0)||heroes()[0]||players[0];
-const heroLocal=p=>p.ctrl!=='net';
+const padHero=p=>!!game.bsSurv&&p.team===0,heroLocal=p=>p.ctrl!=='net'&&!padHero(p);   // a hero on this screen (not a co-op guest, not a Big Screen phone's)
 const hostingNet=()=>net.role==='host'&&net.connected&&(game.mode==='online-host'||game.coop&&game.mode==='survival');
 // cards travel as numbers; characters and power-ups as 'h3' / 'u5'
 const cardCode=c=>c.char?'h'+CHARS.indexOf(c):c.up?'u'+UPGRADES.indexOf(c):c.id;
 const decodeCard=x=>typeof x==='number'?CARDS[x]:typeof x==='string'?(x[0]==='h'?CHARS:x[0]==='u'?UPGRADES:[])[+x.slice(1)]:null;
 function heroFlows(run,then){const hs=heroes();let left=hs.length;const tk=game.token;
   for(const p of hs){let fin=false;run(p,()=>{if(fin||tk!==game.token)return;fin=true;
-    if(--left<=0){game.waitMsg='';if(game.coop)netSend({t:'wait',msg:''});then();return}
-    if(heroLocal(p))game.waitMsg=`Waiting for ${(hs.find(q=>q!==p)||{}).name||'your partner'}…`;
+    if(--left<=0){game.waitMsg='';if(game.coop)netSend({t:'wait',msg:''});if(game.bsSurv)netSend({t:'pdone'});then();return}
+    if(padHero(p))bsBoard();
+    else if(heroLocal(p))game.waitMsg=`Waiting for ${(hs.find(q=>q!==p)||{}).name||'your partner'}…`;
     else{netSend({t:'pickEnd'});netSend({t:'wait',msg:`Waiting for ${(hs.find(q=>q!==p)||{}).name||'your partner'}…`})}})}}
 function heroPick(p,hand,sub,title,done){
   if(heroLocal(p)){p.nextHand=hand;beginPick([p.id],sub,done);if(title)$('#pickTitle').textContent=title;return}
-  p.rpick={hand,done};netSend({t:'pick',pid:p.id,hand:hand.map(cardCode),sub,ti:title||''})}
+  p.rpick={hand,done};
+  if(padHero(p)){if(p.peer&&!p.left)linkSend(p.peer,{t:'phand',hand:hand.map(cardCode),sub,ti:title||'',secs:0,sv:1});else{const tk=game.token;setTimeout(()=>{if(tk===game.token)coopChoose(0,p)},300)}bsBoard();return}   // a Big Screen phone picks on its own screen (one who left gets the first)
+  netSend({t:'pick',pid:p.id,hand:hand.map(cardCode),sub,ti:title||''})}
 // the co-op guest picked card i of the hand the host sent it
-function coopChoose(i){const p=players[1],r=p&&p.rpick;if(!r||!r.hand[i])return;p.rpick=null;const c=r.hand[i],tk=game.token;
+function coopChoose(i,p=players[1]){const r=p&&p.rpick;if(!r||!r.hand[i])return;p.rpick=null;const c=r.hand[i],tk=game.token;p.picked=c;bsBoard();
   setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));r.done()},450)}   // (its card flies off on its screen first)
-function coopShopOp(m){const p=players[1];if(!p)return;const i=m.i|0;
+function coopShopOp(m,p=players[1]){if(!p)return;const i=m.i|0;
   if(m.op==='buy')survBuy(i,p);else if(m.op==='lock')survLock(i,p);else if(m.op==='reroll')survReroll(p);else if(m.op==='sell')survSell(i,p);
   else if(m.op==='next'&&p.shopDone){const d=p.shopDone;p.shopDone=null;d()}}
-function sendShop(p,msg,full){netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,pn:p.payNote||"",nx:p.nxName||'',msg:msg||'',full:full?1:0})}
+function sendShop(p,msg,full){
+  if(padHero(p)){if(!p.peer||p.left){if(p.shopDone){const d=p.shopDone,tk=game.token;p.shopDone=null;setTimeout(()=>{if(tk===game.token)d()},200)}}   // a phone that left: done shopping
+    else linkSend(p.peer,{t:'pshop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,pn:p.payNote||'',nx:p.nxName||'',msg:msg||'',full:full?1:0,
+      b:p.cards.map(c=>[cardCode(c),Math.floor(cardPrice(c)/2)]),rd:game.round,lv:game.lives});bsBoard();return}
+  netSend({t:'shop',o:(p.offers||[]).map(o=>[cardCode(o.c),o.price,o.sold?1:0,o.locked?1:0]),sc:p.scrap|0,rr:p.reroll|0,pay:p.lastPay|0,pn:p.payNote||"",nx:p.nxName||'',msg:msg||'',full:full?1:0})}
 function guestShop(m){const me=players[net.me];if(!me)return;game.waitMsg='';
   me.offers=(m.o||[]).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c);me.scrap=m.sc|0;me.reroll=m.rr|0;me.lastPay=m.pay|0;me.payNote=m.pn||"";me.nxName=String(m.nx||'');me.shopDone=true;
   if(m.full||$('#pick').hidden||pickMode!=='shop')showSurvShop(me);else{decorateShop();renderShopBar(String(m.msg||'').replace(/[<>]/g,c=>c==='<'?'&lt;':'&gt;').replace(/&lt;(\/?)b&gt;/g,'<$1b>'))}}
@@ -2419,8 +2466,8 @@ function coopState(v){game.round=v.r|0;game.rkind=v.rk||'';game.lives=v.l|0;game
   for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[net.me]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
   for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
 const REVIVE_T=2,REVIVE_R=110;
-function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.alive||!(p.downT>0))continue;
-  const mate=heroes().find(q=>q!==p&&q.alive);p.downT-=h;
+function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.alive||!(p.downT>0)||p.left)continue;
+  const near=heroes().filter(q=>q!==p&&q.alive),mate=near.sort((a,b)=>Math.hypot(a.x-p.downX,a.y-p.downY)-Math.hypot(b.x-p.downX,b.y-p.downY))[0];p.downT-=h;
   if(mate&&Math.hypot(mate.x-p.downX,mate.y-p.downY)<REVIVE_R)p.reviveT=(p.reviveT||0)+h;else p.reviveT=Math.max(0,(p.reviveT||0)-h*.5);
   if(p.reviveT>=REVIVE_T||p.downT<=0){const rev=p.reviveT>=REVIVE_T,spot=rev&&!solidBoxP(p.downX,p.downY-10,p.r,p.r)?[p.downX,p.downY-10]:spawnFor(p,p.id);
     resetPlayer(p,spot);if(rev)p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}}}
@@ -2438,16 +2485,17 @@ const survKind=n=>survBossFor(n)?'boss':n%5===2&&n>=7?'swarm':n%5===3&&n>=8?'twi
 const KIND_N={swarm:'SWARM',elite:'ELITE'};
 function survRound(n){game.round=n;const B=survBossFor(n),kind=survKind(n);game.rkind=kind;
   game.twist=kind==='twist'?pick(TWISTS):null;
-  const hs=heroes(),base=survWave(n)+(hs.length>1&&n>=4?1:0),   // co-op: one more enemy from round 4
-    count=B?(n>=15?2:1):kind==='swarm'?Math.min(6,base+1):kind==='elite'?Math.max(1,base-1):Math.min(5,base);   // a swarm: one more, all weaker; an elite: one fewer, led by a strong one
+  const hs=heroes();if(game.bsSurv)bsSurvJoins(hs);$('#bsPick').hidden=true;
+  const nh=Math.max(1,hs.filter(h=>!h.left).length),base=survWave(n)+(nh>1&&n>=4?nh-1:0),   // co-op: one more enemy per extra hero from round 4
+    count=B?(n>=15?2:1)+(nh>=3&&n>=10?1:0):kind==='swarm'?Math.min(5+nh,base+1):kind==='elite'?Math.max(1,base-1):Math.min(4+nh,base);   // a swarm: one more, all weaker; an elite: one fewer, led by a strong one
   const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
-  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:count);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)}if(hs.length>1)e.hpMul*=e.boss?1.75:1.3;recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
+  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:count);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)}if(nh>1)e.hpMul*=e.boss?1+.75*(nh-1):1+.3*(nh-1)/(nh>2?1.4:1);recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
   for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0;h.roundKills=0}game.waitMsg='';
   game.diff=n<=3?'easy':n<=12?'normal':'hard';   /* the CPU's aim and dodging step up after round 12, not on top of round 10's bigger waves and rares */for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?(bossTier(n)?`${B.n.toUpperCase()} · TIER ${bossTier(n)+1}`:B.n.toUpperCase()):game.twist?`ROUND ${n} · ${game.twist.n}`:KIND_N[kind]?`ROUND ${n} · ${KIND_N[kind]}`:`ROUND ${n}`;game.bannerT=2;
-  if(n<=1)game.newBest=false;{const best=wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
+  if(n<=1)game.newBest=false;{const best=game.bsSurv?Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0)):wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
   p.stunT=(p.stunT||0)-h;
@@ -2543,7 +2591,7 @@ function survResolve(){const hs=heroes();
     // every hero shops (in co-op both at once, each on their own screen); then the next round
     heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
   game.lives--;if(game.lives<=0){survEnd();return}
-  buildRides();for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0}
+  buildRides();for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0;if(h.left){h.alive=false;h.x=-9999}}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
   bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
 // XP from damage you deal; each level waits for the end of the round
@@ -2605,12 +2653,12 @@ function survSell(i,p=myHero()){if(guestShopOp('sell',i))return;const c=p.cards[
 function closeShopUi(){$('#pick').hidden=true;$('#pick').classList.toggle('shopmode',false);$('#pickShop').hidden=true;pickFor=null}
 // "next round" on this screen: this hero is done shopping (the round starts when every hero is)
 function survNext(){const me=myHero();if(guestShopOp('next')){closeShopUi();sfx('go',true);return}if(!me||!me.shopDone)return;closeShopUi();sfx('go',true);const d=me.shopDone;me.shopDone=null;d();cv.focus()}
-function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});survRound(game.round+1);cv.focus()}
+function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});if(game.bsSurv)netSend({t:'pdone'});survRound(game.round+1);cv.focus()}
 {const bar=$('#pickShop');bar.addEventListener('click',e=>{const t=e.target;let b;initAudio();
   if((b=t.closest('[data-sell]'))){survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
-function survEnd(){if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
+function survEnd(){if(game.bsSurv){bsSurvEnd();return}if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
   const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
   if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
@@ -2623,7 +2671,7 @@ function survEnd(){if(game.coop&&net.role==='host')netSend({t:'cend',n:game.clea
   const again=$('#end [data-act=again]');if(again)again.textContent='New run';
   $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
 // the boss's bar across the top (or the whole wave's), the round, your lives, scrap, level and XP
-function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=myHero();if(!me)return;const ty=22+Math.round(44/(view.cs||1)),bw=640,x=VW/2-bw/2,y=ty+18;   // the pause button sits at the top centre: go below it
+function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=myHero();if(!me)return;if(game.bsSurv){drawScreenSurvHud(es,boss);return}const ty=22+Math.round(44/(view.cs||1)),bw=640,x=VW/2-bw/2,y=ty+18;   // the pause button sits at the top centre: go below it
   let f=0,col=C.text,label=`ROUND ${game.round}`;
   if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
   else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
@@ -4056,6 +4104,10 @@ const cam={x:0,y:0,z:1,t:0};
 function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
   // a phone wider than 16:9 shows a standard arena with bars at the sides: zoom in up to 20% to fill it, following you
   const fillZ=touch.on&&!thumbRoom&&!big&&!game.bg?clamp((VW+2*ex0)/VW,1,1.2):1;
+  // behind the menus on a tall screen (a phone held upright): zoom in until the arena fills it top to bottom, following the fight
+  if(game.bg&&!big&&view.coy>4){const z=Math.min(6.5,(2*view.coy+VH*view.cs)/(VH*view.cs)),ex=view.cox/view.cs,ey=view.coy/view.cs,vw=VW/z,vh=VH/z,L=players.filter(p=>p.alive&&Number.isFinite(p.x));
+    let fx=W/2,fy=H/2;if(L.length){fx=L.reduce((t,p)=>t+p.x,0)/L.length;fy=L.reduce((t,p)=>t+p.y,0)/L.length}
+    const fit=(f,v,e,M)=>v+2*e/z>=M?(M-v)/2:clamp(f,e/z,M-v-e/z);return{x:fit(fx-vw/2,vw,ex,W),y:fit(fy-vh*.55,vh,ey,H),z}}
   if(!big&&fillZ<=1.001)return{x:0,y:0,z:1};
   // a big arena is shown whole, like a ROUNDS map (zoomed out only as far as the fighters stay readable: less on a phone)
   const z=big?Math.max(Math.min(VW/W,VH/H),touch.on?(thumbRoom?.74:.8):.66):fillZ,   /* the widest arenas pan a little, so a fighter never shrinks to a speck */vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
@@ -4067,7 +4119,7 @@ function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
   const fit=(f,v,e,L)=>v+2*e/z>=L?(L-v)/2:clamp(f,e/z,L-v-e/z);
   return{x:fit(fx-vw/2,vw,ex,W),y:fit(fy-vh*.55,vh,ey,H),z}}
 // how far the screen reaches past the 16:9 view box on each side, in view units
-function scrExtra(){return{ex:thumbRoom?0:Math.max(0,view.ox/view.s),ey:Math.max(0,view.oy/view.s)}}
+function scrExtra(){return{ex:thumbRoom&&!game.bg?0:Math.max(0,view.ox/view.s),ey:Math.max(0,view.oy/view.s)}}
 function camSnap(){const g=camGoal();cam.x=g.x;cam.y=g.y;cam.z=g.z;cam.t=performance.now()}
 function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1);cam.t=now;const g=camGoal(),k=1-Math.exp(-dt*(RM?12:6));
   cam.z+=(g.z-cam.z)*k;cam.x+=(g.x-cam.x)*k;cam.y+=(g.y-cam.y)*k;
@@ -4182,7 +4234,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-30-port';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-31-bssurv';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4388,7 +4440,8 @@ function hostNet(m,pr){
   if(m.t==='bye'){peerGone(pr,`${pr.name||'A player'} left the match.`);return}
   if(m.t==='team'){if(net.screen)bsTeam(pr,m.k|0);else partyTeam(pr,m.k|0);return}
   if(m.t==='c'){if(!pr.pad)return;pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!Number.isFinite(m.a))m.a=0;if(!pr.padIn||!(m.s<=pr.padIn.s))pr.padIn=m;return}   // unordered: an older packet is ignored
-  if(m.t==='ppick'){const p=players.find(q=>q.peer===pr);if(p&&spick)screenChoose(p.id,m.i|0);return}
+  if(m.t==='ppick'){const p=players.find(q=>q.peer===pr);if(p&&game.bsSurv){if(p.rpick)coopChoose(m.i|0,p);return}if(p&&spick)screenChoose(p.id,m.i|0);return}
+  if(m.t==='psop'){const p=players.find(q=>q.peer===pr);if(p&&game.bsSurv&&p.team===0)coopShopOp(m,p);return}
   if(m.t==='tchoose'){const T=tpick,i=m.i|0,g=i>=3?1:0;if(T&&players[T.ids[g]]&&players[T.ids[g]].peer===pr)teamChoose(g,i);return}
   if(m.t==='i'){pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!pr.remote||!(m.s<pr.remote.s))pr.remote=m;
     if(Array.isArray(m.st))for(const q of m.st)if(q[0]>pr.lastQ){pr.inQ.push(q);pr.lastQ=q[0]}}
@@ -4396,7 +4449,7 @@ function hostNet(m,pr){
   else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
   else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop))restartHosted()}
   else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0));if(net.screen&&net.lobbyOpen)bsLobbyChanged()}}
-function restartHosted(){if(net.screen){const L=net.roster.filter(e=>!e.peer||net.peers.includes(e.peer));if(L.some(e=>e.peer)&&L.length>=2)bsBegin(L);else bsToLobby('Not enough players for a rematch. Scan the code to join.');return}if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
+function restartHosted(){if(net.screen){const L=net.roster.filter(e=>!e.peer||net.peers.includes(e.peer)).filter(e=>!game.bsSurv||e.peer&&net.peers.includes(e.peer));if(L.some(e=>e.peer)&&L.length>=(game.bsSurv?1:2))bsBegin(L);else bsToLobby('Not enough players for a rematch. Scan the code to join.');return}if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
 /* ---------- a party room: 2v2. Everyone in the room (the host too) picks Team Orange or Team Blue, two to a team; a friend
    who joins lands on the team with fewer players; CPUs fill any empty seat at the start. Fighters 1 and 3 are Team Orange
    (orange, gold), 2 and 4 Team Blue (blue, teal) ---------- */
@@ -4690,7 +4743,7 @@ function guestSend(){const me=players[net.me];if(!me||!net.connected)return;
    shows your health, the score and your card picks; you watch your fighter on the big screen. The host runs the match like
    a party, Free-for-all or Teams 2v2, and applies each phone's newest input the moment it arrives (no buffer, no replay) ---------- */
 const BS_COL=()=>[[C.orange,C.oGlow,'Orange'],[C.blue,C.bGlow,'Blue'],['#3fd170','#bff7d0','Green'],['#ff5fae','#ffc9e3','Pink']];
-const bsTeams=()=>settings.bsMode==='teams';
+const bsTeams=()=>settings.bsMode==='teams',bsSurvMode=()=>settings.bsMode==='surv';
 const bsSeatCol=(k,teams)=>(teams?PCOL():BS_COL())[k%4];
 const buzz=p=>{try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}};
 let bsJoinN=0,spick=null,bspRaf=0,qrLib=null;
@@ -4721,7 +4774,7 @@ function bsSeats(fill){const ps=net.peers.filter(p=>p.open&&p.name&&p.pad).sort(
   if(!fill)return list;
   return bsFill(list).filter(Boolean)}
 // the CPU players the host asked for, in empty seats (never more than four fighters); Teams: on the side with fewer players
-function bsFill(list){list=list.slice();const teams=bsTeams();let n=Math.min(settings.bsBots|0,list.filter(e=>!e).length);
+function bsFill(list){list=list.slice();const teams=bsTeams();let n=bsSurvMode()?0:Math.min(settings.bsBots|0,list.filter(e=>!e).length);   // Co-op Survival: the CPUs are the enemy
   while(n-->0){const side=t=>list.filter((e,k)=>e&&k%2===t).length,free=list.map((e,k)=>e?-1:k).filter(k=>k>=0);
     const k=teams?free.sort((a,b)=>side(a%2)-side(b%2)||a-b)[0]:free[0];list[k]={cpu:1,n:'CPU',team:teams?k%2:k,seat:k}}
   return list}
@@ -4732,26 +4785,28 @@ function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)r
       if(!e&&shown[k]){li.className='cpu';li.style.setProperty('--pc',c[0]);li.textContent=`${BOTN[k]} · CPU`}
       else if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.n;const r=e.peer.rtt||0,q=document.createElement('span');q.className='ping'+(!r?'':r<60?' good':r<130?' ok':' bad');q.textContent=r?Math.round(r)+' ms':'…';li.appendChild(q)}
       else{li.className='open';li.textContent='Open seat'}el.appendChild(li)}}
-  const ok=hum>=1&&hum+bots>=2,st=$('[data-act=bsStart]');if(st)st.disabled=!ok;
-  bsMsg(msg||(!net.bsOpen?'Opening a room…':!hum?'Scan the code with a phone camera to join. 1 to 4 players.':!ok?'Playing solo? Add a CPU player in the settings, or wait for a friend.':hum+bots<4?`${hum} player${hum>1?'s':''}${bots?` and ${bots} CPU${bots>1?'s':''}`:''} in. Start when you're ready; friends can still join mid-match.`:'Everyone is in. Press Start!'));
+  const sv=bsSurvMode(),ok=hum>=1&&(sv||hum+bots>=2),st=$('[data-act=bsStart]');if(st)st.disabled=!ok;
+  {const lb=$('#bigLobby');if(lb&&lb.classList)lb.classList.toggle('surv',sv);const sn=$('#bsSurvNote');if(sn)sn.hidden=!sv}
+  bsMsg(msg||(!net.bsOpen?'Opening a room…':!hum?'Scan the code with a phone camera to join. 1 to 4 players.':sv?`${hum} player${hum>1?'s':''} in. Start the run when you're ready; friends can still join between rounds.`:!ok?'Playing solo? Add a CPU player in the settings, or wait for a friend.':hum+bots<4?`${hum} player${hum>1?'s':''}${bots?` and ${bots} CPU${bots>1?'s':''}`:''} in. Start when you're ready; friends can still join mid-match.`:'Everyone is in. Press Start!'));
   const key=JSON.stringify([list.map(e=>e&&[e.n,e.peer.joinN,e.team]),settings.bsMode]);
-  if(key!==net.bsKey){net.bsKey=key;list.forEach((e,k)=>{if(e)linkSend(e.peer,{t:'plobby',seat:k,col:bsSeatCol(k,teams)[0],team:teams?e.team:-1,teams:teams?1:0,n:hum})})}}
+  if(key!==net.bsKey){net.bsKey=key;list.forEach((e,k)=>{if(e)linkSend(e.peer,{t:'plobby',seat:k,col:bsSeatCol(k,teams)[0],team:teams?e.team:-1,teams:teams?1:0,n:hum,sv:sv?1:0})})}}
 function bsTeam(pr,t){if(!net.lobbyOpen||!bsTeams()||(t!==0&&t!==1)||pr.team===t)return;if(net.peers.filter(p=>p.pad&&p.open&&p.name&&p.team===t).length>=2)return;pr.team=t;bsLobbyChanged()}
-function bsStart(){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(true);if(!list.some(e=>e.peer)||list.length<2)return;
+function bsStart(){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(true);if(!list.some(e=>e.peer)||list.length<(bsSurvMode()?1:2))return;
   for(const pr of net.peers.slice())if(!list.some(e=>e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr)}
   net.lobbyOpen=false;bsBegin(list)}
 function bsBegin(list){net.roster=list;net.connected=true;net.remoteName='';net.hostId=-1;net.bsKey='';spick=null;$('#bigLobby').hidden=true;$('#end').hidden=true;$('#bsPick').hidden=true;
-  startMatch('online-host');for(const p of players)if(p.peer)bsSendSeat(p)}
-const bsSides=()=>game.ffa?players.map(p=>({n:p.name,c:p.color})):[0,1].map(t=>({n:'Team '+TEAM_N[t],c:PCOL()[t][0]}));
-function bsSendSeat(p){linkSend(p.peer,{t:'pstart',me:p.id,n:p.name,col:p.color,glow:p.glow,team:p.team,teams:game.ffa?0:1,sides:bsSides(),tg:game.target})}
+  startMatch(bsSurvMode()?'survival':'online-host');for(const p of players)if(p.peer)bsSendSeat(p)}
+const bsSides=()=>game.bsSurv?heroes().map(p=>({n:p.name,c:p.color})):game.ffa?players.map(p=>({n:p.name,c:p.color})):[0,1].map(t=>({n:'Team '+TEAM_N[t],c:PCOL()[t][0]}));
+function bsSendSeat(p){linkSend(p.peer,{t:'pstart',me:p.id,n:p.name,col:p.color,glow:p.glow,team:p.team,teams:game.ffa||game.bsSurv?0:1,sides:bsSides(),tg:game.target,sv:game.bsSurv?1:0})}
 // back to the lobby between matches: the phones stay connected, the host changes settings and starts again
 function bsToLobby(msg){if(net.role!=='host'||!net.screen)return;net.lobbyOpen=true;net.bsKey='';spick=null;game.paused=false;
   for(const id of['#bsPick','#end','#pause','#pick'])$(id).hidden=true;startMatch('demo');   // the arena plays itself behind the lobby
   $('#menu').hidden=true;$('#bigLobby').hidden=false;showSub($('#bigLobby'),'main');refreshOpts();bsLobbyChanged(msg)}
 // a phone said hello. In the lobby it takes a seat; mid-match it takes back its own seat (same phone), or a CPU's seat (its
 // cards come along), or a new fighter of its own (in from the next point), or else a seat someone left
-function bsHello(pr,m){pr.pad=true;pr.joinN=++bsJoinN;pr.tok=String(m.tok||'').replace(/[^a-z0-9]/gi,'').slice(0,24);pr.padIn=null;
+function bsHello(pr,m){pr.pad=true;pr.joinN=++bsJoinN;pr.tok=String(m.tok||'').replace(/[^a-z0-9]/gi,'').slice(0,24);pr.padIn=null;pr.sb=Math.max(0,m.sb|0);
   if(net.lobbyOpen){if(!bsSeats(false).some(e=>e&&e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1});dropPeer(pr);return}bsLobbyChanged();return}
+  if(game.bsSurv){bsSurvHello(pr);return}
   const seat=pr.tok&&players.find(p=>p.left&&p.padTok===pr.tok)||players.find(p=>p.ctrl==='cpu')||(players.length<4?bsAddFighter(pr):null)||players.find(p=>p.left&&!p.peer);   // a newcomer takes a CPU's seat, or a new fighter, before a seat whose player may be coming back
   if(!seat){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr);return}
   const back=!!pr.tok&&seat.padTok===pr.tok;
@@ -4769,19 +4824,24 @@ function bsAddFighter(pr){const k=players.length,team=game.ffa?k:[0,1].sort((a,b
   recompute(p);applyShade(p);resetPlayer(p,spawnFor(p,k));p.alive=false;p.x=-9999;players.push(p);
   if(game.ffa){game.wins.push(0);game.points.push(0)}if(net.roster)net.roster.push({n:pr.name,cos:pr.cos,peer:pr,team,seat:k});return p}
 function bsGone(pr){if(net.lobbyOpen){bsLobbyChanged();return}
+  if(game.bsSurv){game.bsPend=(game.bsPend||[]).filter(q=>q!==pr);const p=players.find(q=>q.peer===pr&&q.team===0);
+    if(p){p.peer=null;p.left=true;p.ctrl='idle';p.padAiming=false;if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;
+      if(p.rpick)coopChoose(0,p);if(p.shopDone){const d=p.shopDone;p.shopDone=null;d()}}   // nobody waits on a phone that left
+    game.banner=`${(pr.name||'A player').toUpperCase()} LEFT · SCAN THE CODE TO REJOIN`;game.bannerT=2.2;bsBoard();return}
   const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';p.padAiming=false;if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;bsAutoPick(p.id)}
   game.banner=`${(pr.name||'A player').toUpperCase()} LEFT · SCAN THE CODE TO REJOIN`;game.bannerT=2.2}
 // every frame on the host: pings and lost links in the lobby, and each phone's status (15 a second) during a match
 function bsHostTick(dt){if(net.role!=='host'||!net.screen)return;net.bsPing=(net.bsPing||0)-dt;
   if(net.lobbyOpen&&net.bsPing<=0){net.bsPing=1;netSend({t:'ping',at:performance.now()})}
-  const live=!net.lobbyOpen&&game.mode==='online-host';
+  const live=!net.lobbyOpen&&(game.mode==='online-host'||game.bsSurv);
   for(const pr of net.peers.slice()){if(!pr.open)continue;
     if(live&&pr.pad){pr.psT=(pr.psT||0)-dt;if(pr.psT<=0){pr.psT=Math.max(-.05,pr.psT)+1/15;bsStatus(pr)}}
     if(performance.now()-pr.lastRecv>15000)peerGone(pr,`Lost the connection to ${pr.name||'a player'}.`)}
   if(game.screen)for(const p of players)if(p.findT>0)p.findT=Math.max(0,p.findT-dt)}
 function bsStatus(pr){const p=players.find(q=>q.peer===pr),s=p&&p.s;
   linkSend(pr,{t:'ps',st:game.paused?'paused':game.state,hp:p?Math.max(0,Math.round(p.hp)):0,mh:s?Math.round(s.maxHp):100,al:p&&p.alive?1:0,
-    bk:p&&s?r2(clamp(p.blockCd/s.blockCd,0,1)):0,w:game.wins,pt:game.points,lw:game.lastWinner,rt:Math.round(pr.rtt||0)})}
+    bk:p&&s?r2(clamp(p.blockCd/s.blockCd,0,1)):0,w:game.wins,pt:game.points,lw:game.lastWinner,rt:Math.round(pr.rtt||0),
+    ...(game.bsSurv&&p?{sv:1,rd:game.round|0,lv:game.lives|0,sc:p.scrap|0,lvl:p.lvl|0,dn:p.downT>0?Math.ceil(p.downT):0,rv:r2(p.reviveT||0),late:p.team!==0?1:0}:{})})}
 // a phone's controls on the host: the newest packet wins; presses, shots and taps are running counters, so none is lost
 function padInput(p){const inp=p.input,L=p.peer,r=L&&L.padIn;
   if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
@@ -4827,7 +4887,7 @@ function screenReveal(S){S.revealed=true;bspTimer();const gap=650,tk=game.token;
   setTimeout(()=>{if(spick!==S||tk!==game.token)return;
     for(const id of S.ids){const p=players[id];takeChoice(p,S.hands[id][S.chosen[id]]);recompute(p);resetPlayer(p,spawnFor(p,id));if(p.left){p.alive=false;p.x=-9999}}
     spick=null;$('#bsPick').hidden=true;netSend({t:'pdone'});S.done&&S.done()},400+S.ids.length*gap+1900)}
-function showScreenPick(){const S=spick,row=$('#bspRow');if(!row)return;const all=S.ids.length===players.filter(p=>!p.left).length;
+function showScreenPick(){const S=spick,row=$('#bspRow');if(!row)return;row.dataset.surv='';const all=S.ids.length===players.filter(p=>!p.left).length;
   setText('#bspTitle',all?'Everyone picks':'Draft');setText('#bspSub',`${S.sub} · pick on your phone`);row.innerHTML='';
   for(const id of S.ids){const p=players[id],col=document.createElement('div');col.className='bsp-col';col.dataset.id=id;col.style.setProperty('--pc',p.color);
     col.innerHTML='<canvas class="bsp-face" width="64" height="64" aria-hidden="true"></canvas><b class="bsp-name"></b><div class="bsp-card"><div class="bsp-back"><span class="bsp-st"></span></div><div class="bsp-front"><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><span class="nm"></span><span class="ds"></span></div></div><div class="bsp-deck"></div>';
@@ -4845,6 +4905,75 @@ function bspTimer(){const S=spick;setText('#bspTimer',!S||S.revealed?'':`${Math.
 function bspArt(){cancelAnimationFrame(bspRaf);const t0=performance.now();
   const loop=now=>{if($('#bsPick').hidden)return;for(const c of document.querySelectorAll('#bspRow .flip canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);bspRaf=requestAnimationFrame(loop)};bspRaf=requestAnimationFrame(loop)}
 
+/* ---------- Co-op Survival on a Big Screen: the screen runs the run, every hero is a phone. Each phone picks its character
+   and free card, and shops between rounds, on its own screen while the big screen shows who is still choosing. A friend who
+   joins mid-run comes in at the next round (with about as much as the others); one who leaves is out until they come back ---------- */
+function bsHeroes(list){return list.filter(e=>e&&e.peer).slice(0,4).map((e,k)=>{const p=makePlayer(k,'pad',e.n);const c=bsSeatCol(e.seat??k,false);
+  Object.assign(p,{team:0,color:c[0],glow:c[1],cos:cleanCos(e.cos),peer:e.peer,padTok:e.peer.tok||'',findT:0,hpMul:1});return p})}
+function bsSurvHello(pr){const back=pr.tok&&players.find(p=>p.team===0&&p.left&&p.padTok===pr.tok),seat=back||players.find(p=>p.team===0&&p.left&&!p.peer);
+  if(seat){Object.assign(seat,{peer:pr,padTok:pr.tok,ctrl:'pad',left:false,name:pr.name,cos:cleanCos(pr.cos),padJc:null,padBc:null,padSc:null,padAc:null,padFc:null,padTap:0,findT:2.4});applyShade(seat);
+    if(net.roster){const k=net.roster.findIndex(e=>e&&(e.seat??-1)===seat.id);const e={n:pr.name,cos:pr.cos,peer:pr,team:0,seat:seat.id};if(k>=0)net.roster[k]=e;else net.roster.push(e)}   // a New run keeps them
+    game.banner=`${pr.name.toUpperCase()} ${back?'IS BACK':'TOOK A SEAT'} · IN FROM THE NEXT ROUND`;game.bannerT=2;for(const p of heroes())if(p.peer)bsSendSeat(p);
+    if(game.state==='shop'&&!seat.shopDone)linkSend(pr,{t:'pmsg',msg:'Back in from the next round. Watch the big screen.'});bsBoard();return}
+  const pend=game.bsPend||(game.bsPend=[]);
+  if(heroes().length+pend.length>=4){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr);return}
+  pend.push(pr);const k=heroes().length+pend.length-1;
+  linkSend(pr,{t:'plobby',seat:k,col:bsSeatCol(k,false)[0],team:-1,teams:0,n:k+1,sv:1,late:1});
+  game.banner=`${pr.name.toUpperCase()} JOINED · IN FROM THE NEXT ROUND`;game.bannerT=2}
+// at the start of a round: friends who joined mid-run get a hero, as levelled and built as the hero with the least
+function bsSurvJoins(hs){const pend=(game.bsPend||[]).splice(0).filter(pr=>net.peers.includes(pr)&&pr.open);
+  for(const pr of pend){if(hs.length>=4)break;const k=hs.length,p=makePlayer(k,'pad',pr.name),c=bsSeatCol(k,false),base=hs.filter(h=>!h.left);
+    Object.assign(p,{team:0,color:c[0],glow:c[1],cos:cleanCos(pr.cos),peer:pr,padTok:pr.tok,findT:2.4,hpMul:1,xp:0,lvl:Math.max(1,Math.min(...base.map(h=>h.lvl|0),99)),ups:[],char:null,
+      scrap:Math.min(...base.map(h=>h.scrap|0),20),starter:null,offers:[],downs:0,downT:0});
+    const few=base.length?Math.min(...base.map(h=>h.cards.length)):0;for(let i=0;i<few;i++){const h=dealHand(p);if(h.length)takeChoice(p,h[cpuChoice(p,h)])}
+    recompute(p);applyShade(p);hs.push(p);if(net.roster)net.roster.push({n:pr.name,cos:pr.cos,peer:pr,team:0,seat:k})}
+  if(pend.length)for(const p of hs)if(p.peer)bsSendSeat(p)}
+// the big screen while the phones choose or shop: a column per hero, what they're doing, their build
+function bsBoard(){if(!game.bsSurv)return;const row=$('#bspRow');if(!row)return;const st=game.state;
+  if(st!=='pick'&&st!=='shop'){$('#bsPick').hidden=true;return}
+  const hs=heroes(),busy=hs.filter(p=>!p.left&&(p.rpick||p.shopDone));
+  setText('#bspTitle',st==='shop'?`Round ${game.round} cleared`:'Gear up');
+  setText('#bspSub',st==='shop'?`Shop on your phone · next: ${(survBossFor(game.round+1)||{}).n||`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} left`:'Choose your character and a free card on your phone');
+  setText('#bspTimer',busy.length?`Waiting for ${busy.map(p=>p.name).join(', ')}`:'');
+  const key=hs.map(p=>p.id).join(',');if(row.dataset.surv!==key){row.dataset.surv=key;row.innerHTML='';
+    for(const p of hs){const col=document.createElement('div');col.className='bsp-col';col.dataset.id=p.id;col.style.setProperty('--pc',p.color);
+      col.innerHTML='<canvas class="bsp-face" width="64" height="64" aria-hidden="true"></canvas><b class="bsp-name"></b><div class="bsp-card"><div class="bsp-back"><span class="bsp-st"></span></div></div><div class="bsp-deck"></div>';
+      row.appendChild(col)}}
+  for(const p of hs){const col=bspCol(p.id);if(!col)continue;const q=s=>col.querySelector(s);q('.bsp-name').textContent=`${p.name}${p.lvl>1?` · LV ${p.lvl}`:''}`;
+    try{miniFighter(q('canvas').getContext('2d'),p)}catch(e){}
+    const choosing=!!p.rpick,shopping=!!p.shopDone,done=!choosing&&!shopping;
+    q('.bsp-st').textContent=p.left?'Left the game':choosing?(p.char?'Picking a free card':'Choosing a character'):shopping?`Shopping · ${p.scrap|0} scrap`:st==='shop'?'Ready!':p.picked?`Picked ${p.picked.n}`:'Ready!';
+    col.classList.toggle('done',done&&!p.left);
+    const dk=q('.bsp-deck');dk.innerHTML='';for(const c of[...(p.char?[p.char]:[]),...p.cards.slice(-7)]){const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;dk.appendChild(sp)}}
+  $('#bsPick').hidden=false}
+// the HUD on the big screen: the round, the team's lives, and a line per hero (level, scrap, health)
+function drawScreenSurvHud(es,boss){if(!(game.round>0))return;const ty=22+Math.round(44/(view.cs||1)),bw=640,x=VW/2-bw/2,y=ty+18;
+  let f=0,col=C.text,label=`ROUND ${game.round}`;
+  if(boss){f=clamp(boss.hp/boss.s.maxHp,0,1);col=boss.color;label+=` · ${boss.name.toUpperCase()}`}
+  else{let hp=0,max=0;for(const e of es){max+=e.s.maxHp;if(e.alive)hp+=Math.max(0,e.hp)}f=max?hp/max:0;col=es[0]?es[0].color:C.text;const left=es.filter(e=>e.alive).length;label+=` · ${left} ${left===1?'ENEMY':'ENEMIES'}`}
+  if(game.twist)label+=` · ${game.twist.n}`;else if(!boss&&KIND_N[game.rkind])label+=` · ${KIND_N[game.rkind]}`;
+  ctx.textAlign='center';ctx.font='26px "Lilita One", sans-serif';ctx.fillStyle=col;ctx.fillText(label,VW/2,ty);
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-3,y-3,bw+6,20);ctx.fillStyle=boss&&boss.stunT>0?'#ffd36b':col;ctx.fillRect(x,y,bw*f,14);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(x,y,bw*f,4);
+  if(boss){ctx.fillStyle='rgba(255,255,255,.75)';for(const t of[.66,.33])ctx.fillRect(x+bw*t-1,y-4,2,22)}
+  ctx.textAlign='left';ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.75)';ctx.fillText('TEAM LIVES',20,26);
+  for(let i=0;i<SURV_LIVES;i++){ctx.fillStyle=i<game.lives?'#ff6b8a':'rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(124+i*22,26,8,0,TAU);ctx.fill()}
+  heroes().forEach((p,i)=>{const yy=54+i*40;ctx.font='700 14px "JetBrains Mono", monospace';ctx.fillStyle=p.left?'rgba(241,236,247,.35)':p.color;
+    ctx.fillText(`${p.name.toUpperCase().slice(0,12)} · LV ${p.lvl||1} · ${p.scrap|0} SCRAP`,20,yy);
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(20,yy+9,190,7);ctx.fillStyle=p.alive?C.hp:'#ff5a6a';ctx.fillRect(20,yy+9,190*(p.alive&&p.s?clamp(p.hp/p.s.maxHp,0,1):0),7);
+    if(!p.alive&&p.downT>0&&!p.left){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText(`DOWN · ${Math.ceil(p.downT)} s, or stand by them`,216,yy+14)}})}
+// the run is over on the big screen: how far the team got, the best build, and each phone gets its coins and its record
+function bsSurvEnd(){const n=game.cleared||0,hs=heroes();game.state='over';$('#bsPick').hidden=true;
+  for(const p of hs)if(p.peer)linkSend(p.peer,{t:'send',n,ch:p.char?p.char.n:'',lvl:p.lvl|0});
+  const top=hs.slice().sort((a,b)=>(b.lvl|0)-(a.lvl|0)||b.cards.length-a.cards.length)[0]||players[0],best=Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0));
+  $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=top.color;
+  $('#endScore').textContent=`${hs.map(h=>h.name).join(', ')}. `+(n>best?(best?`A new team best (the best of you had ${best}).`:'Your first run on the board.'):`The best of you has ${best}.`);
+  $('#deckName0').textContent=`${top.name}'s build`;endDeck($('#deck0'),[...(top.char?[top.char]:[]),...top.cards,...(top.ups||[])]);
+  {const el=$('#deck1');el.innerHTML='';const e=enemies().find(q=>q.boss)||enemies()[0];$('#deckName1').textContent=e?`Last enemy: ${e.name}`:'';(e?e.cards:[]).forEach(c=>{const sp=document.createElement('span');sp.className='chip';sp.textContent=c.n;el.appendChild(sp)})}
+  endRibbon(n>best&&n?'New best':n?'Run over':'Knocked out',!(n>best));endShow(top,n>best&&n?'win':'lose');
+  endStats([['Rounds',n],['Players',hs.length],['Top level',top.lvl||1]]);
+  {const el=$('#endCoins');if(el){el.hidden=false;el.className='end-coins';el.innerHTML=n>=2?`<i class="coin" aria-hidden="true"></i> Everyone gets +${Math.floor(n/2)} CUUED coin${n>=4?'s':''} on their phone`:'Reach round 2 to earn CUUED coins.'}}
+  const again=$('#end [data-act=again]');if(again)again.textContent='New run';{const b=$('#endLobby');if(b)b.hidden=false}
+  $('#end').hidden=false;showSub($('#end'),'main');sfx('die',true)}
 /* ---------- the phone in a Big Screen game: a controller. Left half: a move stick wherever your thumb lands; right half:
    the Brawl Stars aim stick (drag to aim, let go to fire, a quick tap auto-fires at the nearest rival); Jump and Block. It sends
    on every touch and at least every frame; the host's status comes back 15 times a second ---------- */
@@ -4854,22 +4983,25 @@ function padTok(){if(ctl.tok)return ctl.tok;let t='';try{t=localStorage.getItem(
 function padOpen(){ctl.on=true;bodyCls('padmode',true);for(const id of['#menu','#end','#pause','#pick'])$(id).hidden=true;$('#pad').hidden=false;ctl.hand=null;ctl.st=null;
   setText('#padLobbyT','Connecting…');setText('#padLobbyS','Watch the big screen. The host starts the game.');$('#padTeams').hidden=true;padView('lobby');padWake(true)}
 function padClose(){if(!ctl.on)return;ctl.on=false;bodyCls('padmode',false);$('#pad').hidden=true;$('#padPick').hidden=true;ctl.hand=null;ctl.move=ctl.aim=null;ctl.view='';padWake(false)}
-function padView(v){ctl.view=v;{const el=$('#pad');if(el&&el.classList)el.classList.toggle('live',v==='live')}$('#padLobby').hidden=v!=='lobby';$('#padOver').hidden=v!=='over';$('#padPick').hidden=!ctl.hand;padMsg()}
+function padView(v){ctl.view=v;{const el=$('#pad');if(el&&el.classList)el.classList.toggle('live',v==='live')}$('#padLobby').hidden=v!=='lobby';$('#padOver').hidden=v!=='over';$('#padPick').hidden=!ctl.hand;$('#padShop').hidden=!ctl.shop||v!=='live';padMsg()}
 function padTint(col){const el=$('#pad');if(el&&col)el.style.setProperty('--pc',col)}
 function padWake(on){try{if(!on){if(ctl.wake&&ctl.wake.release)ctl.wake.release();ctl.wake=null;return}
   if(navigator.wakeLock&&navigator.wakeLock.request)navigator.wakeLock.request('screen').then(w=>{ctl.wake=w},()=>{})}catch(e){}}   // the phone's screen stays on while it's a controller
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctl.on)padWake(true)});
 function padNet(m){
-  if(m.t==='plobby'){padTint(m.col);setText('#padName',myName||'You');setText('#padLobbyT',`You're in! Player ${(m.seat|0)+1}`);
-    setText('#padLobbyS',m.teams?'Pick your team, then watch the big screen. The host starts the game.':'Watch the big screen. The host starts the game.');
+  if(m.t==='plobby'){padTint(m.col);setText('#padName',myName||'You');setText('#padLobbyT',m.late?"You're in!":`You're in! Player ${(m.seat|0)+1}`);ctl.shop=null;
+    setText('#padLobbyS',m.late?'The run is on: you join at the start of the next round. Watch the big screen.':m.sv?'Co-op Survival: you and your friends against waves and bosses. Watch the big screen; the host starts the run.':m.teams?'Pick your team, then watch the big screen. The host starts the game.':'Watch the big screen. The host starts the game.');
     $('#padTeams').hidden=!m.teams;document.querySelectorAll('[data-pteam]').forEach(b=>b.classList.toggle('primary',+b.dataset.pteam===m.team));
     ctl.hand=null;padView('lobby');return true}
-  if(m.t==='pstart'){ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
+  if(m.t==='pstart'){ctl.sv=!!m.sv;if(!m.sv)ctl.shop=null;ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
     padTint(m.col);setText('#padName',cleanName(m.n)||myName||'You');if(ctl.view!=='live'){ctl.awarded=false;ctl.st=null}padView('live');padScore();return true}
   if(m.t==='ps'){padStatus(m);return true}
   if(m.t==='phand'){padHand(m);return true}
   if(m.t==='ppicked'){padPicked(m.i|0);return true}
-  if(m.t==='pdone'){ctl.hand=null;$('#padPick').hidden=true;padMsg();return true}
+  if(m.t==='pdone'){ctl.hand=null;ctl.shop=null;$('#padPick').hidden=true;$('#padShop').hidden=true;padMsg();return true}
+  if(m.t==='pshop'){padShop(m);return true}
+  if(m.t==='pmsg'){ctl.hand=null;ctl.shop=null;$('#padPick').hidden=true;$('#padShop').hidden=true;padView('live');const el=$('#padMsg');if(el){el.textContent=String(m.msg||'').slice(0,100);el.hidden=false}return true}
+  if(m.t==='send'){padSurvOver(m);return true}
   if(m.t==='end'){padOver(m.w|0);return true}
   if(m.t==='ping'){netSend({t:'pong',at:m.at});return true}
   if(m.t==='bye'){netLost('The Big Screen game ended.');return true}
@@ -4882,14 +5014,19 @@ function padStatus(m){const was=ctl.st;ctl.st=m;const hp=clamp((m.hp||0)/(m.mh||
     const mine=t=>(t.pt||[])[ctl.team]|0,won=t=>(t.w||[])[ctl.team]|0;if(won(m)>won(was)||mine(m)>mine(was))buzz([25,45,25])}
   padScore();padMsg()}
 function padScore(){const el=$('#padScore'),m=ctl.st;if(!el)return;el.innerHTML='';
+  if(ctl.sv){if(!m)return;const add=(t,v,c)=>{const sp=document.createElement('span');if(c)sp.style.setProperty('--sc',c);sp.textContent=t+' ';const b=document.createElement('b');b.textContent=v;sp.appendChild(b);el.appendChild(sp)};
+    add('Round',m.rd|0);add('Lives','♥'.repeat(Math.max(0,m.lv|0))||'0','#ff6b8a');add('Scrap',m.sc|0,'#ffd36b');add('LV',m.lvl||1,'#9be15d');return}
   ctl.sides.forEach((s,i)=>{const sp=document.createElement('span');sp.style.setProperty('--sc',s.c);if(i===ctl.team)sp.className='mine';
     const w=m&&m.w?m.w[i]|0:0,half=m&&m.pt&&m.pt[i]?'½':'';sp.textContent=(ctl.sides.length>2?s.n.slice(0,8):s.n)+' ';const n=document.createElement('b');n.textContent=w+half;sp.appendChild(n);el.appendChild(sp)})}
 function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
-  if(ctl.view==='live'&&!ctl.hand&&m){if(m.st==='paused')t='Paused on the big screen';else if(m.st==='pick')t='Cards being picked · watch the big screen';
+  if(ctl.view==='live'&&!ctl.hand&&!ctl.shop&&m&&m.sv){if(m.st==='paused')t='Paused on the big screen';else if(m.late)t='You join at the next round · watch the big screen';
+    else if(m.st==='pick'||m.st==='shop')t='Waiting for the others · watch the big screen';else if(!m.al&&m.dn&&(m.st==='play'||m.st==='pointEnd'))t=m.rv>0?'A teammate is reviving you!':`Down · back in ${m.dn} s, or get a teammate next to you`;
+    else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next life";else if(m.st==='over')t='Run over'}
+  else if(ctl.view==='live'&&!ctl.hand&&m){if(m.st==='paused')t='Paused on the big screen';else if(m.st==='pick')t='Cards being picked · watch the big screen';
     else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next point";else if(m.st==='pointEnd'&&m.lw===ctl.team)t='Point to you!'}
   el.textContent=t;el.hidden=!t}
 function padHand(m){ctl.hand=(m.hand||[]).slice(0,5).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}{const pc=$('#padCards');if(pc&&pc.style)pc.style.setProperty('--n',ctl.hand.length)}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
-  setText('#padPickT','Pick a card');setText('#padPickS',String(m.sub||'').slice(0,80));const el=$('#padCards');el.innerHTML='';
+  ctl.pickSv=!!m.sv;if(!(+m.secs>0))ctl.pickEnd=0;setText('#padPickT',String(m.ti||'').slice(0,40)||'Pick a card');setText('#padPickS',String(m.sub||'').replace(/^Survival · /,'').replace(/^./,c=>c.toUpperCase()).slice(0,90));const el=$('#padCards');el.innerHTML='';
   ctl.hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='pcard r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
     b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul>';
     b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
@@ -4903,7 +5040,7 @@ function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:
 {const el=$('#padCards');if(el&&el.addEventListener)el.addEventListener('scroll',()=>{const kids=[...el.children];if(!kids.length)return;const mid=el.scrollLeft+el.clientWidth/2;let k=0,d=1e9;
   kids.forEach((c,i)=>{const e=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);if(e<d){d=e;k=i}});const dots=$('#padDots');if(dots)[...dots.children].forEach((t,i)=>t.classList.toggle('on',i===k))},{passive:true})}
 function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').children].forEach((b,k)=>{b.classList.toggle('chosen',k===i);b.classList.toggle('away',k!==i)});
-  $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS','Watch the big screen for the reveal')}
+  $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS',ctl.pickSv?'Waiting for the others · watch the big screen':'Watch the big screen for the reveal')}
 let padArtRaf=0;
 function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
@@ -4913,6 +5050,45 @@ function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView(
   const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;
     if(win){wallet.coins+=2;wallet.earned+=2;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +2 CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
     else{wallet.streak=0;saveWallet();el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`}el.hidden=false}}
+/* ---------- the phone's shop (Co-op Survival on a Big Screen): your five offers as full-size cards to swipe through, tap one to
+   buy it, lock one for the next shop, reroll, sell from your build (tap twice), then Ready. The host keeps the books ---------- */
+function padShop(m){const S={offers:(m.o||[]).slice(0,6).map(a=>({c:decodeCard(a[0]),price:a[1]|0,sold:!!a[2],locked:!!a[3]})).filter(o=>o.c),scrap:m.sc|0,reroll:m.rr|0,
+    build:(m.b||[]).slice(0,40).map(a=>({c:decodeCard(a[0]),back:a[1]|0})).filter(b=>b.c),ready:false,sell:-1};
+  const fresh=m.full||!ctl.shop;ctl.shop=S;ctl.hand=null;$('#padPick').hidden=true;padView('live');
+  setText('#pshT',`Round ${m.rd|0} cleared`);setText('#pshScrap',S.scrap);
+  setText('#pshS',`+${m.pay|0} scrap${m.pn?` (${String(m.pn).slice(0,60)})`:''} · next: ${String(m.nx||'').slice(0,20)||`round ${(m.rd|0)+1}`} · ${m.lv|0} ${(m.lv|0)===1?'life':'lives'}`);
+  const msg=String(m.msg||'').replace(/<[^>]*>/g,'').slice(0,120);setText('#pshMsg',msg||'Tap a card to buy it. Tap a card in your build twice to sell it for half.');
+  const el=$('#pshCards');
+  if(fresh){el.innerHTML='';S.offers.forEach((o,i)=>{const c=o.c,b=document.createElement('button');b.type='button';b.className='pcard shopc r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
+      b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul><span class="pc-buy"><b class="pc-price"></b><span class="pc-lock" role="button" tabindex="0"></span></span>';
+      b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
+      const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
+      b.querySelector('canvas')._card=c;b.addEventListener('click',e=>{if(e.target.closest('.pc-lock')){padShopOp('lock',i);return}padShopOp('buy',i)});el.appendChild(b)});
+    const dots=$('#pshDots');if(dots)dots.innerHTML=S.offers.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('');if(el.scrollTo)el.scrollTo({left:0});buzz(15)}
+  [...el.children].forEach((b,i)=>{const o=S.offers[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',o.locked);
+    const pr=b.querySelector('.pc-price');pr.textContent=o.sold?'Bought':`Buy · ${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&S.scrap<o.price);const lk=b.querySelector('.pc-lock');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold});
+  padShopBuild();setText('#pshReroll',`Reroll · ${S.reroll}`);{const r=$('#pshReroll');if(r)r.disabled=S.scrap<S.reroll}
+  {const n=$('#pshNext');if(n){n.disabled=false;n.textContent='Ready · next round'}}$('#padShop').classList.toggle('ready',false);$('#padShop').hidden=false;padArtLoop('#pshCards')}
+function padShopBuild(){const S=ctl.shop,el=$('#pshBuild');if(!S||!el)return;el.innerHTML='<span class="lbl">Your build</span>';
+  S.build.forEach((b,i)=>{const c=document.createElement('button');c.type='button';c.className='chip'+(S.sell===i?' sell':'');c.textContent=S.sell===i?`Sell +${b.back}?`:b.c.n;
+    c.addEventListener('click',()=>{if(S.ready)return;if(S.sell===i){S.sell=-1;padShopOp('sell',i)}else{S.sell=i;padShopBuild();clearTimeout(S.sellT);S.sellT=setTimeout(()=>{if(ctl.shop===S&&S.sell===i){S.sell=-1;padShopBuild()}},3000)}});el.appendChild(c)});
+  if(!S.build.length)el.insertAdjacentHTML('beforeend','<span class="psh-none">Nothing yet</span>')}
+function padShopOp(op,i){const S=ctl.shop;if(!S||S.ready)return;netSend({t:'psop',op,i:i|0});buzz(10);
+  if(op==='next'){S.ready=true;$('#padShop').classList.toggle('ready',true);const n=$('#pshNext');if(n){n.disabled=true;n.textContent='Ready! Waiting for the others'}setText('#pshMsg','Watch the big screen: the round starts when everyone is ready.')}}
+{const sh=$('#padShop');if(sh&&sh.addEventListener)sh.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;if(b.dataset.act==='pshReroll')padShopOp('reroll');else if(b.dataset.act==='pshNext')padShopOp('next')});
+  const el=$('#pshCards');if(el&&el.addEventListener)el.addEventListener('scroll',()=>{const kids=[...el.children];if(!kids.length)return;const mid=el.scrollLeft+el.clientWidth/2;let k=0,d=1e9;
+    kids.forEach((c,i)=>{const e=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);if(e<d){d=e;k=i}});const dots=$('#pshDots');if(dots)[...dots.children].forEach((t,i)=>t.classList.toggle('on',i===k))},{passive:true})}
+let pshRaf=0;
+function padArtLoop(sel){cancelAnimationFrame(pshRaf);const t0=performance.now();
+  const loop=now=>{if($('#padShop').hidden)return;for(const c of document.querySelectorAll(sel+' canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);pshRaf=requestAnimationFrame(loop)};pshRaf=requestAnimationFrame(loop)}
+// the run is over: this phone's coins and its own record (that's what unlocks characters)
+function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;padView('over');const n=Math.max(0,m.n|0),ch=cleanName(m.ch)||'',coins=Math.floor(n/2);
+  setText('#padOverT',n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1');
+  const best=wallet.survBest||0;setText('#padOverS',n>best?(best?`A new best! (was ${best})`:'Your first run on the board.'):`Your best is ${best}.`);
+  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
+    if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
+    el.innerHTML=(coins?`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`:`Reach round 2 to earn CUUED coins (you have ${wallet.coins}).`)+(opened.length?` · Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
+    el.hidden=false;buzz(coins?[40,60,40]:[70])}}
 // the sticks: the same feel as phone play (a flick up jumps, pulling down drops through ledges)
 function padSticks(){const R=56,m=ctl.move,a=ctl.aim;let mx=0,up=false,down=false;
   const knob=(id,x,y)=>{const k=$(id+' .knob');if(k)k.style.transform=`translate(${x}px,${y}px)`};
@@ -4920,10 +5096,10 @@ function padSticks(){const R=56,m=ctl.move,a=ctl.aim;let mx=0,up=false,down=fals
   if(up&&!ctl.up)ctl.jc++;ctl.up=up;ctl.mx=mx;ctl.down=down;
   if(a){const d=Math.hypot(a.dx,a.dy);a.maxD=Math.max(a.maxD||0,d);if(d>12)ctl.a=Math.atan2(a.dy,a.dx);const c=Math.min(1,R/(d||1));knob('#pAim',a.dx*c,a.dy*c);$('#pAim').classList.toggle('cancel',d<AIM_DEAD&&a.maxD>=AIM_DEAD)}}
 function padSend(force){if(!ctl.on||!net.connected)return;const now=performance.now();if(!force&&now-pad.sent<(net.relayed?30:7))return;ctl.sent=now;
-  const a=ctl.aim,live=ctl.view==='live'&&!ctl.hand,ag=live&&!!a&&(a.maxD||0)>=TAP_MOVE&&Math.hypot(a.dx,a.dy)>=AIM_DEAD;
+  const a=ctl.aim,live=ctl.view==='live'&&!ctl.hand&&!ctl.shop,ag=live&&!!a&&(a.maxD||0)>=TAP_MOVE&&Math.hypot(a.dx,a.dy)>=AIM_DEAD;
   netSend({t:'c',s:++ctl.seq,m:live?ctl.mx:0,jh:live&&(ctl.up||ctl.jump)?1:0,d:live&&ctl.down?1:0,jc:ctl.jc,bc:ctl.bc,sc:ctl.sc,ac:ctl.ac,fc:ctl.fc,a:r3(ctl.a||0),ag:ag?1:0})}
 function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost the connection to the big screen.');return}
-  if(ctl.hand&&ctl.picked<0)setText('#padTimer',`${Math.max(0,Math.ceil((ctl.pickEnd-now)/1000))}s`);padSend()}
+  if(ctl.hand&&ctl.picked<0)setText('#padTimer',ctl.pickEnd?`${Math.max(0,Math.ceil((ctl.pickEnd-now)/1000))}s`:'');padSend()}
 {const live=$('#padLive');
   if(live&&live.addEventListener){
     live.addEventListener('touchstart',e=>{if(ctl.view!=='live'||ctl.hand)return;e.preventDefault();autoFull();
@@ -4949,8 +5125,8 @@ function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost t
 const cleanName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){}
 let pendingJoin='',joinBack='online',mpKind='duel';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
-// a multiplayer mode, then where everyone plays: their own screens (online), or one big screen with phones as controllers (Co-op Survival: own screens only)
-function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');const bg=$('#mpBig');if(bg)bg.hidden=mpKind==='coop';showSub(ov,'online')}
+// a multiplayer mode, then where everyone plays: their own screens (online), or one big screen with phones as controllers
+function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 function openNameScreen(){$('#nameInput').value=myName;$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
@@ -4987,7 +5163,7 @@ function chatSync(){const on=chatOn(),b=$('#bChat');if(b&&b.hidden===on)b.hidden
   $('#chatIn').addEventListener('blur',()=>setTimeout(()=>{const a=document.activeElement;if(!f.contains(a))chatClose()},150))}
   const b=$('#bChat');if(b)b.onclick=()=>{b.blur();$('#chatForm').hidden?chatOpen():chatClose()}}
 const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.slice(1)},len:{vals:[3,5,7],label:v=>String(v)},sound:{vals:[true,false],label:v=>v?'On':'Off'},vol:{vals:[.25,.5,.75,1],label:v=>Math.round(v*100)+'%'},music:{vals:[true,false],label:v=>v?'On':'Off'},aim:{vals:[true,false],label:v=>v?'On':'Off'},chat:{vals:[true,false],label:v=>v?'On':'Off'},pview:{vals:['room','fill'],label:v=>v==='fill'?'Fill screen':'Thumb room'},
-  bsMode:{vals:['ffa','teams'],label:v=>v==='teams'?'Teams 2v2':'Free-for-all'},bsLen:{vals:[3,5,7],label:v=>String(v)},
+  bsMode:{vals:['ffa','teams','surv'],label:v=>v==='teams'?'Teams 2v2':v==='surv'?'Co-op Survival':'Free-for-all'},bsLen:{vals:[3,5,7],label:v=>String(v)},
   bsCards:{vals:['losers','all','none'],label:v=>({losers:'Round losers',all:'Everyone',none:'Off'})[v]||'Round losers'},
   bsBots:{vals:[0,1,2,3],label:v=>v?String(v):'None'},bsCpu:{vals:['normal','hard','easy'],label:v=>v[0].toUpperCase()+v.slice(1)},
   bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true],label:v=>v?'On':'Off'}};
@@ -5076,7 +5252,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
-  else if(a==='bigscreen'){settings.bsMode=mpKind==='party'?'teams':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
+  else if(a==='bigscreen'){settings.bsMode=mpKind==='party'?'teams':mpKind==='coop'?'surv':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
   else if(a==='bsStart')bsStart();
   else if(a==='bsCancel')closeBigScreen();
   else if(a==='bsLobby')bsToLobby();
