@@ -870,19 +870,81 @@ body.touch .desk-only{display:none!important}
 #a2hs.ios .a2-acts{grid-template-columns:1fr}#a2hs.ios .a2-acts [data-a2="later"]{display:none}
 .a2-btn i{font-style:normal;font-weight:900;color:var(--orange);margin-right:2px}
 @media (max-height:520px){.a2-card{width:min(560px,100%);grid-template-columns:auto 1fr;text-align:left;justify-items:start;column-gap:18px;padding:14px 16px}.a2-home{grid-row:1 / span 4;align-self:center;transform:scale(.8)}.a2-card h3{font-size:21px}.a2-acts{grid-column:2}}
+/* ---- one card for every pick on a phone: the draft, a team draft, Survival's character, free pick and shop, and the Big Screen
+   controller. Every card is on the screen at once (nothing to scroll), all the same height, and each shows the same things in
+   the same order: name, art, kind and rarity, what it does, and the numbers it changes on your fighter. Text never gets cut
+   off: if a hand is wordy, the text steps down a size until it all fits ---- */
+#pick.flat #fan{position:absolute;left:0;right:0;top:calc(52px + env(safe-area-inset-top,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;height:auto;transform:none;
+  --cw:min(184px,calc((100vw - 28px - (var(--n,5) - 1) * 8px) / var(--n,5)));display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);justify-content:center;align-content:center;align-items:stretch;gap:8px;
+  padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));flex-wrap:nowrap}
+#pick.flat.team #fan{top:calc(78px + env(safe-area-inset-top,0px));gap:5px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));--cw:min(170px,calc((100vw - 26px - 5 * 5px) / 6))}
+#pick.flat.team .card.g2{margin-left:10px}
+#pick.flat.team .card .nm,#pick.flat.team .card .meta,#pick.flat.team .card .ds{padding-left:6px;padding-right:6px}#pick.flat.team .card ul{margin-left:6px;margin-right:6px}
+#pick.flat.shopmode #fan{top:calc(50px + env(safe-area-inset-top,0px));bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+#pick.flat #face{display:none}
+#pick.flat .card,.pcard{--cat:#888;position:relative;left:auto;top:auto;width:auto;min-width:0;display:flex;flex-direction:column;text-align:left;font:inherit;color:var(--text);padding:0;cursor:pointer;overflow:hidden;
+  background:linear-gradient(170deg,#291d3c,#160f22);border:2px solid rgba(255,255,255,.13);border-top:6px solid var(--cat);border-radius:14px;box-shadow:0 6px 0 rgba(0,0,0,.35);
+  transition:transform .15s,opacity .25s,box-shadow .15s,border-color .15s;touch-action:manipulation}
+#pick.flat .card,#pick.flat .card.hl{transform:none;animation:dealIn .45s cubic-bezier(.2,1.3,.4,1) backwards;animation-delay:var(--d)}
+#pick.flat .card.r1,.pcard.r1{border-color:#5f93d6;border-top-color:var(--cat)}
+#pick.flat .card.r2,.pcard.r2{border-color:#e0a030;border-top-color:var(--cat)}
+#pick.flat .card.theirs{filter:saturate(.8) brightness(.9)}
+#pick.flat .card .float,#pick.flat .card .tilt{display:contents}
+#pick.flat .card .float::before,#pick.flat .card .float::after,#pick.flat .card .tilt::before,#pick.flat .card .k,#pick.flat .card .medal,#pick.flat .card .shine{display:none}
+#pick.flat .card .nm,.pcard .nm{order:-1;position:static;transform:none;margin:0;padding:5px 8px 4px;font:400 var(--ns,16px)/1.1 var(--display);letter-spacing:.02em;text-transform:none;white-space:nowrap;flex-shrink:0;color:var(--text);text-shadow:0 2px 0 rgba(0,0,0,.45)}
+#pick.flat .card .art,.pcard .art{order:0;display:block;flex:none;width:100%;height:calc(var(--cw,160px) * var(--ah,.5));min-height:30px;margin:0;aspect-ratio:auto;object-fit:cover;object-position:50% 45%;clip-path:none}
+#pick.flat .card .meta,.pcard .meta{order:1;flex-shrink:0;white-space:nowrap;display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:0 6px;margin:0;padding:5px 8px 0;font:700 var(--ms,8.5px) var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#pick.flat .card .ds,.pcard .ds{order:2;flex-shrink:0;display:block;min-height:0;overflow:visible;-webkit-line-clamp:unset;margin:0;padding:4px 8px 0;font:700 var(--fs,11px)/1.28 var(--body);color:rgba(241,236,247,.88)}
+#pick.flat .card ul,.pcard ul{order:3;flex-shrink:0;list-style:none;display:grid;gap:2px;margin:auto 8px 0;padding:6px 0 8px;min-height:0;border-top:1px solid rgba(255,255,255,.09)}
+#pick.flat .card li,.pcard li{font:800 var(--ls,11px)/1.25 var(--body);text-align:left;white-space:nowrap}
+#pick.flat .card li.wrap,.pcard li.wrap{white-space:normal}
+#pick.flat .card .meta .cat::after{margin-left:5px}#pick.flat .card .meta,.pcard .meta{gap:0 5px}
+.pcard li::before{content:"";display:inline-block;vertical-align:middle;margin:-2px 5px 0 0;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent}
+.pcard li.up::before{border-bottom:6px solid var(--good)}.pcard li.down::before{border-top:6px solid var(--bad)}
+.pcard li b{font-family:var(--mono);font-weight:700;white-space:nowrap}.pcard li.up b{color:var(--good)}.pcard li.down b{color:var(--bad)}
+#pick.flat .card.chosen,.pcard.chosen{transform:translateY(-6px);border-color:var(--hot);box-shadow:0 0 0 2px var(--hot),0 0 26px var(--pc)}
+#pick.flat .card.away,.pcard.away{transform:none;opacity:.28}
+#pick.flat .card.sold,.pcard.sold{transform:none;opacity:.38;pointer-events:none}
+#pick.flat .card.locked,.pcard.locked{box-shadow:inset 0 0 0 2px #ffd36b,0 6px 0 rgba(0,0,0,.35)}
+#pick.flat .card.locked .tilt{box-shadow:none}
+#pick.flat .card:active,.pcard:active{transform:scale(.97)}
+/* the shop's price and lock, on the card */
+#pick.flat .card .shoprow,.pc-buy{order:4;flex-shrink:0;display:flex;gap:5px;align-items:center;margin:0;padding:0 6px 7px}
+#pick.flat .card .price,.pc-price{flex:1;min-width:0;white-space:nowrap;text-align:center;font:400 var(--ps,14px) var(--display);letter-spacing:.02em;background:var(--orange);color:#1a0e05;border:0;border-radius:9px;padding:5px 4px;box-shadow:0 3px 0 #a5520f}
+#pick.flat .card .price.poor,.pc-price.poor{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:none}
+#pick.flat .card.sold .price,.pcard.sold .pc-price{background:rgba(155,225,93,.2);color:var(--good);box-shadow:none}
+#pick.flat .card .lockbtn,.pc-lock{flex:none;font:400 calc(var(--ps,14px) * .85) var(--display);letter-spacing:.02em;text-transform:none;color:var(--muted);background:none;border:2px solid rgba(255,255,255,.18);border-radius:9px;padding:3px 7px}
+#pick.flat .card.locked .lockbtn,.pcard.locked .pc-lock{color:#ffd36b;border-color:#ffd36b}
+/* the shop's bar on a phone: scrap, your build (tap a card twice to sell it), reroll, next round */
+#pick.flat .pick-shop{position:absolute;left:0;right:0;bottom:calc(6px + env(safe-area-inset-bottom,0px));top:auto;margin:0;display:flex;flex-wrap:nowrap;align-items:center;gap:8px;padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));background:none}
+#pick.flat .pick-shop .scrapchip{flex:none;font:400 18px var(--display);color:#ffd36b;background:rgba(255,211,107,.12);border:2px solid rgba(255,211,107,.4);border-radius:12px;padding:4px 12px}
+#pick.flat .pick-shop .build{flex:1 1 0;min-width:0;display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none}
+#pick.flat .pick-shop .build .lbl,#pick.flat .pick-shop .msg{display:none}
+#pick.flat .pick-shop .chip{white-space:nowrap;font:700 12px var(--body);color:var(--text);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 8px}
+#pick.flat .pick-shop .chip.sell{border-color:var(--bad);color:#ff8a80;background:rgba(255,90,79,.12)}
+#pick.flat .pick-shop .acts{flex:none;display:flex;gap:8px}
+#pick.flat .pick-shop .btn{font:400 16px var(--display);letter-spacing:.03em;padding:8px 12px;border-radius:12px}
+#pick.flat .pick-shop .btn.primary{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
+#pick.flat.shopmode .pick-head p{display:block;font-size:11px;letter-spacing:.03em;text-transform:none}
+/* the Big Screen controller: the same cards, side by side when sideways, one per row when upright */
+.pad-cards{--fs:12px;--cw:calc((100vw - 24px - (var(--n,5) - 1) * 8px) / var(--n,5));display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));align-items:stretch;gap:8px;width:100%;min-height:0;
+  padding:6px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));box-sizing:border-box;overflow:hidden}
+@media (orientation:portrait){
+  .pad-cards{--cw:34vw;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr)}
+  .pcard{position:relative;padding-left:34%}
+  .pcard .art{position:absolute;left:0;top:0;bottom:0;width:34%;height:100%}
+  /* the shop upright: Buy and Lock sit over the picture, so the text keeps its room */
+  .pcard .pc-buy{position:absolute;left:0;bottom:0;width:34%;box-sizing:border-box;flex-direction:column-reverse;align-items:stretch;gap:4px;padding:6px;background:linear-gradient(transparent,rgba(14,8,22,.85) 40%)}
+  .pcard .pc-lock{text-align:center;background:rgba(14,8,22,.6)}
+  .pad-cards.scroll{display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}.pad-cards.scroll .pcard{flex:none;min-height:118px}
+  #padShop .psh-msg,#padShop .psh-build .lbl{display:none}#padShop .pad-h{font-size:26px}#padShop .pad-p{font-size:13px;line-height:1.3}#padShop .scrapchip{font-size:17px;padding:2px 10px}
+}
 /* the phone's shop in a Big Screen run */
 @media (orientation:portrait){#pad .pad-score{display:none}}   /* upright, the sheet says it all (and a fight turns the phone sideways) */
 #padShop{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto;padding-left:0;padding-right:0;overflow:hidden;gap:6px}
 #padShop>*:not(.pad-cards){padding-left:16px;padding-right:16px;box-sizing:border-box;width:100%}
 .psh-top{display:flex;align-items:center;justify-content:center;gap:12px}
 #padShop .scrapchip{font:400 20px var(--display);color:#ffd36b;background:rgba(255,211,107,.12);border:2px solid rgba(255,211,107,.4);border-radius:12px;padding:3px 12px}
-.pcard.shopc{grid-template-rows:minmax(56px,30%) auto auto auto minmax(0,1fr) auto}
-.pc-buy{display:flex;align-items:center;gap:8px;padding:0 12px 12px}
-.pc-price{flex:1;text-align:center;font:400 18px var(--display);letter-spacing:.02em;background:var(--orange);color:#1a0e05;border-radius:10px;padding:7px 8px;box-shadow:0 3px 0 #a5520f}
-.pc-price.poor{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:none}
-.pc-lock{font:400 15px var(--display);color:var(--muted);border:2px solid rgba(255,255,255,.18);border-radius:10px;padding:5px 10px}
-.pcard.locked .pc-lock{color:#ffd36b;border-color:#ffd36b}
-.pcard.sold{opacity:.4}.pcard.sold .pc-price{background:rgba(155,225,93,.2);color:var(--good);box-shadow:none}
 .psh-build{display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:none;min-height:32px}.psh-build::-webkit-scrollbar{display:none}
 .psh-build .lbl{margin:0 4px 0 0;white-space:nowrap}.psh-build .chip{white-space:nowrap;font:700 13px var(--body);color:var(--text);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:9px;padding:4px 9px}
 .psh-build .chip.sell{border-color:var(--bad);color:#ff8a80;background:rgba(255,90,79,.12)}.psh-none{color:var(--muted);font-size:13px}
@@ -892,39 +954,23 @@ body.touch .desk-only{display:none!important}
 .psh-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
 .psh-acts .btn[disabled]{opacity:.55}
 #padShop.ready .pad-cards,#padShop.ready .psh-build{opacity:.45;pointer-events:none}
-@media (orientation:landscape) and (max-height:560px){#padShop{gap:3px;padding-top:4px;grid-template-rows:auto minmax(0,1fr) auto auto auto}#padShop .pad-p,#padShop .pad-dots{display:none}#padShop .pad-h{font-size:22px}
-  #padShop .pcard .ds,#padShop .pcard .meta{display:none}#padShop .pcard.shopc{grid-template-rows:minmax(30px,1fr) auto auto auto auto auto}#padShop .pcard .nm{font-size:19px;padding-top:4px}#padShop .pcard ul{font-size:12.5px;line-height:1.3;padding:3px 12px 5px}.pc-buy{padding:0 10px 8px}.pc-price{font-size:15px;padding:5px 6px}.pc-lock{font-size:13px;padding:3px 8px}.psh-msg{font-size:12px}.psh-acts .btn{font-size:15px;padding:6px 8px}}
-/* the Big Screen draft on a phone: full-size cards in a row you swipe through (one in the middle, its neighbours peeking in); tap one to pick it */
-#padPick{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto;padding-left:0;padding-right:0;overflow:hidden}
+@media (orientation:landscape) and (max-height:560px){
+  #padShop{gap:4px;padding-top:2px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto}
+  #padShop .psh-top,#padShop .pad-cards{grid-column:1 / -1}#padShop .pad-p,#padShop .psh-msg{display:none}#padShop .pad-h{font-size:20px}#padShop .scrapchip{font-size:16px;padding:1px 10px}
+  #padShop .psh-build{grid-column:1;padding-right:0}#padShop .psh-acts{grid-column:2;width:auto;padding-left:0;padding-bottom:2px}.psh-acts .btn{font-size:15px;padding:6px 12px;white-space:nowrap}
+  #padShop .psh-build .lbl{display:none}}
+/* the Big Screen draft on a phone: every card on the screen at once (the phone card, below) */
+#padPick{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto;padding-left:0;padding-right:0;overflow:hidden}
 #padPick .pad-h,#padPick .pad-p{padding:0 16px}
-.pad-cards{--cw:clamp(220px,76vw,330px);display:flex;align-items:center;gap:14px;width:100%;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
-  padding:10px calc(50% - var(--cw) / 2) 12px;box-sizing:border-box;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
-.pad-cards::-webkit-scrollbar{display:none}
-.pcard{--cat:#888;flex:0 0 var(--cw);width:var(--cw);height:min(100%,calc(var(--cw) * 1.5));scroll-snap-align:center;display:grid;grid-template-rows:minmax(70px,38%) auto auto auto minmax(0,1fr);text-align:left;font:inherit;color:var(--text);
-  background:var(--night-2);border:3px solid var(--line);border-top:8px solid var(--cat);border-radius:18px;padding:0;overflow:hidden;cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.35);
-  transition:transform .18s,opacity .2s,border-color .15s,box-shadow .18s;touch-action:pan-x}
-.pcard.r1{border-color:#7ab8ff;border-top-color:var(--cat)}.pcard.r2{border-color:#ffab1a;border-top-color:var(--cat)}
-.pcard canvas{width:100%;height:100%;min-height:0;object-fit:cover;display:block}
-.pcard .nm{font:400 clamp(22px,6.4vmin,30px) var(--display);letter-spacing:.02em;line-height:1.05;padding:10px 14px 0}
-.pcard .meta{font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:3px 14px 0}
-.pcard .ds{font-size:15px;line-height:1.35;padding:8px 14px 0;color:var(--text)}
-.pcard ul{list-style:none;margin:0;padding:8px 14px 14px;font-size:15px;line-height:1.45;align-self:end}.pcard li.up b{color:var(--good)}.pcard li.down b{color:var(--bad)}
-.pcard:active{transform:scale(.97)}
-.pcard.chosen{border-color:var(--pc);transform:translateY(-6px);box-shadow:0 0 0 3px var(--pc),0 0 30px var(--pc)}.pcard.away{opacity:.28}
-.pad-dots{display:flex;justify-content:center;gap:8px;min-height:10px}
+.pad-dots{display:none}
 .pad-dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);transition:background .15s,transform .15s}.pad-dots i.on{background:var(--pc);transform:scale(1.3)}
 .pad-timer{margin:0;font:400 22px var(--display);color:var(--hot);min-height:1.1em}
 #padPick.locked .pad-timer{visibility:hidden}
 /* sideways: the title and timer on one line, so the cards get the height */
 @media (orientation:landscape) and (max-height:560px){
-  #padPick{gap:2px;padding-top:4px;grid-template-rows:auto auto minmax(0,1fr) auto}
+  #padPick{gap:2px;padding-top:4px;grid-template-rows:auto auto minmax(0,1fr)}
   #padPick .pad-h{font-size:24px}#padPick .pad-p{font-size:13px}#padPick .pad-timer{position:absolute;top:6px;right:calc(16px + env(safe-area-inset-right,0px));font-size:20px}
-  .pad-cards{--cw:clamp(200px,31vw,290px);padding:6px calc(16px + env(safe-area-inset-right,0px)) 6px calc(16px + env(safe-area-inset-left,0px));scroll-padding:0 calc(16px + env(safe-area-inset-left,0px))}
-  .pcard{scroll-snap-align:start}
-  .pcard{max-height:100%;grid-template-rows:minmax(44px,30%) auto auto auto minmax(0,1fr)}
-  .pcard .nm{font-size:clamp(19px,5.6vh,24px);padding-top:6px}.pcard .ds{font-size:13px;padding-top:4px}.pcard ul{font-size:13px;padding:4px 12px 10px;line-height:1.35}
 }
-@media (orientation:landscape) and (max-height:380px){.pcard .ds{display:none}}
 @media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
 </style>
 
@@ -2641,10 +2687,10 @@ function showSurvShop(p=myHero()){const nx=p.nxName;
   $('#pickTitle').textContent=`Round ${game.round} cleared`;
   $('#pickSub').textContent=`+${p.lastPay|0} scrap${p.payNote?` (${p.payNote})`:''} · next: ${nx||`round ${game.round+1}`} · ${game.lives} ${game.lives===1?'life':'lives'} ${touch.on?'':' · click or 1–5 to buy · R reroll · N next round'}`;
   decorateShop();renderShopBar()}
-function decorateShop(){const me=myHero();[...$('#fan').children].forEach((b,i)=>{const o=(me.offers||[])[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
+function decorateShop(){const me=myHero();setTimeout(cardFit,0);[...$('#fan').children].forEach((b,i)=>{const o=(me.offers||[])[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',!!o.locked);
   let row=b.querySelector('.shoprow');if(!row){row=document.createElement('span');row.className='shoprow';row.innerHTML='<span class="price"></span><span class="lockbtn" role="button" tabindex="-1"></span>';
     row.querySelector('.lockbtn').addEventListener('click',ev=>{ev.stopPropagation();survLock(i)});b.querySelector('.float').appendChild(row)}
-  const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&(me.scrap|0)<o.price);
+  const pr=row.querySelector('.price');pr.textContent=o.sold?'Bought':touch.on?`Buy · ${o.price}`:`${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&(me.scrap|0)<o.price);
   const lk=row.querySelector('.lockbtn');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold})}
 function renderShopBar(msg){const me=myHero();setText('#psScrap',me.scrap|0);
   const rr=$('#pickShop [data-ps=reroll]');if(rr)rr.textContent=`Reroll · ${me.reroll|0}`;
@@ -2667,7 +2713,8 @@ function closeShopUi(){$('#pick').hidden=true;$('#pick').classList.toggle('shopm
 function survNext(){const me=myHero();if(guestShopOp('next')){closeShopUi();sfx('go',true);return}if(!me||!me.shopDone)return;closeShopUi();sfx('go',true);const d=me.shopDone;me.shopDone=null;d();cv.focus()}
 function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});if(game.bsSurv)netSend({t:'pdone'});survRound(game.round+1);cv.focus()}
 {const bar=$('#pickShop');bar.addEventListener('click',e=>{const t=e.target;let b;initAudio();
-  if((b=t.closest('[data-sell]'))){survSell(+b.dataset.sell);return}
+  if((b=t.closest('[data-sell]'))){if(touch.on&&!b.classList.contains('sell')){for(const c of bar.querySelectorAll('.chip.sell')){c.classList.remove('sell');c.textContent=c.dataset.nm}
+      const c=myHero().cards[+b.dataset.sell];b.dataset.nm=b.textContent;b.classList.add('sell');b.textContent=`Sell +${c?Math.floor(cardPrice(c)/2):0}?`;return}survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
 function survEnd(){if(game.bsSurv){bsSurvEnd();return}if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
@@ -2717,7 +2764,7 @@ function showTeamHand(){const T=tpick,own=[],flat=[];T.ids.forEach((id,g)=>{cons
   const me=T.ids.map(id=>players[id]).find(p=>net.role==='guest'?p.id===net.me:p.ctrl==='mouse')||players[T.ids[0]],tm=players[T.ids[0]].team;
   
   showHand(me,flat,T.sub,'team',own);$('#pickTitle').textContent=`Team ${TEAM_N[tm]} drafts`;$('#pickTitle').style.color=players[T.ids[0]].color;
-  $('#pickSub').textContent=T.sub+(own.some(o=>o.mine)?(touch.on?' · tap one of yours':' · pick one of yours'):' · watching');
+  cardFit();$('#pickSub').textContent=T.sub+(own.some(o=>o.mine)?(touch.on?' · tap one of yours':' · pick one of yours'):' · watching');
   // two sections over the fan: each picker's fighter and name, so it's clear whose three cards are whose
   $('#pick').classList.toggle('team',true);T.ids.forEach((id,g)=>{const p=players[id],sec=$('#tsec'+g),mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';if(!sec)return;sec.hidden=false;sec.style.setProperty('--pc',p.color);
     sec.querySelector('span').textContent=mine?'You':playerLabel(p);miniFighter(sec.querySelector('canvas').getContext('2d'),p)});$('#tsec1').hidden=T.ids.length<2
@@ -2754,7 +2801,7 @@ function showHand(p,h,sub,mode,own){pickFor=p;hand=h;if(!own){$('#pick').classLi
     b.addEventListener('pointermove',ev=>{const r=b.getBoundingClientRect();tl.style.setProperty('--rx',((ev.clientX-r.left)/r.width-.5)*20+'deg');tl.style.setProperty('--ry',(.5-(ev.clientY-r.top)/r.height)*20+'deg')});
     b.addEventListener('pointerleave',()=>{tl.style.setProperty('--rx','0deg');tl.style.setProperty('--ry','0deg')});
     b.addEventListener('click',()=>pickNow(i));b.addEventListener('mouseenter',()=>{if(pickMode!=='watch'){hl=i;markHl()}});el.appendChild(b)});
-  $('#pick').hidden=false;faceAnim=0;drawBigFace(p,'think');startCardArt();
+  $('#pick').hidden=false;faceAnim=0;drawBigFace(p,'think');startCardArt();cardFit();
   {const tk=game.token;for(let k=0;k<5;k++)setTimeout(()=>{if(tk===game.token)sfx('deal',false,true)},120+k*85)}
   markHl()}
 function nextPick(){
@@ -2772,6 +2819,32 @@ function animChosen(i){const b=$('#fan').children[i];b&&b.classList.add('chosen'
 /* CPU drafts by usefulness, not rarity, so it stops hoarding wall-phasing rares */
 const CPU_PREF={'Ghost Rounds':.8,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
 function cpuChoice(p,h){let best=0,bs=-1;h.forEach((c,i)=>{const sc=(CPU_PREF[c.n]||1)*(1+c.r*.2)*(.6+Math.random()*.8);if(sc>bs){bs=sc;best=i}});return best}
+/* a phone held sideways lays a hand out flat, every card on the screen; the text steps down a size until nothing is cut off */
+const phoneFlat=()=>mq('(max-height:560px) and (orientation:landscape)');
+function fitCards(box,start){if(!box||!box.style||!box.children||!box.children.length)return;const set=(el,k,v)=>el.style.setProperty(k,v.toFixed(2)+'px'),q=(el,sel)=>[...el.querySelectorAll(sel)];
+  const wide=els=>els.some(el=>el.scrollWidth>(el.tagName==='LI'?el.parentNode.clientWidth:el.clientWidth)+1);
+  // the names share one size across the hand; each card sizes its own kind line and stat lines to fit on one line (a stat
+  // too long to fit at a readable size is the only thing allowed to take two lines); then, if the cards are too tall for the
+  // screen, all the text steps down together
+  let fs=start||12,ns=fs*1.45;set(box,'--fs',fs);set(box,'--ns',ns);
+  for(let i=0;i<24&&ns>9&&wide(q(box,'.nm'));i++){ns-=.5;set(box,'--ns',ns)}
+  {let ps=Math.max(12,fs*1.3);set(box,'--ps',ps);for(let i=0;i<20&&ps>9&&wide(q(box,'.price,.pc-price'));i++){ps-=.5;set(box,'--ps',ps)}}   // the shop's Buy buttons
+  const cards=[...box.children],fitOne=c=>{c.style.removeProperty('--ms');c.style.removeProperty('--ls');for(const li of q(c,'li'))li.classList.remove('wrap');
+    let ms=Math.min(fs*.76,9.5),ls=fs;set(c,'--ms',ms);set(c,'--ls',ls);
+    for(let i=0;i<20&&ms>7&&wide(q(c,'.meta'));i++){ms-=.25;set(c,'--ms',ms)}
+    for(let i=0;i<30&&ls>8.5&&wide(q(c,'li'));i++){ls-=.25;set(c,'--ls',ls)}
+    for(const li of q(c,'li'))if(li.scrollWidth>li.parentNode.clientWidth+1)li.classList.add('wrap')};
+  cards.forEach(fitOne);
+  const tall=()=>box.scrollHeight>box.clientHeight+1||cards.some(c=>c.scrollHeight>c.clientHeight+1);
+  let ah=.5;box.style.setProperty('--ah','.5');
+  for(let i=0;i<10&&ah>.26&&tall();i++){ah-=.03;box.style.setProperty('--ah',ah.toFixed(2))}   // the art gives way first
+  box.classList.remove('scroll');
+  for(let i=0;i<20&&fs>8.5&&tall();i++){fs-=.5;set(box,'--fs',fs);cards.forEach(fitOne)}
+  // an upright phone with a long hand can't show it all at a readable size: then the cards keep their size and the list scrolls
+  if(tall()&&mq('(orientation: portrait)')){box.classList.add('scroll');fs=start||12;set(box,'--fs',fs);cards.forEach(fitOne)}}
+function cardFit(again){const pk=$('#pick');if(!pk||!pk.classList)return;const flat=phoneFlat();pk.classList.toggle('flat',flat);if(flat&&!pk.hidden)fitCards($('#fan'),12);
+  if(!again&&flat){requestAnimationFrame(()=>cardFit(true));setTimeout(()=>cardFit(true),300)}}   // and again once the layout (a team's sections, the shop's bar, the fonts) has settled
+if(typeof addEventListener==='function'){let ft=0;addEventListener('resize',()=>{clearTimeout(ft);ft=setTimeout(()=>{cardFit();if(ctl.on){if(!$('#padPick').hidden)fitCards($('#padCards'),12.5);if(!$('#padShop').hidden)fitCards($('#pshCards'),12)}},150)})}
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
 function choose(c,i){if(tpick&&i!=null){if(net.role!=='guest')teamChoose(i<3?0:1,i);return}if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
   if(!game.bg&&i!=null){animChosen(i);if(!game.coop)netSend({t:'chosen',i});const tk=game.token;
@@ -5040,13 +5113,13 @@ function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
 function padHand(m){ctl.hand=(m.hand||[]).slice(0,5).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}{const pc=$('#padCards');if(pc&&pc.style)pc.style.setProperty('--n',ctl.hand.length)}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
   ctl.pickSv=!!m.sv;if(!(+m.secs>0))ctl.pickEnd=0;setText('#padPickT',String(m.ti||'').slice(0,40)||'Pick a card');setText('#padPickS',String(m.sub||'').replace(/^Survival · /,'').replace(/^./,c=>c.toUpperCase()).slice(0,90));const el=$('#padCards');el.innerHTML='';
   ctl.hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='pcard r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
-    b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul>';
+    b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul>';
     b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
     const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
     b.querySelector('canvas')._card=c;b.addEventListener('click',()=>padPick(i));el.appendChild(b)});
   const dots=$('#padDots');if(dots){dots.innerHTML=ctl.hand.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}
   if(el.scrollTo)el.scrollTo({left:0});
-  const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();ctlCardArt();buzz(15)}
+  const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();ctlCardArt();fitCards(el,12.5);requestAnimationFrame(()=>fitCards(el,12.5));buzz(15)}
 function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:'ppick',i});padPicked(i);const c=$('#padCards')&&$('#padCards').children[i];if(c&&c.scrollIntoView)c.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})}
 // the dot under the card in the middle lights up as you swipe
 {const el=$('#padCards');if(el&&el.addEventListener)el.addEventListener('scroll',()=>{const kids=[...el.children];if(!kids.length)return;const mid=el.scrollLeft+el.clientWidth/2;let k=0,d=1e9;
@@ -5072,15 +5145,15 @@ function padShop(m){const S={offers:(m.o||[]).slice(0,6).map(a=>({c:decodeCard(a
   const msg=String(m.msg||'').replace(/<[^>]*>/g,'').slice(0,120);setText('#pshMsg',msg||'Tap a card to buy it. Tap a card in your build twice to sell it for half.');
   const el=$('#pshCards');
   if(fresh){el.innerHTML='';S.offers.forEach((o,i)=>{const c=o.c,b=document.createElement('button');b.type='button';b.className='pcard shopc r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
-      b.innerHTML='<canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="nm"></span><span class="meta"></span><span class="ds"></span><ul></ul><span class="pc-buy"><b class="pc-price"></b><span class="pc-lock" role="button" tabindex="0"></span></span>';
+      b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul><span class="pc-buy"><b class="pc-price"></b><span class="pc-lock" role="button" tabindex="0"></span></span>';
       b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
       const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
       b.querySelector('canvas')._card=c;b.addEventListener('click',e=>{if(e.target.closest('.pc-lock')){padShopOp('lock',i);return}padShopOp('buy',i)});el.appendChild(b)});
     const dots=$('#pshDots');if(dots)dots.innerHTML=S.offers.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('');if(el.scrollTo)el.scrollTo({left:0});buzz(15)}
   [...el.children].forEach((b,i)=>{const o=S.offers[i];if(!o)return;b.classList.toggle('sold',o.sold);b.classList.toggle('locked',o.locked);
-    const pr=b.querySelector('.pc-price');pr.textContent=o.sold?'Bought':`Buy · ${o.price} scrap`;pr.classList.toggle('poor',!o.sold&&S.scrap<o.price);const lk=b.querySelector('.pc-lock');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold});
+    const pr=b.querySelector('.pc-price');pr.textContent=o.sold?'Bought':`Buy · ${o.price}`;pr.classList.toggle('poor',!o.sold&&S.scrap<o.price);const lk=b.querySelector('.pc-lock');lk.textContent=o.locked?'Locked':'Lock';lk.hidden=o.sold});
   padShopBuild();setText('#pshReroll',`Reroll · ${S.reroll}`);{const r=$('#pshReroll');if(r)r.disabled=S.scrap<S.reroll}
-  {const n=$('#pshNext');if(n){n.disabled=false;n.textContent='Ready · next round'}}$('#padShop').classList.toggle('ready',false);$('#padShop').hidden=false;padArtLoop('#pshCards')}
+  {const n=$('#pshNext');if(n){n.disabled=false;n.textContent='Ready · next round'}}$('#padShop').classList.toggle('ready',false);$('#padShop').hidden=false;padArtLoop('#pshCards');if(el.style)el.style.setProperty('--n',S.offers.length);fitCards(el,12);requestAnimationFrame(()=>fitCards(el,12))}
 function padShopBuild(){const S=ctl.shop,el=$('#pshBuild');if(!S||!el)return;el.innerHTML='<span class="lbl">Your build</span>';
   S.build.forEach((b,i)=>{const c=document.createElement('button');c.type='button';c.className='chip'+(S.sell===i?' sell':'');c.textContent=S.sell===i?`Sell +${b.back}?`:b.c.n;
     c.addEventListener('click',()=>{if(S.ready)return;if(S.sell===i){S.sell=-1;padShopOp('sell',i)}else{S.sell=i;padShopBuild();clearTimeout(S.sellT);S.sellT=setTimeout(()=>{if(ctl.shop===S&&S.sell===i){S.sell=-1;padShopBuild()}},3000)}});el.appendChild(c)});
