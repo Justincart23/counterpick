@@ -339,8 +339,8 @@ body.touch.ingame #touchUI{display:block}
 .tbtn.down{background:rgba(255,255,255,.3)}
 /* Jump and Block: two tall panels down the right edge, the same look as a Big Screen controller (chevron, shield; Block in your
    colour, refilling as it recharges). The bottom of the right side stays free for the aim thumb */
-#touchUI{--tbw:clamp(80px,10.5vw,108px);--tbt:22%}
-body.room #touchUI{--tbw:max(calc(var(--gut,110px) - 14px),58px);--tbt:12%}
+#touchUI{--tbw:clamp(80px,10.5vw,108px);--tbt:calc(94% - 54% - 10px - env(safe-area-inset-bottom,0px))}   /* Jump and Block sit low on the right edge, where a resting thumb lands: the bottom of Block about 6% off the bottom */
+body.room #touchUI{--tbw:max(calc(var(--gut,110px) - 14px),58px)}
 #tJump,#tBlock{right:calc(7px + env(safe-area-inset-right,0px));width:var(--tbw);height:27%;border-radius:20px;border-width:3px;
   font:400 clamp(13px,3.6vh,18px) var(--display);letter-spacing:.04em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .06s,background .06s}
 #tJump{top:calc(var(--tbt) + env(safe-area-inset-top,0px));border-color:rgba(255,255,255,.45);background:rgba(20,12,30,.5)}
@@ -874,6 +874,7 @@ body.touch .desk-only{display:none!important}
 .a2-acts .btn{font:400 19px var(--display);letter-spacing:.03em;padding:11px 12px;border-radius:14px}
 .a2-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
 #a2hs.ios .a2-acts{grid-template-columns:1fr}#a2hs.ios .a2-acts [data-a2="later"]{display:none}
+.mobile-row .join-q{flex:1 1 100%;font:400 17px var(--display);letter-spacing:.02em;padding:12px 14px;border-radius:14px;border:2px solid #ffb547;background:rgba(255,181,71,.12);color:var(--text)}.mobile-row .join-q b{color:#ffb547;font-weight:400}
 .a2-btn i{font-style:normal;font-weight:900;color:var(--orange);margin-right:2px}
 @media (max-height:520px){.a2-card{width:min(560px,100%);grid-template-columns:auto 1fr;text-align:left;justify-items:start;column-gap:18px;padding:14px 16px}.a2-home{grid-row:1 / span 4;align-self:center;transform:scale(.8)}.a2-card h3{font-size:21px}.a2-acts{grid-column:2}}
 /* ---- one card for every pick on a phone: the draft, a team draft, Survival's character, free pick and shop, and the Big Screen
@@ -945,6 +946,11 @@ body.touch .desk-only{display:none!important}
   .pad-cards.scroll{display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}.pad-cards.scroll .pcard{flex:none;min-height:118px}
   #padShop .psh-msg,#padShop .psh-build .lbl{display:none}#padShop .pad-h{font-size:26px}#padShop .pad-p{font-size:13px;line-height:1.3}#padShop .scrapchip{font-size:17px;padding:2px 10px}
 }
+/* the controller's lobby: your fighter and how to hold the phone */
+.pad-hold{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;margin:4px 0}
+#padLook{width:150px;aspect-ratio:3/2;border-radius:14px;box-shadow:0 0 0 2px var(--pc)}
+.pad-hold .tut-pad{width:min(260px,60vw)}
+@media (orientation:landscape) and (max-height:430px){#padLook{width:110px}.pad-hold .tut-pad{width:210px}#padLobby .pad-tip{display:none}}
 /* the phone's shop in a Big Screen run */
 @media (orientation:portrait){#pad .pad-score{display:none}}   /* upright, the sheet says it all (and a fight turns the phone sideways) */
 #padShop{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto;padding-left:0;padding-right:0;overflow:hidden;gap:6px}
@@ -1012,7 +1018,7 @@ body.touch .desk-only{display:none!important}
         <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
-      <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
+      <div class="mobile-row touch-only"><button type="button" class="btn join-q" data-act="join"><b>Got a code?</b> Join a friend or a Big Screen</button><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
     </div>
     <div data-sub="solo" hidden>
       <div class="lbl sublbl">Single player</div>
@@ -1143,7 +1149,7 @@ body.touch .desk-only{display:none!important}
 <div id="nameScreen" class="overlay pause-screen" hidden>
   <form class="center-wrap name-form" id="nameForm" autocomplete="off">
     <h2 class="screen-title">Who's getting queued?</h2>
-    <p class="name-note">Pick a name and you're in: it's your account on this device. No sign-up, no password.</p>
+    <p class="name-note" id="nameNote">Pick a name and you're in: it's your account on this device. No sign-up, no password.</p>
     <label class="lbl" for="nameInput">Your name</label>
     <input id="nameInput" class="text-in" maxlength="16" placeholder="Your name" spellcheck="false" style="text-align:center">
     <p class="form-err" id="nameErr" hidden>Type at least one letter or number.</p>
@@ -1375,7 +1381,8 @@ body.touch .desk-only{display:none!important}
     <h2 class="pad-h" id="padLobbyT">Connecting…</h2>
     <p class="pad-p" id="padLobbyS">Watch the big screen. The host starts the game.</p>
     <div class="party-acts" id="padTeams" hidden><button type="button" class="btn" data-act="padTeam" data-pteam="0">Team Orange</button><button type="button" class="btn" data-act="padTeam" data-pteam="1">Team Blue</button></div>
-    <p class="pad-tip">Your phone is your controller: hold it sideways and watch your fighter on the big screen. Left thumb moves, right thumb aims and fires.</p>
+    <div class="pad-hold" aria-hidden="true"><canvas id="padLook" width="240" height="160"></canvas><div class="tut-pad"><span class="tp-l"><i></i><em>Move<br>flick up: jump</em></span><span class="tp-r"><i></i><em>Tap: fire<br>drag: aim</em></span><span class="tp-b"><b>Jump</b><b class="blk">Block</b></span></div></div>
+    <p class="pad-tip">Hold your phone sideways and watch your fighter on the big screen.</p>
   </div>
   <div class="pad-sheet" id="padPick" hidden>
     <h2 class="pad-h" id="padPickT">Pick a card</h2>
@@ -2472,11 +2479,11 @@ function makeRaider(p,n,i,count){const R=RAIDERS[(n+i)%RAIDERS.length];p.boss=nu
   const k=Math.min(10,Math.round(.5*(n-1))+Math.floor(n/8)-(count>2?1:0)),pool=CARDS.filter(c=>(c.r<2||n>=10)&&!['Second Wind','Aegis'].includes(c.n)),out=[];   // a gentle climb: about one card every two rounds, rares from round 10
   for(let j=0;j<Math.max(0,k);j++){const c=pick(pool);if(c.u&&out.includes(c)){j--;continue}out.push(c)}p.cards=out;
   // a bigger wave splits the strength: more enemies, each a little weaker
-  p.hpMul=(1+.07*(n-1))*(count>1?.62:1)}
+  p.hpMul=(1+.07*(n-1)+.05*Math.max(0,n-12))*(count>1?.62:1)}   // a steeper climb after round 12, where a stacked build used to coast
 // the elite: the wave's leader, with two more cards and much more health, in gold. Beat it and the boss is next
 function makeElite(p,n){p.name='Elite '+p.name;p.color='#e6b53c';p.glow='#ffe39a';p.cos={hat:'crown'};p.elite=true;
   const pool=CARDS.filter(c=>(c.r<2||n>=14)&&!['Second Wind','Aegis'].includes(c.n)&&!(c.u&&p.cards.includes(c)));for(let j=0;j<2;j++)p.cards.push(pick(pool));
-  p.hpMul=(1+.07*(n-1))*1.55}
+  p.hpMul=(1+.07*(n-1)+.05*Math.max(0,n-12))*1.55}
 // set up round n: a wave (or a boss), maybe a twist, the arena, everyone fresh
 /* ---------- Co-op Survival: two heroes, one run. The host simulates everything; each hero picks and shops on their own
    screen at the same time, and the run carries on when both are done. A downed hero comes back after 8, 12 then 16 s, or
@@ -2530,37 +2537,60 @@ function coopState(v){game.round=v.r|0;game.rkind=v.rk||'';game.lives=v.l|0;game
   game.strikes=(v.k||[]).map(a=>({x:a[0],y:a[1],R:a[2],t:a[3],max:a[4],owner:players[a[5]]})).filter(k=>k.owner);
   for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[net.me]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
   for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
-const REVIVE_T=2,REVIVE_R=110;
-function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.alive||!(p.downT>0)||p.left)continue;
+const REVIVE_T=2,REVIVE_R=120,DOWN_T=[12,10,8];   // the revive window shrinks with each fall in a round
+function downTick(h){if(game.state!=='play')return;for(const p of heroes())if(p.outT>0)p.outT-=h;for(const p of heroes()){if(p.alive||!(p.downT>0)||p.left)continue;
   const near=heroes().filter(q=>q!==p&&q.alive),mate=near.sort((a,b)=>Math.hypot(a.x-p.downX,a.y-p.downY)-Math.hypot(b.x-p.downX,b.y-p.downY))[0];p.downT-=h;
   if(mate&&Math.hypot(mate.x-p.downX,mate.y-p.downY)<REVIVE_R)p.reviveT=(p.reviveT||0)+h;else p.reviveT=Math.max(0,(p.reviveT||0)-h*.5);
-  if(p.reviveT>=REVIVE_T||p.downT<=0){const rev=p.reviveT>=REVIVE_T,spot=rev&&!solidBoxP(p.downX,p.downY-10,p.r,p.r)?[p.downX,p.downY-10]:spawnFor(p,p.id);
-    resetPlayer(p,spot);if(rev)p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}}}
+  // a teammate stood in the circle long enough: back on their feet at half health. Nobody came in time: out until the round ends
+  if(p.reviveT>=REVIVE_T){const spot=!solidBoxP(p.downX,p.downY-10,p.r,p.r)?[p.downX,p.downY-10]:spawnFor(p,p.id);
+    resetPlayer(p,spot);p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}
+  else if(p.downT<=0){p.downT=0;p.reviveT=0;p.outT=1.6;burst(p.downX,p.downY,'#ff5a6a',16,300,4,.5,0,true);sfx('thud')}}}
 // a downed hero: a ghost where they fell, the time until they're back, and the revive ring filling while their partner is near
-function drawDowns(){if(!survOn())return;for(const p of heroes()){if(p.alive||!(p.downT>0))continue;const x=p.downX,y=p.downY,k=clamp((p.reviveT||0)/REVIVE_T,0,1);ctx.save();
-  ctx.globalAlpha=.35+.15*Math.sin(performance.now()/200);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,p.r||BASE_R,0,TAU);ctx.fill();
-  ctx.globalAlpha=.5;ctx.strokeStyle=p.glow;ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(x,y,REVIVE_R,0,TAU);ctx.stroke();ctx.setLineDash([]);
-  if(k>0){ctx.globalAlpha=1;ctx.strokeStyle='#9be15d';ctx.lineWidth=6;ctx.beginPath();ctx.arc(x,y,(p.r||BASE_R)+12,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}
-  ctx.globalAlpha=1;ctx.font='24px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle=C.text;ctx.fillText(String(Math.ceil(p.downT)),x,y-(p.r||BASE_R)-18);
-  ctx.font='800 12px Nunito, sans-serif';ctx.fillStyle=p.glow;ctx.fillText(k>0?'REVIVING':'STAND HERE TO REVIVE',x,y+(p.r||BASE_R)+22);ctx.restore()}}
+function drawDowns(){if(!survOn())return;const now=performance.now()/1000;for(const p of heroes()){if(p.alive||p.left)continue;const x=p.downX,y=p.downY,r0=p.r||BASE_R;
+  if(!(p.downT>0)){if(p.outT>0){ctx.save();ctx.globalAlpha=Math.min(1,p.outT);ctx.font='26px "Lilita One", sans-serif';ctx.textAlign='center';ctx.fillStyle='#ff6b7a';ctx.fillText('OUT THIS ROUND',x,y-r0-20);ctx.restore()}continue}
+  const k=clamp((p.reviveT||0)/REVIVE_T,0,1),left=clamp(p.downT/(p.downMax||p.downT||1),0,1),urgent=p.downT<3,pulse=.5+.5*Math.sin(now*(urgent?12:5));ctx.save();
+  // the circle: filled, ringed in the hero's colour, the outer ring running down like a clock (red when time is short)
+  ctx.globalAlpha=.16+.08*pulse;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(x,y,REVIVE_R,0,TAU);ctx.fill();
+  ctx.globalAlpha=.9;ctx.lineWidth=4;ctx.strokeStyle=p.glow;ctx.beginPath();ctx.arc(x,y,REVIVE_R,0,TAU);ctx.stroke();
+  ctx.lineWidth=8;ctx.lineCap='round';ctx.strokeStyle=urgent?'#ff5a6a':'#ffffff';ctx.globalAlpha=urgent?.7+.3*pulse:.85;ctx.beginPath();ctx.arc(x,y,REVIVE_R+9,-Math.PI/2,-Math.PI/2+TAU*left);ctx.stroke();
+  ctx.globalAlpha=.4+.15*pulse;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,r0,0,TAU);ctx.fill();
+  if(k>0){ctx.globalAlpha=.55;ctx.fillStyle='#9be15d';ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,REVIVE_R,-Math.PI/2,-Math.PI/2+TAU*k);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle='#9be15d';ctx.lineWidth=7;ctx.beginPath();ctx.arc(x,y,r0+12,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}
+  ctx.globalAlpha=1;ctx.textAlign='center';ctx.font='30px "Lilita One", sans-serif';ctx.lineWidth=5;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineJoin='round';const t=String(Math.ceil(p.downT));ctx.strokeText(t,x,y-r0-18);ctx.fillStyle=urgent?'#ff6b7a':C.text;ctx.fillText(t,x,y-r0-18);
+  ctx.font='900 15px Nunito, sans-serif';const lab=k>0?'REVIVING…':`SAVE ${p.name.toUpperCase().slice(0,12)}: STAND IN THE CIRCLE`;ctx.strokeText(lab,x,y+REVIVE_R+30);ctx.fillStyle=k>0?'#9be15d':p.glow;ctx.fillText(lab,x,y+REVIVE_R+30);ctx.restore()}}
 // how many enemies a round brings (a boss round: the boss, plus one from round 15)
 const survWave=(n=game.round||1)=>survBossFor(n)?1:Math.min(4,1+Math.floor(n/4));   // 1 enemy, then 2 from round 4, 3 from 8, 4 from 12
 // every five rounds turn the same wheel: a wave, a swarm, a twist, an elite, then a boss. The first lap stays plain while you learn
-const survKind=n=>survBossFor(n)?'boss':n%5===2&&n>=7?'swarm':n%5===3&&n>=8?'twist':n%5===4&&n>=9?'elite':'wave';
-const KIND_N={swarm:'SWARM',elite:'ELITE'};
+const survKind=n=>survBossFor(n)?'boss':n%5===2&&n>=7?(Math.floor(n/5)%2?'waves':'swarm'):n%5===3&&n>=8?'twist':n%5===4&&n>=9?'elite':'wave';
+const KIND_N={swarm:'SWARM',elite:'ELITE',waves:'3 WAVES'};
+// from round 10 a raider can carry a trait: a name, a coloured aura and a card or two to match, so later waves differ from each other
+const TRAITS=[{n:'Armored',c:['Thick Skin'],hp:1.3,col:'#c9d3e0'},{n:'Swift',c:['Sprinter'],col:'#7cf0ff'},{n:'Venomous',c:['Venom Tips'],col:'#9be15d'},{n:'Bouncy',c:['Ricochet'],col:'#c9a0ff'},{n:'Blinking',c:['Blink Guard'],col:'#ff8ad8'},{n:'Vampiric',c:['Vampire Rounds'],col:'#ff5a6a'}];
 function survRound(n){game.round=n;const B=survBossFor(n),kind=survKind(n);game.rkind=kind;
   game.twist=kind==='twist'?pick(TWISTS):null;
   const hs=heroes();if(game.bsSurv)bsSurvJoins(hs);$('#bsPick').hidden=true;
   const nh=Math.max(1,hs.filter(h=>!h.left).length),base=survWave(n)+(nh>1&&n>=4?nh-1:0),   // co-op: one more enemy per extra hero from round 4
     count=B?(n>=15?2:1)+(nh>=3&&n>=10?1:0):kind==='swarm'?Math.min(5+nh,base+1):kind==='elite'?Math.max(1,base-1):Math.min(4+nh,base);   // a swarm: one more, all weaker; an elite: one fewer, led by a strong one
-  const foes=[];for(let i=0;i<count;i++){const e=makePlayer(hs.length+i,'cpu','',1);e.cos={};foes.push(e)}
+  // waves: the swarm's numbers, but a few at a time: three waves, the next one storming in once the last is down
+  const per=kind==='waves'?Math.max(1,Math.ceil((Math.min(5+nh,base+1)+1)/3)):0;game.waveQ=kind==='waves'?[per,per+(nh>1?1:0)]:[];game.waveN=kind==='waves'?1:0;game.waveT=0;
+  const foes=survFoes(n,kind==='waves'?per:count,kind,B,nh,hs.length,count);
   players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
-  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:count);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)}if(nh>1)e.hpMul*=e.boss?1+.75*(nh-1):1+.3*(nh-1)/(nh>2?1.4:1);recompute(e)});   // two heroes: a boss faces double the guns, so it gets most of the extra toughness; raiders also come one more per wave
   for(const h of hs){h.downs=0;h.downT=0;h.reviveT=0;h.roundKills=0}game.waitMsg='';
   game.diff=n<=3?'easy':n<=12?'normal':'hard';   /* the CPU's aim and dodging step up after round 12, not on top of round 10's bigger waves and rares */for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?(bossTier(n)?`${B.n.toUpperCase()} · TIER ${bossTier(n)+1}`:B.n.toUpperCase()):game.twist?`ROUND ${n} · ${game.twist.n}`:KIND_N[kind]?`ROUND ${n} · ${KIND_N[kind]}`:`ROUND ${n}`;game.bannerT=2;
   if(n<=1)game.newBest=false;{const best=game.bsSurv?Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0)):wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
+function survFoes(n,count,kind,B,nh,at,total){const foes=[];for(let i=0;i<count;i++){const e=makePlayer(at+i,'cpu','',1);e.cos={};foes.push(e)}
+  foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:total);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)
+      if(!e.elite&&n>=10&&Math.random()<Math.min(.65,.15+(n-10)*.06)){const T=pick(TRAITS);e.trait=T;e.name=T.n+' '+e.name;e.cards.push(...cardsNamed(T.c));if(T.hp)e.hpMul*=T.hp;e.glow=T.col}}
+    if(nh>1)e.hpMul*=e.boss?1+.75*(nh-1):1+.3*(nh-1)/(nh>2?1.4:1);recompute(e)});   // more heroes: a boss faces more guns, so it gets most of the extra toughness; raiders also come one more per wave
+  return foes}
+// the next wave of a waves round: the fallen leave the field, fresh raiders storm in from the spawns
+function waveTick(h){if(game.mode!=='survival'||!game.waveQ||!game.waveQ.length||game.state!=='play')return;if(enemies().some(e=>e.alive)){game.waveT=0;return}
+  game.waveT+=h;if(game.waveT<1.1)return;game.waveT=0;const hs=heroes(),nh=Math.max(1,hs.filter(q=>!q.left).length),cnt=game.waveQ.shift();game.waveN++;
+  const foes=survFoes(game.round,cnt,'waves',null,nh,hs.length,cnt);players=hs.concat(foes);players.forEach((p,k)=>p.id=k);
+  for(const e of foes){resetPlayer(e,spawnFor(e,e.id));ring(e.x,e.y,e.glow,70)}
+  for(const q of hs)q.scrapBonus=(q.scrapBonus|0)+2;   // each wave beaten pays a little extra
+  game.banner=`WAVE ${game.waveN} OF 3`;game.bannerT=1.4;sfx('horn')}
 // the special attack: inputs are taken over during a telegraph or a charge (runs after cpuInput, before physics)
 function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.alive)return;
   p.stunT=(p.stunT||0)-h;
@@ -2650,11 +2680,14 @@ function survResolve(){const hs=heroes();
   if(!enemies().some(e=>e.alive)){const bb=survBossFor(game.round)?12:game.rkind==='elite'?5:0;   /* an elite pays a smaller bonus */   /* a beaten boss pays a bonus: that's how power-ups are earned */
     // pay = a base that grows slowly + 1.5 per kill + 4 for no damage + the boss bonus (x the character's bonus), then interest: 1 per 12 scrap saved (up to 4)
     for(const h of hs){const mul=(h.char&&h.char.scrap)||1,nd=h.alive&&h.hp>=h.s.maxHp*.999?4:0,kills=h.roundKills|0,int=Math.min(4,Math.floor((h.scrap|0)/12)),
-      team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((5+.6*game.round+1.5*kills+bb+nd+team)*mul*(hs.length>1?.85:1))+int;   /* co-op: two shoppers on one run, each paid a little less */h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
+      team=hs.length>1&&hs.every(q=>q.alive)?3:0,pay=Math.round((5+.6*game.round+1.5*kills+bb+nd+team+(h.scrapBonus|0))*mul*(hs.length>1?.85:1))+int;h.scrapBonus=0;   /* co-op: two shoppers on one run, each paid a little less */h.scrap=(h.scrap||0)+pay;h.lastPay=pay;
       h.payNote=[kills?`${kills} kill${kills>1?'s':''}`:'',bb?(bb>5?'boss bonus':'elite bonus'):'',nd?'no damage':'',team?'teamwork':'',int?`+${int} interest`:''].filter(Boolean).join(', ')}
     game.cleared=game.round;game.state='shop';
     // every hero shops (in co-op both at once, each on their own screen); then the next round
-    heroFlows((p,done)=>heroShop(p,done),survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
+    // a beaten boss drops loot: every hero takes one of three rare cards, free, before the shop
+    const loot=!!survBossFor(game.round);
+    heroFlows((p,done)=>{if(!loot||p.left){heroShop(p,done);return}const own=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),pool=CARDS.filter(c=>c.r===2&&!own.has(c.id)&&!['Second Wind','Aegis'].includes(c.n)).sort(()=>Math.random()-.5).slice(0,3);
+      if(!pool.length){heroShop(p,done);return}heroPick(p,pool,'Survival · boss loot: one rare card, free','Boss loot!',()=>heroShop(p,done))},survAdvance);return}   // after the free start, everything is bought with scrap (bosses pay well)
   game.lives--;if(game.lives<=0){survEnd();return}
   buildRides();for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0;if(h.left){h.alive=false;h.x=-9999}}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
@@ -2751,7 +2784,7 @@ function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=my
   // co-op: your partner's level and health under yours
   const mate=heroes().find(q=>q!==me);if(mate){ctx.fillStyle=mate.color;ctx.fillText(`${mate.name.toUpperCase()} · LV ${mate.lvl||1}`,20,98);
     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(20,108,156,6);ctx.fillStyle=mate.alive?C.hp:'#ff5a6a';ctx.fillRect(20,108,156*(mate.alive&&mate.s?clamp(mate.hp/mate.s.maxHp,0,1):0),6);
-    if(!mate.alive&&mate.downT>0){ctx.fillStyle='#ff9aa8';ctx.fillText(`DOWN · back in ${Math.ceil(mate.downT)} s, or stand by them`,20,128)}}}
+    if(!mate.alive&&mate.downT>0){ctx.fillStyle='#ff9aa8';ctx.fillText(`DOWN · revive them within ${Math.ceil(mate.downT)} s`,20,128)}else if(!mate.alive){ctx.fillStyle='#ff9aa8';ctx.fillText('OUT UNTIL THE ROUND ENDS',20,128)}}}
 /* ---------- drafting ---------- */
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 /* ---------- a team draft (2v2): the losing pair pick at the same time from one fan of six, three cards each in their own
@@ -3445,9 +3478,9 @@ function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMul
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
 function die(p){if(!p.alive||pointDecided()&&!survOn())return;p.alive=false;burst(p.x,p.y,p.color,40,900,10,1.1);burst(p.x,p.y,p.glow,24,700,5,.8,0,true);splat(p.x,p.y,p.color,36,90,14);
   addShake(22);sfx('die');if(!RM)game.flash=.14;fxRec('F',[]);
-  if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=[8,12,16][Math.min(2,p.downs||0)];p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
+  if(game.mode==='survival'){if(p.team===0&&heroes().length>1&&(game.state==='play'||game.state==='ready')){p.downT=DOWN_T[Math.min(2,p.downs||0)];p.downMax=p.downT;p.downs=(p.downs||0)+1;p.reviveT=0;p.downX=p.x;p.downY=p.y}
     if(game.state==='play'||game.state==='ready'){const side=p.team===1?enemies():heroes();
-    if(!side.some(q=>q.alive)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
+    if(!side.some(q=>q.alive)&&!(p.team===1&&game.waveQ&&game.waveQ.length)){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=p.team===1?0:1}}return}
   if(game.party){   // a party: the point ends when one side is left standing; lastWinner is that side (a team; in a free-for-all, a fighter)
     const sides=[...new Set(players.filter(q=>q.alive).map(q=>q.team))];
     if((game.state==='play'||game.state==='ready')&&sides.length<=1){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=sides.length?sides[0]:p.team}return}
@@ -3788,7 +3821,12 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   let dir=0,jump=false,down=false;
   const orb=!p.boss&&!(survOn()&&p.team!==0)&&p.hp<p.s.maxHp*.75&&rides.find(c=>c.broken===1&&Math.abs(c.ox-p.x)<480&&Math.abs(c.oy-p.y)<170),
     dr=!p.boss&&drops.find(d=>d.state!=='warn'&&Math.abs(d.x-p.x)<480&&Math.abs(d.ty-p.y)<170)||(orb?{x:orb.ox,ty:orb.oy}:null);
-  if(ai.mode==='engage'){const sdx=Math.sign(dx)||ai.strafe;dir=dist>want+90?sdx:dist<want-90?-sdx:ai.strafe;
+  // a pack of CPUs on one side spreads out instead of all queueing for the same spot: each keeps its own range, and every
+  // other one works round to the far side of the target (a flank)
+  const pack=players.filter(q=>q!==p&&q.alive&&q.team===p.team&&q.ctrl==='cpu');if(pack.length&&ai.wo==null)ai.wo=rand(-120,140);
+  if(ai.mode==='engage'&&pack.length&&!p.boss){const rank=pack.filter(q=>q.id<p.id).length,side=rank%2?-(Math.sign(p.x-e.x)||1):(Math.sign(p.x-e.x)||1),spot=e.x+side*(want+ai.wo),gx=spot-p.x;
+    dir=Math.abs(gx)>80?Math.sign(gx):ai.strafe;if(p.grounded&&Math.sign(gx)===Math.sign(dx)&&Math.abs(dx)<160&&Math.random()<dt*3)jump=true}   // hop over the target on the way round
+  else if(ai.mode==='engage'){const sdx=Math.sign(dx)||ai.strafe;dir=dist>want+90?sdx:dist<want-90?-sdx:ai.strafe;
     if(p.grounded&&dy<-150&&Math.random()<dt*1.6)jump=true;
     if(p.grounded&&Math.random()<dt*.18)jump=true}
   else if(ai.mode==='hunt'){dir=Math.sign(dx)||1;
@@ -3804,6 +3842,11 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
   if(dr&&ai.mode!=='recover'){dir=Math.sign(dr.x-p.x)||1;if(dr.ty<p.y-60&&p.grounded)jump=true}
+  // elbow room: a teammate right on top of us (a crowd round a swinging beam or a lift) and the later one steps away, hopping if
+  // it has to; one that has made no headway for a while (pinned against a moving piece) tries the other way
+  if(ai.mode!=='recover'){for(const q of pack){const ox=p.x-q.x;if(Math.abs(ox)<p.r+q.r+34&&Math.abs(p.y-q.y)<80&&p.id>q.id){dir=Math.sign(ox)||(p.id%2?1:-1);if(p.grounded&&Math.random()<dt*2.5)jump=true;break}}
+    ai.prog=ai.prog||{x:p.x,y:p.y,t:0};ai.prog.t+=dt;if(ai.prog.t>1.6){const moved=Math.hypot(p.x-ai.prog.x,p.y-ai.prog.y);if(moved<40&&!ai.los&&pack.length){ai.flipT=1.1;ai.strafe=-ai.strafe}ai.prog={x:p.x,y:p.y,t:0}}
+    if(ai.flipT>0&&ai.mode==='engage'&&pack.length){dir=ai.strafe;if(p.grounded&&Math.random()<dt*2)jump=true}}
   if(ai.mode!=='recover'){
     if(p.grounded&&dir&&!groundAhead(p,dir)){
       if(ai.mode==='hunt'&&dy>110&&dropSafe(p,dir)){/* target is below: just walk off */}
@@ -3836,7 +3879,7 @@ function step(h){
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
   if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);updateRides(h);updateRigs(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
-  dropTick(h);strikeTick(h);if(game.mode==='survival')downTick(h);
+  dropTick(h);strikeTick(h);if(game.mode==='survival'){downTick(h);waveTick(h)}
   if(hostingNet()){const e=[performance.now()];for(const q of players)e.push(q.x,q.y);(net.h0=net.h0||[]).push(e);if(net.h0.length>60)net.h0.shift()}   // every fighter's recent path, for lag compensation
   updateBullets(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
@@ -4326,7 +4369,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-01-fills';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-waves';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5052,7 +5095,7 @@ function drawScreenSurvHud(es,boss){if(!(game.round>0))return;const ty=22+Math.r
   heroes().forEach((p,i)=>{const yy=54+i*40;ctx.font='700 14px "JetBrains Mono", monospace';ctx.fillStyle=p.left?'rgba(241,236,247,.35)':p.color;
     ctx.fillText(`${p.name.toUpperCase().slice(0,12)} · LV ${p.lvl||1} · ${p.scrap|0} SCRAP`,20,yy);
     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(20,yy+9,190,7);ctx.fillStyle=p.alive?C.hp:'#ff5a6a';ctx.fillRect(20,yy+9,190*(p.alive&&p.s?clamp(p.hp/p.s.maxHp,0,1):0),7);
-    if(!p.alive&&p.downT>0&&!p.left){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText(`DOWN · ${Math.ceil(p.downT)} s, or stand by them`,216,yy+14)}})}
+    if(!p.alive&&p.downT>0&&!p.left){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText(`DOWN · revive within ${Math.ceil(p.downT)} s`,216,yy+14)}else if(!p.alive&&!p.left&&game.state==='play'){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText('OUT THIS ROUND',216,yy+14)}})}
 // the run is over on the big screen: how far the team got, the best build, and each phone gets its coins and its record
 function bsSurvEnd(){const n=game.cleared||0,hs=heroes();game.state='over';$('#bsPick').hidden=true;
   for(const p of hs)if(p.peer)linkSend(p.peer,{t:'send',n,ch:p.char?p.char.n:'',lvl:p.lvl|0});
@@ -5075,7 +5118,7 @@ function padTok(){if(ctl.tok)return ctl.tok;let t='';try{t=localStorage.getItem(
 function padOpen(){ctl.on=true;bodyCls('padmode',true);for(const id of['#menu','#end','#pause','#pick'])$(id).hidden=true;$('#pad').hidden=false;ctl.hand=null;ctl.st=null;
   setText('#padLobbyT','Connecting…');setText('#padLobbyS','Watch the big screen. The host starts the game.');$('#padTeams').hidden=true;padView('lobby');padWake(true)}
 function padClose(){if(!ctl.on)return;ctl.on=false;bodyCls('padmode',false);$('#pad').hidden=true;$('#padPick').hidden=true;ctl.hand=null;ctl.move=ctl.aim=null;ctl.view='';padWake(false)}
-function padView(v){ctl.view=v;{const el=$('#pad');if(el&&el.classList)el.classList.toggle('live',v==='live')}$('#padLobby').hidden=v!=='lobby';$('#padOver').hidden=v!=='over';$('#padPick').hidden=!ctl.hand;$('#padShop').hidden=!ctl.shop||v!=='live';padMsg()}
+function padView(v){ctl.view=v;if(v==='lobby')padLookLoop();{const el=$('#pad');if(el&&el.classList)el.classList.toggle('live',v==='live')}$('#padLobby').hidden=v!=='lobby';$('#padOver').hidden=v!=='over';$('#padPick').hidden=!ctl.hand;$('#padShop').hidden=!ctl.shop||v!=='live';padMsg()}
 function padTint(col){const el=$('#pad');if(el&&col)el.style.setProperty('--pc',col)}
 function padWake(on){try{if(!on){if(ctl.wake&&ctl.wake.release)ctl.wake.release();ctl.wake=null;return}
   if(navigator.wakeLock&&navigator.wakeLock.request)navigator.wakeLock.request('screen').then(w=>{ctl.wake=w},()=>{})}catch(e){}}   // the phone's screen stays on while it's a controller
@@ -5112,8 +5155,8 @@ function padScore(){const el=$('#padScore'),m=ctl.st;if(!el)return;el.innerHTML=
     const w=m&&m.w?m.w[i]|0:0,half=m&&m.pt&&m.pt[i]?'½':'';sp.textContent=(ctl.sides.length>2?s.n.slice(0,8):s.n)+' ';const n=document.createElement('b');n.textContent=w+half;sp.appendChild(n);el.appendChild(sp)})}
 function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
   if(ctl.view==='live'&&!ctl.hand&&!ctl.shop&&m&&m.sv){if(m.st==='paused')t='Paused on the big screen';else if(m.late)t='You join at the next round · watch the big screen';
-    else if(m.st==='pick'||m.st==='shop')t='Waiting for the others · watch the big screen';else if(!m.al&&m.dn&&(m.st==='play'||m.st==='pointEnd'))t=m.rv>0?'A teammate is reviving you!':`Down · back in ${m.dn} s, or get a teammate next to you`;
-    else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next life";else if(m.st==='over')t='Run over'}
+    else if(m.st==='pick'||m.st==='shop')t='Waiting for the others · watch the big screen';else if(!m.al&&m.dn&&(m.st==='play'||m.st==='pointEnd'))t=m.rv>0?'A teammate is reviving you!':`Down! A teammate has ${m.dn} s to reach you`;
+    else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="Out this round · back for the next one";else if(m.st==='over')t='Run over'}
   else if(ctl.view==='live'&&!ctl.hand&&m){if(m.st==='paused')t='Paused on the big screen';else if(m.st==='pick')t='Cards being picked · watch the big screen';
     else if(!m.al&&(m.st==='play'||m.st==='pointEnd'))t="You're out · back next point";else if(m.st==='pointEnd'&&m.lw===ctl.team)t='Point to you!'}
   el.textContent=t;el.hidden=!t}
@@ -5133,7 +5176,9 @@ function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:
   kids.forEach((c,i)=>{const e=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);if(e<d){d=e;k=i}});const dots=$('#padDots');if(dots)[...dots.children].forEach((t,i)=>t.classList.toggle('on',i===k))},{passive:true})}
 function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').children].forEach((b,k)=>{b.classList.toggle('chosen',k===i);b.classList.toggle('away',k!==i)});
   $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS',ctl.pickSv?'Waiting for the others · watch the big screen':'Watch the big screen for the reveal')}
-let padArtRaf=0;
+let padArtRaf=0,padLookRaf=0;
+function padLookLoop(){if(padLookRaf)return;const step=now=>{if(ctl.view!=='lobby'||$('#pad').hidden){padLookRaf=0;return}const c=$('#padLook'),col=getComputedStyle($('#pad')).getPropertyValue('--pc').trim();
+  const look={...cleanCos(wallet.eq)};try{drawLook(c,look,0,now/1000)}catch(e){}padLookRaf=requestAnimationFrame(step)};padLookRaf=requestAnimationFrame(step)}
 function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
 function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');
@@ -5209,7 +5254,7 @@ function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost t
   const hold=(id,down,upFn)=>{const b=$(id);if(!b||!b.addEventListener)return;
     b.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();b.classList.toggle('down',true);down();padSend(true)},{passive:false});
     const off=e=>{e.preventDefault();e.stopPropagation();b.classList.toggle('down',false);upFn&&upFn();padSend(true)};b.addEventListener('touchend',off);b.addEventListener('touchcancel',off)};
-  hold('#pJump',()=>{ctl.jump=true;ctl.jc++},()=>{ctl.jump=false});
+  hold('#pJump',()=>{ctl.jump=true;ctl.jc++;buzz(6)},()=>{ctl.jump=false});
   hold('#pBlock',()=>{ctl.bc++;buzz(8)});
   const f=$('#padFind');if(f&&f.addEventListener)f.addEventListener('click',()=>{ctl.fc++;padSend(true);buzz(10)})}
 
@@ -5221,7 +5266,7 @@ let pendingJoin='',joinBack='online',mpKind='duel';   // joinBack: where Back on
 function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
-function openNameScreen(){$('#nameInput').value=myName;$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
+function openNameScreen(){$('#nameInput').value=myName;setText('#nameNote',pendingJoin&&!myName?`You're joining room ${pendingJoin}. Pick a name and you're in: no sign-up, no password.`:"Pick a name and you're in: it's your account on this device. No sign-up, no password.");$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
 function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el.hidden=!t}
 
 /* ---------- UI wiring ---------- */
@@ -5357,7 +5402,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
   else if(a==='host'){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';showSub(ov,'hosting');hostGame()}
-  else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
+  else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':b.closest('[data-sub=main]')?'main':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};

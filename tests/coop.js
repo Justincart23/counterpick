@@ -153,16 +153,17 @@ const DT = 1 / 60;
   check(guestShops >= 1 && H.players[1].cards.length >= 2, `the guest should shop for itself (${guestShops} shops, ${H.players[1].cards.length} cards)`);
   check(H.players[1].scrap !== H.players[0].scrap || guestShops >= 1, 'each hero should have their own scrap');
 
-  // a downed partner: the timer brings them back, the HUD knows on both screens
+  // a downed partner: a revive window on both screens; a teammate in the circle brings them back, otherwise they sit out the round
   for (let f = 0; f < 60 * 30 && H.game.state !== 'play'; f++) { bot(); frame(1) }
   if (H.game.state === 'play') { const g = H.players[1]; H.players[0].ctrl = 'idle'; H.players[0].hp = H.players[0].s.maxHp = 1e6; for (const e of H.players) if (e.team === 1) e.hp = e.s.maxHp = 1e6; H.die(g); frame(30);
     check(!g.alive && g.downT > 7, `a downed guest should get a respawn timer (${g.downT})`);
     check(G.players[1].downT > 6, 'the guest should see its own respawn timer');
-    let back = false; for (let f = 0; f < 60 * 10 && !back; f++) { H.players[0].hp = 1e6; frame(1); back = g.alive }
-    check(back, 'the downed guest should come back by the timer');
-    // standing next to them revives sooner
-    if (H.game.state === 'play') { H.die(g); const h0 = H.players[0]; let t = 0; for (; t < 60 * 6 && !g.alive; t++) { h0.x = g.downX; h0.y = g.downY; h0.vx = h0.vy = 0; h0.hp = 1e6; frame(1) }
+    // standing next to them revives them
+    { const h0 = H.players[0]; let t = 0; for (; t < 60 * 6 && !g.alive; t++) { h0.x = g.downX; h0.y = g.downY; h0.vx = h0.vy = 0; h0.hp = 1e6; frame(1) }
       check(g.alive && t < 60 * 5, `standing beside a downed partner should revive them in about 2 s of fighting (${(t / 60).toFixed(1)} s; hits on the reviver pause the game briefly)`) }
+    // nobody comes before the timer runs out: out until the round ends
+    if (H.game.state === 'play') { H.die(g); const h0 = H.players[0]; h0.x = g.downX + 600; let f = 0; for (; f < 60 * 14; f++) { h0.hp = 1e6; if (Math.hypot(h0.x - g.downX, h0.y - g.downY) < 200) h0.x = g.downX + 600; frame(1) }
+      check(!g.alive && !(g.downT > 0), `a partner nobody revives in time should stay out for the round (alive ${g.alive}, timer ${g.downT})`) }
     // both down: a life goes
     const lives = H.game.lives; H.players[0].s.maxHp = 100; H.players[0].ctrl = 'cpu'; if (process.env.DBG) console.log('before', H.game.state, lives, H.players.map(p => p.alive)); if (H.game.state === 'play') { H.die(H.players[1]); H.die(H.players[0]); frame(300) }
     if (process.env.DBG) console.log('after', H.game.state, H.game.lives, H.players.map(p => p.alive)); check(H.game.lives === lives - 1 || H.game.state === 'over', 'both heroes down should cost a life') }
