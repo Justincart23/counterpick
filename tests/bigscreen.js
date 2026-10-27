@@ -118,7 +118,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(left && back, `a phone should leave and rejoin during the match (left ${left} back ${back} wins ${H.game.wins} seat ${leaverSeat} ${H.players.map((p) => p.name + ':' + p.ctrl + (p.left ? ':left' : ''))} phone3 ${G[2].ctl.view} ${G[2].net.role})`);
   check(H.players[leaverSeat].ctrl === 'pad' && H.players[leaverSeat].peer && H.players[leaverSeat].name === 'Phone3' && G[2].ctl.me === leaverSeat, 'the phone that rejoined should get its own seat back');
   check(Fp && Fp.ctl.on && H.players.some((p) => p.name === 'Latecomer' && p.ctrl === 'pad') && !H.players.some((p) => p.ctrl === 'cpu'), `a late friend should take over the CPU's seat (${H.players.map((p) => p.name + ':' + p.ctrl)})`);
-  check(shotsFired > 100, `the phones' shots should fire on the screen (${shotsFired})`);
+  check(shotsFired / Math.max(.5, frames / 3600) > 40, `the phones' shots should fire on the screen (${shotsFired} in ${(frames / 3600).toFixed(1)} min; a match's length varies)`);
   check(over, `the match should finish (wins ${H.game.wins}, ${(frames / 3600).toFixed(1)} min)`);
   check(phones().every((A) => A.ctl.view === 'over'), `every phone should show the result (${G.map((A) => A.ctl.view)} ${Fp && Fp.ctl.view})`);
   const wp = phones().find((A) => A.ctl.me === H.game.overW);

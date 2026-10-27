@@ -898,8 +898,8 @@ body.touch .desk-only{display:none!important}
 #pick.flat .card.theirs{filter:saturate(.8) brightness(.9)}
 #pick.flat .card .float,#pick.flat .card .tilt{display:contents}
 #pick.flat .card .float::before,#pick.flat .card .float::after,#pick.flat .card .tilt::before,#pick.flat .card .k,#pick.flat .card .medal,#pick.flat .card .shine{display:none}
-#pick.flat .card .nm,.pcard .nm{order:-1;position:static;transform:none;margin:0;padding:5px 8px 4px;font:400 var(--ns,16px)/1.1 var(--display);letter-spacing:.02em;text-transform:none;white-space:nowrap;flex-shrink:0;color:var(--text);text-shadow:0 2px 0 rgba(0,0,0,.45)}
-#pick.flat .card .art,.pcard .art{order:0;display:block;flex:none;width:100%;height:calc(var(--cw,160px) * var(--ah,.5));min-height:30px;margin:0;aspect-ratio:auto;object-fit:cover;object-position:50% 45%;clip-path:none}
+#pick.flat .card .nm,.pcard .nm{order:-1;position:relative;left:auto;bottom:auto;z-index:1;transform:none;margin:calc(-1 * (var(--ns,16px) * 1.1 + 13px)) 0 0;padding:9px 8px 4px;background:linear-gradient(transparent,rgba(16,9,26,.92) 70%);font:400 var(--ns,16px)/1.1 var(--display);letter-spacing:.02em;text-transform:none;white-space:nowrap;flex-shrink:0;color:var(--text);text-shadow:0 2px 0 rgba(0,0,0,.45)}
+#pick.flat .card .art,.pcard .art{order:-2;display:block;flex:none;width:100%;height:calc(var(--cw,160px) * var(--ah,.66));min-height:30px;margin:0;aspect-ratio:auto;object-fit:cover;object-position:50% 45%;clip-path:none}
 #pick.flat .card .meta,.pcard .meta{order:1;flex-shrink:0;white-space:nowrap;display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:0 6px;margin:0;padding:5px 8px 0;font:700 var(--ms,8.5px) var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 #pick.flat .card .ds,.pcard .ds{order:2;flex-shrink:0;display:block;min-height:0;overflow:visible;-webkit-line-clamp:unset;margin:0;padding:4px 8px 0;font:700 var(--fs,11px)/1.28 var(--body);color:rgba(241,236,247,.88)}
 #pick.flat .card ul,.pcard ul{order:3;flex-shrink:0;list-style:none;display:grid;gap:2px;margin:auto 8px 0;padding:6px 0 8px;min-height:0;border-top:1px solid rgba(255,255,255,.09)}
@@ -937,11 +937,12 @@ body.touch .desk-only{display:none!important}
 .pad-cards{--fs:12px;--cw:calc((100vw - 24px - (var(--n,5) - 1) * 8px) / var(--n,5));display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));align-items:stretch;gap:8px;width:100%;min-height:0;
   padding:6px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));box-sizing:border-box;overflow:hidden}
 @media (orientation:portrait){
-  .pad-cards{--cw:34vw;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr)}
-  .pcard{position:relative;padding-left:34%}
-  .pcard .art{position:absolute;left:0;top:0;bottom:0;width:34%;height:100%}
+  .pad-cards{--cw:42vw;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr)}
+  .pcard{position:relative;padding-left:42%}
+  .pcard .art{position:absolute;left:0;top:0;bottom:0;width:42%;height:100%}
+  .pcard .nm{margin-top:0;padding-top:6px;background:none}
   /* the shop upright: Buy and Lock sit over the picture, so the text keeps its room */
-  .pcard .pc-buy{position:absolute;left:0;bottom:0;width:34%;box-sizing:border-box;flex-direction:column-reverse;align-items:stretch;gap:4px;padding:6px;background:linear-gradient(transparent,rgba(14,8,22,.85) 40%)}
+  .pcard .pc-buy{position:absolute;left:0;bottom:0;width:42%;box-sizing:border-box;flex-direction:column-reverse;align-items:stretch;gap:4px;padding:6px;background:linear-gradient(transparent,rgba(14,8,22,.85) 40%)}
   .pcard .pc-lock{text-align:center;background:rgba(14,8,22,.6)}
   .pad-cards.scroll{display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}.pad-cards.scroll .pcard{flex:none;min-height:118px}
   #padShop .psh-msg,#padShop .psh-build .lbl{display:none}#padShop .pad-h{font-size:26px}#padShop .pad-p{font-size:13px;line-height:1.3}#padShop .scrapchip{font-size:17px;padding:2px 10px}
@@ -2876,8 +2877,8 @@ function fitCards(box,start){if(!box||!box.style||!box.children||!box.children.l
     for(const li of q(c,'li'))if(li.scrollWidth>li.parentNode.clientWidth+1)li.classList.add('wrap')};
   cards.forEach(fitOne);
   const tall=()=>box.scrollHeight>box.clientHeight+1||cards.some(c=>c.scrollHeight>c.clientHeight+1);
-  let ah=.5;box.style.setProperty('--ah','.5');
-  for(let i=0;i<10&&ah>.26&&tall();i++){ah-=.03;box.style.setProperty('--ah',ah.toFixed(2))}   // the art gives way first
+  let ah=.66;box.style.setProperty('--ah','.66');   // the whole picture (the art is drawn 3:2)
+  for(let i=0;i<5&&ah>.5&&tall();i++){ah-=.03;box.style.setProperty('--ah',ah.toFixed(2))}   // it gives way a little, never down to a strip
   box.classList.remove('scroll');
   for(let i=0;i<20&&fs>8.5&&tall();i++){fs-=.5;set(box,'--fs',fs);cards.forEach(fitOne)}
   // an upright phone with a long hand can't show it all at a readable size: then the cards keep their size and the list scrolls
@@ -4328,15 +4329,18 @@ function applyTouch(){const R=56,m=touch.move,a=touch.aim;let mx=0,up=false,down
 // fire one shot: a queued trigger pull (mouse.tapN) that physics steps use, so every tap is exactly one shot. A tap while the
 // gun is still cycling waits up to TAP_BUF for it (spam-tapping never drops a shot); an empty gun clears the queue
 const TAP_BUF=.25;
-function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=TAP_BUF;touch.tapAuto=!!auto}
+function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=auto?TAP_BUF:Math.max(TAP_BUF,1.2);touch.tapAuto=!!auto}   // an aimed shot waits through a short reload
 function tapStep(me,h,fired){if(!(mouse.tapN>0))return;
   if(fired){mouse.tapN--;mouse.tapT=TAP_BUF;return}
-  if(!me||!me.alive||me.ammo<=0&&!(me.burstLeft>0)||(mouse.tapT-=h)<=0)mouse.tapN=0}
+  if(!me||!me.alive||me.ammo<=0&&!(me.burstLeft>0)&&touch.tapAuto||(mouse.tapT-=h)<=0)mouse.tapN=0}
 function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
   if(quick){autoAim();touchShoot(true)}   // tap: auto-aim at the rival (lob, drop and lead included)
   else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
 function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
-  if(me&&e&&e.alive&&Number.isFinite(me.x)){touch.aimA=aimSolution(me,e);touchAim()}}
+  if(!me||!Number.isFinite(me.x))return;const a=tapTarget(me,e);if(a!=null){touch.aimA=a;touchAim()}}
+// where a tap auto-fires: the nearest rival (anything else, a health crate say, you aim at yourself)
+function tapTarget(p,e){
+  return e&&e.alive?aimSolution(p,e):null}
 const touchAiming=()=>!!(touch.aim&&(touch.aim.maxD||0)>=TAP_MOVE&&Math.hypot(touch.aim.dx,touch.aim.dy)>=AIM_DEAD);
 function touchMe(){return game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse')}
 // keep the virtual mouse out along the aim, wherever the fighter goes
@@ -4369,7 +4373,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-waves';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-03-aim';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4985,14 +4989,14 @@ function padInput(p){const inp=p.input,L=p.peer,r=L&&L.padIn;
   const up=(k,c)=>{const v=r[c]|0;if(p[k]==null){p[k]=v;return 0}const n=Math.max(0,v-p[k]);p[k]=Math.max(p[k],v);return n};
   if(up('padJc','jc'))inp.jumpP=true;if(up('padBc','bc'))inp.blockP=true;if(up('padFc','fc'))p.findT=2.2;
   const shots=up('padSc','sc'),autos=up('padAc','ac');
-  if(shots||autos){p.padTap=Math.min(3,(p.padTap||0)+shots+autos);p.padTapT=TAP_BUF;p.padAuto=!shots;if(shots)p.padAimA=r.a}
+  if(shots||autos){p.padTap=Math.min(3,(p.padTap||0)+shots+autos);p.padTapT=shots?Math.max(TAP_BUF,1.2):TAP_BUF;p.padAuto=!shots;if(shots){p.padAimA=r.a;p.padHoldT=.8}}
   p.padAiming=!!r.ag&&!stale;
-  const e=other(p),auto=e&&e.alive&&e!==p?aimSolution(p,e):null;
+  const e=other(p),auto=e!==p?tapTarget(p,e):null;
   if(p.padTap>0){inp.fire=true;inp.aim=p.padAuto?auto??p.aim:p.padAimA??r.a}
-  else{inp.fire=false;inp.aim=p.padAiming?r.a:auto??p.aim}}   // between shots the gun follows the nearest rival
+  else{inp.fire=false;inp.aim=p.padAiming?r.a:p.padHoldT>0?p.padAimA:auto??p.aim}}   // after a shot you aimed, the gun stays on your aim a moment   // between shots the gun follows the nearest rival
 // a queued shot is used up by the step that fires it; one the gun can't fire soon (empty, or out) is dropped
-function padTapStep(p,h){if(!(p.padTap>0))return;if(p.sinceShot===0){p.padTap--;p.padTapT=TAP_BUF;return}
-  if(!p.alive||p.ammo<=0&&!(p.burstLeft>0)||(p.padTapT-=h)<=0)p.padTap=0}
+function padTapStep(p,h){if(p.padHoldT>0&&!(p.padTap>0))p.padHoldT-=h;if(!(p.padTap>0))return;if(p.sinceShot===0){p.padTap--;p.padTapT=TAP_BUF;p.padHoldT=.8;return}
+  if(!p.alive||p.ammo<=0&&!(p.burstLeft>0)&&p.padAuto||(p.padTapT-=h)<=0)p.padTap=0}   // an aimed shot waits through a short reload; a tap doesn't
 // "Find me", and every point's start: rings and an arrow with the name over that phone's fighter
 function drawFinds(){if(!game.screen)return;const t=performance.now()/1000;
   for(const p of players){if(!(p.findT>0)||!p.alive||!Number.isFinite(p.x))continue;const k=Math.min(1,p.findT/.4),pu=RM?0:.5+.5*Math.sin(t*9),nm=p.name.toUpperCase();
@@ -5163,7 +5167,7 @@ function padMsg(){const m=ctl.st,el=$('#padMsg');if(!el)return;let t='';
 function padHand(m){ctl.hand=(m.hand||[]).slice(0,5).map(decodeCard).filter(Boolean);if(!ctl.hand.length){ctl.hand=null;return}{const pc=$('#padCards');if(pc&&pc.style)pc.style.setProperty('--n',ctl.hand.length)}ctl.picked=-1;ctl.pickEnd=performance.now()+clamp(+m.secs||SPICK_T,3,60)*1000;
   ctl.pickSv=!!m.sv;if(!(+m.secs>0))ctl.pickEnd=0;setText('#padPickT',String(m.ti||'').slice(0,40)||'Pick a card');setText('#padPickS',String(m.sub||'').replace(/^Survival · /,'').replace(/^./,c=>c.toUpperCase()).slice(0,90));const el=$('#padCards');el.innerHTML='';
   ctl.hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='pcard r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
-    b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul>';
+    b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul>';
     b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
     const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
     b.querySelector('canvas')._card=c;b.addEventListener('click',()=>padPick(i));el.appendChild(b)});
@@ -5197,7 +5201,7 @@ function padShop(m){const S={offers:(m.o||[]).slice(0,6).map(a=>({c:decodeCard(a
   const msg=String(m.msg||'').replace(/<[^>]*>/g,'').slice(0,120);setText('#pshMsg',msg||'Tap a card to buy it. Tap a card in your build twice to sell it for half.');
   const el=$('#pshCards');
   if(fresh){el.innerHTML='';S.offers.forEach((o,i)=>{const c=o.c,b=document.createElement('button');b.type='button';b.className='pcard shopc r'+(c.r|0);b.style.setProperty('--cat',CAT[c.k]||'#888');
-      b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="150" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul><span class="pc-buy"><b class="pc-price"></b><span class="pc-lock" role="button" tabindex="0"></span></span>';
+      b.innerHTML='<span class="nm"></span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><span class="meta"></span><span class="ds"></span><ul></ul><span class="pc-buy"><b class="pc-price"></b><span class="pc-lock" role="button" tabindex="0"></span></span>';
       b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
       const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
       b.querySelector('canvas')._card=c;b.addEventListener('click',e=>{if(e.target.closest('.pc-lock')){padShopOp('lock',i);return}padShopOp('buy',i)});el.appendChild(b)});
