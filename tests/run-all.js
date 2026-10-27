@@ -37,6 +37,7 @@ const suite = [
   run('party.js', 90, 45),
   run('bigscreen.js'),   // Big Screen: the computer is the screen, phones are the controllers: lobby, at-once drafts, a full match, a leaver who rejoins, a late friend, Teams 2v2
   run('bigscreen.js', 90, 45),
+  run('spawns.js'),   // every arena, every mode: nobody starts in a wall, over a pit, on top of someone, or falls out
   run('versus.js'),   // Versus on own screens: the lobby, a 4-player free-for-all, a duel, 2v2 with CPUs, alone with a CPU
   run('versus.js', 90, 45),
   run('bigsurv.js'),   // Co-op Survival on a Big Screen: a hero per phone, picks and shops on the phones, leavers, late friends, revives, the run's end

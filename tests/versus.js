@@ -115,7 +115,13 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   const picks = new Map(); let stalls = 0;
   const pickMine = (A) => { const me = myP(A); if (!me || !A.pickFor || A.pickFor.id !== me.id) return; if (A.pickMode === 'team') { const T = A.tpick, g = T && T.ids.indexOf(me.id); if (T && g >= 0 && T.chosen[g] < 0 && T.sent !== g) { A.pickNow(g * 3); picks.set(A, (picks.get(A) || 0) + 1) } return }
     if ((A.pickMode === 'local' || A.pickMode === 'remote') && A.hand.length && !A.__picked) { A.__picked = A.pickFor; A.pickNow(0); picks.set(A, (picks.get(A) || 0) + 1) } };
-  const play = (maxMin) => { let f = 0; while (f < 60 * 60 * maxMin) { f++; for (const A of all) { if (A.__picked && A.pickFor !== A.__picked) A.__picked = null; pickMine(A) } if (H.game.state === 'play') all.forEach((A) => drive(A, f)); frame(1); if (H.game.state === 'play' && H.game.pointT > 120) { const al = H.players.filter((p) => p.alive); if (al.length > 1) { stalls++; H.die(al.reduce((a, b) => a.hp < b.hp ? a : b)) } }   // test bots wedged against a wall in overtime: settle the point
+  const smooth = new Map(); const jerkOf = (A) => smooth.get(A) || smooth.set(A, { n: 0, j: 0, k: new Map() }).get(A);
+  const watchSmooth = () => { for (const A of all) { if (A.game.state !== 'play') { jerkOf(A).k.clear(); continue } const me = myP(A), S = jerkOf(A), a = A.game.alpha || 0;
+      for (const p of A.players) { if (p === me || !p.alive || !Number.isFinite(p.x) || p.hurtT > -.3 || p.kT > 0 || p.padT > .3) { S.k.delete(p.id); continue }
+        const x = p.lx != null ? p.lx + (p.x - p.lx) * a : p.x, y = p.ly != null ? p.ly + (p.y - p.ly) * a : p.y, h = S.k.get(p.id) || [];
+        h.push([x, y]); if (h.length > 3) h.shift(); S.k.set(p.id, h);
+        if (h.length === 3) { S.n++; const jx = h[2][0] - 2 * h[1][0] + h[0][0], jy = h[2][1] - 2 * h[1][1] + h[0][1]; if (Math.abs(jx) > 5) S.j++ } } } };
+  const play = (maxMin) => { let f = 0; while (f < 60 * 60 * maxMin) { f++; for (const A of all) { if (A.__picked && A.pickFor !== A.__picked) A.__picked = null; pickMine(A) } if (H.game.state === 'play') all.forEach((A) => drive(A, f)); frame(1); watchSmooth(); if (H.game.state === 'play' && H.game.pointT > 120) { const al = H.players.filter((p) => p.alive); if (al.length > 1) { stalls++; H.die(al.reduce((a, b) => a.hp < b.hp ? a : b)) } }   // test bots wedged against a wall in overtime: settle the point
     if (H.game.state === 'over') { frame(40); return f } } return f };
   // --- the lobby
   Object.assign(H.settings, { bsMode: 'ffa', bsLen: 2, bsCards: 'losers', bsBots: 0, bsHp: 1 });
@@ -135,6 +141,8 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(H.game.state === 'over' && G.every((A) => A.game.state === 'over'), `the free-for-all plays to the end on every screen (wins ${H.game.wins}, ${(f1 / 3600).toFixed(1)} min)`);
   check([H, ...G].every((A) => (picks.get(A) || 0) > 0), `every screen drafts its own cards (${[H, ...G].map((A) => picks.get(A) || 0)})`);
   check(Math.max(...H.game.wins) === 2, 'a fighter reaches the rounds to win');
+  const jerks = [H, ...G].map((A) => { const S = jerkOf(A); return +(100 * S.j / Math.max(1, S.n)).toFixed(2) });
+  check(jerks.every((j) => j < 3), `every screen (host first) draws the other fighters moving smoothly (${jerks}% of frames jerked)`);
   // --- a duel: one friend, nobody else
   for (const A of G) A.leaveOnline(true); H.leaveOnline(true); all = [H, G[0]]; frame(30);
   Object.assign(H.settings, { bsMode: 'ffa', bsBots: 0, bsLen: 2 }); H.openVersus(); frame(20); G[0].joinGame(H.net.code); frame(40);
@@ -153,7 +161,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(H.game.mode === 'online-host' && H.players.length === 2 && H.players[1].ctrl === 'cpu', 'alone with a CPU player: the match starts');
   const f4 = play(6); check(H.game.state === 'over', 'and plays to the end');
   check(!errors, `no errors (${errors})`);
-  console.log(JSON.stringify({ ffaMin: +(f1 / 3600).toFixed(1), duelMin: +(f2 / 3600).toFixed(1), stalledPoints: stalls, teamsMin: +(f3 / 3600).toFixed(1), errors, failures: fail.length }));
+  console.log(JSON.stringify({ jerkPct: [H, ...G].map((A) => { const S = jerkOf(A); return +(100 * S.j / Math.max(1, S.n)).toFixed(2) }), ffaMin: +(f1 / 3600).toFixed(1), duelMin: +(f2 / 3600).toFixed(1), stalledPoints: stalls, teamsMin: +(f3 / 3600).toFixed(1), errors, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
 })();

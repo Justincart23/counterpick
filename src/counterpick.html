@@ -694,6 +694,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #bigLobby.surv .bs-opt:not([data-opt=bsMode]),#bigLobby.surv .menu-hint{display:none}
 #bigLobby.room .bs-opt[data-opt=bsTwist],#bigLobby.surv .bs-opt[data-opt=bsMode]{display:none}
 #bigLobby.teams .bs-opt[data-opt=bsBots]{display:none}
+#joinForm.in #joinCode,#joinForm.in [type=submit],#joinForm.in>.lbl[for=joinCode]{display:none}
 .bs-link{margin-top:6px;font:400 16px var(--display);letter-spacing:.03em;border-radius:12px}
 .bs-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(560px,100%)}
 .bs-opt{display:grid;gap:3px;text-align:left;padding:7px 10px 8px 12px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--line);color:var(--text);cursor:pointer;font:inherit;transition:border-color .12s,background .12s;min-width:0}
@@ -717,7 +718,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   #bigLobby .bs-join .lbl{grid-column:2;margin:0}#bigLobby .bs-or{grid-column:2;margin:0;font-size:13px}#bigLobby .bs-join .code{grid-column:2;font-size:46px;line-height:1}#bigLobby .bs-link{grid-column:2;margin:0;font-size:15px;padding:7px 12px}
   #bigLobby .bs-side,#bigLobby .bs-opts,#bigLobby .bs-seats{width:100%}#bigLobby .bs-seats li{font-size:16px;padding:6px 10px 6px 28px}
   #bigLobby .bs-opt{padding:4px 6px 5px 8px}#bigLobby .bs-ov{font-size:15px}#bigLobby .bs-ov .val{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #bigLobby .bs-acts{position:fixed;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(14,8,22,.96) 30%)}
+  #bigLobby .bs-acts{position:fixed;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:0;padding:10px max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(14,8,22,.96) 30%)}
   #bigLobby .bs-acts .btn{font-size:18px;padding:10px}
 }
 @media (max-width:440px){#bigLobby .bs-ov{font-size:14px;gap:2px}#bigLobby .bs-ov i{width:22px;height:24px;font-size:17px}#bigLobby .bs-ov .val{flex:1;text-align:center}}
@@ -903,9 +904,9 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
    the same order: name, art, kind and rarity, what it does, and the numbers it changes on your fighter. Text never gets cut
    off: if a hand is wordy, the text steps down a size until it all fits ---- */
 #pick.flat #fan{position:absolute;left:0;right:0;top:calc(52px + env(safe-area-inset-top,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;height:auto;transform:none;
-  --cw:min(184px,calc((100vw - 28px - (var(--n,5) - 1) * 8px) / var(--n,5)));display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);justify-content:center;align-content:center;align-items:stretch;gap:8px;
+  --safe:calc(max(12px,env(safe-area-inset-left,0px)) + max(12px,env(safe-area-inset-right,0px)) + 4px);--cw:min(184px,calc((100vw - var(--safe) - (var(--n,5) - 1) * 8px) / var(--n,5)));display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);justify-content:center;align-content:center;align-items:stretch;gap:8px;
   padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));flex-wrap:nowrap}
-#pick.flat.team #fan{top:calc(78px + env(safe-area-inset-top,0px));gap:5px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));--cw:min(170px,calc((100vw - 26px - 5 * 5px) / 6))}
+#pick.flat.team #fan{top:calc(78px + env(safe-area-inset-top,0px));gap:5px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));--cw:min(170px,calc((100vw - var(--safe) - 5 * 5px - 10px) / 6))}
 #pick.flat.team .card.g2{margin-left:10px}
 #pick.flat.team .card .nm,#pick.flat.team .card .meta,#pick.flat.team .card .ds{padding-left:6px;padding-right:6px}#pick.flat.team .card ul{margin-left:6px;margin-right:6px}
 #pick.flat.shopmode #fan{top:calc(50px + env(safe-area-inset-top,0px));bottom:calc(56px + env(safe-area-inset-bottom,0px))}
@@ -955,7 +956,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #pick.flat .pick-shop .btn.primary{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
 #pick.flat.shopmode .pick-head p{display:block;font-size:11px;letter-spacing:.03em;text-transform:none}
 /* the Big Screen controller: the same cards, side by side when sideways, one per row when upright */
-.pad-cards{--fs:12px;--cw:calc((100vw - 24px - (var(--n,5) - 1) * 8px) / var(--n,5));display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));align-items:stretch;gap:8px;width:100%;min-height:0;
+.pad-cards{--fs:12px;--cw:calc((100vw - max(12px,env(safe-area-inset-left,0px)) - max(12px,env(safe-area-inset-right,0px)) - (var(--n,5) - 1) * 8px) / var(--n,5));display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));align-items:stretch;gap:8px;width:100%;min-height:0;
   padding:6px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));box-sizing:border-box;overflow:hidden}
 @media (orientation:portrait){
   .pad-cards{--cw:42vw;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr)}
@@ -976,7 +977,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 /* the phone's shop in a Big Screen run */
 @media (orientation:portrait){#pad .pad-score{display:none}}   /* upright, the sheet says it all (and a fight turns the phone sideways) */
 #padShop{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto;padding-left:0;padding-right:0;overflow:hidden;gap:6px}
-#padShop>*:not(.pad-cards){padding-left:16px;padding-right:16px;box-sizing:border-box;width:100%}
+#padShop>*:not(.pad-cards){padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box;width:100%}
 .psh-top{display:flex;align-items:center;justify-content:center;gap:12px}
 #padShop .scrapchip{font:400 20px var(--display);color:#ffd36b;background:rgba(255,211,107,.12);border:2px solid rgba(255,211,107,.4);border-radius:12px;padding:3px 12px}
 .psh-build{display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:none;min-height:32px}.psh-build::-webkit-scrollbar{display:none}
@@ -1978,12 +1979,24 @@ function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 // the rival: in a duel the other fighter; with more fighters, the nearest living enemy (any enemy if none is alive)
 // where fighter k starts: the arena's own spawn for the first two; extra enemies on a free platform far from the heroes
-function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];
-  if(p.team===0){const i=heroes().indexOf(p),x=sp[0][0]+(sp[0][0]<W/2?1:-1)*80*Math.max(0,i);return i>0&&!solidBoxP(x,sp[0][1],BASE_R,BASE_R)?[x,sp[0][1]]:sp[0]}   // a second hero starts beside the first
-  const n=players.filter(q=>q.team===1).indexOf(p);if(n<=0)return sp[1];
-  const tops=solids.filter(r=>!r.bound&&!r.swing&&r.kind!==3&&r.w>=80),hero=sp[0];
-  for(let g=0;g<60&&tops.length;g++){const r=pick(tops),x=rand(r.x+30,r.x+r.w-30),y=r.y-BASE_R*1.6;if(Math.abs(x-hero[0])<380||y<FRAME+40||x<FRAME+30||x>W-FRAME-30)continue;if(solidBoxP(x,y-10,22,30))continue;return[x,y]}
-  return[sp[1][0]+(n%2?-1:1)*70*n,sp[1][1]]}
+function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];const R=Math.max(BASE_R,p.r||0);   // a big fighter (Thick Skin, a boss) needs a bigger spot
+  // a good spot: the body fits, and there's fixed floor (nothing that swings, falls or breaks) close under the whole body
+  const fixed=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&!r.rig&&r.kind!==3&&r.kind!==4),under=(x,y)=>fixed.some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
+  const ok=(x,y)=>x>FRAME+R&&x<W-FRAME-R&&y>FRAME+R&&!solidBoxP(x,y,R,R)&&[-R*.7,0,R*.7].every(dx=>{for(let gy=y+R;gy<y+R+90;gy+=4)if(under(x+dx,gy))return true;return false});
+  // every standing spot on every fixed surface, nearest to (tx,ty) first, that's free of the others
+  const near=(tx,ty,free)=>{let best=null,bd=1e18;for(const r of fixed){if(r.w<56)continue;const y=r.y-R-2;for(let x=r.x+R+4;x<=r.x+r.w-R-4;x+=12){const d=(x-tx)**2+(y-ty)**2;if(d<bd&&ok(x,y)&&free(x,y)){bd=d;best=[x,y]}}}return best};
+  if(p.team===0){const hs=heroes(),i=hs.indexOf(p);if(i<=0)return sp[0];   // more heroes start beside the first, each in the nearest free spot with floor under it
+    const got=hs.slice(0,i).filter(h=>Number.isFinite(h.x)).map(h=>[h.x,h.y]);if(!got.length)got.push(sp[0]);
+    return near(sp[0][0]+(sp[0][0]<W/2?1:-1)*90*i,sp[0][1],(x,y)=>got.every(([a,b])=>Math.hypot(a-x,b-y)>70)&&Math.hypot(sp[1][0]-x,sp[1][1]-y)>420)||sp[0]}   // never over by the enemies' side
+  const foesL=players.filter(q=>q.team===1),n=foesL.indexOf(p);
+  const placed=foesL.slice(0,n).filter(q=>Number.isFinite(q.x)).map(q=>[q.x,q.y]),hs=heroes().filter(h=>h.alive&&Number.isFinite(h.x)).map(h=>[h.x,h.y]),
+    apart=(x,y)=>placed.every(([a,b])=>Math.hypot(a-x,b-y)>110)&&hs.every(([a,b])=>Math.hypot(a-x,b-y)>360);   // enemies apart from each other, and well away from every hero
+  // somewhere new each time (a random target), but always a safe, free spot
+  if(n<=0&&apart(sp[1][0],sp[1][1]))return sp[1];
+  for(let g=0;g<4;g++){const t=near(rand(FRAME+60,W-FRAME-60),rand(FRAME+60,H-120),apart);if(t)return t}
+  // not much floor: squeeze closer together on the enemies' side, but never start next to a hero
+  for(const[gap,far]of[[70,300],[52,240],[52,170]]){const t=near(sp[1][0],sp[1][1],(x,y)=>placed.every(([a,b])=>Math.hypot(a-x,b-y)>gap)&&hs.every(([a,b])=>Math.hypot(a-x,b-y)>far));if(t)return t}
+  return sp[1]}
 const other=p=>{if(players.length===2)return players[1-p.id];let best=null,bd=1e9;for(const q of players){if(q===p||q.team===p.team)continue;const d=(q.alive?0:1e7)+Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q}}return best||players.find(q=>q!==p)};
 const foes=(a,b)=>a&&b&&a!==b&&a.team!==b.team;
 const playerLabel=p=>p.boss||survOn()?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p.name} · CPU`:p.name;
@@ -4409,7 +4422,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-08-versus';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-09-audit';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4657,8 +4670,9 @@ function partyStart(){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;co
 function partyBegin(list){$("#bigLobby").hidden=true;$("#end").hidden=true;net.roster=list;net.connected=true;net.remoteName='';net.hostId=list.findIndex(e=>e.host);net.ffa=!!net.room&&!bsTeams();
   list.forEach((e,k)=>{if(e.peer)linkSend(e.peer,{t:'start',me:k,roster:list.map(x=>({n:x.n,cos:x.cos||{},cpu:x.cpu?1:0})),ffa:net.ffa?1:0,room:net.room?1:0,hp:net.room?settings.bsHp:1,tg:net.room?settings.bsLen:settings.len})});
   startMatch('online-host')}
-function partyJoined(){setText('#joinMsg',"You're in the party. Waiting for the host to start…")}
-function partyRoster(list,you,ffa){const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L,ffa);$('#joinTeam').hidden=!!ffa;if(!ffa)teamButtons(you,L);setText('#joinMsg',`You're in (${list.filter(Boolean).length} of 4). Waiting for the host to start.`)}
+function joinedView(on){const f=$('#joinForm');if(f&&f.classList)f.classList.toggle('in',!!on);const b=$('#joinForm [data-act=cancelOnline]');if(b)b.textContent=on?'Leave room':'Back'}
+function partyJoined(){joinedView(true);setText('#joinMsg',"You're in the party. Waiting for the host to start…")}
+function partyRoster(list,you,ffa){joinedView(true);const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L,ffa);$('#joinTeam').hidden=!!ffa;if(!ffa)teamButtons(you,L);setText('#joinMsg',`You're in (${list.filter(Boolean).length} of 4). Waiting for the host to start.`)}
 function onNet(m,pr){
   if(net.role==='host'&&pr){hostNet(m,pr);return}
   if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
@@ -5474,8 +5488,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
   else if(a==='host'){if(mpKind==='versus'){openVersus();return}net.wantScreen=false;net.wantRoom=false;net.wantCoop=mpKind==='coop';net.wantParty=false;showSub(ov,'hosting');hostGame()}
-  else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':b.closest('[data-sub=main]')?'main':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
-  else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
+  else if(a==='join'){joinedView(false);joinBack=b.closest('[data-sub=multi]')?'multi':b.closest('[data-sub=main]')?'main':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
+  else if(a==='cancelOnline'){leaveOnline(true);joinedView(false);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
     if(touch.on&&navigator.share){navigator.share({title:'CUUED',text:`Join my CUUED game! Code ${net.code}`,url:v}).catch(()=>{});return}   // a phone: straight to the share sheet
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};
