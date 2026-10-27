@@ -698,6 +698,9 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #bigLobby{background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.86)}
 .bs-survnote{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
 #bigLobby.surv .bs-opt:not([data-opt=bsMode]),#bigLobby.surv .menu-hint{display:none}
+#bigLobby.room .bs-opt[data-opt=bsTwist],#bigLobby.surv .bs-opt[data-opt=bsMode]{display:none}
+#bigLobby.teams .bs-opt[data-opt=bsBots]{display:none}
+.bs-link{margin-top:6px;font:400 16px var(--display);letter-spacing:.03em;border-radius:12px}
 .bs-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(560px,100%)}
 .bs-opt{display:grid;gap:3px;text-align:left;padding:7px 10px 8px 12px;border-radius:10px;background:rgba(33,21,47,.92);border:2px solid var(--line);color:var(--text);cursor:pointer;font:inherit;transition:border-color .12s,background .12s;min-width:0}
 .bs-opt:hover,.bs-opt:focus{border-color:var(--hot);background:rgba(48,31,68,.96);outline:none}
@@ -709,6 +712,21 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .bs-acts .go[disabled]{background:var(--night-2);border-color:var(--line);color:var(--muted);opacity:1}
 .bs-side .menu-hint{margin:0;min-height:2.9em;max-width:560px;font-size:14px;line-height:1.45;color:var(--muted)}
 .bs-acts .btn{font-size:20px;padding:10px 26px}
+/* a phone: the lobby in one column that fits the width (scrolls when tall, never cut off at the top); the code, the QR and the
+   link button in a row; Start and Close stay in reach at the bottom */
+@media (max-width:760px),(max-height:520px){
+  #bigLobby{align-items:flex-start}#bigLobby .bs-wrap{margin:0 auto;padding:max(10px,env(safe-area-inset-top,0px)) 14px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+  #bigLobby .bs-wrap .screen-title{font-size:clamp(24px,7vw,32px);transform:none;text-align:center}
+  #bigLobby .bs-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  #bigLobby .bs-join{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto;align-items:center;justify-items:start;text-align:left;column-gap:14px;row-gap:4px}
+  #bigLobby .bs-qr{grid-column:1;grid-row:1 / span 4;width:104px;padding:5px}
+  #bigLobby .bs-join .lbl{grid-column:2;margin:0}#bigLobby .bs-or{grid-column:2;margin:0;font-size:13px}#bigLobby .bs-join .code{grid-column:2;font-size:46px;line-height:1}#bigLobby .bs-link{grid-column:2;margin:0;font-size:15px;padding:7px 12px}
+  #bigLobby .bs-side,#bigLobby .bs-opts,#bigLobby .bs-seats{width:100%}#bigLobby .bs-seats li{font-size:16px;padding:6px 10px 6px 28px}
+  #bigLobby .bs-opt{padding:4px 6px 5px 8px}#bigLobby .bs-ov{font-size:15px}#bigLobby .bs-ov .val{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #bigLobby .bs-acts{position:fixed;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(14,8,22,.96) 30%)}
+  #bigLobby .bs-acts .btn{font-size:18px;padding:10px}
+}
+@media (max-width:440px){#bigLobby .bs-ov{font-size:14px;gap:2px}#bigLobby .bs-ov i{width:22px;height:24px;font-size:17px}#bigLobby .bs-ov .val{flex:1;text-align:center}}
 @media (max-width:860px){.bs-grid{grid-template-columns:1fr}.bs-join{grid-template-columns:auto auto;align-items:center;justify-items:start;text-align:left}.bs-qr{grid-row:span 3;width:150px}}
 @media (max-height:700px){.bs-wrap .screen-title{font-size:34px}.bs-opt{padding:4px 8px 5px 10px}.bs-ov{font-size:16px}.bs-seats li{padding:5px 10px 5px 30px;font-size:17px}}
 /* ---- Big Screen draft on the big screen: one column per picker, a face-down card that ticks when they lock in, then flips ---- */
@@ -1044,13 +1062,12 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <div data-sub="multi" hidden>
       <div class="lbl sublbl">Multiplayer</div>
       <nav class="mlist tiles" aria-label="Multiplayer">
-        <button type="button" class="mt" data-act="online" data-ic="online" data-hint="One-on-one against a friend: online from anywhere, or on one big screen with phones as controllers." style="--i:0;--tc:#3d8bff"><span class="mt-t">Duel a friend</span><span class="mt-d">One-on-one, online or on one big screen</span></button>
-        <button type="button" class="mt" data-act="partyOnline" data-ic="partyOnline" data-hint="Two against two, online or on one big screen. CPUs fill any empty seats." style="--i:1;--tc:#7c5cf0"><span class="mt-t">Party · 2v2</span><span class="mt-d">Two against two; CPUs fill empty seats</span></button>
-        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up in Survival: waves, bosses, big arenas. Online with a friend, or up to four on one big screen with phones as controllers. Revive each other; everyone shops for their own build." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves, online or on one big screen</span></button>
-        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:3;--tc:#ffb547"><span class="mt-t">Join with a code</span><span class="mt-d">A friend's room, or the code on a big screen</span></button>
+        <button type="button" class="mt big" data-act="versus" data-ic="online" data-hint="Fight your friends: 1 to 4 players, a duel, a free-for-all or teams. You set the rules in the lobby; CPUs can fill in." style="--i:0;--tc:#3d8bff"><span class="mt-t">Versus</span><span class="mt-d">1 to 4 players: duel, free-for-all or teams</span></button>
+        <button type="button" class="mt big" data-act="coop" data-ic="coop" data-hint="Team up in Survival: waves, bosses, big arenas. Online with a friend, or up to four on one big screen with phones as controllers. Revive each other; everyone shops for their own build." style="--i:1;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt sub" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:2;--tc:#ffb547"><span class="mt-t">Got a code? Join a game</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
-      <p class="menu-hint" aria-live="polite">One-on-one against a friend: online from anywhere, or on one big screen with phones as controllers.</p>
+      <p class="menu-hint" aria-live="polite">Fight your friends: 1 to 4 players, a duel, a free-for-all or teams.</p>
     </div>
     <div data-sub="online" hidden>
       <div class="lbl sublbl"><span id="onlineLbl">Duel a friend</span> · where is everyone?</div>
@@ -1335,11 +1352,13 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <div class="bs-qr"><canvas id="bsQr" width="240" height="240" aria-label="QR code that opens this game on a phone"></canvas><span class="bs-qr-wait">QR code loading…</span></div>
         <p class="bs-or">or open <b id="bsHost">cuued.com</b> and join with</p>
         <div class="code" id="bsCode" aria-live="polite">····</div>
+        <button type="button" class="btn bs-link" data-act="roomlink" id="bsLinkBtn" hidden>Copy invite link</button>
       </section>
       <section class="bs-side">
         <div class="lbl">Players · up to 4</div>
         <ul class="roster bs-seats" id="bsSeats" aria-label="Players"></ul>
         <p class="lobby-msg" id="bsMsg" role="status">Opening a room…</p>
+        <div class="party-acts" id="bsTeamPick" hidden><button type="button" class="btn" data-act="team" data-team="0">Team Orange</button><button type="button" class="btn" data-act="team" data-team="1">Team Blue</button></div>
         <div class="lbl bs-setl">Game settings</div>
         <div class="bs-opts" role="group" aria-label="Big Screen settings">
           <button type="button" class="bs-opt" data-opt="bsMode" data-hint="Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone. Co-op Survival: everyone on one side against waves and bosses, shopping on their phones between rounds."><span class="bs-ol">Mode</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Free-for-all</span><i data-dir="1" aria-hidden="true">›</i></span></button>
@@ -1979,12 +1998,12 @@ const playerLabel=p=>p.boss||survOn()?p.name:p.ctrl==='cpu'&&p.name!=='CPU'?`${p
 function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{cpu:1},{cpu:1}]:net.roster||[];
   return R.map((e,k)=>{const ctrl=mode==='party'?(k?'cpu':'mouse'):mode==='online-host'?(e.host?'mouse':e.cpu?'cpu':game.screen?'pad':'net'):(k===net.me?'mouse':'net');
     const p=makePlayer(k,ctrl,e.cpu?(mode==='online-guest'?BOTN[k%4]+' · CPU':BOTN[k%4]):e.n);p.team=k%2;p.cos=e.cpu?randomCos():cleanCos(e.cos);if(e.peer)p.peer=e.peer;if(e.cpu&&mode!=='online-guest')p.skill='normal';
-    if(game.screen){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=settings.bsHp;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
+    if(game.screen||game.room){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=net.role==='host'?settings.bsHp:net.roomHp||1;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
     return p})}
 function startMatch(mode){
   game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
-  game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.ffa=game.screen&&!bsTeams()&&!game.bsSurv;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
-  game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:settings.len;
+  game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.room=!game.screen&&!!net.room&&!!net.party&&(mode==='online-host'||mode==='online-guest');game.ffa=game.screen&&!bsTeams()&&!game.bsSurv||game.room&&!!net.ffa;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
+  game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:game.room?(net.role==='host'?settings.bsLen:net.tg||5):settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
   game.coop=!!net.coopLive&&net.connected&&(mode==='survival'||mode==='online-guest');   // Co-op Survival: the host runs it, the guest draws it
   const you=myName||'You';
@@ -2014,6 +2033,7 @@ function startMatch(mode){
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
         ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
   if(game.screen){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else screenPick(players.map(p=>p.id),'Opening draft · everyone picks a card',go)}
+  else if(game.room&&(game.ffa||settings.bsCards==='none')){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else beginPick(players.map(p=>p.id),'Opening draft · everyone picks',go)}
   else if(game.party){const ids=t=>players.filter(p=>p.team===t&&!p.left).map(p=>p.id);beginTeamPick(ids(0),'Opening draft · Team Orange',()=>beginTeamPick(ids(1),'Opening draft · Team Blue',()=>{game.state='ready';game.stT=1.1}))}
   else beginPick(players.map(p=>p.id),'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
   if(!game.bg)cv.focus();
@@ -2059,9 +2079,12 @@ function resolvePoint(){
     game.wins[w]++;game.points=players.map(()=>0);
     if(game.wins[w]>=game.target){endMatch(w);return}
     // every round loser drafts a card, one after another (a party's fighter who left sits it out)
-    const rule=game.screen?settings.bsCards:'losers',losers=rule==='none'?[]:players.filter(q=>(rule==='all'||q.team!==w)&&!q.left).map(q=>q.id);newPoint(true);game.state='pick';
+    const rule=game.screen||game.room?settings.bsCards:'losers',losers=rule==='none'?[]:players.filter(q=>(rule==='all'||q.team!==w)&&!q.left).map(q=>q.id);newPoint(true);game.state='pick';
     if(game.screen){const wn=game.ffa?players[w].name:'Team '+TEAM_N[w];screenPick(losers,`${wn} took the round · ${rule==='all'?'everyone picks':'everyone else picks'}`,()=>{game.state='ready';game.stT=1.1});return}
-    (game.party?beginTeamPick:beginPick)(losers,`Lost the round · ${game.wins.join('–')}`,()=>{game.state='ready';game.stT=1.1});
+    const back=()=>{game.state='ready';game.stT=1.1},sub=game.ffa?`${players[w].name} took the round`:`Lost the round · ${game.wins.join('–')}`;
+    if(!losers.length){back();return}
+    if(game.party&&!game.ffa){const T=[0,1].map(t=>losers.filter(id=>players[id].team===t)).filter(g=>g.length);beginTeamPick(T[0],sub,T[1]?()=>beginTeamPick(T[1],sub,back):back)}
+    else beginPick(losers,sub,back);
   }else newPoint();
 }
 function endMatch(w){
@@ -4393,7 +4416,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-07-mp';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-08-versus';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4524,10 +4547,10 @@ function joinViaRelay(code){
   next()}
 function hostGame(){leaveOnline(true);
   if(!peerReady()){hostMsg(inPreview()?'Online play is blocked inside this preview. Open cuued.com to host or join.':"The online library didn't load. Check your connection and reload the page.");return}
-  net.role='host';net.screen=!!net.wantScreen;net.party=!!net.wantParty||net.screen;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');hostMsg('Opening a room…');$('#hostLink').value='';
+  net.role='host';net.screen=!!net.wantScreen;net.room=!net.screen&&!!net.wantRoom;net.party=!!net.wantParty||net.screen||net.room;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');hostMsg('Opening a room…');$('#hostLink').value='';
   $('#partyRoster').hidden=$('#partyActs').hidden=!net.party;
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
-function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}setText('#hostCode',net.code);$('#hostLink').value=inviteUrl(net.code);{const cb=document.querySelector('[data-act=copylink]');if(cb)cb.textContent=touch.on&&navigator.share?'Share link':'Copy link'}
+function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}if(net.room){roomShow();return}setText('#hostCode',net.code);$('#hostLink').value=inviteUrl(net.code);{const cb=document.querySelector('[data-act=copylink]');if(cb)cb.textContent=touch.on&&navigator.share?'Share link':'Copy link'}
   if(net.party){partyLobbyChanged();return}
   hostMsg('Waiting for a challenger. Share the code, or send them the link.')}
 function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
@@ -4607,7 +4630,7 @@ function hostNet(m,pr){
   else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.peer===pr&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
   else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
   else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop))restartHosted()}
-  else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0));if(net.screen&&net.lobbyOpen)bsLobbyChanged()}}
+  else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0));if(net.screen&&net.lobbyOpen)bsLobbyChanged();else if(net.room&&net.lobbyOpen)roomLobbyChanged()}}
 function restartHosted(){if(net.screen){const L=net.roster.filter(e=>!e.peer||net.peers.includes(e.peer)).filter(e=>!game.bsSurv||e.peer&&net.peers.includes(e.peer));if(L.some(e=>e.peer)&&L.length>=(game.bsSurv?1:2))bsBegin(L);else bsToLobby('Not enough players for a rematch. Scan the code to join.');return}if(net.party){partyBegin(net.roster.map(e=>e.peer&&!net.peers.includes(e.peer)?{cpu:1,n:'CPU'}:e));return}startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}
 /* ---------- a party room: 2v2. Everyone in the room (the host too) picks Team Orange or Team Blue, two to a team; a friend
    who joins lands on the team with fewer players; CPUs fill any empty seat at the start. Fighters 1 and 3 are Team Orange
@@ -4619,12 +4642,13 @@ function lobbyTidy(){const ps=net.peers.filter(p=>p.open&&p.name);if(net.hostTea
   return ps}
 // the lobby's two teams, in fighter order: [orange 1, blue 1, orange 2, blue 2] (null: an empty seat)
 function partyList(fill){const ps=lobbyTidy(),host={n:myName||'Host',cos:cleanCos(wallet.eq),host:1},T=[[],[]];
+  if(net.room&&!bsTeams()){const L=[host,...ps.map(p=>({n:p.name,cos:p.cos,peer:p}))].slice(0,4);let bots=fill?Math.min(settings.bsBots|0,4-L.length):0;while(L.length<4)L.push(bots-->0?{cpu:1,n:'CPU'}:null);return fill?L.filter(Boolean):L}
   T[net.hostTeam].push(host);for(const p of ps)T[p.team].push({n:p.name,cos:p.cos,peer:p});
   const cell=(t,i)=>T[t][i]||(fill?{cpu:1,n:'CPU'}:null);return[cell(0,0),cell(1,0),cell(0,1),cell(1,1)]}
-function renderRoster(el,list){if(!el)return;el.hidden=false;el.innerHTML='';
-  for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
-  for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=PCOL()[k];if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.cpu?`${BOTN[k]} · CPU`:e.n}else{li.className='open';li.textContent='Open seat (CPU)'}el.appendChild(li)}}
-function partyLobbyChanged(msg){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(false),humans=list.filter(e=>e&&e.peer).length;
+function renderRoster(el,list,ffa){if(!el)return;el.hidden=false;el.innerHTML='';if(el.classList)el.classList.toggle('ffa',!!ffa);
+  if(!ffa)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
+  for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=PCOL()[k];if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.cpu?`${BOTN[k]} · CPU`:e.n;if(ffa)li.style.setProperty('--pc',BS_COL()[k][0])}else{li.className='open';li.textContent=ffa?'Open seat':'Open seat (CPU)'}el.appendChild(li)}}
+function partyLobbyChanged(msg){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;if(net.room){roomLobbyChanged(msg);return}const list=partyList(false),humans=list.filter(e=>e&&e.peer).length;
   renderRoster($('#partyRoster'),list);const st=$('[data-act=partyStart]');if(st)st.disabled=!humans;teamButtons(net.hostTeam,list);
   hostMsg(msg||(!humans?'Share the code or the link. Friends who join pick a team; CPUs fill the empty seats.':humans<3?`${humans+1} players in. Start now (CPUs fill the empty seats), or wait for more.`:'The party is full. Press Start!'));
   for(const pr of net.peers)if(pr.open&&pr.name)linkSend(pr,{t:'lobby',list:list.map(e=>e?{n:e.n}:null),you:pr.team})}
@@ -4633,15 +4657,15 @@ function teamButtons(mine,list){const full=t=>[list[t],list[t+2]].filter(Boolean
   document.querySelectorAll('[data-team]').forEach(b=>{const t=+b.dataset.team;b.classList.toggle('primary',t===mine);b.disabled=t!==mine&&full(t)})}
 function partyTeam(pr,t){if(!net.lobbyOpen||(t!==0&&t!==1))return;const list=partyList(false),cur=pr?pr.team:net.hostTeam;if(cur===t)return;
   if([list[t],list[t+2]].filter(Boolean).length>=2)return;if(pr)pr.team=t;else net.hostTeam=t;partyLobbyChanged()}
-function partyStart(){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(true);if(!list.some(e=>e.peer))return;
+function partyStart(){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;const list=partyList(true);if(net.room?list.length<2:!list.some(e=>e.peer))return;
   // anyone still connecting (no hello yet) can't join a party that has started
   for(const pr of net.peers.slice())if(!list.some(e=>e.peer===pr)){linkSend(pr,{t:'full',party:1,started:1});dropPeer(pr)}
   net.lobbyOpen=false;partyBegin(list)}
-function partyBegin(list){net.roster=list;net.connected=true;net.remoteName='';net.hostId=list.findIndex(e=>e.host);
-  list.forEach((e,k)=>{if(e.peer)linkSend(e.peer,{t:'start',me:k,roster:list.map(x=>({n:x.n,cos:x.cos||{},cpu:x.cpu?1:0}))})});
+function partyBegin(list){$("#bigLobby").hidden=true;$("#end").hidden=true;net.roster=list;net.connected=true;net.remoteName='';net.hostId=list.findIndex(e=>e.host);net.ffa=!!net.room&&!bsTeams();
+  list.forEach((e,k)=>{if(e.peer)linkSend(e.peer,{t:'start',me:k,roster:list.map(x=>({n:x.n,cos:x.cos||{},cpu:x.cpu?1:0})),ffa:net.ffa?1:0,room:net.room?1:0,hp:net.room?settings.bsHp:1,tg:net.room?settings.bsLen:settings.len})});
   startMatch('online-host')}
 function partyJoined(){setText('#joinMsg',"You're in the party. Waiting for the host to start…")}
-function partyRoster(list,you){const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L);$('#joinTeam').hidden=false;teamButtons(you,L);setText('#joinMsg',`You're in the party (${list.filter(Boolean).length} of 4). Waiting for the host to start; CPUs fill empty seats.`)}
+function partyRoster(list,you,ffa){const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L,ffa);$('#joinTeam').hidden=!!ffa;if(!ffa)teamButtons(you,L);setText('#joinMsg',`You're in (${list.filter(Boolean).length} of 4). Waiting for the host to start.`)}
 function onNet(m,pr){
   if(net.role==='host'&&pr){hostNet(m,pr);return}
   if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
@@ -4654,8 +4678,8 @@ function onNet(m,pr){
   if(m.t==='oldver'){netLost('Your game is a different version from your friend\'s. Both of you refresh the page, then try again.');return}
   if(m.t==='full'&&m.screen){const t=m.started?'That Big Screen game is full (4 players). A seat opens when someone leaves.':'That Big Screen game is full (4 players).';const wasPad=ctl.on;leaveOnline(true);padClose();if(wasPad)toMenu();showSub($('#menu'),'joining');$('#menu').hidden=false;setText('#joinMsg',t);return}
   if(m.t==='full'){setText('#joinMsg',m.started?'That party has already started. Ask the host to start a new one.':m.party?'That party is full (4 players).':'That room already has two players.');leaveOnline(true);return}
-  if(m.t==='lobby'){partyRoster((m.list||[]).slice(0,4),m.you);return}
-  if(m.t==='start'){net.me=clamp(m.me|0,1,3);net.roster=(m.roster||[]).slice(0,4).map(e=>({n:cleanName(e.n)||'Player',cos:cleanCos(e.cos),cpu:!!e.cpu}));startMatch('online-guest');return}
+  if(m.t==='lobby'){partyRoster((m.list||[]).slice(0,4),m.you,!!m.ffa);return}
+  if(m.t==='start'){net.me=clamp(m.me|0,0,3);net.ffa=!!m.ffa;net.room=!!m.room;net.roomHp=clamp(+m.hp||1,.5,2);net.tg=clamp(m.tg|0,1,99)||5;net.roster=(m.roster||[]).slice(0,4).map(e=>({n:cleanName(e.n)||'Player',cos:cleanCos(e.cos),cpu:!!e.cpu}));startMatch('online-guest');return}
   if(m.t==='away'||m.t==='back'){net.awayR=m.t==='away';return}
   if(m.t==='chat'){chatRecv(m);return}   // both sides
   if(m.t==='bye'){netLost(`${net.remoteName||'Your opponent'} left the match.`);return}
@@ -4681,7 +4705,7 @@ function leaveOnline(silent){clearTimeout(net.joinTimer);padClose();net.seq++;co
   for(const pr of net.peers){if(pr.open)try{pr.conn.send({t:'bye'})}catch(e){}dropPeer(pr)}
   for(const rc of net.relayClients)rc.close();
   if(net.fast)try{net.fast.close()}catch(e){}
-  Object.assign(net,{screen:false,pad:false,bsOpen:false,bsKey:'',peers:[],party:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false,me:1,awayR:false,coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
+  Object.assign(net,{screen:false,room:false,ffa:false,pad:false,bsOpen:false,bsKey:'',peers:[],party:false,roster:null,hostTeam:0,hostId:0,lobbyOpen:false,me:1,awayR:false,coopLive:false,pmKey:'',fast:null,lateMax:0,role:null,peer:null,conn:null,connected:false,snap:null,remote:null,rtt:0,fx:[],relayClients:[],relayed:false,relayTrying:false,relayReady:false,warm:null});net.bmap.clear();
   setTimeout(()=>{try{c&&c.close()}catch(e){}try{pe&&pe.destroy()}catch(e){}},150);
   if(!silent&&game.mode.startsWith('online'))toMenu()}
 function netLost(msg){if(!net.role)return;if(ctl.on){leaveOnline(true);padClose();toMenu();showMenuMsg(msg);return}
@@ -4912,10 +4936,30 @@ const buzz=p=>{try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}};
 let bsJoinN=0,spick=null,bspRaf=0,qrLib=null;
 const SPICK_T=25;
 function bsMsg(t){setText('#bsMsg',t)}
-function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen)bsMsg(t)}
+function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen||net.room||net.wantRoom)bsMsg(t)}
 function openBigScreen(){net.wantScreen=true;net.wantParty=false;net.wantCoop=false;$('#menu').hidden=true;$('#bigLobby').hidden=false;
   setText('#bsCode','····');bsQr('');hostGame();bsLobbyChanged();refreshOpts();showSub($('#bigLobby'),'main')}
-function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();mpSub($('#menu'))}
+function closeBigScreen(){net.wantScreen=false;net.wantRoom=false;leaveOnline(true);toMenu();mpSub($('#menu'))}
+// Versus on everyone's own screens: the same lobby as a Big Screen (code, QR, players, the rules), friends join from anywhere
+function openVersus(){net.wantScreen=false;net.wantRoom=true;net.wantParty=true;net.wantCoop=false;if(settings.bsMode==='surv')settings.bsMode='ffa';
+  $('#menu').hidden=true;$('#bigLobby').hidden=false;setText('#bsCode','····');bsQr('');hostGame();refreshOpts();showSub($('#bigLobby'),'main');roomLobbyChanged()}
+const roomOn=()=>net.role==='host'&&!!net.room&&!net.screen;
+function roomShow(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(inviteUrl(net.code));roomLobbyChanged()}
+// the Versus lobby: who's in (the host first, then friends as they join; Teams: two sides), the rules, Start
+function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=bsTeams(),list=partyList(false),shown=partyList(true),hum=list.filter(e=>e).length,el=$('#bsSeats');
+  {const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',true);lb.classList.toggle('surv',false);lb.classList.toggle('teams',teams)}}
+  setText('#bigLobby .screen-title','Versus · Own screens');{const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan to join on a phone';}
+  {const b=$('#bsLinkBtn');if(b){b.hidden=false;b.textContent=touch.on&&navigator.share?'Share invite link':'Copy invite link'}}
+  {const tp=$('#bsTeamPick');if(tp)tp.hidden=!teams;if(teams)teamButtons(net.hostTeam,list)}
+  if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
+    if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
+    for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],sh=shown[k],c=bsSeatCol(k,teams);
+      if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.host?`${e.n} (you)`:e.n;if(e.peer){const r=e.peer.rtt||0,q=document.createElement('span');q.className='ping'+(!r?'':r<60?' good':r<130?' ok':' bad');q.textContent=r?Math.round(r)+' ms':'…';li.appendChild(q)}}
+      else if(sh&&sh.cpu){li.className='cpu';li.style.setProperty('--pc',c[0]);li.textContent=`${BOTN[k]} · CPU`}
+      else{li.className='open';li.textContent='Open seat'}el.appendChild(li)}}
+  const fighters=shown.filter(Boolean).length,ok=fighters>=2,st=$('[data-act=bsStart]');if(st)st.disabled=!ok;
+  bsMsg(msg||(!net.bsOpen?'Opening a room…':hum<2?(ok?'Share the code or the link. Start now against the CPU, or wait for friends.':'Share the code or the link, or add a CPU player to start.'):hum<4?`${hum} players in. Start when you're ready, or wait for more (up to 4).`:'Everyone is in. Press Start!'));
+  for(const pr of net.peers)if(pr.open&&pr.name)linkSend(pr,{t:'lobby',list:list.map(e=>e?{n:e.n}:null),you:pr.team,ffa:teams?0:1})}
 const bsJoinUrl=()=>inviteUrl(net.code);
 const inviteUrl=c=>`${location.origin}${location.pathname}?join=${c}`;
 function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
@@ -4942,7 +4986,7 @@ function bsFill(list){list=list.slice();const teams=bsTeams();let n=bsSurvMode()
   while(n-->0){const side=t=>list.filter((e,k)=>e&&k%2===t).length,free=list.map((e,k)=>e?-1:k).filter(k=>k>=0);
     const k=teams?free.sort((a,b)=>side(a%2)-side(b%2)||a-b)[0]:free[0];list[k]={cpu:1,n:'CPU',team:teams?k%2:k,seat:k}}
   return list}
-function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
+function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
     for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=bsSeatCol(k,teams);
@@ -4995,7 +5039,7 @@ function bsGone(pr){if(net.lobbyOpen){bsLobbyChanged();return}
   const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';p.padAiming=false;if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;bsAutoPick(p.id)}
   game.banner=`${(pr.name||'A player').toUpperCase()} LEFT · SCAN THE CODE TO REJOIN`;game.bannerT=2.2}
 // every frame on the host: pings and lost links in the lobby, and each phone's status (15 a second) during a match
-function bsHostTick(dt){if(net.role!=='host'||!net.screen)return;net.bsPing=(net.bsPing||0)-dt;
+function bsHostTick(dt){if(net.role==='host'&&net.room&&net.lobbyOpen){net.bsPing=(net.bsPing||0)-dt;if(net.bsPing<=0){net.bsPing=1;netSend({t:'ping',at:performance.now()})}}if(net.role!=='host'||!net.screen)return;net.bsPing=(net.bsPing||0)-dt;
   if(net.lobbyOpen&&net.bsPing<=0){net.bsPing=1;netSend({t:'ping',at:performance.now()})}
   const live=!net.lobbyOpen&&(game.mode==='online-host'||game.bsSurv);
   for(const pr of net.peers.slice()){if(!pr.open)continue;
@@ -5290,9 +5334,9 @@ function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost t
 /* ---------- names ---------- */
 const cleanName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){}
-let pendingJoin='',joinBack='online',mpKind='duel';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
+let pendingJoin='',joinBack='online',mpKind='versus';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
 // a multiplayer mode, then where everyone plays: their own screens (online), or one big screen with phones as controllers
-function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
+function mpSub(ov){net.wantScreen=false;net.wantRoom=false;net.wantCoop=mpKind==='coop';net.wantParty=false;setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':'Versus');showSub(ov,'online')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 // an invite link's room code: ?join=ABCD (or #ABCD from older links and some apps), read once and then cleared from the address
@@ -5342,8 +5386,8 @@ for(const k in OPT)if(k.startsWith('bs')&&!OPT[k].vals.includes(settings[k]))set
 for(const v of document.querySelectorAll('.mlist.opts button[data-opt]>.val')){const w=document.createElement('span');w.className='ov';v.replaceWith(w);
   const a=(d,t)=>{const i=document.createElement('i');i.dataset.dir=d;i.setAttribute('aria-hidden','true');i.textContent=t;return i};w.append(a(-1,'‹'),v,a(1,'›'))}
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
-function cycleOpt(k,dir){const o=OPT[k],i=o.vals.indexOf(settings[k]);settings[k]=o.vals[(i+dir+o.vals.length)%o.vals.length];
-  if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true);if(k.startsWith('bs'))bsLobbyChanged()}
+function cycleOpt(k,dir){const o=OPT[k],vals=k==='bsMode'&&mpKind!=='coop'?['ffa','teams']:o.vals,i=vals.indexOf(settings[k]);settings[k]=vals[(i+dir+vals.length)%vals.length];
+  if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true);if(k.startsWith('bs')){if(net.room)roomLobbyChanged();else bsLobbyChanged()}}
 function helpTab(t){const h=$('[data-sub=help]');if(!h)return;const tabs=[...h.querySelectorAll('[data-htab]')];if(typeof t==='number'){const i=tabs.findIndex(b=>b.classList.contains('on'));t=tabs[(i+t+tabs.length)%tabs.length].dataset.htab}
   tabs.forEach(b=>{const on=b.dataset.htab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});h.querySelectorAll('[data-hpage]').forEach(p=>p.hidden=p.dataset.hpage!==t)}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-htab]');if(b){helpTab(b.dataset.htab);sfx('tick',true)}});
@@ -5422,19 +5466,21 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
-  else if(a==='bigscreen'){settings.bsMode=mpKind==='party'?'teams':mpKind==='coop'?'surv':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
-  else if(a==='bsStart')bsStart();
+  else if(a==='bigscreen'){settings.bsMode=mpKind==='coop'?'surv':settings.bsMode==='teams'?'teams':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
+  else if(a==='bsStart'){if(net.room)partyStart();else bsStart()}
+  else if(a==='roomlink'){const v=inviteUrl(net.code);if(!net.code)return;if(touch.on&&navigator.share){navigator.share({title:'CUUED',text:`Join my CUUED game! Code ${net.code}`,url:v}).catch(()=>{});return}
+    try{navigator.clipboard.writeText(v).then(()=>{b.textContent='Copied!';setTimeout(()=>roomLobbyChanged(),1400)},()=>{})}catch(err){}}
   else if(a==='bsCancel')closeBigScreen();
   else if(a==='bsLobby')bsToLobby();
   else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
   else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
-  else if(a==='online'||a==='coop'||a==='partyOnline'){mpKind=a==='coop'?'coop':a==='partyOnline'?'party':'duel';mpSub(ov)}
+  else if(a==='versus'||a==='online'||a==='coop'||a==='partyOnline'){mpKind=a==='coop'?'coop':'versus';mpSub(ov)}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
   else if(a==='partyStart')partyStart();
   else if(a==='solo')showSub(ov,'solo');
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
-  else if(a==='host'){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';showSub(ov,'hosting');hostGame()}
+  else if(a==='host'){if(mpKind==='versus'){openVersus();return}net.wantScreen=false;net.wantRoom=false;net.wantCoop=mpKind==='coop';net.wantParty=false;showSub(ov,'hosting');hostGame()}
   else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':b.closest('[data-sub=main]')?'main':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;

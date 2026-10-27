@@ -49,7 +49,7 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
   await S.cdp('Page.navigate', { url: URL0 }); await sleep(2500);
   await S.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200);
   ok(await S.ev(`!!document.querySelector('[data-sub="multi"] [data-act="join"]')&&!document.querySelector('[data-act="bigscreenMenu"]')`), 'Multiplayer: the modes, plus one Join with a code for any room');
-  await S.ev(`document.querySelector('[data-sub="multi"] [data-act="online"]').click()`); await sleep(200);
+  await S.ev(`document.querySelector('[data-sub="multi"] [data-act="versus"]').click()`); await sleep(200);
   ok(await S.ev(`!document.querySelector('[data-sub="online"]').hidden&&!!document.querySelector('[data-sub="online"] [data-act="host"]')&&!document.querySelector('#mpBig').hidden`), 'a mode offers Own screens or One big screen');
   await S.shot('0-screen-bigscreen-menu.png');
   await S.ev(`document.querySelector('[data-sub="online"] [data-act="bigscreen"]').click()`);

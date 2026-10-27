@@ -13,6 +13,7 @@ README.md describes every feature in detail; read it before changing a system.
 - Deploy: push to `main` and Vercel publishes. Confirm with `curl -s https://www.cuued.com/ | grep "const BUILD"`.
 
 ## Main systems (search these names)
+- Multiplayer: Versus (`openVersus`, lobby `roomLobbyChanged`, online party engine `partyList`/`partyBegin`, `game.room`, `game.ffa`) or Co-op; each offers Own screens or One big screen.
 - Modes: `startMatch` (cpu, party, survival, sandbox, online-host/guest, demo). Big Screen: `game.screen`, `openBigScreen`, `bsStart`, the phone controller `ctl`/`pad*`. Big Screen Co-op Survival: `game.bsSurv`, `bsHeroes`, `bsBoard`.
 - Online: host-authoritative, PeerJS plus an MQTT relay fallback. Guest prediction and corrections: `reconcile`, `net.offX/offY`.
 - Survival: `survRound`, `survKind` (wave/swarm/waves/twist/elite/boss wheel), `TRAITS`, `survResolve` (pay, boss loot), shop `SHOP_PRICE`/`cardPrice`, revives `downTick`/`DOWN_T`.

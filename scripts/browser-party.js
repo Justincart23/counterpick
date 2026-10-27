@@ -47,11 +47,12 @@ const autopick = `(()=>{const mine=[...document.querySelectorAll('#pick:not([hid
 (async () => {
   const H = await browser(9351, 'Hosty'), G = [await browser(9352, 'Ana'), await browser(9353, 'Ben'), await browser(9354, 'Cy')], all = [H, ...G]; ALL.push(...all);
   await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(150);
-  await H.ev(`document.querySelector('[data-act="partyOnline"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="host"]').click()`);
-  if (!ok(await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#hostCode').textContent)`, 25000), 'host opens a party room')) return finish();
-  const code = await H.ev(`document.querySelector('#hostCode').textContent`);
-  const join = async (V) => { await V.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(150); await V.ev(`document.querySelector('[data-act="partyOnline"]').click()`); await sleep(150);
-    await V.ev(`document.querySelector('[data-act="join"]').click()`); await sleep(150);
+  await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+  if (!ok(await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'host opens a Versus room')) return finish();
+  await H.ev(`document.querySelector('#bigLobby [data-opt="bsMode"]').click()`); await sleep(200);
+  ok(await H.ev(`/Teams/.test(document.querySelector('#bigLobby [data-opt="bsMode"] .val').textContent)`), 'the host sets the mode to Teams');
+  const code = await H.ev(`document.querySelector('#bsCode').textContent`);
+  const join = async (V) => { await V.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(150); await V.ev(`document.querySelector('[data-sub="multi"] [data-act="join"]').click()`); await sleep(150);
     await V.ev(`(()=>{const i=document.querySelector('#joinCode');i.value=${JSON.stringify(code)};document.querySelector('#joinForm').requestSubmit()})()`);
     await V.until(`!document.querySelector('#joinRoster').hidden`, 30000) };
   await join(G[0]); await join(G[1]);
@@ -59,10 +60,10 @@ const autopick = `(()=>{const mine=[...document.querySelectorAll('#pick:not([hid
   await G[1].ev(`document.querySelector('#joinTeam [data-team="1"]').click()`);
   ok(await H.until(`window.__G.net.peers.find(p=>p.name==='Ben').team===1`, 8000), 'a friend switches team from their own screen');
   await join(G[2]);
-  ok(await H.until(`document.querySelectorAll('#partyRoster li:not(.th):not(.open)').length===4`, 20000), 'three friends fill the lobby');
+  ok(await H.until(`document.querySelectorAll('#bsSeats li:not(.th):not(.open):not(.cpu)').length===4`, 20000), 'three friends fill the lobby');
   ok(await H.until(`window.__G.net.peers.find(p=>p.name==='Cy').team===0`, 5000) && await G[2].until(`document.querySelector('#joinTeam [data-team="0"]').classList.contains('primary')`, 5000), 'the next friend lands on the team with room, and sees it lit');
   await H.shot('lobby.png');
-  await H.ev(`document.querySelector('[data-act="partyStart"]').click()`);
+  await H.ev(`document.querySelector('[data-act="bsStart"]').click()`);
   ok(await H.until(`document.querySelector('#menu').hidden&&window.__G.players.length===4`, 15000) && (await Promise.all(G.map((V) => V.until(`document.querySelector('#menu').hidden&&window.__G.players.length===4`, 15000)))).every(Boolean), 'Start takes all four screens into the match');
   for (const A of all) await A.ev(BOT);
   const t0 = Date.now(); let agree = 0, samples = 0, shots = 0;

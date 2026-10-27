@@ -45,13 +45,15 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
 
 (async () => {
   const H = await browser(9341, 'Host'), V = await browser(9342, 'Visitor');
-  await H.ev(`document.querySelector('[data-act="online"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="host"]').click()`);
-  const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#hostCode').textContent)`, 25000);
+  await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+  const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000);
   if (!ok(gotCode, 'host opens a room')) { finish(); return }
-  const code = await H.ev(`document.querySelector('#hostCode').textContent`);
-  await V.ev(`document.querySelector('[data-act="online"]').click()`); await sleep(200); await V.ev(`document.querySelector('[data-act="join"]').click()`); await sleep(200);
+  const code = await H.ev(`document.querySelector('#bsCode').textContent`);
+  await V.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await V.ev(`document.querySelector('[data-sub="multi"] [data-act="join"]').click()`); await sleep(200);
   await V.ev(`(()=>{const i=document.querySelector('#joinCode');i.value=${JSON.stringify(code)};document.querySelector('#joinForm').requestSubmit()})()`);
-  ok(await H.until(`window.__G.net.connected&&document.querySelector('#menu').hidden`, 30000) && await V.until(`window.__G.net.connected&&document.querySelector('#menu').hidden`, 30000), 'visitor joins and both leave the menu');
+  ok(await H.until(`document.querySelectorAll('#bsSeats li:not(.th):not(.open):not(.cpu)').length===2&&!document.querySelector('[data-act=bsStart]').disabled`, 30000), 'the visitor shows up in the Versus lobby');
+  await H.ev(`document.querySelector('[data-act="bsStart"]').click()`);
+  ok(await H.until(`window.__G.net.connected&&document.querySelector('#bigLobby').hidden&&window.__G.game.mode==='online-host'`, 30000) && await V.until(`window.__G.net.connected&&document.querySelector('#menu').hidden`, 30000), 'visitor joins and both leave the menu');
   // drafts: whoever is shown a hand picks the first card
   const autopick = `(()=>{const c=document.querySelector('#pick:not([hidden]) .card:not(.away)');if(c&&!document.querySelector('#pick .card.chosen'))c.click()})()`;
   const deck = `(()=>{const G=window.__G;const want=['Echo Guard','Shield Charge','Long Haul','Mirror Guard','Bulwark','Cluster Guard','Fat Rounds','Fat Rounds','Ricochet'].map(n=>G.CARDS.find(c=>c.n===n));

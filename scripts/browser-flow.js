@@ -116,16 +116,16 @@ async function tab(port, url) {
     const H = await tab(9335, LIVE), G = await tab(9335, LIVE);
     await sleep(2500);
     for (const T of [H, G]) { if (await T.ev(shown('#nameScreen'))) { await T.ev(`document.querySelector('#nameInput').focus()`); await T.cdp('Input.insertText', { text: T === H ? 'Host' : 'Guest' }); await T.key('Enter') } }
-    await H.ev(`document.querySelector('[data-act="online"]').click()`); await sleep(200);
-    await H.ev(`document.querySelector('[data-act="host"]').click()`);
-    const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#hostCode').textContent)`, 20000);
+    await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+    const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 20000);
     ok(gotCode, 'the live site opens an online room with a 4-letter code');
     if (gotCode) {
-      const code = await H.ev(`document.querySelector('#hostCode').textContent`);
-      await G.ev(`document.querySelector('[data-act="online"]').click()`); await sleep(200);
-      await G.ev(`document.querySelector('[data-act="join"]').click()`); await sleep(200);
+      const code = await H.ev(`document.querySelector('#bsCode').textContent`);
+      await G.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200);
+      await G.ev(`document.querySelector('[data-sub="multi"] [data-act="join"]').click()`); await sleep(200);
       await G.ev(`document.querySelector('#joinCode').focus()`); await G.cdp('Input.insertText', { text: code }); await G.key('Enter');
-      const started = await H.until(`document.querySelector('#menu').hidden`, 30000) && await G.until(`document.querySelector('#menu').hidden`, 30000);
+      await H.until(`!document.querySelector('[data-act=bsStart]').disabled&&document.querySelectorAll('#bsSeats li:not(.open):not(.cpu):not(.th)').length===2`, 30000); await H.ev(`document.querySelector('[data-act="bsStart"]').click()`);
+      const started = await H.until(`document.querySelector('#bigLobby').hidden&&document.querySelector('#menu').hidden`, 30000) && await G.until(`document.querySelector('#menu').hidden`, 30000);
       ok(started, `a second tab joins with the code and both start the match${started ? '' : ' (guest says: ' + await G.ev(`document.querySelector('#joinMsg').textContent`) + ')'}`);
       if (started) { await sleep(4000); ok(!(await H.ev(shown('#menu'))) && !(await G.ev(shown('#menu'))), 'the online match keeps running for a few seconds') }
     }
