@@ -50,6 +50,12 @@ async function tab(port, url) {
   ok(await A.until(shown('#nameScreen'), 6000), 'a first visit asks for a name');   // boot waits up to 1.5 s for fonts
   await A.ev(`document.querySelector('#nameInput').focus()`); await A.cdp('Input.insertText', { text: 'Tester' }); await A.key('Enter');
   ok(await A.until(`document.querySelector('#nameScreen').hidden`) && await A.until(`document.querySelector('[data-myname]').textContent==='Tester'`), 'the name is saved and shown on the menu');
+  // the first name opens the quick guide: five pages, Next and the arrow keys turn them, Skip (or Esc) closes it for good
+  ok(await A.until(shown('#tut'), 3000) && await A.ev(`document.querySelector('#tutName').textContent==='Tester'&&document.querySelectorAll('#tutTrack>.tut-pg').length===5`), 'a first name opens the five-page quick guide, greeting you by name');
+  await A.ev(`document.querySelector('#tut [data-tut=next]').click()`); await A.key('ArrowRight', 'ArrowRight'); await sleep(200);
+  ok(await A.ev(`/3 of 5/.test(document.querySelector('#tutStep').textContent)`), 'Next and → turn the pages of the guide');
+  await A.ev(`document.querySelector('#tut [data-tut=skip]').click()`);
+  ok(await A.until(`document.querySelector('#tut').hidden&&localStorage.getItem('cuued.tut')==='1'`, 2000), 'Skip closes the guide and remembers it');
   ok(await A.ev(`[...document.querySelectorAll('#menu [data-sub="main"] .mlist button')].map(b=>b.querySelector('.mt-t').textContent).join('|')`) === 'Single player|Multiplayer|Customize|How to play|Settings', 'the menu lists Single player, Multiplayer, Customize, How to play, Settings');
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');

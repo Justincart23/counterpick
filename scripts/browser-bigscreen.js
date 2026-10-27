@@ -48,11 +48,11 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
   const S = await browser(9361, 'Laptop', false); ALL.push(S);
   await S.cdp('Page.navigate', { url: URL0 }); await sleep(2500);
   await S.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200);
-  ok(await S.ev(`!!document.querySelector('[data-act="bigscreenMenu"]')`), 'Multiplayer lists Big Screen');
-  await S.ev(`document.querySelector('[data-act="bigscreenMenu"]').click()`); await sleep(200);
-  ok(await S.ev(`!document.querySelector('[data-sub="bigscreen"]').hidden&&!!document.querySelector('[data-sub="bigscreen"] [data-act="bigscreen"]')&&!!document.querySelector('[data-sub="bigscreen"] [data-act="join"]')`), 'Big Screen offers Host or Join');
+  ok(await S.ev(`!!document.querySelector('[data-sub="multi"] [data-act="join"]')&&!document.querySelector('[data-act="bigscreenMenu"]')`), 'Multiplayer: the modes, plus one Join with a code for any room');
+  await S.ev(`document.querySelector('[data-sub="multi"] [data-act="online"]').click()`); await sleep(200);
+  ok(await S.ev(`!document.querySelector('[data-sub="online"]').hidden&&!!document.querySelector('[data-sub="online"] [data-act="host"]')&&!document.querySelector('#mpBig').hidden`), 'a mode offers Own screens or One big screen');
   await S.shot('0-screen-bigscreen-menu.png');
-  await S.ev(`document.querySelector('[data-sub="bigscreen"] [data-act="bigscreen"]').click()`);
+  await S.ev(`document.querySelector('[data-sub="online"] [data-act="bigscreen"]').click()`);
   if (!ok(await S.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'the screen opens a Big Screen room with a code')) return finish();
   const code = await S.ev(`document.querySelector('#bsCode').textContent`);
   ok(await S.until(`document.querySelector('.bs-qr').classList.contains('on')`, 15000), 'the QR code draws');
@@ -60,8 +60,8 @@ const fpsOf = async (T) => T.ev(`(()=>{const f=window.__fr.slice(30);if(!f.lengt
   // two phones open the join link, as scanning the QR code does
   const P = [await browser(9362, 'Ana', true), await browser(9363, 'Ben', true)]; ALL.push(...P);
   await P[0].cdp('Page.navigate', { url: URL0 + '#' + code });   // phone 1 scans the QR code (opens the link)
-  await P[1].cdp('Page.navigate', { url: URL0 }); await sleep(2500);   // phone 2 goes Multiplayer > Big Screen > Join with a code
-  for (const sel of ['[data-act="multi"]', '[data-act="bigscreenMenu"]', '[data-sub="bigscreen"] [data-act="join"]']) { const b = await P[1].box(sel); if (b) { await P[1].touch('touchStart', [b]); await P[1].touch('touchEnd', []); } await sleep(300) }
+  await P[1].cdp('Page.navigate', { url: URL0 }); await sleep(2500);   // phone 2 goes Multiplayer > Join with a code
+  for (const sel of ['[data-act="multi"]', '[data-sub="multi"] [data-act="join"]']) { const b = await P[1].box(sel); if (b) { await P[1].touch('touchStart', [b]); await P[1].touch('touchEnd', []); } await sleep(300) }
   await P[1].ev(`(()=>{const i=document.querySelector('#joinCode');i.value=${JSON.stringify(code)};document.querySelector('#joinForm').requestSubmit()})()`);
   await sleep(1500);
   for (const [i, T] of P.entries()) ok(await T.until(`window.__G.ctl.on&&window.__G.ctl.view==='lobby'&&/Player/.test(document.querySelector('#padLobbyT').textContent)`, 30000), `phone ${i + 1} becomes a controller in the lobby`);

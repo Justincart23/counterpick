@@ -350,10 +350,20 @@ body.room #touchUI{--tbw:max(calc(var(--gut,110px) - 14px),58px);--tbt:12%}
 #tBlock::before{content:"";width:19px;height:22px;border:4px solid currentColor;border-radius:4px 4px 12px 12px}
 #tJump.down,#tBlock.down{transform:scale(.96);background:rgba(255,255,255,.28)}
 @media (max-height:340px){#tJump::before,#tBlock::before{display:none}}
-#rotate{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;background:rgba(14,8,22,.94);color:var(--text);font:800 20px var(--body);text-align:center;padding:24px}
-@media (orientation:portrait){body.touch.ingame #rotate{display:flex}}
-.rot-ic{width:46px;height:76px;margin:0 auto 16px;border:4px solid #ffd36b;border-radius:10px;animation:rot 1.6s ease-in-out infinite}
-@keyframes rot{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
+#rotate{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#2c1c42,rgba(14,8,22,.97) 70%);color:var(--text);text-align:center;padding:24px}
+@media (orientation:portrait){body.touch.ingame #rotate,body.touch.match #rotate{display:flex}}
+.rot-box{display:grid;justify-items:center;gap:10px;max-width:320px}
+.rot-t{font:400 34px/1.05 var(--display);letter-spacing:.03em;text-transform:uppercase;transform:rotate(-2deg);text-shadow:0 5px 0 rgba(0,0,0,.35)}
+.rot-t em{font-style:normal;color:var(--orange)}
+.rot-s{font:700 16px/1.4 var(--body);color:var(--muted)}
+.rot-leave{margin-top:18px;font:400 16px var(--display);letter-spacing:.03em;color:var(--muted);background:none;border:2px solid rgba(255,255,255,.14);border-radius:12px;padding:8px 16px}
+.rot-ic{position:relative;width:46px;height:76px;margin:0 auto 22px;border:4px solid #ffd36b;border-radius:10px;animation:rot 2s cubic-bezier(.6,-0.3,.3,1.3) infinite}
+.rot-ic::before,.rot-ic::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;top:50%;transform:translateY(-50%)}
+.rot-ic::before{left:-14px;background:var(--orange);animation:rotdot 2s infinite}.rot-ic::after{right:-14px;background:var(--blue);animation:rotdot 2s infinite}
+.rot-ic i{position:absolute;inset:6px;border-radius:4px;background:linear-gradient(#3a2752,#1a0f26)}
+@keyframes rot{0%,20%{transform:rotate(0)}50%,90%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@keyframes rotdot{0%,40%{opacity:0}55%,85%{opacity:1}100%{opacity:0}}
+.rot-ic+div{font:800 20px var(--body)}
 .mobile-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 0 40px}
 .mobile-row .btn{font-size:16px;padding:9px 16px}.ios-hint{color:var(--muted);font-size:14px;max-width:40ch}
 body.touch #game{touch-action:none}
@@ -752,7 +762,7 @@ body.touch .desk-only{display:none!important}
 #pad .tbtn.pad-block::before{content:"";width:26px;height:30px;border:5px solid currentColor;border-radius:4px 4px 16px 16px}
 #pad .tbtn.down{transform:scale(.96);background:rgba(255,255,255,.28)}
 .pad-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);margin:0;padding:10px 18px;border-radius:12px;background:rgba(14,8,22,.82);border:2px solid var(--pc);font:400 22px var(--display);letter-spacing:.02em;text-align:center;pointer-events:none;max-width:80vw}
-.pad-rot{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px;text-align:center;font:800 20px var(--body);background:rgba(14,8,22,.94)}
+.pad-rot{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px;text-align:center;font:400 28px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase;background:radial-gradient(ellipse at 50% 40%,#2c1c42,rgba(14,8,22,.97) 70%)}
 @media (orientation:portrait){.pad-rot{display:flex}}
 .pad-sheet{position:absolute;left:0;right:0;bottom:0;top:calc(68px + env(safe-area-inset-top,0px));z-index:5;overflow:auto;display:grid;align-content:center;justify-items:center;gap:10px;text-align:center;
   padding:12px calc(16px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:rgba(14,8,22,.94)}
@@ -761,22 +771,139 @@ body.touch .desk-only{display:none!important}
 .pad-p{margin:0;font:800 16px var(--body);max-width:46ch}
 .pad-tip{margin:4px 0 0;font-size:14px;color:var(--muted);max-width:52ch;line-height:1.45}
 #padTeams [data-pteam='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}#padTeams [data-pteam='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
-.pad-cards{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px;width:min(980px,100%)}
-/* five to choose from: narrower cards, so the name and the numbers lead and the blurb steps aside on a short screen */
-@media (orientation:landscape) and (max-height:560px){.pad-cards[style*="--n: 5"]{gap:6px}.pad-cards[style*="--n: 5"] .pcard .ds{display:none}.pad-cards[style*="--n: 5"] .pcard .nm{font-size:clamp(13px,3.6vmin,17px)}.pad-cards[style*="--n: 5"] .pcard ul{font-size:10.5px;padding:3px 6px 6px}}
-.pcard{--cat:#888;display:grid;grid-template-rows:auto auto auto 1fr;text-align:left;font:inherit;color:var(--text);background:var(--night-2);border:3px solid var(--line);border-top:7px solid var(--cat);border-radius:12px;padding:0;overflow:hidden;cursor:pointer;transition:transform .15s,opacity .2s,border-color .15s;touch-action:manipulation}
+/* ---- a phone held upright: the menus are built for it (one column, big tiles, thumbs at the bottom); a match asks you to turn sideways ---- */
+@media (orientation:portrait) and (max-width:760px){
+  .menu-foot{display:none}
+  .mlist.tiles{gap:10px}
+  .mlist.tiles .mt.small{grid-column:span 2;min-height:92px;padding:12px 6px;grid-template-columns:1fr;grid-template-rows:auto auto;justify-items:center;text-align:center;row-gap:8px;font-size:15px}
+  .mlist.tiles .mt.small .mi{grid-row:1;width:42px;height:42px;padding:9px}
+  .mlist.tiles .mt.small .mt-t{grid-row:2!important;align-self:start;line-height:1.05}
+  .mlist.tiles .mt:not(.small):not(.back){min-height:88px}
+  .mobile-row{margin:14px 0 0;justify-content:center}
+  .mobile-row #mFull{display:none}
+  /* Customize: your fighter on top, the choices below */
+  .ward{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:100%;padding:12px}
+  .ward-stage{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:8px 12px}
+  .ward-stage canvas{grid-row:1 / span 4;aspect-ratio:6/5}
+  .ward-msg{display:block;grid-column:1 / -1}
+  .ward-head h2{font-size:28px}
+  .ward-tabs button,.ward-side button{font-size:15px;padding:6px 11px}
+  .ward-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+  .ward-foot .btn{width:100%;font-size:18px;padding:10px}
+  /* the online lobby: everything centred, a big code */
+  .lobby{text-align:center;justify-items:center}
+  .lobby .mlist{justify-content:center}
+}
+/* ---- the first-run guide: five swipeable pages in the menus' look ---- */
+#tut{z-index:35;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:radial-gradient(ellipse at center,rgba(14,8,22,.75),rgba(14,8,22,.94))}
+.tut-card{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:12px;width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;box-sizing:border-box;padding:16px 18px 18px;border-radius:22px;
+  border:2px solid rgba(255,255,255,.1);background:rgba(22,13,33,.97);box-shadow:0 20px 60px rgba(0,0,0,.45);animation:tutIn .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes tutIn{from{transform:translateY(24px) scale(.96);opacity:0}}
+.tut-top{display:flex;justify-content:space-between;align-items:center}.tut-top .lbl{margin:0}
+.tut-skip{font:400 16px var(--display);letter-spacing:.03em;color:var(--muted);background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;padding:5px 12px;cursor:pointer}
+.tut-skip:hover,.tut-skip:focus-visible{border-color:var(--orange);color:#fff;outline:none}
+.tut-view{overflow:hidden;min-height:0;touch-action:pan-y}
+.tut-track{display:flex;height:100%;transition:transform .35s cubic-bezier(.3,1.2,.4,1)}
+.tut-pg{flex:0 0 100%;display:grid;align-content:center;justify-items:center;gap:10px;text-align:center;padding:4px 6px;box-sizing:border-box;overflow:auto;min-height:0}
+.tut-pg h3{margin:4px 0 0;font:400 clamp(26px,6vw,34px)/1.05 var(--display);letter-spacing:.03em;text-transform:uppercase;transform:rotate(-1.5deg);color:var(--text);text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.tut-pg p{margin:0;font:600 16px/1.45 var(--body);color:var(--muted);max-width:40ch}.tut-pg p b{color:var(--text)}
+#tutName{color:var(--orange)}
+#tutLook{width:min(280px,70vw);aspect-ratio:3/2;border-radius:16px}
+.tut-ic{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border-radius:13px;background:color-mix(in srgb,var(--tc,#ff7a1a) 20%,transparent);color:var(--tc,#ff7a1a)}
+.tut-ic svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tut-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.tut-tile{display:grid;justify-items:center;gap:6px;padding:14px 8px;border-radius:16px;border:2px solid var(--tc);background:color-mix(in srgb,var(--tc) 10%,rgba(20,12,30,.85));box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.tut-tile b{font:400 18px var(--display);letter-spacing:.03em;text-transform:uppercase}.tut-tile small{font:600 12px/1.3 var(--body);color:var(--muted)}
+.tut-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;width:100%;text-align:left}
+.tut-steps li{display:flex;gap:12px;align-items:center;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.04);font:600 14px/1.35 var(--body);color:var(--muted)}
+.tut-steps li b{color:var(--text)}.tut-steps li>span>b:first-child{display:block;font:400 17px var(--display);letter-spacing:.03em;text-transform:uppercase;color:var(--tc)}
+.tut-code{display:inline-block;font:700 17px var(--mono);letter-spacing:.2em;color:#ffd36b;background:rgba(255,211,107,.12);border:1px solid rgba(255,211,107,.4);border-radius:8px;padding:1px 6px 1px 9px}
+.tut-pad{position:relative;width:min(300px,78vw);aspect-ratio:2/1;border:4px solid #ffd36b;border-radius:18px;background:linear-gradient(#2a1a3d,#170f22);font:700 10px/1.25 var(--body);color:var(--muted)}
+.tut-pad span{position:absolute;display:grid;justify-items:center;gap:4px;text-align:center}.tut-pad em{font-style:normal}
+.tut-pad .tp-l{left:5%;bottom:12%;width:30%}.tut-pad .tp-r{left:37%;bottom:12%;width:36%}
+.tut-pad .tp-l i,.tut-pad .tp-r i{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.4);animation:tutStick 2.4s ease-in-out infinite}
+.tut-pad .tp-r i{border-color:var(--orange);animation-delay:-1.2s}
+@keyframes tutStick{0%,100%{transform:translate(0,0)}25%{transform:translate(8px,0)}50%{transform:translate(0,-8px)}75%{transform:translate(-8px,0)}}
+.tut-pad .tp-b{right:5%;top:8%;bottom:8%;grid-template-rows:1fr 1fr;gap:5px}
+.tut-pad .tp-b b{display:grid;place-items:center;width:46px;border-radius:9px;border:2px solid rgba(255,255,255,.45);font:400 11px var(--display);color:var(--text)}.tut-pad .tp-b .blk{border-color:var(--orange);background:rgba(255,122,26,.16)}
+.tut-keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;text-align:left;font:600 15px var(--body)}.tut-keys dt{text-align:right;color:var(--text)}.tut-keys dd{margin:0;color:var(--muted)}
+.tut-keys kbd{font:700 13px var(--mono);padding:1px 7px;margin-left:3px;border-radius:6px;border:1px solid var(--line);border-bottom-width:3px;background:rgba(255,255,255,.06)}
+.tut-fan{position:relative;width:200px;height:130px}
+.tut-fan span{position:absolute;left:50%;bottom:0;width:78px;height:112px;margin-left:-39px;border-radius:10px;border:3px solid var(--line);border-top:8px solid var(--c);background:var(--night-2);transform-origin:50% 120%;transform:rotate(var(--r));box-shadow:0 6px 0 rgba(0,0,0,.35);animation:tutFan 2.6s ease-in-out infinite}
+.tut-fan span:nth-child(2){animation-delay:-.4s}.tut-fan span:nth-child(3){animation-delay:-.8s}
+.tut-fan span::after{content:"";position:absolute;left:50%;top:38%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:4px solid var(--c);opacity:.8}
+.tut-fan span::before{content:"";position:absolute;left:14px;right:14px;bottom:16px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);box-shadow:0 -10px 0 rgba(255,255,255,.12)}
+@keyframes tutFan{0%,100%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(var(--r)) translateY(-8px)}}
+.tut-dots{display:flex;justify-content:center;gap:8px}
+.tut-dots button{width:10px;height:10px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:transform .15s,background .15s}.tut-dots button.on{background:var(--orange);transform:scale(1.35)}
+.tut-acts{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.tut-acts .btn{font:400 20px var(--display);letter-spacing:.03em;padding:11px 14px;border-radius:14px}
+.tut-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
+.tut-acts .btn[disabled]{visibility:hidden}
+.name-note{margin:-6px 0 0;max-width:34ch;color:var(--muted);font:600 15px/1.4 var(--body)}
+@media (max-height:520px){.tut-card{grid-template-rows:auto minmax(0,1fr) auto auto;gap:6px;padding:10px 14px 12px;width:min(640px,calc(100vw - 24px))}
+  .tut-pg{grid-template-columns:auto minmax(0,1fr);grid-auto-flow:dense;column-gap:16px;row-gap:4px;text-align:left;justify-items:start;align-items:center}
+  .tut-pg>:first-child{grid-row:1 / span 3}.tut-pg h3{font-size:24px}.tut-pg p{font-size:14px}
+  #tutLook{width:min(200px,30vw)}.tut-tiles{width:min(260px,40vw);grid-template-columns:1fr}.tut-tile{padding:6px}.tut-tile small{display:none}
+  .tut-steps{width:min(330px,48vw)}.tut-steps li{padding:4px 8px;font-size:12px}.tut-steps .tut-ic{width:32px;height:32px}.tut-steps li>span>b:first-child{font-size:14px}
+  .tut-pad{width:min(230px,34vw)}.tut-fan{transform:scale(.8)}.tut-acts .btn{font-size:17px;padding:7px 12px}}
+/* ---- "add to your home screen": a friendly sheet that slides up on a phone ---- */
+#a2hs{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,5,18,.6);animation:a2Fade .25s}
+@keyframes a2Fade{from{opacity:0}}
+.a2-card{position:relative;display:grid;justify-items:center;gap:10px;width:min(440px,100%);box-sizing:border-box;margin:0 8px calc(8px + env(safe-area-inset-bottom,0px));padding:20px 20px 18px;text-align:center;
+  border-radius:24px;border:2px solid rgba(255,255,255,.1);background:rgba(26,16,38,.98);box-shadow:0 -10px 50px rgba(0,0,0,.5);animation:a2Up .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes a2Up{from{transform:translateY(110%)}}
+.a2-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.07);color:var(--muted);font:700 22px/1 var(--body);cursor:pointer}
+.a2-card h3{margin:0;font:400 26px/1.05 var(--display);letter-spacing:.03em;text-transform:uppercase;transform:rotate(-1.5deg)}
+.a2-sub{margin:0;font:600 15px/1.4 var(--body);color:var(--muted);max-width:34ch}
+.a2-home{position:relative;display:grid;grid-template-columns:repeat(3,44px);gap:12px;padding:14px 18px;border-radius:20px;background:linear-gradient(160deg,#3b2a5a,#24183a);margin-top:4px}
+.a2-home i,.a2-home .a2-slot{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.13)}
+.a2-home .a2-slot{background:none;border:2px dashed rgba(255,211,107,.6);box-sizing:border-box}
+.a2-app{position:absolute;width:44px;height:44px;border-radius:12px;right:18px;bottom:14px;box-shadow:0 4px 12px rgba(0,0,0,.4);animation:a2Hop 2.6s cubic-bezier(.3,1.4,.5,1) infinite}
+@keyframes a2Hop{0%{transform:translate(-90px,-120px) scale(.5) rotate(-20deg);opacity:0}25%{opacity:1}45%,85%{transform:none;opacity:1}100%{transform:none;opacity:1}}
+.a2-steps{display:none;list-style:none;margin:0;padding:0;text-align:left;gap:6px;font:600 15px/1.35 var(--body);color:var(--muted);width:100%}
+.a2-steps li{display:grid;grid-template-columns:26px 1fr;align-items:center;gap:10px}.a2-steps p{margin:0}.a2-steps b{color:var(--text)}
+.a2-steps span{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:var(--orange);color:#1a0e05;font:400 15px var(--display)}
+.a2-steps svg{width:22px;height:22px;fill:none;stroke:#7ab8ff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+#a2hs.ios .a2-steps{display:grid}#a2hs.ios .a2-sub{display:none}
+.a2-acts{display:grid;grid-template-columns:2fr 1fr;gap:8px;width:100%;margin-top:4px}
+.a2-acts .btn{font:400 19px var(--display);letter-spacing:.03em;padding:11px 12px;border-radius:14px}
+.a2-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
+#a2hs.ios .a2-acts{grid-template-columns:1fr}#a2hs.ios .a2-acts [data-a2="later"]{display:none}
+.a2-btn i{font-style:normal;font-weight:900;color:var(--orange);margin-right:2px}
+@media (max-height:520px){.a2-card{width:min(560px,100%);grid-template-columns:auto 1fr;text-align:left;justify-items:start;column-gap:18px;padding:14px 16px}.a2-home{grid-row:1 / span 4;align-self:center;transform:scale(.8)}.a2-card h3{font-size:21px}.a2-acts{grid-column:2}}
+/* the Big Screen draft on a phone: full-size cards in a row you swipe through (one in the middle, its neighbours peeking in); tap one to pick it */
+#padPick{background:#140b1f;align-content:start;grid-template-rows:auto auto minmax(0,1fr) auto auto;padding-left:0;padding-right:0;overflow:hidden}
+#padPick .pad-h,#padPick .pad-p{padding:0 16px}
+.pad-cards{--cw:clamp(220px,76vw,330px);display:flex;align-items:center;gap:14px;width:100%;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+  padding:10px calc(50% - var(--cw) / 2) 12px;box-sizing:border-box;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.pad-cards::-webkit-scrollbar{display:none}
+.pcard{--cat:#888;flex:0 0 var(--cw);width:var(--cw);height:min(100%,calc(var(--cw) * 1.5));scroll-snap-align:center;display:grid;grid-template-rows:minmax(70px,38%) auto auto auto minmax(0,1fr);text-align:left;font:inherit;color:var(--text);
+  background:var(--night-2);border:3px solid var(--line);border-top:8px solid var(--cat);border-radius:18px;padding:0;overflow:hidden;cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.35);
+  transition:transform .18s,opacity .2s,border-color .15s,box-shadow .18s;touch-action:pan-x}
 .pcard.r1{border-color:#7ab8ff;border-top-color:var(--cat)}.pcard.r2{border-color:#ffab1a;border-top-color:var(--cat)}
-.pcard canvas{width:100%;aspect-ratio:360/150;object-fit:cover;display:block}
-.pcard .nm{font:400 clamp(16px,4.6vmin,22px) var(--display);letter-spacing:.02em;padding:6px 8px 0}
-.pcard .meta{font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 8px}
-.pcard .ds{font-size:12px;line-height:1.3;padding:3px 8px 0;color:var(--text)}
-.pcard ul{list-style:none;margin:0;padding:4px 8px 8px;font-size:12px;align-self:end}.pcard li.up b{color:var(--good)}.pcard li.down b{color:var(--bad)}
+.pcard canvas{width:100%;height:100%;min-height:0;object-fit:cover;display:block}
+.pcard .nm{font:400 clamp(22px,6.4vmin,30px) var(--display);letter-spacing:.02em;line-height:1.05;padding:10px 14px 0}
+.pcard .meta{font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:3px 14px 0}
+.pcard .ds{font-size:15px;line-height:1.35;padding:8px 14px 0;color:var(--text)}
+.pcard ul{list-style:none;margin:0;padding:8px 14px 14px;font-size:15px;line-height:1.45;align-self:end}.pcard li.up b{color:var(--good)}.pcard li.down b{color:var(--bad)}
 .pcard:active{transform:scale(.97)}
-.pcard.chosen{border-color:var(--pc);transform:translateY(-4px);box-shadow:0 0 0 2px var(--pc),0 0 26px var(--pc)}.pcard.away{opacity:.28}
+.pcard.chosen{border-color:var(--pc);transform:translateY(-6px);box-shadow:0 0 0 3px var(--pc),0 0 30px var(--pc)}.pcard.away{opacity:.28}
+.pad-dots{display:flex;justify-content:center;gap:8px;min-height:10px}
+.pad-dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);transition:background .15s,transform .15s}.pad-dots i.on{background:var(--pc);transform:scale(1.3)}
 .pad-timer{margin:0;font:400 22px var(--display);color:var(--hot);min-height:1.1em}
 #padPick.locked .pad-timer{visibility:hidden}
-@media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pcard canvas{aspect-ratio:360/88}.pcard .nm{font-size:17px;padding-top:4px}.pcard .ds{font-size:11px;line-height:1.25}.pcard ul{font-size:11px;padding:2px 8px 6px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
-@media (orientation:portrait){.pad-cards{grid-template-columns:1fr;gap:8px;max-height:calc(100dvh - 150px);overflow:auto}.pcard{grid-template-columns:38% 1fr;grid-template-rows:auto auto auto 1fr}.pcard canvas{grid-row:1/5;height:100%;aspect-ratio:auto}}
+/* sideways: the title and timer on one line, so the cards get the height */
+@media (orientation:landscape) and (max-height:560px){
+  #padPick{gap:2px;padding-top:4px;grid-template-rows:auto auto minmax(0,1fr) auto}
+  #padPick .pad-h{font-size:24px}#padPick .pad-p{font-size:13px}#padPick .pad-timer{position:absolute;top:6px;right:calc(16px + env(safe-area-inset-right,0px));font-size:20px}
+  .pad-cards{--cw:clamp(200px,31vw,290px);padding:6px calc(16px + env(safe-area-inset-right,0px)) 6px calc(16px + env(safe-area-inset-left,0px));scroll-padding:0 calc(16px + env(safe-area-inset-left,0px))}
+  .pcard{scroll-snap-align:start}
+  .pcard{max-height:100%;grid-template-rows:minmax(44px,30%) auto auto auto minmax(0,1fr)}
+  .pcard .nm{font-size:clamp(19px,5.6vh,24px);padding-top:6px}.pcard .ds{font-size:13px;padding-top:4px}.pcard ul{font-size:13px;padding:4px 12px 10px;line-height:1.35}
+}
+@media (orientation:landscape) and (max-height:380px){.pcard .ds{display:none}}
+@media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
 </style>
 </head>
 <body>
@@ -790,7 +917,7 @@ body.touch .desk-only{display:none!important}
 <div id="chat" aria-label="Chat"><div id="chatLog" aria-live="polite"></div>
   <form id="chatForm" hidden autocomplete="off"><input id="chatIn" maxlength="120" enterkeyhint="send" placeholder="Message your opponent…" aria-label="Chat message"><button type="submit" class="chat-send">Send</button>
     <div class="chat-quick"><button type="button" data-q="GG">GG</button><button type="button" data-q="Nice shot!">Nice shot!</button><button type="button" data-q="Rematch?">Rematch?</button><button type="button" data-q="😂">😂</button><button type="button" data-q="🔥">🔥</button></div></form></div>
-<div id="rotate" class="touch-only"><div><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways to play</div></div>
+<div id="rotate" class="touch-only" role="dialog" aria-labelledby="rotT"><div class="rot-box"><div class="rot-ic" aria-hidden="true"><i></i></div><b class="rot-t" id="rotT">Game time!<br><em>Turn it sideways</em></b><span class="rot-s">Fights play with your phone on its side: one thumb moves, the other aims and fires.</span><button type="button" class="rot-leave" data-act="menu">Back to the menu</button></div></div>
 <div id="hudbtns"><button id="bCards" type="button" hidden>Cards<span class="kh">Tab</span></button><button id="bChat" type="button" hidden aria-label="Chat (Enter)" title="Chat · Enter"><svg viewBox="0 0 16 14" width="16" height="14" aria-hidden="true"><path d="M2 1h12a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 14 10H7l-3.5 3v-3H2A1.5 1.5 0 0 1 .5 8.5v-6A1.5 1.5 0 0 1 2 1z"/></svg></button><button id="bPause" type="button" aria-label="Pause (Esc)" title="Pause · Esc"><svg viewBox="0 0 12 14" width="12" height="14" aria-hidden="true"><rect x="1" y="1" width="3.4" height="12" rx="1.2"/><rect x="7.6" y="1" width="3.4" height="12" rx="1.2"/></svg></button></div>
 
 <div id="menu" class="overlay menu-screen">
@@ -811,7 +938,7 @@ body.touch .desk-only{display:none!important}
         <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
-      <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><span class="ios-hint" id="iosHint" hidden>For full screen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open CUUED from there.</span></div>
+      <div class="mobile-row touch-only"><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
     </div>
     <div data-sub="solo" hidden>
       <div class="lbl sublbl">Single player</div>
@@ -827,31 +954,23 @@ body.touch .desk-only{display:none!important}
     <div data-sub="multi" hidden>
       <div class="lbl sublbl">Multiplayer</div>
       <nav class="mlist tiles" aria-label="Multiplayer">
-        <button type="button" class="mt" data-act="online" data-ic="online" data-hint="One-on-one against a friend. One of you hosts, the other joins with a code." style="--i:0;--tc:#3d8bff"><span class="mt-t">Duel a friend</span><span class="mt-d">One-on-one online, join with a code</span></button>
-        <button type="button" class="mt" data-act="partyOnline" data-ic="partyOnline" data-hint="Two against two. Friends join with your code; CPUs fill any empty seats." style="--i:1;--tc:#7c5cf0"><span class="mt-t">Party · 2v2</span><span class="mt-d">Two against two; CPUs fill empty seats</span></button>
-        <button type="button" class="mt" data-act="bigscreenMenu" data-ic="bigscreenMenu" data-hint="One screen everyone watches (a laptop or a TV); 1 to 4 friends play with their phones as controllers." style="--i:2;--tc:#ffb547"><span class="mt-t">Big Screen</span><span class="mt-d">One screen, phones as controllers</span></button>
-        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt" data-act="online" data-ic="online" data-hint="One-on-one against a friend: online from anywhere, or on one big screen with phones as controllers." style="--i:0;--tc:#3d8bff"><span class="mt-t">Duel a friend</span><span class="mt-d">One-on-one, online or on one big screen</span></button>
+        <button type="button" class="mt" data-act="partyOnline" data-ic="partyOnline" data-hint="Two against two, online or on one big screen. CPUs fill any empty seats." style="--i:1;--tc:#7c5cf0"><span class="mt-t">Party · 2v2</span><span class="mt-d">Two against two; CPUs fill empty seats</span></button>
+        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Team up with a friend in Survival: waves, bosses, big arenas. Revive each other; each of you shops for your own build." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Co-op Survival</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:3;--tc:#ffb547"><span class="mt-t">Join with a code</span><span class="mt-d">A friend's room, or the code on a big screen</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
-      <p class="menu-hint" aria-live="polite">One-on-one against a friend. One of you hosts, the other joins with a code.</p>
-    </div>
-    <div data-sub="bigscreen" hidden>
-      <div class="lbl sublbl">Big Screen</div>
-      <nav class="mlist tiles" aria-label="Big Screen">
-        <button type="button" class="mt" data-act="bigscreen" data-ic="bigscreenMenu" data-hint="This computer is the screen everyone watches. You host: friends scan your code and play on their phones." style="--i:0;--tc:#ffb547"><span class="mt-t">Host on this screen</span><span class="mt-d">Friends scan your code and play on their phones</span></button>
-        <button type="button" class="mt" data-act="join" data-ic="join" data-from="bigscreen" data-hint="On your phone: type the code shown on the big screen, and your phone becomes your controller." style="--i:1;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Your phone becomes your controller</span></button>
-        <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2"><span class="mt-t">Back</span></button>
-      </nav>
-      <p class="menu-hint" aria-live="polite">This computer is the screen everyone watches. You host: friends scan your code and play on their phones.</p>
+      <p class="menu-hint" aria-live="polite">One-on-one against a friend: online from anywhere, or on one big screen with phones as controllers.</p>
     </div>
     <div data-sub="online" hidden>
-      <div class="lbl sublbl" id="onlineLbl">Duel a friend</div>
-      <nav class="mlist tiles" aria-label="Play online">
-        <button type="button" class="mt" data-act="host" data-ic="host" data-hint="Get a 4-letter code and a link to send your friend." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Host a game</span><span class="mt-d">Get a code and a link to send</span></button>
-        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Type the code your friend sent you." style="--i:1;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Type the code your friend sent</span></button>
-        <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:2"><span class="mt-t">Back</span></button>
+      <div class="lbl sublbl"><span id="onlineLbl">Duel a friend</span> · where is everyone?</div>
+      <nav class="mlist tiles" aria-label="Where to play">
+        <button type="button" class="mt" data-act="host" data-ic="host" data-hint="Everyone plays on their own phone or computer, from anywhere. You get a 4-letter code and a link to send." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Own screens</span><span class="mt-d">Host online: friends join from anywhere</span></button>
+        <button type="button" class="mt" data-act="bigscreen" data-ic="bigscreenMenu" id="mpBig" data-hint="This computer is the screen everyone watches (a laptop or a TV). Friends scan the code and their phones become controllers." style="--i:1;--tc:#ffb547"><span class="mt-t">One big screen</span><span class="mt-d">This screen is the TV; phones are the controllers</span></button>
+        <button type="button" class="mt" data-act="join" data-ic="join" data-hint="Type the code your friend sent you, or the code on the big screen." style="--i:2;--tc:#3d8bff"><span class="mt-t">Join with a code</span><span class="mt-d">Type the code your friend sent</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-back="multi" data-hint="Back to Multiplayer." style="--i:3"><span class="mt-t">Back</span></button>
       </nav>
-      <p class="menu-hint" aria-live="polite">Get a 4-letter code and a link to send your friend.</p>
+      <p class="menu-hint" aria-live="polite">Everyone plays on their own phone or computer, from anywhere. You get a 4-letter code and a link to send.</p>
     </div>
     <div class="lobby" data-sub="hosting" hidden>
       <div class="lbl">Your room code</div>
@@ -898,7 +1017,7 @@ body.touch .desk-only{display:none!important}
           </ol>
           <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
           <p class="hp-note"><b>Party</b> Two against two. Pick Team Orange or Team Blue; CPUs fill empty seats. The losing pair draft together.</p>
-          <p class="hp-note"><b>Big Screen</b> This computer is the screen. 1 to 4 friends scan the code and play with their phones as controllers.</p>
+          <p class="hp-note"><b>Big Screen</b> Pick Duel or Party, then <b>One big screen</b>: this computer is the screen, and 1 to 4 friends scan the code and play with their phones as controllers.</p>
         </div>
         <div class="hp-page" data-hpage="controls" hidden>
           <dl class="hp-keys desk-only">
@@ -941,7 +1060,7 @@ body.touch .desk-only{display:none!important}
           </ul>
         </div>
       </div>
-      <nav class="mlist"><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
+      <nav class="mlist"><button type="button" data-act="tutorial" style="--i:0">Quick guide</button><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
     </div>
   </div>
   <p class="menu-foot"><span class="kh">↑ ↓ choose · Enter select · ← → change · Esc back</span><span class="touchnote"> · Play sideways: left thumb moves (flick up to jump, down to duck), right thumb taps to auto-fire or drags to aim and fires on release, buttons for Block and Jump.</span></p>
@@ -950,11 +1069,69 @@ body.touch .desk-only{display:none!important}
 <div id="nameScreen" class="overlay pause-screen" hidden>
   <form class="center-wrap name-form" id="nameForm" autocomplete="off">
     <h2 class="screen-title">Who's getting queued?</h2>
+    <p class="name-note">Pick a name and you're in: it's your account on this device. No sign-up, no password.</p>
     <label class="lbl" for="nameInput">Your name</label>
     <input id="nameInput" class="text-in" maxlength="16" placeholder="Your name" spellcheck="false" style="text-align:center">
     <p class="form-err" id="nameErr" hidden>Type at least one letter or number.</p>
     <nav class="mlist centered"><button type="submit" style="--i:0">Let's go</button></nav>
   </form>
+</div>
+
+<div id="tut" class="overlay pause-screen" hidden role="dialog" aria-labelledby="tutH" aria-describedby="tutStep">
+  <div class="tut-card">
+    <div class="tut-top"><span class="lbl" id="tutStep">Quick guide · 1 of 5</span><button type="button" class="tut-skip" data-tut="skip">Skip</button></div>
+    <div class="tut-view" id="tutView"><div class="tut-track" id="tutTrack">
+      <section class="tut-pg">
+        <canvas id="tutLook" width="360" height="240" aria-hidden="true"></canvas>
+        <h3 id="tutH">Hey, <span id="tutName">you</span>!</h3>
+        <p>That's you. Your name is your account on this device: the coins you win, your look and your best Survival run are all saved to it.</p>
+      </section>
+      <section class="tut-pg">
+        <div class="tut-tiles"><div class="tut-tile" style="--tc:#ff7a1a"><i class="tut-ic" data-ic="solo"></i><b>Single player</b><small>Practice vs a CPU, Party, Survival, Sandbox</small></div>
+          <div class="tut-tile" style="--tc:#3d8bff"><i class="tut-ic" data-ic="multi"></i><b>Multiplayer</b><small>Duel, 2v2, Co-op: with friends</small></div></div>
+        <h3>Two ways in</h3>
+        <p>On your own? <b>Single player</b>. With friends? <b>Multiplayer</b>. <b>Customize</b> is where coins buy hats, patterns and trails.</p>
+      </section>
+      <section class="tut-pg">
+        <ol class="tut-steps">
+          <li style="--tc:#ff7a1a"><i class="tut-ic" data-ic="host"></i><span><b>Host</b> Multiplayer, pick a mode, then <b>Own screens</b>. Send your friend the code or the link.</span></li>
+          <li style="--tc:#3d8bff"><i class="tut-ic" data-ic="join"></i><span><b>Join</b> Multiplayer, <b>Join with a code</b>, type it in. Or just open their link.</span></li>
+          <li style="--tc:#ffb547"><i class="tut-ic" data-ic="bigscreenMenu"></i><span><b>Big Screen</b> Pick <b>One big screen</b> on a laptop or TV. Friends scan the code; phones become controllers.</span></li>
+        </ol>
+        <h3>Play with friends</h3>
+        <p>Every room has a 4-letter code, like <span class="tut-code">KX7Q</span></p>
+      </section>
+      <section class="tut-pg">
+        <div class="tut-pad touch-only" aria-hidden="true"><span class="tp-l"><i></i><em>Move<br>flick up: jump</em></span><span class="tp-r"><i></i><em>Tap: auto-fire<br>drag, let go: aim and fire</em></span><span class="tp-b"><b>Jump</b><b class="blk">Block</b></span></div>
+        <dl class="tut-keys desk-only"><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Move</dd><dt><kbd>W</kbd><kbd>Space</kbd></dt><dd>Jump (again in the air)</dd><dt>Mouse</dt><dd>Aim, click to shoot</dd><dt><kbd>Shift</kbd> / right-click</dt><dd>Block (a perfect one sends bullets back)</dd><dt><kbd>Esc</kbd></dt><dd>Pause</dd></dl>
+        <h3>The controls</h3>
+        <p class="touch-only">Hold your phone sideways to fight. Left thumb moves, right thumb shoots, and the big buttons jump and block.</p>
+        <p class="desk-only">Keyboard to move, mouse to aim. Block at just the right moment to bounce bullets back.</p>
+      </section>
+      <section class="tut-pg">
+        <div class="tut-fan" aria-hidden="true"><span style="--r:-14deg;--c:#ff5a4f"></span><span style="--r:0deg;--c:#ffab1a"></span><span style="--r:14deg;--c:#3fd0b0"></span></div>
+        <h3>Lose a round? Pick a card</h3>
+        <p>The round's loser drafts 1 of 5 power-up cards, and they stack, so every comeback gets wilder. First to the set number of rounds wins.</p>
+      </section>
+    </div></div>
+    <div class="tut-dots" id="tutDots"></div>
+    <div class="tut-acts"><button type="button" class="btn" data-tut="prev">Back</button><button type="button" class="btn go" data-tut="next">Next</button></div>
+  </div>
+</div>
+
+<div id="a2hs" hidden role="dialog" aria-labelledby="a2T">
+  <div class="a2-card">
+    <button type="button" class="a2-x" data-a2="later" aria-label="Not now">×</button>
+    <div class="a2-home" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b class="a2-slot"></b><img class="a2-app" src="icon-192.png" alt=""></div>
+    <h3 id="a2T">Pop CUUED on your home screen</h3>
+    <p class="a2-sub">One tap from your home screen, full screen, no browser bars in the way. Your fighter will be thrilled.</p>
+    <ol class="a2-steps">
+      <li><span>1</span><p>Tap <b>Share</b> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></svg> in the browser bar (in Safari it can hide under <b>···</b>)</p></li>
+      <li><span>2</span><p>Choose <b>Add to Home Screen</b> <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></p></li>
+      <li><span>3</span><p>Open CUUED from your home screen. Done!</p></li>
+    </ol>
+    <div class="a2-acts"><button type="button" class="btn go" data-a2="go" id="a2Go">Add it</button><button type="button" class="btn" data-a2="later">Maybe later</button></div>
+  </div>
 </div>
 
 <div id="pick" class="overlay" hidden>
@@ -1116,7 +1293,7 @@ body.touch .desk-only{display:none!important}
     <button type="button" class="tbtn pad-jump" id="pJump">Jump</button>
     <button type="button" class="tbtn pad-block" id="pBlock">Block</button>
     <p class="pad-msg" id="padMsg" hidden></p>
-    <div class="pad-rot"><div class="rot-ic" aria-hidden="true"></div>Turn your phone sideways for the controls</div>
+    <div class="pad-rot"><div class="rot-ic" aria-hidden="true"><i></i></div>Turn it sideways<span class="rot-s" style="text-transform:none;letter-spacing:0">Your controller is ready: hold your phone on its side.</span></div>
   </div>
   <div class="pad-sheet" id="padLobby">
     <div class="lbl">Big Screen</div>
@@ -1129,6 +1306,7 @@ body.touch .desk-only{display:none!important}
     <h2 class="pad-h" id="padPickT">Pick a card</h2>
     <p class="pad-p" id="padPickS"></p>
     <div class="pad-cards" id="padCards"></div>
+    <div class="pad-dots" id="padDots" aria-hidden="true"></div>
     <p class="pad-timer" id="padTimer"></p>
   </div>
   <div class="pad-sheet" id="padOver" hidden>
@@ -1604,6 +1782,8 @@ const keys=new Set(),edges=new Set();
 const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0};
 addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
+  if(!$('#tut').hidden){tutKey(e);return}
+  if(!$('#a2hs').hidden){if(e.code==='Escape'){e.preventDefault();a2Close(true)}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
   if(sbOpen()){if(e.code==='Tab'||e.code==='Escape'&&sandbox.played){e.preventDefault();closeSandbox()}else if(e.code==='Escape'){e.preventDefault();toMenu()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
@@ -3943,7 +4123,7 @@ const AIM_DEAD=26,TAP_MS=230,TAP_MOVE=20;   // aim stick: release outside AIM_DE
 const bodyCls=(c,on)=>{const b=document.body;if(b&&b.classList)b.classList.toggle(c,on)};
 function setTouchMode(on){touch.on=on;bodyCls('touch',on);phoneView();const d=document,de=d.documentElement||{},api=!!(de.requestFullscreen||de.webkitRequestFullscreen),
   standalone=mq('(display-mode: fullscreen), (display-mode: standalone)')||(typeof navigator!=='undefined'&&navigator.standalone);
-  const f=$('#mFull'),h=$('#iosHint');if(f)f.hidden=!api||standalone;if(h)h.hidden=api||standalone}
+  const f=$('#mFull');if(f)f.hidden=!api||standalone}
 const mq=q=>typeof matchMedia==='function'&&matchMedia(q).matches;
 setTouchMode(mq('(pointer: coarse)')&&!mq('(pointer: fine)'));
 addEventListener('touchstart',()=>{if(!touch.on)setTouchMode(true)},{passive:true,capture:true});
@@ -3990,6 +4170,8 @@ cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touch
   bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
   const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
 function touchFrame(){const live=touchLive();bodyCls('ingame',live);
+  const inMatch=!game.bg&&$('#menu').hidden&&$('#locker').hidden&&$('#nameScreen').hidden&&$('#pad').hidden&&$('#bigLobby').hidden&&!game.screen;bodyCls('match',inMatch);
+  if(inMatch!==touch.wasMatch){touch.wasMatch=inMatch;if(touch.on)holdSideways(inMatch)}
   if(live){const me=game.mode==='online-guest'?players[net.me]:players.find(q=>q.ctrl==='mouse'),b=$('#tBlock');
     if(me&&b&&b.style){const cd=me.blockCd>0&&me.s?clamp(me.blockCd/me.s.blockCd,0,1):0;if(b._cd!==cd){b._cd=cd;b.style.setProperty('--cd',cd.toFixed(3))}if(b._pc!==me.glow){b._pc=me.glow;b.style.setProperty('--pc',me.glow)}}}
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
@@ -4000,7 +4182,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-29-bs5';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-30-port';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4517,7 +4699,7 @@ function bsMsg(t){setText('#bsMsg',t)}
 function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen)bsMsg(t)}
 function openBigScreen(){net.wantScreen=true;net.wantParty=false;net.wantCoop=false;$('#menu').hidden=true;$('#bigLobby').hidden=false;
   setText('#bsCode','····');bsQr('');hostGame();bsLobbyChanged();refreshOpts();showSub($('#bigLobby'),'main')}
-function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();showSub($('#menu'),'bigscreen')}
+function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();mpSub($('#menu'))}
 const bsJoinUrl=()=>`${location.origin}${location.pathname}#${net.code}`;
 function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
@@ -4713,8 +4895,13 @@ function padHand(m){ctl.hand=(m.hand||[]).slice(0,5).map(decodeCard).filter(Bool
     b.querySelector('.nm').textContent=c.n;b.querySelector('.meta').textContent=`${CATNAME[c.k]||''} · ${c.char?'Character':c.up?'Power-up':RAR[c.r]}`;b.querySelector('.ds').textContent=c.d;
     const ul=b.querySelector('ul');for(const[v,l,g]of c.st||[]){const li=document.createElement('li');li.className=g?'up':'down';const bb=document.createElement('b');bb.textContent=v;li.appendChild(bb);li.appendChild(document.createTextNode(' '+l));ul.appendChild(li)}
     b.querySelector('canvas')._card=c;b.addEventListener('click',()=>padPick(i));el.appendChild(b)});
+  const dots=$('#padDots');if(dots){dots.innerHTML=ctl.hand.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}
+  if(el.scrollTo)el.scrollTo({left:0});
   const pk=$('#padPick');pk.hidden=false;pk.classList.toggle('locked',false);padMsg();ctlCardArt();buzz(15)}
-function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:'ppick',i});padPicked(i)}
+function padPick(i){if(ctl.picked>=0||!ctl.hand||!ctl.hand[i])return;netSend({t:'ppick',i});padPicked(i);const c=$('#padCards')&&$('#padCards').children[i];if(c&&c.scrollIntoView)c.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})}
+// the dot under the card in the middle lights up as you swipe
+{const el=$('#padCards');if(el&&el.addEventListener)el.addEventListener('scroll',()=>{const kids=[...el.children];if(!kids.length)return;const mid=el.scrollLeft+el.clientWidth/2;let k=0,d=1e9;
+  kids.forEach((c,i)=>{const e=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);if(e<d){d=e;k=i}});const dots=$('#padDots');if(dots)[...dots.children].forEach((t,i)=>t.classList.toggle('on',i===k))},{passive:true})}
 function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').children].forEach((b,k)=>{b.classList.toggle('chosen',k===i);b.classList.toggle('away',k!==i)});
   $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS','Watch the big screen for the reveal')}
 let padArtRaf=0;
@@ -4761,7 +4948,9 @@ function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost t
 /* ---------- names ---------- */
 const cleanName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){}
-let pendingJoin='',joinBack='online';   // joinBack: where Back on the join screen goes (Duel/Party, or Big Screen)
+let pendingJoin='',joinBack='online',mpKind='duel';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
+// a multiplayer mode, then where everyone plays: their own screens (online), or one big screen with phones as controllers (Co-op Survival: own screens only)
+function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');const bg=$('#mpBig');if(bg)bg.hidden=mpKind==='coop';showSub(ov,'online')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 function openNameScreen(){$('#nameInput').value=myName;$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
@@ -4827,6 +5016,47 @@ const MI={solo:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8
   host:'<circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
   join:'<path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>',back:'<path d="M15 5l-7 7 7 7"/>'};
 for(const b of document.querySelectorAll('.mlist.tiles .mt[data-ic]')){const k=b.dataset.ic;if(!MI[k])continue;const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('class','mi');sv.setAttribute('aria-hidden','true');sv.innerHTML=MI[k];b.prepend(sv)}
+/* ---------- the first-run guide: five quick pages after you first pick a name (Skip any time; replay it from How to play) ---------- */
+const TUT_N=5;let tutI=0,tutRaf=0,tutPending=false,tutX=null;
+const tutSeen=()=>{try{return localStorage.getItem('cuued.tut')==='1'}catch(e){return true}};
+for(const el of document.querySelectorAll('.tut-ic[data-ic]')){const k=el.dataset.ic;if(MI[k])el.innerHTML=`<svg viewBox="0 0 24 24">${MI[k]}</svg>`}
+{const d=$('#tutDots');if(d)d.innerHTML=Array.from({length:TUT_N},(_,i)=>`<button type="button" data-tut="${i}" aria-label="Page ${i+1}"></button>`).join('')}
+function openTut(){tutPending=false;setText('#tutName',myName||'you');$('#tut').hidden=false;tutGo(0);
+  const step=now=>{if($('#tut').hidden){tutRaf=0;return}if(tutI===0)drawLook($('#tutLook'),wallet.eq,0,now/1000);tutRaf=requestAnimationFrame(step)};if(!tutRaf)tutRaf=requestAnimationFrame(step)}
+function closeTut(){try{localStorage.setItem('cuued.tut','1')}catch(e){}$('#tut').hidden=true;sfx('pick',true);if(!$('#menu').hidden)focusFirst($('#menu'));setTimeout(a2Maybe,900)}
+function tutGo(i){tutI=clamp(i,0,TUT_N-1);const tr=$('#tutTrack');if(tr&&tr.style)tr.style.transform=`translateX(${-100*tutI}%)`;
+  [...document.querySelectorAll('#tutTrack>.tut-pg')].forEach((p,k)=>p.setAttribute('aria-hidden',k!==tutI));
+  [...document.querySelectorAll('#tutDots button')].forEach((b,k)=>b.classList.toggle('on',k===tutI));
+  setText('#tutStep',`Quick guide · ${tutI+1} of ${TUT_N}`);const pv=$('#tut [data-tut=prev]'),nx=$('#tut [data-tut=next]');if(pv)pv.disabled=tutI===0;
+  if(nx){nx.textContent=tutI===TUT_N-1?"Let's play!":'Next';try{nx.focus({preventScroll:true})}catch(e){}}}
+function tutKey(e){const c=e.code;
+  if(c==='ArrowRight'||c==='KeyD'){e.preventDefault();if(tutI<TUT_N-1){tutGo(tutI+1);sfx('tick',true)}}
+  else if(c==='ArrowLeft'||c==='KeyA'){e.preventDefault();if(tutI>0){tutGo(tutI-1);sfx('tick',true)}}
+  else if(c==='Escape'){e.preventDefault();closeTut()}
+  else if(c==='Enter'||c==='Space'){e.preventDefault();const b=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#tut button');if(b)b.click();else if(tutI<TUT_N-1)tutGo(tutI+1);else closeTut()}}
+{const t=$('#tut');if(t&&t.addEventListener){t.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tut]');if(!b)return;initAudio();const a=b.dataset.tut;
+    if(a==='skip')closeTut();else if(a==='prev'){tutGo(tutI-1);sfx('tick',true)}else if(a==='next'){if(tutI>=TUT_N-1)closeTut();else{tutGo(tutI+1);sfx('tick',true)}}else{tutGo(+a);sfx('tick',true)}});
+  // a swipe left or right turns the page
+  const v=$('#tutView');v.addEventListener('pointerdown',e=>{tutX=[e.clientX,e.clientY]});
+  v.addEventListener('pointerup',e=>{if(!tutX)return;const dx=e.clientX-tutX[0],dy=e.clientY-tutX[1];tutX=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){tutGo(tutI+(dx<0?1:-1));sfx('tick',true)}});
+  v.addEventListener('pointercancel',()=>{tutX=null})}}
+/* ---------- "add CUUED to your home screen": on a phone, once a visit at most, never pushy (Maybe later rests it for 3 days) ---------- */
+const a2={ev:null,shown:false};
+const isStandalone=()=>mq('(display-mode: fullscreen), (display-mode: standalone)')||(typeof navigator!=='undefined'&&navigator.standalone===true);
+const isIOS=()=>{const u=(typeof navigator!=='undefined'&&navigator.userAgent)||'';return/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1&&!/Chrome|Firefox/.test(u))};   // an iPad says Macintosh, but has a touch screen
+const a2Can=()=>touch.on&&!isStandalone()&&!!(a2.ev||isIOS());
+function a2State(){try{return JSON.parse(localStorage.getItem('cuued.a2')||'{}')||{}}catch(e){return{}}}
+function a2Save(st){try{localStorage.setItem('cuued.a2',JSON.stringify(st))}catch(e){}}
+function a2Sync(){const b=$('#mA2');if(b)b.hidden=!a2Can()}
+function a2Maybe(){if(a2.shown||!a2Can())return;const st=a2State();if(st.done||(st.n|0)>=4||Date.now()-(st.t||0)<3*864e5)return;
+  if($('#menu').hidden||!$('#nameScreen').hidden||!$('#tut').hidden||net.role)return;const m=$('#menu [data-sub=main]');if(!m||m.hidden)return;a2Open()}
+function a2Open(){a2.shown=true;const w=$('#a2hs'),ios=!a2.ev;w.classList.toggle('ios',ios);setText('#a2Go',ios?'Got it':'Add it');w.hidden=false;sfx('pick',true)}
+function a2Close(later){$('#a2hs').hidden=true;if(later){const st=a2State();a2Save({...st,t:Date.now(),n:(st.n|0)+1})}}
+if(typeof addEventListener==='function'){addEventListener('beforeinstallprompt',e=>{e.preventDefault();a2.ev=e;a2Sync()});
+  addEventListener('appinstalled',()=>{a2.ev=null;a2Save({...a2State(),done:1});a2Close(false);a2Sync()})}
+{const w=$('#a2hs');if(w&&w.addEventListener)w.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a2]');if(!b){if(e.target===w)a2Close(true);return}initAudio();
+  if(b.dataset.a2==='go'&&a2.ev){const ev=a2.ev;a2.ev=null;try{ev.prompt();ev.userChoice.then(c=>{if(c&&c.outcome==='accepted')a2Save({...a2State(),done:1});else a2Close(true)}).catch(()=>{})}catch(err){}a2Close(false);a2Sync();return}
+  a2Close(true)})}
 function menuKey(e){if(!$('#pick').hidden)return false;const l=visibleList();if(!l)return false;const items=[...l.querySelectorAll('button')];if(!items.length)return false;
   let i=items.indexOf(document.activeElement);const c=e.code;
   if(['ArrowUp','KeyW','ArrowDown','KeyS'].includes(c)){e.preventDefault();const d=c==='ArrowDown'||c==='KeyS'?1:-1;i=i<0?0:(i+d+items.length)%items.length;items[i].focus();sfx('tick',true);return true}
@@ -4846,26 +5076,27 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
-  else if(a==='bigscreenMenu'){net.wantScreen=false;net.wantParty=false;net.wantCoop=false;joinBack='bigscreen';showSub(ov,'bigscreen')}
-  else if(a==='bigscreen')openBigScreen();
+  else if(a==='bigscreen'){settings.bsMode=mpKind==='party'?'teams':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
   else if(a==='bsStart')bsStart();
   else if(a==='bsCancel')closeBigScreen();
   else if(a==='bsLobby')bsToLobby();
   else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
   else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
-  else if(a==='online'||a==='coop'||a==='partyOnline'){joinBack='online';net.wantScreen=false;net.wantCoop=a==='coop';net.wantParty=a==='partyOnline';setText('#onlineLbl',net.wantCoop?'Co-op Survival':net.wantParty?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
+  else if(a==='online'||a==='coop'||a==='partyOnline'){mpKind=a==='coop'?'coop':a==='partyOnline'?'party':'duel';mpSub(ov)}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
   else if(a==='partyStart')partyStart();
   else if(a==='solo')showSub(ov,'solo');
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
-  else if(a==='host'){showSub(ov,'hosting');hostGame()}
-  else if(a==='join'){showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
+  else if(a==='host'){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';showSub(ov,'hosting');hostGame()}
+  else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};
     try{navigator.clipboard.writeText(v).then(done,()=>{inp.select();b.textContent='Press Ctrl+C'})}catch(err){inp.select();b.textContent='Press Ctrl+C'}}
   else if(a==='name')openNameScreen();
+  else if(a==='tutorial')openTut();
+  else if(a==='a2hs')a2Open();
   else if(a==='settings')showSub(ov,'settings');
   else if(a==='help'){helpTab('basics');showSub(ov,'help')}
   else if(a==='back')showSub(ov,b.dataset.back||'main');
@@ -4874,8 +5105,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='restart'){$('#pause').hidden=true;game.paused=false;if(net.screen&&net.role==='host'){restartHosted();return}if(net.role==='host'){startMatch(game.coop?'survival':'online-host');netSend({t:'restart'})}else startMatch(game.mode)}
   else if(a==='menu'){leaveOnline(true);toMenu()}});
 $('#nameForm').addEventListener('submit',e=>{e.preventDefault();const n=cleanName($('#nameInput').value);
-  if(!n){$('#nameErr').hidden=false;return}setName(n);$('#nameScreen').hidden=true;sfx('pick',true);
-  if(pendingJoin){const c=pendingJoin;pendingJoin='';$('#menu').hidden=false;showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}
+  if(!n){$('#nameErr').hidden=false;return}const first=!myName;setName(n);$('#nameScreen').hidden=true;sfx('pick',true);
+  if(pendingJoin){const c=pendingJoin;pendingJoin='';tutPending=first&&!tutSeen();$('#menu').hidden=false;showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}
+  else if(first&&!tutSeen())openTut();
   else if(!$('#menu').hidden)focusFirst($('#menu'))});
 $('#joinForm').addEventListener('submit',e=>{e.preventDefault();joinGame($('#joinCode').value)});
 $('#joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4)});
@@ -4885,15 +5117,18 @@ function togglePause(){
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pLobby').hidden=!game.screen;$('#pMenu').textContent=game.screen?'Close Big Screen':'Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;if(!fromSetting)saveSettings();refreshOpts()}
-function toMenu(){if(net.role)leaveOnline(true);padClose();spick=null;$('#bigLobby').hidden=true;$('#bsPick').hidden=true;game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main')}
+function toMenu(){if(net.role)leaveOnline(true);padClose();spick=null;$('#bigLobby').hidden=true;$('#bsPick').hidden=true;game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main');if(tutPending&&!tutSeen())setTimeout(()=>{if(!$('#menu').hidden&&!net.role)openTut()},500);else setTimeout(a2Maybe,1200)}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
+// a phone holds a match sideways and the menus upright: where the browser allows it (full screen, or CUUED on the home screen) it locks
+// the turn; elsewhere the "turn it sideways" screen asks
+function holdSideways(on){try{const o=screen.orientation;if(!o)return;if(on){if(o.lock)o.lock('landscape').catch(()=>{})}else if(o.unlock)o.unlock()}catch(e){}}
 // full screen hides the browser's own bars; the button hides itself where the browser can't do it (iPhone Safari)
 function autoFull(){const d=document;if(touch.fsTried||d.fullscreenElement||d.webkitFullscreenElement)return;touch.fsTried=true;
   if(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen)toggleFull()}   // a phone's first touch in a game takes it full screen; once a visit, so leaving full screen sticks
 function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
   else{const el=d.documentElement,r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);   // phones: also hold it sideways
-    Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
+    Promise.resolve(r).then(()=>{if(touch.wasMatch)holdSideways(true)}).catch(()=>{})}}catch(e){}}
 {const d=document,ok=!!(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen),pf=$('#pFull');if(!ok&&pf)pf.hidden=true;
   const sync=()=>{const t=d.fullscreenElement||d.webkitFullscreenElement?'Exit full screen':'Full screen';for(const id of['#mFull','#pFull']){const m=$(id);if(m)m.textContent=t}};d.addEventListener('fullscreenchange',sync);d.addEventListener('webkitfullscreenchange',sync)}
 let updReady=false,updAt=0;
@@ -4901,6 +5136,7 @@ function checkUpdate(){try{if(!/^https?:/.test(location.protocol)||updReady)retu
 function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#nameScreen').hidden){updReady=false;location.reload()}}
 const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);
 })();
