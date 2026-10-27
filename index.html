@@ -446,7 +446,7 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
 .hp-keys dd{margin:0}
 .hp-keys kbd{font-size:13px;padding:1px 7px;margin-right:3px}
 .hp-dim{color:var(--muted);margin:0 4px}
-body.touch .desk-only{display:none!important}
+body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{display:none!important}
 .hp-wheel{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;background:rgba(0,0,0,.22)}
 .hp-wheel span{font-family:var(--display);font-size:16px;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.07)}
 .hp-wheel i{font-style:normal;color:var(--muted)}
@@ -785,15 +785,21 @@ body.touch .desk-only{display:none!important}
   .mlist.tiles .mt:not(.small):not(.back){min-height:88px}
   .mobile-row{margin:14px 0 0;justify-content:center}
   .mobile-row #mFull{display:none}
-  /* Customize: your fighter on top, the choices below */
-  .ward{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:100%;padding:12px}
-  .ward-stage{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:8px 12px}
-  .ward-stage canvas{grid-row:1 / span 4;aspect-ratio:6/5}
-  .ward-msg{display:block;grid-column:1 / -1}
-  .ward-head h2{font-size:28px}
-  .ward-tabs button,.ward-side button{font-size:15px;padding:6px 11px}
-  .ward-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
-  .ward-foot .btn{width:100%;font-size:18px;padding:10px}
+  /* Customize on a phone held upright: the title and coins, then your fighter big, what you've picked and its button beside
+     it, then the tabs and a grid that scrolls on its own, and Done at the bottom */
+  .ward{display:flex;flex-direction:column;gap:8px;height:100%;padding:12px}
+  .ward-main{display:contents}
+  .ward-head{order:0}.ward-head h2{font-size:28px}
+  .ward-stage{order:1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 10px}
+  .ward-stage canvas{grid-column:1 / -1;width:100%;max-height:33vh;aspect-ratio:6/5;object-fit:contain;justify-self:center;width:auto;height:min(33vh,calc((100vw - 48px) * 5 / 6))}
+  .ward-name{text-align:left;font-size:20px}.ward-side{grid-column:1 / -1}
+  .ward-go{grid-column:2;font-size:18px;padding:8px 16px}.ward-name[hidden]+.ward-go{grid-column:1 / -1}
+  .ward-code{grid-column:1 / -1}
+  .ward-msg{display:block;grid-column:1 / -1;font-size:12px;line-height:1.35}
+  .ward-tabs{order:2;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.ward-tabs::-webkit-scrollbar{display:none}
+  .ward-tabs button,.ward-side button{font-size:15px;padding:6px 12px;white-space:nowrap}
+  .ward-grid{order:3;flex:1 1 0;min-height:0;grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
+  .ward-foot{order:4}.ward-foot .btn{width:100%;font-size:18px;padding:10px}
   /* the online lobby: everything centred, a big code */
   .lobby{text-align:center;justify-items:center}
   .lobby .mlist{justify-content:center}
@@ -1262,7 +1268,7 @@ body.touch .desk-only{display:none!important}
       <div class="ward-head"><h2 id="lockTitle">Customize</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
       <div class="ward-tabs" role="tablist" aria-label="What to change"><button type="button" role="tab" data-lockk="color">Colour</button><button type="button" role="tab" data-lockk="hat">Hats</button><button type="button" role="tab" data-lockk="pattern">Patterns</button><button type="button" role="tab" data-lockk="trail">Trails</button></div>
       <div class="ward-grid" id="lockGrid"></div>
-      <div class="ward-foot"><button type="button" class="btn ward-done" data-lockact="close">Done · Esc</button></div>
+      <div class="ward-foot"><button type="button" class="btn ward-done" data-lockact="close"><span class="desk-only-i">Done · Esc</span><span class="touch-only-i">Done</span></button></div>
     </div>
   </div>
 </div>
@@ -2138,9 +2144,13 @@ const SECRET_H=847270965,secretOk=v=>strSeed('cuued:'+String(v||'').trim())===SE
 const wallet={coins:0,earned:0,wins:0,streak:0,best:0,owned:[],eq:{hat:'',pattern:'',trail:''}};
 try{const w=JSON.parse(localStorage.getItem('cuued.wallet')||'{}');if(w&&typeof w==='object')Object.assign(wallet,w)}catch(e){}
 for(const k of['coins','earned','wins','streak','best'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
-const cosValid=(k,id)=>!!COS[k]&&COS[k].some(i=>i.id===id);
-wallet.owned=Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>cosValid(k,x.split(':')[1])&&x.startsWith(k+':'))):[];
-wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]&&!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]='';
+const HAT_SLOT={party:'top',beanie:'top',tophat:'top',cowboy:'top',crown:'top',viking:'top',wizard:'top',darkhelm:'top',horns:'ears',cat:'ears',antenna:'ears',band:'band',halo:'halo'};
+const HAT_ORDER=['band','ears','top','halo'];   // drawn from the head outward
+// hats you wear at once: one per spot on the head (top, ears, band, halo), kept as 'crown,horns'
+const hatList=v=>{const out=[],used=new Set();for(const id of String(v||'').split(',').slice(0,6)){const sl=HAT_SLOT[id];if(sl&&!used.has(sl)){used.add(sl);out.push(id)}}return out};
+const cosValid=(k,id)=>k==='hat'?hatList(id).length>0&&hatList(id).join(',')===String(id):!!COS[k]&&COS[k].some(i=>i.id===id);
+wallet.owned=Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))):[];
+wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]=''}
 function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;return o}
 /* your colour: a shade of orange (when you play the orange side) and of blue (the blue side). Each stays inside its colour
    family, so a fighter always reads as orange or blue. Stored as [hue, lightness] and checked here (it also arrives online) */
@@ -2169,7 +2179,12 @@ function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??nu
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
 const openShop=(k,id)=>openLocker(k||'hat',id);
 function lockLook(){const it=lockK!=='color'&&lockSel?COS[lockK].find(i=>i.id===lockSel):null;if(it&&it.secret&&!owns(lockK,it.id))return wallet.eq;   // a locked secret is never shown
+  if(lockK==='hat'&&lockSel!=null)return{...wallet.eq,hat:lockSel?hatWith(wallet.eq.hat,lockSel):''};   // trying a hat on: with the others you wear
   return lockK!=='color'&&lockSel!=null?{...wallet.eq,[lockK]:lockSel}:wallet.eq}
+// add a hat to what you wear (it replaces the one in its spot), or take it off if you have it on
+const hatWith=(cur,id)=>{const L=hatList(cur);return L.includes(id)?L.join(','):[...L.filter(h=>HAT_SLOT[h]!==HAT_SLOT[id]),id].join(',')};
+const wearing=(k,id)=>k==='hat'?(id?hatList(wallet.eq.hat).includes(id):!wallet.eq.hat):(wallet.eq[k]||'')===id;
+function wearHat(id,on){const L=hatList(wallet.eq.hat);wallet.eq.hat=!id?'':on?hatWith(wallet.eq.hat,id):L.filter(h=>h!==id).join(',')}
 function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lockGrid');if(!grid)return;
   root.querySelectorAll('[data-lockk]').forEach(b=>{const on=b.dataset.lockk===lockK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
   root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));
@@ -2177,28 +2192,28 @@ function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lock
   if(col){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
       box.innerHTML=`<p class="lbl">${f==='o'?'Your orange':'Your blue'}</p><div class="sw">${F.sw.map(([h,l])=>`<button type="button" data-shade="${f}:${h}:${l}" style="background:${hslHex(h,F.s,l)}" class="${h===cur[0]&&l===cur[1]?'on':''}" aria-label="${f==='o'?'Orange':'Blue'} shade"></button>`).join('')}</div>
         <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}}
-  else for(const it of [{id:'',n:'None',price:0},...COS[lockK]]){const own=owns(lockK,it.id),wear=(wallet.eq[lockK]||'')===it.id,hid=it.secret&&!own,b=document.createElement('button');b.type='button';
+  else for(const it of [{id:'',n:'None',price:0},...COS[lockK]]){const own=owns(lockK,it.id),wear=wearing(lockK,it.id),hid=it.secret&&!own,b=document.createElement('button');b.type='button';
     b.className='ward-item'+(wear?' eq':'')+(lockSel===it.id||(lockSel==null&&wear)?' sel':'')+(hid?' secret':'');b.dataset.lock=it.id;
-    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${wear?'Wearing':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':lockK==='hat'&&!it.id?'No hats':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${lockK==='hat'&&!it.id?(wear?'Bare head':'Take all off'):wear?'Wearing':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
     const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(hid)drawSecret(g);else drawCosPreview(g,lockK==='trail'&&!it.id?'hat':lockK,it.id)}grid.appendChild(b)}
   // the stage's button: Wear, Wearing, Buy, Need more; a secret: the code box
   const it=!col&&lockSel!=null?[{id:'',n:'None',price:0},...COS[lockK]].find(i=>i.id===lockSel):null,go=$('#lockGo'),nm=$('#lockPick'),code=$('#lockCode');
   const own=it&&owns(lockK,it.id),hid=it&&it.secret&&!own;nm.hidden=!it;nm.textContent=it?(hid?'???':it.n):'';code.hidden=!hid;go.hidden=!it||hid;
-  if(it&&!hid){const wear=(wallet.eq[lockK]||'')===it.id;go.disabled=wear||(!own&&wallet.coins<it.price);
-    go.innerHTML=wear?'Wearing ✓':own?'Wear':wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
+  if(it&&!hid){const wear=wearing(lockK,it.id),hat=lockK==='hat'&&it.id;go.disabled=(wear&&!hat)||(!own&&wallet.coins<it.price);
+    go.innerHTML=wear?(hat?'Take off':'Wearing ✓'):own?(hat&&hatList(wallet.eq.hat).some(h=>HAT_SLOT[h]===HAT_SLOT[it.id])?'Swap in':'Wear'):wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
   $('#lockMsg').innerHTML=msg||(col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
-    :hid?'Something special. Only a code unlocks it.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.')}
+    :hid?'Something special. Only a code unlocks it.':lockK==='hat'?'Stack up to four: one on top, ears or horns, a headband and a halo. Tap one you own to put it on or take it off.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.')}
 // the secret's tile: a dark silhouette with a question mark
 function drawSecret(g){g.save();g.translate(110,92);g.fillStyle='#14141c';g.beginPath();g.arc(0,0,40,0,TAU);g.fill();g.fillStyle='#ffd36b';g.font='54px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',0,2);g.restore()}
-function lockPick(id){lockSel=id;const own=owns(lockK,id);if(own){wallet.eq[lockK]=id;saveWallet();sfx('pick',true)}else sfx('tick',true);renderLocker()}
+function lockPick(id){lockSel=id;const own=owns(lockK,id);if(own){if(lockK==='hat')wearHat(id,!wearing('hat',id));else wallet.eq[lockK]=id;saveWallet();sfx('pick',true)}else sfx('tick',true);renderLocker()}
 function lockGo(){const it=COS[lockK]&&COS[lockK].find(i=>i.id===lockSel);if(!it)return;const key=lockK+':'+it.id;
-  if(owns(lockK,it.id)){wallet.eq[lockK]=it.id;saveWallet();sfx('pick',true);renderLocker(`Wearing <b>${it.n}</b>.`);return}
+  if(owns(lockK,it.id)){if(lockK==='hat'){const on=!wearing('hat',it.id);wearHat(it.id,on);saveWallet();sfx('pick',true);renderLocker(on?`Wearing <b>${it.n}</b>.`:`Took off <b>${it.n}</b>.`);return}wallet.eq[lockK]=it.id;saveWallet();sfx('pick',true);renderLocker(`Wearing <b>${it.n}</b>.`);return}
   if(it.secret)return;
   if(wallet.coins<it.price){sfx('empty',true);renderLocker(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more.`);return}
-  wallet.coins-=it.price;wallet.owned.push(key);wallet.eq[lockK]=it.id;saveWallet();sfx('round',true);renderLocker(`Bought <b>${it.n}</b>, and you're wearing it!`)}
+  wallet.coins-=it.price;wallet.owned.push(key);if(lockK==='hat')wearHat(it.id,true);else wallet.eq[lockK]=it.id;saveWallet();sfx('round',true);renderLocker(`Bought <b>${it.n}</b>, and you're wearing it!`)}
 function lockUnlock(v){const it=COS.hat.find(i=>i.secret);if(!it)return false;
   if(!secretOk(v)){sfx('empty',true);renderLocker("That's not it.");return false}
-  if(!wallet.owned.includes('hat:'+it.id))wallet.owned.push('hat:'+it.id);wallet.eq.hat=it.id;lockK='hat';lockSel=it.id;saveWallet();sfx('round',true);renderLocker(`Unlocked the <b>${it.n}</b>!`);return true}
+  if(!wallet.owned.includes('hat:'+it.id))wallet.owned.push('hat:'+it.id);wearHat(it.id,true);lockK='hat';lockSel=it.id;saveWallet();sfx('round',true);renderLocker(`Unlocked the <b>${it.n}</b>!`);return true}
 {const root=$('#locker');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
   if((b=t.closest('[data-lockk]'))){lockK=b.dataset.lockk;lockSel=null;sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-side]'))){lockSide=+b.dataset.side;sfx('tick',true);renderLocker();return}
@@ -2213,8 +2228,8 @@ function lockUnlock(v){const it=COS.hat.find(i=>i.secret);if(!it)return false;
 function drawLook(cvs,look,side,t){const g=cvs&&cvs.getContext('2d');if(!g)return;const W=cvs.width,H=cvs.height;
   try{const bg=g.createRadialGradient(W*.5,H*.3,8,W*.5,H*.45,W*.75);bg.addColorStop(0,'#4d3166');bg.addColorStop(1,'#170f22');g.fillStyle=bg}catch(e){g.fillStyle='#21152f'}g.fillRect(0,0,W,H);
   g.fillStyle='rgba(255,240,220,.85)';g.beginPath();g.arc(W*.8,H*.2,16,0,TAU);g.fill();g.fillStyle='#2a1a3d';g.beginPath();g.arc(W*.8+7,H*.2-4,14,0,TAU);g.fill();
-  const lx=W*.16,ly=H*.76,lw=W*.68,lh=H*.12;g.fillStyle='rgba(10,4,18,.4)';slabPath(g,lx+8,ly+10,lw,lh);g.fill();g.fillStyle=KIND[0][0];slabPath(g,lx,ly,lw,lh);g.fill();g.fillStyle=KIND[0][1];g.fillRect(lx+6,ly,lw-12,6);
-  const[col,glow]=side?shadeCol(look.cb,'b'):shadeCol(look.co,'o'),sk=skinOf(col),R=W*.13,bob=Math.sin(t*2.4)*2.5,cx=W*.47,cy=ly-R*1.18+bob;
+  const lx=W*.12,ly=H*.8,lw=W*.76,lh=H*.11;g.fillStyle='rgba(10,4,18,.4)';slabPath(g,lx+8,ly+10,lw,lh);g.fill();g.fillStyle=KIND[0][0];slabPath(g,lx,ly,lw,lh);g.fill();g.fillStyle=KIND[0][1];g.fillRect(lx+6,ly,lw-12,6);
+  const[col,glow]=side?shadeCol(look.cb,'b'):shadeCol(look.co,'o'),sk=skinOf(col),R=W*.17,bob=Math.sin(t*2.4)*2.5,cx=W*.47,cy=ly-R*1.18+bob;
   if(look.trail){const tc=trailColor(look.trail,glow,1);g.save();g.lineCap='round';g.strokeStyle=tc;for(let k=0;k<3;k++){g.globalAlpha=.18+.22*k;g.lineWidth=3+k*3;g.beginPath();g.moveTo(W*.05+k*40,H*.36);g.quadraticCurveTo(W*.45,H*.22,W*.95,H*.34);g.stroke()}
     g.globalAlpha=1;g.fillStyle='#fff6e8';g.beginPath();g.arc(W*.95,H*.34,6,0,TAU);g.fill();g.restore()}
   g.save();g.translate(cx,cy);g.strokeStyle=sk.lo;g.lineWidth=R*.34;g.lineCap='round';for(const s2 of[-1,1]){g.beginPath();g.moveTo(s2*R*.32,R*.55);g.lineTo(s2*R*.42,R*1.12-bob);g.stroke()}
@@ -2237,7 +2252,9 @@ function drawPattern(g,id,R){if(!id)return;g.save();g.beginPath();g.arc(0,0,R,0,
     const tw=performance.now()/500;g.fillStyle='#ffffff';for(let i=0;i<9;i++){const a=i*2.4,d=R*(.2+.7*((i*37%10)/10));g.globalAlpha=.5+.5*Math.sin(tw+i);g.beginPath();g.arc(Math.cos(a)*d,Math.sin(a)*d,R*.04,0,TAU);g.fill()}g.globalAlpha=1}
   else if(id==='stars')for(const[x,y,r]of[[-.42,.3,.22],[.4,-.42,.18],[.48,.42,.14]]){g.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,rr=(i%2?.45:1)*r*R;g.lineTo(x*R+Math.cos(a)*rr,y*R+Math.sin(a)*rr)}g.fill()}
   g.restore()}
-function drawHat(g,id,R,col,ex=0,ey=-R*.12){if(!id)return;if(id==='darkhelm'){drawHelm(g,R,ex,ey);return}g.save();g.translate(0,-R*.82);g.lineJoin='round';g.lineCap='round';const k=R/18;
+function drawHat(g,id,R,col,ex=0,ey=-R*.12){if(!id)return;
+  if(String(id).includes(',')){const L=hatList(id).sort((a,b)=>HAT_ORDER.indexOf(HAT_SLOT[a])-HAT_ORDER.indexOf(HAT_SLOT[b])),top=L.find(h=>HAT_SLOT[h]==='top');
+    for(const h of L){if(h==='halo'&&top){g.save();g.translate(0,-R*(top==='tophat'||top==='wizard'||top==='party'?.66:top==='viking'||top==='crown'?.45:.38));drawHat(g,h,R,col,ex,ey);g.restore()}else drawHat(g,h,R,col,ex,ey)}return}if(id==='darkhelm'){drawHelm(g,R,ex,ey);return}g.save();g.translate(0,-R*.82);g.lineJoin='round';g.lineCap='round';const k=R/18;
   if(id==='beanie'){g.fillStyle='#e84a5f';g.beginPath();g.arc(0,3*k,13*k,Math.PI,0);g.fill();g.fillStyle='#ff8394';g.fillRect(-14*k,0,28*k,5*k);g.fillStyle='#ffffff';g.beginPath();g.arc(0,-11*k,4.2*k,0,TAU);g.fill()}
   else if(id==='cat'){for(const s of[-1,1]){g.fillStyle='#2b2236';g.beginPath();g.moveTo(s*3*k,3*k);g.lineTo(s*9*k,-14*k);g.lineTo(s*15*k,2*k);g.closePath();g.fill();g.fillStyle='#ff9ec4';g.beginPath();g.moveTo(s*6*k,1*k);g.lineTo(s*9*k,-8*k);g.lineTo(s*12*k,1*k);g.closePath();g.fill()}}
   else if(id==='cowboy'){g.fillStyle='#9a5b2e';g.beginPath();g.ellipse(0,1*k,21*k,4.5*k,0,0,TAU);g.fill();g.beginPath();g.moveTo(-9*k,1*k);g.lineTo(-8*k,-12*k);g.quadraticCurveTo(0,-7*k,8*k,-12*k);g.lineTo(9*k,1*k);g.closePath();g.fill();
@@ -4373,7 +4390,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-05-links';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-06-hats';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
