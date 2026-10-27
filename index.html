@@ -4373,7 +4373,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-audit';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-05-links';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4507,7 +4507,7 @@ function hostGame(){leaveOnline(true);
   net.role='host';net.screen=!!net.wantScreen;net.party=!!net.wantParty||net.screen;net.lobbyOpen=net.party;net.hostTeam=0;net.code=makeCode();setText('#hostCode','····');hostMsg('Opening a room…');$('#hostLink').value='';
   $('#partyRoster').hidden=$('#partyActs').hidden=!net.party;
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
-function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}setText('#hostCode',net.code);$('#hostLink').value=`${location.origin}${location.pathname}#${net.code}`;
+function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}setText('#hostCode',net.code);$('#hostLink').value=inviteUrl(net.code);{const cb=document.querySelector('[data-act=copylink]');if(cb)cb.textContent=touch.on&&navigator.share?'Share link':'Copy link'}
   if(net.party){partyLobbyChanged();return}
   hostMsg('Waiting for a challenger. Share the code, or send them the link.')}
 function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
@@ -4747,10 +4747,14 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   // a correction must never carry the body into or through a wall. Apply what's clear: often only one axis is blocked (a
   // correction measured mid-jump would push a fighter that has since landed down into the floor), so keep the other.
   // Walls the body already touches (a platform riding into it) don't count as blocking.
-  let cx=ex,cy=ey;const skip=solids.filter(r=>!r.oneway&&!r.bound&&boxHit(p.x,p.y,p.r-1,p.r-1,r)),clear=(dx,dy)=>sweepClear(p.x,p.y,p.x+dx,p.y+dy,p.r,skip);
+  // tiny errors (a pixel or two of float drift) aren't worth a twitch; small ones close half-way per snapshot, so a jittery
+  // link gives a soft glide instead of a back-and-forth
+  if(Math.hypot(ex,ey)<2.2&&Math.abs(evx)<40&&Math.abs(evy)<40){net.hist=net.hist.slice(i+1);return}
+  const part=Math.hypot(ex,ey)<24?.5:1;
+  let cx=ex*part,cy=ey*part;const skip=solids.filter(r=>!r.oneway&&!r.bound&&boxHit(p.x,p.y,p.r-1,p.r-1,r)),clear=(dx,dy)=>sweepClear(p.x,p.y,p.x+dx,p.y+dy,p.r,skip);
   if(!clear(cx,cy)){if(clear(cx,0))cy=0;else if(clear(0,cy))cx=0;
     else{const ox=p.x,oy=p.y;if(!solidBoxP(a[0],a[1],p.r-1,p.r-1)){initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p)}return}}
-  const fvx=cx===ex?evx:0,fvy=cy===ey?evy:0;
+  const fvx=cx===ex*part?evx*part:0,fvy=cy===ey*part?evy*part:0;
   p.x+=cx;p.y+=cy;if(p.lx!=null){p.lx+=cx;p.ly+=cy}p.vx+=fvx;p.vy+=fvy;net.offX=clamp(net.offX-cx,-80,80);net.offY=clamp(net.offY-cy,-80,80);
   net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=cx;h.y+=cy;h.vx+=fvx;h.vy+=fvy}}
 // a snap still glides on screen: the drawn body starts where it was and catches up over a few frames
@@ -4807,7 +4811,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
       if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
-  const fade=Math.exp(-dt/.05);net.offX*=fade;net.offY*=fade;
+  const fade=Math.exp(-dt/.13);net.offX*=fade;net.offY*=fade;   // a correction glides in over about a tenth of a second
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
     // the other fighter is drawn a little in the past (INTERP_MS), exactly along its real path between two snapshots,
     // so it moves smoothly however unevenly snapshots arrive; past the newest snapshot it coasts on its last velocity briefly
@@ -4892,7 +4896,8 @@ function hostMsg(t){setText('#hostMsg',t);if(net.screen||net.wantScreen)bsMsg(t)
 function openBigScreen(){net.wantScreen=true;net.wantParty=false;net.wantCoop=false;$('#menu').hidden=true;$('#bigLobby').hidden=false;
   setText('#bsCode','····');bsQr('');hostGame();bsLobbyChanged();refreshOpts();showSub($('#bigLobby'),'main')}
 function closeBigScreen(){net.wantScreen=false;leaveOnline(true);toMenu();mpSub($('#menu'))}
-const bsJoinUrl=()=>`${location.origin}${location.pathname}#${net.code}`;
+const bsJoinUrl=()=>inviteUrl(net.code);
+const inviteUrl=c=>`${location.origin}${location.pathname}?join=${c}`;
 function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
 function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.parentNode,g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
@@ -5270,6 +5275,10 @@ let pendingJoin='',joinBack='online',mpKind='duel';   // joinBack: where Back on
 function mpSub(ov){net.wantScreen=false;net.wantCoop=mpKind==='coop';net.wantParty=mpKind==='party';setText('#onlineLbl',mpKind==='coop'?'Co-op Survival':mpKind==='party'?'Party · 2v2':'Duel a friend');showSub(ov,'online')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
+// an invite link's room code: ?join=ABCD (or #ABCD from older links and some apps), read once and then cleared from the address
+function linkCode(){let c='';try{const q=new URLSearchParams(location.search).get('join');c=q||(/^#\/?([A-Za-z0-9]{4})\b/.exec(location.hash||'')||[])[1]||''}catch(e){}
+  c=String(c).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(c.length!==4)return'';try{history.replaceState(null,'',location.pathname)}catch(e){}return c}
+function joinFromLink(c){if(!myName){pendingJoin=c;openNameScreen();return}if(net.role&&net.code===c)return;toMenu();showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}
 function openNameScreen(){$('#nameInput').value=myName;setText('#nameNote',pendingJoin&&!myName?`You're joining room ${pendingJoin}. Pick a name and you're in: no sign-up, no password.`:"Pick a name and you're in: it's your account on this device. No sign-up, no password.");$('#nameErr').hidden=true;$('#nameScreen').hidden=false;setTimeout(()=>{try{$('#nameInput').focus()}catch(e){}},30)}
 function showMenuMsg(t){const el=$('#menuMsg');if(!el)return;el.textContent=t;el.hidden=!t}
 
@@ -5409,6 +5418,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='join'){joinBack=b.closest('[data-sub=multi]')?'multi':b.closest('[data-sub=main]')?'main':'online';showSub(ov,'joining');$('#joinRoster').hidden=$('#joinTeam').hidden=true;setText('#joinMsg','Ask your host for their 4-letter code.')}
   else if(a==='cancelOnline'){leaveOnline(true);showSub(ov,b.closest('[data-sub=hosting]')?'online':joinBack)}
   else if(a==='copylink'){const inp=$('#hostLink'),v=inp.value;if(!v)return;
+    if(touch.on&&navigator.share){navigator.share({title:'CUUED',text:`Join my CUUED game! Code ${net.code}`,url:v}).catch(()=>{});return}   // a phone: straight to the share sheet
     const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy link',1400)};
     try{navigator.clipboard.writeText(v).then(done,()=>{inp.select();b.textContent='Press Ctrl+C'})}catch(err){inp.select();b.textContent='Press Ctrl+C'}}
   else if(a==='name')openNameScreen();
@@ -5452,7 +5462,8 @@ let updReady=false,updAt=0;
 function checkUpdate(){try{if(!/^https?:/.test(location.protocol)||updReady)return;fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='([^']+)'/.exec(t||'');if(m&&m[1]!==BUILD)updReady=true}).catch(()=>{})}catch(e){}}
 function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#nameScreen').hidden){updReady=false;location.reload()}}
 const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
-  const hm=/^#([A-Za-z0-9]{4})$/.exec(location.hash||'');if(hm){pendingJoin=hm[1].toUpperCase();try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  {const c=linkCode();if(c)pendingJoin=c}
+  addEventListener('hashchange',()=>{const c=linkCode();if(c)joinFromLink(c)});   // a link opened in a tab where CUUED is already running
   a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);
