@@ -1441,6 +1441,14 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
+/* ---------- on a game website (CUUED inside a site's <iframe>): the site's page is the address friends get, the site hears
+   about play through postMessage, and CUUED leaves the page itself alone. See PORTAL.md. Options come from the iframe's
+   address (?share=, ?join=, ?mute=1) or a {flick:'config'} message from the site ---------- */
+const EMBED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const portal={on:EMBED,share:'',name:''};
+{const q=(()=>{try{return new URLSearchParams(location.search)}catch(e){return null}})();const sh=q&&q.get('share');if(sh&&/^https:\/\//.test(sh))portal.share=sh.slice(0,300);const nm=q&&q.get('site');if(nm)portal.name=String(nm).replace(/[<>]/g,'').slice(0,40)}
+// tell the site what's happening (a site that doesn't listen loses nothing)
+function portalSay(type,data){if(!portal.on)return;try{parent.postMessage({flick:type,game:'cuued',...(data||{})},'*')}catch(e){}}
 const css=getComputedStyle(document.documentElement);
 const tok=n=>css.getPropertyValue(n).trim();
 const C={night:tok('--night'),night2:tok('--night-2'),text:tok('--text'),orange:tok('--orange'),blue:tok('--blue'),plank:tok('--plank'),hot:tok('--hot'),hp:tok('--hp'),
@@ -1921,7 +1929,8 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
 const keys=new Set(),edges=new Set();
 const mouse={x:VW/2,y:VH/2,sx:VW/2,sy:VH/2,down:false,rEdge:false,tapN:0,tapT:0};
 addEventListener('keydown',e=>{initAudio();
-  const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
+  const tg=e.target&&e.target.tagName;if(tg!=='INPUT'&&tg!=='TEXTAREA'&&/^(Space|Arrow(Up|Down|Left|Right)|PageUp|PageDown)$/.test(e.code))e.preventDefault();   // never scroll the page around the game (a game site's page, say)
+  if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#tut').hidden){tutKey(e);return}
   if(!$('#a2hs').hidden){if(e.code==='Escape'){e.preventDefault();a2Close(true)}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
@@ -2013,7 +2022,7 @@ function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{c
     const p=makePlayer(k,ctrl,e.cpu?(mode==='online-guest'?BOTN[k%4]+' · CPU':BOTN[k%4]):e.n);p.team=k%2;p.cos=e.cpu?randomCos():cleanCos(e.cos);if(e.peer)p.peer=e.peer;if(e.cpu&&mode!=='online-guest')p.skill='normal';
     if(game.screen||game.room){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=net.role==='host'?settings.bsHp:net.roomHp||1;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
     return p})}
-function startMatch(mode){
+function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
   game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
   game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.room=!game.screen&&!!net.room&&!!net.party&&(mode==='online-host'||mode==='online-guest');game.ffa=game.screen&&!bsTeams()&&!game.bsSurv||game.room&&!!net.ffa;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:game.room?(net.role==='host'?settings.bsLen:net.tg||5):settings.len;
@@ -2149,7 +2158,7 @@ function endDeck(el,list){el.innerHTML='';const m=new Map();for(const c of list)
   if(!m.size){const n=document.createElement('p');n.className='end-score';n.textContent='No cards this time.';el.appendChild(n)}}
 function endStats(list){const el=$('#endStats');if(!el)return;el.innerHTML='';for(const[k,v]of list){const sp=document.createElement('span');sp.innerHTML=`${k} <b>${v}</b>`;el.appendChild(sp)}}
 function endRibbon(text,sad){const r=$('#endRibbon');if(!r)return;r.textContent=text;r.classList.toggle('sad',!!sad);r.style.animation='none';void r.offsetWidth;r.style.animation=''}
-function showEnd(w){game.state='over';awardMatch(w);
+function showEnd(w){game.state='over';awardMatch(w);{const me=endMe();portalSay('gameplayStop');portalSay('gameOver',{mode:game.mode,won:me?me.team===w:null,rounds:game.wins.slice()})}
   {const b=$('#endLobby');if(b)b.hidden=!game.screen}
   const L=game.party&&!game.ffa?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
   $('#endScore').textContent=game.ffa?`${L.name} won ${game.wins[w]} rounds with ${L.cards.length} cards. Rounds ${game.wins.join('–')}.`:game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
@@ -2814,7 +2823,7 @@ function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});if(game
       const c=myHero().cards[+b.dataset.sell];b.dataset.nm=b.textContent;b.classList.add('sell');b.textContent=`Sell +${c?Math.floor(cardPrice(c)/2):0}?`;return}survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
-function survEnd(){if(game.bsSurv){bsSurvEnd();return}if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
+function survEnd(){if(game.bsSurv){bsSurvEnd();return}portalSay('gameplayStop');portalSay('gameOver',{mode:'survival',score:game.cleared||0});if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
   const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
   if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
@@ -4163,7 +4172,7 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
     ctx.textAlign='left'}
   ctx.textAlign='center';
   if(net.role&&net.connected&&net.awayR){ctx.font='22px "Lilita One", sans-serif';ctx.fillStyle=C.hot;ctx.fillText(net.role==='guest'?`${(net.remoteName||'THE HOST').toUpperCase()}'S GAME IS IN THE BACKGROUND · WAITING`:`${(net.peers.filter(q=>q.away).map(q=>q.name).join(', ')||net.remoteName||'YOUR OPPONENT').toUpperCase()} SWITCHED AWAY`,VW/2,120)}
-  if(game.screen){const free=players.some(p=>p.left||p.ctrl==='cpu'),h=String(location.host||'cuued.com').replace(/^www\./,'').toUpperCase();ctx.font='700 15px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';
+  if(game.screen){const free=players.some(p=>p.left||p.ctrl==='cpu'),h=siteHost().toUpperCase();ctx.font='700 15px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.7)';
     ctx.fillText(free?`BIG SCREEN · JOIN ON A PHONE: ${h} · CODE ${net.code}`:`BIG SCREEN · CODE ${net.code}`,VW/2,VH-14)}
   else if(net.role&&net.connected){ctx.font='700 13px "JetBrains Mono", monospace';ctx.fillStyle='rgba(241,236,247,.6)';ctx.fillText(`ONLINE${net.relayed?' (RELAY)':''} · ${net.rtt?Math.round(net.rtt)+' ms':'…'}`,VW/2,VH-14)}   /* bottom centre: the pause button has the top */
   if(!game.bg&&(game.state==='ready'||game.bannerT>0)){const t=game.state==='ready'?(game.stT>.45?game.banner:'GO!'):game.banner;
@@ -4429,7 +4438,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-smooth';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-portal';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4958,7 +4967,7 @@ function closeBigScreen(){net.wantScreen=false;net.wantRoom=false;leaveOnline(tr
 function openVersus(){net.wantScreen=false;net.wantRoom=true;net.wantParty=true;net.wantCoop=false;if(settings.bsMode==='surv')settings.bsMode='ffa';
   $('#menu').hidden=true;$('#bigLobby').hidden=false;setText('#bsCode','····');bsQr('');hostGame();refreshOpts();showSub($('#bigLobby'),'main');roomLobbyChanged()}
 const roomOn=()=>net.role==='host'&&!!net.room&&!net.screen;
-function roomShow(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(inviteUrl(net.code));roomLobbyChanged()}
+function roomShow(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',siteHost());bsQr(inviteUrl(net.code));roomLobbyChanged()}
 // the Versus lobby: who's in (the host first, then friends as they join; Teams: two sides), the rules, Start
 function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=bsTeams(),list=partyList(false),shown=partyList(true),hum=list.filter(e=>e).length,el=$('#bsSeats');
   {const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',true);lb.classList.toggle('surv',false);lb.classList.toggle('teams',teams)}}
@@ -4975,8 +4984,9 @@ function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=b
   bsMsg(msg||(!net.bsOpen?'Opening a room…':hum<2?(ok?'Share the code or the link. Start now against the CPU, or wait for friends.':'Share the code or the link, or add a CPU player to start.'):hum<4?`${hum} players in. Start when you're ready, or wait for more (up to 4).`:'Everyone is in. Press Start!'));
   for(const pr of net.peers)if(pr.open&&pr.name)linkSend(pr,{t:'lobby',list:list.map(e=>e?{n:e.n}:null),you:pr.team,ffa:teams?0:1})}
 const bsJoinUrl=()=>inviteUrl(net.code);
-const inviteUrl=c=>`${location.origin}${location.pathname}?join=${c}`;
-function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',String(location.host||'cuued.com').replace(/^www\./,''));bsQr(bsJoinUrl());bsLobbyChanged()}
+const inviteUrl=c=>portal.share?portal.share+(portal.share.includes('?')?'&':'?')+'join='+c:`${location.origin}${location.pathname}?join=${c}`;   // on a game site: its own page, which hands ?join= on to CUUED
+const siteHost=()=>{try{return new URL(portal.share||location.href).host.replace(/^www\./,'')}catch(e){return'cuued.com'}};
+function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',siteHost());bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
 function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.parentNode,g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
   const QR=()=>typeof window!=='undefined'&&typeof window.qrcode==='function'?window.qrcode:null;
@@ -5184,7 +5194,7 @@ function drawScreenSurvHud(es,boss){if(!(game.round>0))return;const ty=22+Math.r
     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(20,yy+9,190,7);ctx.fillStyle=p.alive?C.hp:'#ff5a6a';ctx.fillRect(20,yy+9,190*(p.alive&&p.s?clamp(p.hp/p.s.maxHp,0,1):0),7);
     if(!p.alive&&p.downT>0&&!p.left){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText(`DOWN · revive within ${Math.ceil(p.downT)} s`,216,yy+14)}else if(!p.alive&&!p.left&&game.state==='play'){ctx.fillStyle='#ff9aa8';ctx.font='700 12px "JetBrains Mono", monospace';ctx.fillText('OUT THIS ROUND',216,yy+14)}})}
 // the run is over on the big screen: how far the team got, the best build, and each phone gets its coins and its record
-function bsSurvEnd(){const n=game.cleared||0,hs=heroes();game.state='over';$('#bsPick').hidden=true;
+function bsSurvEnd(){const n=game.cleared||0,hs=heroes();game.state='over';portalSay('gameplayStop');portalSay('gameOver',{mode:'survival',score:n});$('#bsPick').hidden=true;
   for(const p of hs)if(p.peer)linkSend(p.peer,{t:'send',n,ch:p.char?p.char.n:'',lvl:p.lvl|0});
   const top=hs.slice().sort((a,b)=>(b.lvl|0)-(a.lvl|0)||b.cards.length-a.cards.length)[0]||players[0],best=Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0));
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=top.color;
@@ -5448,7 +5458,7 @@ function tutKey(e){const c=e.code;
 const a2={ev:null,shown:false};
 const isStandalone=()=>mq('(display-mode: fullscreen), (display-mode: standalone)')||(typeof navigator!=='undefined'&&navigator.standalone===true);
 const isIOS=()=>{const u=(typeof navigator!=='undefined'&&navigator.userAgent)||'';return/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1&&!/Chrome|Firefox/.test(u))};   // an iPad says Macintosh, but has a touch screen
-const a2Can=()=>touch.on&&!isStandalone()&&!!(a2.ev||isIOS());
+const a2Can=()=>!portal.on&&touch.on&&!isStandalone()&&!!(a2.ev||isIOS());
 function a2State(){try{return JSON.parse(localStorage.getItem('cuued.a2')||'{}')||{}}catch(e){return{}}}
 function a2Save(st){try{localStorage.setItem('cuued.a2',JSON.stringify(st))}catch(e){}}
 function a2Sync(){const b=$('#mA2');if(b)b.hidden=!a2Can()}
@@ -5524,7 +5534,7 @@ function togglePause(){
   $('#pRestart').hidden=false;$('#pLoadout').hidden=game.mode!=='sandbox';$('#pLobby').hidden=!game.screen;$('#pMenu').textContent=game.screen?'Close Big Screen':'Main menu';setText('#pauseTitle','Paused');
   game.paused=!game.paused;$('#pause').hidden=!game.paused;if(game.paused){refreshOpts();showSub($('#pause'),'main')}else cv.focus()}
 function toggleMute(fromSetting){muted=!muted;settings.sound=!muted;if(!fromSetting)saveSettings();refreshOpts()}
-function toMenu(){if(net.role)leaveOnline(true);padClose();spick=null;$('#bigLobby').hidden=true;$('#bsPick').hidden=true;game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main');if(tutPending&&!tutSeen())setTimeout(()=>{if(!$('#menu').hidden&&!net.role)openTut()},500);else setTimeout(a2Maybe,1200)}
+function toMenu(){portalSay('gameplayStop');if(net.role)leaveOnline(true);padClose();spick=null;$('#bigLobby').hidden=true;$('#bsPick').hidden=true;game.paused=false;$('#pause').hidden=true;$('#sandbox').hidden=true;$('#locker').hidden=true;refreshWallet();$('#end').hidden=true;$('#pick').hidden=true;startMatch('demo');$('#menu').hidden=false;refreshOpts();showSub($('#menu'),'main');if(tutPending&&!tutSeen())setTimeout(()=>{if(!$('#menu').hidden&&!net.role)openTut()},500);else setTimeout(a2Maybe,1200)}
 $('#bPause').onclick=()=>{if(!game.bg&&['play','ready','pointEnd'].includes(game.state))togglePause()};
 $('#bCards').onclick=()=>{$('#bCards').blur();if(game.mode==='sandbox'&&!sbOpen()&&['play','ready','pointEnd'].includes(game.state))openSandbox()};
 // a phone holds a match sideways and the menus upright: where the browser allows it (full screen, or CUUED on the home screen) it locks
@@ -5541,11 +5551,19 @@ function toggleFull(){const d=document;try{if(d.fullscreenElement||d.webkitFulls
 let updReady=false,updAt=0;
 function checkUpdate(){try{if(!/^https?:/.test(location.protocol)||updReady)return;fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='([^']+)'/.exec(t||'');if(m&&m[1]!==BUILD)updReady=true}).catch(()=>{})}catch(e){}}
 function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#nameScreen').hidden){updReady=false;location.reload()}}
+// a game site can pause CUUED (say, for an ad between games), mute it, or hand it its page's address and a room code
+if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=>{const m=e.data;if(!m||typeof m!=='object'||e.source!==parent||typeof m.flick!=='string')return;
+  if(m.flick==='pause'){if(!net.role&&!game.bg&&!game.paused&&['play','ready','pointEnd'].includes(game.state))togglePause()}
+  else if(m.flick==='resume'){if(!net.role&&game.paused)togglePause()}
+  else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
+  else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);
+    const c=String(m.join||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length===4)joinFromLink(c)}});
 const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   {const c=linkCode();if(c)pendingJoin=c}
   addEventListener('hashchange',()=>{const c=linkCode();if(c)joinFromLink(c)});   // a link opened in a tab where CUUED is already running
   a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);
-  if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)})};
+  if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)});
+  if(portal.on){try{if(new URLSearchParams(location.search).get('mute')==='1'&&!muted)toggleMute(true)}catch(e){}portalSay('ready',{title:'CUUED',orientation:'landscape',multiplayer:true})}};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);
 })();
 </script>

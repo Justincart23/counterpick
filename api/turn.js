@@ -3,6 +3,8 @@
 // Env vars (Cloudflare dashboard > Realtime > TURN Server > create key): CF_TURN_KEY_ID, CF_TURN_KEY_TOKEN.
 // Without them it returns STUN only (direct connections), and the game still works on friendly networks.
 const ALLOWED_ORIGIN = /^https:\/\/((www\.)?cuued\.com|justincart23\.github\.io)$/;
+// game websites that host CUUED (see PORTAL.md): Vercel env var PORTAL_ORIGINS, comma-separated, e.g. "https://flick.com,https://www.flick.com"
+const portalOrigins = () => String(process.env.PORTAL_ORIGINS || '').split(',').map((s) => s.trim()).filter((s) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(s));
 const STUN_ONLY = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }];
 const TTL_SECONDS = 4 * 3600;
 
@@ -25,7 +27,7 @@ async function cloudflareIceServers(id, token) {
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGIN.test(origin)) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin') }
+  if (ALLOWED_ORIGIN.test(origin) || portalOrigins().includes(origin)) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin') }
   res.setHeader('Cache-Control', 'no-store');
   const id = process.env.CF_TURN_KEY_ID, token = process.env.CF_TURN_KEY_TOKEN;
   if (!id || !token) return res.status(200).json({ relay: false, iceServers: STUN_ONLY });

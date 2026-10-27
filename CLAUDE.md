@@ -19,6 +19,7 @@ README.md describes every feature in detail; read it before changing a system.
 - Survival: `survRound`, `survKind` (wave/swarm/waves/twist/elite/boss wheel), `TRAITS`, `survResolve` (pay, boss loot), shop `SHOP_PRICE`/`cardPrice`, revives `downTick`/`DOWN_T`.
 - Phone card picks: `fitCards` / `#pick.flat` / `.pcard`. Customize: `renderLocker`. Hats stack one per slot (`HAT_SLOT`, `hatList`).
 - Invite links: `?join=CODE` (`linkCode`, `inviteUrl`).
+- Game websites: portal mode when inside an iframe (`portal`, `portalSay`, `?share=`); package with `node scripts/build.js --portal`; guide in `PORTAL.md`; check with `scripts/browser-portal.js`.
 
 ## Rules
 - Run `node tests/run-all.js` (and the relevant browser scripts for UI changes) before every push. Look at screenshots for layout work: desktop 1440x900, phone upright 390x844, phone sideways 844x390.
