@@ -1091,7 +1091,7 @@ body.touch .desk-only{display:none!important}
           </ol>
           <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
           <p class="hp-note"><b>Party</b> Two against two. Pick Team Orange or Team Blue; CPUs fill empty seats. The losing pair draft together.</p>
-          <p class="hp-note"><b>Big Screen</b> Pick Duel or Party, then <b>One big screen</b>: this computer is the screen, and 1 to 4 friends scan the code and play with their phones as controllers.</p>
+          <p class="hp-note"><b>Big Screen</b> Pick Duel, Party or Co-op Survival, then One big screen. This computer is the screen; 1 to 4 friends scan the code and play with their phones as controllers.</p>
         </div>
         <div class="hp-page" data-hpage="controls" hidden>
           <dl class="hp-keys desk-only">
@@ -2278,7 +2278,7 @@ const sandbox={decks:[[],[]],tab:0,cpu:'fight',arena:-1,filter:'all',seen:false}
 const SB_CPU={fight:'Fights back',dodge:'Moves, never shoots',still:'Stands still'},SB_MAX=9;
 const sbOpen=()=>!$('#sandbox').hidden;
 function openSandbox(){if(game.mode!=='sandbox')return;game.paused=true;keys.clear();mouse.down=false;$('#pause').hidden=true;$('#sandbox').hidden=false;cv.style.cursor='default';
-  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();{const bk=$('#sbBack');if(bk)bk.textContent=sandbox.played?'‹ Main menu':'‹ Back'}const b=$('#sbGo');b&&b.focus({preventScroll:true})}
+  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();{const bk=$('#sbBack');if(bk)bk.textContent=sandbox.played?'‹ Main menu':'‹ Back'}const b=$('#sbGo');if(b)b.textContent=touch.on?'Play':'Play · Tab';b&&b.focus({preventScroll:true})}
 function closeSandbox(){if(!sbOpen())return;sandbox.played=true;$('#sandbox').hidden=true;applySandbox();game.paused=false;cv.style.cursor='none';cv.focus()}
 // new loadouts take effect on a fresh point, so health, ammo and block charges start from the new stats
 function applySandbox(){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p)});const c=players[1];c.ctrl=sandbox.cpu==='still'?'idle':'cpu';
@@ -4354,7 +4354,7 @@ cv.addEventListener('touchend',touchEnd);cv.addEventListener('touchcancel',touch
   bb.addEventListener('touchstart',e=>{e.preventDefault();initAudio();mouse.rEdge=true;bb.classList.add('down')},{passive:false});
   const bEnd=e=>{e.preventDefault();bb.classList.remove('down')};bb.addEventListener('touchend',bEnd);bb.addEventListener('touchcancel',bEnd)}
 function touchFrame(){const live=touchLive();bodyCls('ingame',live);
-  const inMatch=!game.bg&&$('#menu').hidden&&$('#locker').hidden&&$('#nameScreen').hidden&&$('#pad').hidden&&$('#bigLobby').hidden&&!game.screen;bodyCls('match',inMatch);
+  const inMatch=!game.bg&&$('#menu').hidden&&$('#locker').hidden&&$('#nameScreen').hidden&&$('#sandbox').hidden&&$('#pad').hidden&&$('#bigLobby').hidden&&!game.screen;bodyCls('match',inMatch);
   if(inMatch!==touch.wasMatch){touch.wasMatch=inMatch;if(touch.on)holdSideways(inMatch)}
   if(live){const me=game.mode==='online-guest'?players[net.me]:players.find(q=>q.ctrl==='mouse'),b=$('#tBlock');
     if(me&&b&&b.style){const cd=me.blockCd>0&&me.s?clamp(me.blockCd/me.s.blockCd,0,1):0;if(b._cd!==cd){b._cd=cd;b.style.setProperty('--cd',cd.toFixed(3))}if(b._pc!==me.glow){b._pc=me.glow;b.style.setProperty('--pc',me.glow)}}}
@@ -4366,7 +4366,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-03-aim';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-audit';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

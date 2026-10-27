@@ -69,9 +69,9 @@ async function browser(port, name, phone) {
   ok(await S.until(`window.__G.game.state==='shop'`, 10000), 'the round clears into the shop');
   for (const [i, T] of P.entries()) ok(await T.until(`window.__G.ctl.shop&&!document.querySelector('#padShop').hidden`, 8000), `phone ${i + 1} opens its shop`);
   await sleep(900); await P[0].shot('8-phone-shop.png'); await S.shot('9-screen-shop-board.png');
-  const before = await S.ev(`window.__G.heroes()[0].cards.length+window.__G.heroes()[0].ups.length`);
-  await S.ev(`window.__G.heroes()[0].scrap=99`); { const b = await P[0].box('#pshCards .pcard .pc-price'); await P[0].touch('touchStart', [b]); await sleep(40); await P[0].touch('touchEnd', []) }
-  ok(await S.until(`window.__G.heroes()[0].cards.length+window.__G.heroes()[0].ups.length===${before}+1`, 5000), 'tapping a card on the phone buys it');
+  const before = await S.ev(`window.__G.heroes().find(h=>h.name==='Ana').cards.length+window.__G.heroes().find(h=>h.name==='Ana').ups.length`);
+  await S.ev(`window.__G.heroes().find(h=>h.name==='Ana').scrap=99`); { const b = await P[0].box('#pshCards .pcard .pc-price'); await P[0].touch('touchStart', [b]); await sleep(40); await P[0].touch('touchEnd', []) }
+  ok(await S.until(`window.__G.heroes().find(h=>h.name==='Ana').cards.length+window.__G.heroes().find(h=>h.name==='Ana').ups.length===${before}+1`, 5000), 'tapping a card on the phone buys it');
   for (const T of P) { const b = await T.box('#pshNext'); await T.touch('touchStart', [b]); await sleep(40); await T.touch('touchEnd', []) }
   ok(await S.until(`window.__G.game.round===2&&window.__G.game.state!=='shop'`, 10000), 'Ready on both phones starts round 2');
   for (const T of P) ok(await T.until(`!window.__G.ctl.shop&&document.querySelector('#padShop').hidden`, 5000), 'the phone closes its shop');

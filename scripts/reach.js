@@ -37,7 +37,7 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
         if (!P.alive || P.y > 880) break }
       A.keys.clear(); return null };
     const edges = new Map();
-    for (const s of surf) { const to = new Set(), r0 = A.solids.find((q) => key(q) === s.k), moving = !!r0.swing, n = spots(r0).length;
+    for (const s of surf) { const to = new Set(), r0 = A.solids.find((q) => key(q) === s.k); if (!r0) { edges.set(s.k, to); continue } const moving = !!(r0.swing || r0.rig), n = spots(r0).length;
       for (let xi = 0; xi < n; xi++) for (const w of moving ? waits : [0]) for (const dir of [-1, 0, 1]) for (const pr of progs) for (const hold of dir ? [99, .7] : [99]) {
         if (!pr.length && !dir) continue; const g = tryFrom(s.k, xi, w, dir, pr, hold); if (g) to.add(g) }
       edges.set(s.k, to) }
