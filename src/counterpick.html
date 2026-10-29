@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Titan+One&family=Rubik:wght@600;800&family=Nunito:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* Layout: full-bleed letterboxed night arena; overlays are faceted dark panels; draft fans five cards over the loser's face.
    One deliberate dark look (spotlit stage), so a single palette for both host themes. */
@@ -1007,6 +1007,55 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   #padPick .pad-h{font-size:24px}#padPick .pad-p{font-size:13px}#padPick .pad-timer{position:absolute;top:6px;right:calc(16px + env(safe-area-inset-right,0px));font-size:20px}
 }
 @media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
+/* ---- Flick Controller look (the flick-controllers skill, ~/.claude/skills/flick-controllers): the Big Screen phone controller looks the same in
+   every Flick game. Chunky Joy-Con grips in the seat colour (--pc), ink outlines, offset grape shadows, Titan One. Behaviour above is unchanged ---- */
+#pad{--fi:#0e0b16;--fis:#1b1428;--fg:#7000ff;--fz:#ccff33;--fc:#f7f5ff;--fpop:#ff3ea5;--fd:'Titan One','Arial Rounded MT Bold','Arial Black',system-ui,sans-serif;--fb:'Rubik',system-ui,sans-serif;--pw:clamp(112px,15vw,150px);--ft:calc(64px + env(safe-area-inset-top,0px));
+  background-color:var(--fi);background-image:radial-gradient(ellipse 70% 60% at 50% 120%,color-mix(in srgb,var(--fg) 45%,transparent),transparent 70%),radial-gradient(rgba(247,245,255,.07) 1.2px,transparent 1.2px);background-size:100% 100%,22px 22px;color:var(--fc)}
+#pad .pad-bar{padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:6px}
+#pad .pad-me{font:400 22px var(--fd);letter-spacing:0}#pad .pad-me b{color:var(--fc)}
+#pad .pad-dot{width:20px;height:20px;border:3px solid var(--fi);box-shadow:0 0 0 2px var(--pc)}
+#pad .pad-score{gap:8px;font:800 13px var(--fb)}#pad .pad-score span{padding:3px 10px 3px 4px;border-radius:999px;background:var(--fis);color:rgba(247,245,255,.7)}
+#pad .pad-score span::before{width:14px;height:14px;border:2px solid var(--fi)}#pad .pad-score span.mine{color:var(--fc);box-shadow:0 0 0 2px var(--sc)}#pad .pad-score b{font:400 15px var(--fd)}
+#pad .pad-b{padding:5px 14px;border:3px solid var(--fi);background:var(--fc);color:var(--fi);font:400 15px var(--fd);letter-spacing:0;box-shadow:3px 3px 0 var(--fg)}
+#pad .pad-b:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--fg)}#pad #padFind{background:var(--fz);border-color:var(--fi)}
+#pad .pad-hp{left:28%;right:28%;top:calc(48px + env(safe-area-inset-top,0px));height:12px;border-radius:999px;border:2px solid var(--fi);background:var(--fis);box-shadow:0 0 0 2px rgba(247,245,255,.15)}
+#pad .pad-hp i{border-radius:999px;background:var(--fz)}
+#pad .pad-live::before,#pad .pad-live::after{content:"";position:absolute;top:calc(var(--ft) + 4px);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;margin:0;pointer-events:none;
+  background:var(--pc);background-image:linear-gradient(rgba(255,255,255,.22),transparent 40%),radial-gradient(rgba(14,11,22,.12) 1.4px,transparent 1.4px);background-size:100% 100%,16px 16px;
+  border:4px solid var(--fi);box-shadow:inset 0 -6px 0 rgba(14,11,22,.18),6px 6px 0 var(--fg)}
+#pad .pad-live::before{left:calc(10px + env(safe-area-inset-left,0px));right:calc(50% + 5px);border-radius:70px 26px 26px 70px / 34% 26px 26px 34%}
+#pad .pad-live::after{left:calc(50% + 5px);right:calc(16px + env(safe-area-inset-right,0px));border-radius:26px 70px 70px 26px / 26px 34% 34% 26px}
+#pad .pad-zl{z-index:1;bottom:calc(24px + env(safe-area-inset-bottom,0px));padding:3px 10px;border-radius:999px;background:rgba(14,11,22,.78);font:800 11px var(--fb);color:var(--fc);white-space:nowrap}
+#pad .pad-zl.l{left:25%;transform:translateX(-30%)}#pad .pad-zl.r{left:calc(50% + (50% - var(--pw) - 12px) / 2);right:auto;transform:translateX(-50%);max-width:calc(50% - var(--pw) - 40px);overflow:hidden;text-overflow:ellipsis}
+#pad .tstick{z-index:1;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:1;background:radial-gradient(circle,rgba(14,11,22,.55) 55%,rgba(14,11,22,.7));border:4px solid var(--fi);box-shadow:inset 0 6px 10px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.25)}
+#pad .tstick.on{box-shadow:inset 0 6px 10px rgba(0,0,0,.4),0 0 0 5px rgba(255,255,255,.55)}
+#pad .tstick .knob{width:64px;height:64px;margin:-32px 0 0 -32px;background:radial-gradient(circle at 50% 40%,#fff,var(--fc) 55%,#d9d3ee);border:4px solid var(--fi);box-shadow:0 5px 0 var(--fi)}
+#pad .tstick .knob::after{content:"";position:absolute;inset:12px;border-radius:50%;border:3px dashed rgba(14,11,22,.25)}
+#pad .tstick.aim .knob{background:radial-gradient(circle at 50% 40%,#f2ffc2,var(--fz) 60%,#a8d61f)}
+#pad .tstick.aim.cancel{border-color:var(--fpop)}#pad .tstick.aim.cancel .knob{background:var(--fpop)}
+#pMove{left:27%;top:58%}#pAim{left:calc(50% + (50% - var(--pw) - 12px) / 2);top:58%}
+#pad .tbtn.pad-jump,#pad .tbtn.pad-block{z-index:2;right:calc(34px + env(safe-area-inset-right,0px));width:var(--pw);height:calc((100% - var(--ft) - 10px - 48px - env(safe-area-inset-bottom,0px)) / 2);
+  border-radius:30px;border:4px solid var(--fi);color:var(--fi);font:400 clamp(17px,4.4vh,22px) var(--fd);letter-spacing:0;gap:6px;
+  background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd,0) * 100%),transparent 0),var(--fc);box-shadow:inset 0 -5px 0 rgba(14,11,22,.15),0 6px 0 var(--fi)}
+#pad .tbtn.pad-jump{top:calc(var(--ft) + 16px)}
+#pad .tbtn.pad-block{bottom:calc(32px + env(safe-area-inset-bottom,0px));border-color:var(--fi);background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd) * 100%),transparent 0),var(--fz)}
+#pad .tbtn.down{transform:translateY(5px);box-shadow:inset 0 -2px 0 rgba(14,11,22,.15),0 1px 0 var(--fi)}
+#pad .tbtn.pad-jump::before{border-width:6px}#pad .tbtn.pad-block::before{border-width:6px}
+#pad .pad-msg{z-index:3;top:30%;transform:translate(-50%,-50%) rotate(-2deg);padding:8px 18px;border-radius:14px;border:3px solid var(--fi);background:var(--fz);color:var(--fi);box-shadow:4px 4px 0 var(--fg);font:400 22px var(--fd);letter-spacing:0}
+#pad .pad-rot{font:400 30px/1.1 var(--fd);letter-spacing:0;text-transform:uppercase;color:var(--fz);-webkit-text-stroke:6px var(--fi);paint-order:stroke fill;background-color:var(--fg);background-image:radial-gradient(rgba(14,11,22,.28) 2px,transparent 2px);background-size:24px 24px}
+#pad .pad-rot .rot-s{font:800 16px/1.4 var(--fb)!important;color:var(--fc);-webkit-text-stroke:0;max-width:26ch}
+#pad .pad-rot .rot-ic{width:56px;height:92px;border:5px solid var(--fi);border-radius:14px;background:var(--pc);box-shadow:5px 5px 0 var(--fi)}#pad .pad-rot .rot-ic::before,#pad .pad-rot .rot-ic::after{display:none}#pad .pad-rot .rot-ic i{inset:8px;background:var(--fi)}
+#padLobby,#padOver{top:calc(56px + env(safe-area-inset-top,0px));border-top:4px solid var(--fi);background-color:var(--fg);background-image:radial-gradient(rgba(14,11,22,.28) 2px,transparent 2px);background-size:24px 24px}
+#pad .pad-sheet .lbl{padding:2px 10px;border-radius:6px;background:var(--fi);color:var(--fz);font:800 11px var(--fb);letter-spacing:.16em;transform:rotate(-2deg)}
+#pad .pad-h{font:400 clamp(28px,7vmin,44px) var(--fd);letter-spacing:0;color:var(--fz);-webkit-text-stroke:6px var(--fi);paint-order:stroke fill;text-shadow:3px 3px 0 var(--fi)}
+#padLobby .pad-p,#padOver .pad-p{font:800 16px var(--fb)}#padLobby .pad-tip,#padOver .pad-tip{font:600 14px/1.45 var(--fb);color:rgba(247,245,255,.85)}
+#padLobby .btn,#padOver .btn{border:4px solid var(--fi);background:var(--fc);color:var(--fi);font-family:var(--fd);box-shadow:4px 4px 0 var(--fi)}#padLobby .btn.primary{background:var(--fz)}
+#pad .pad-hold #padLook{background:var(--fi);border:4px solid var(--fi);border-radius:18px;box-shadow:5px 5px 0 var(--fi)}
+#pad .pad-hold .tut-pad{border:0;background:none;color:var(--fi);font:800 10px/1.25 var(--fb)}
+#pad .pad-hold .tut-pad::before,#pad .pad-hold .tut-pad::after{content:"";position:absolute;top:0;bottom:0;width:49%;background:var(--pc);border:3px solid var(--fi);box-shadow:4px 4px 0 var(--fi)}
+#pad .pad-hold .tut-pad::before{left:0;border-radius:46px 10px 10px 46px}#pad .pad-hold .tut-pad::after{right:0;border-radius:10px 46px 46px 10px}
+#pad .pad-hold .tut-pad span{z-index:1}#pad .pad-hold .tut-pad .tp-l{left:4%;width:40%;bottom:10%}#pad .pad-hold .tut-pad .tp-r{left:51%;width:26%;bottom:10%}#pad .pad-hold .tut-pad{width:min(300px,46vw)}#pad .pad-hold .tut-pad .tp-b{right:4%}#pad .pad-hold .tut-pad .tp-b b{width:42px}#pad .pad-hold .tut-pad .tp-l i,#pad .pad-hold .tut-pad .tp-r i{border:3px solid var(--fi);background:var(--fc);box-shadow:0 0 0 4px rgba(14,11,22,.4)}#pad .pad-hold .tut-pad .tp-r i{background:var(--fz)}
+#pad .pad-hold .tut-pad .tp-b b{border:3px solid var(--fi);background:var(--fc);color:var(--fi)}#pad .pad-hold .tut-pad .tp-b .blk{border-color:var(--fi);background:var(--fz)}
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
@@ -4431,7 +4480,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-portal';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-flickpad';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
