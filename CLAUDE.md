@@ -26,6 +26,7 @@ README.md describes every feature in detail; read it before changing a system.
 - Commit messages end with: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
 - Secrets live only in Vercel env vars. Never read or share `.env.local`. Leave the old Supabase env vars alone. Keep the Google TXT record at Namecheap.
 - Never use ROUNDS' copyrighted art or audio. All music and sound is generated in code.
+- The Big Screen phone controller (`#pad`, `padSticks`, `padSend`) is the reference for **Flick Controllers**, the standard controller in all Flick games (the `flick-controllers` skill, `~/.claude/skills/flick-controllers`). Keep the two in step: a change to the controller's look, layout or feel goes into the skill's kit too, and the reverse.
 - Phone controls show on touch devices only. Menus are laid out for an upright phone; matches ask to turn sideways.
 - Test browsers run muted and are closed afterwards.
 - Higgsfield credits cost real money: ask before generating anything.
