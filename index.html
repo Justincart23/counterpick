@@ -1040,11 +1040,11 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #pad .tstick.aim .knob{background:radial-gradient(circle at 50% 40%,#f2ffc2,var(--fz) 60%,#a8d61f)}
 #pad .tstick.aim.cancel{border-color:var(--fpop)}#pad .tstick.aim.cancel .knob{background:var(--fpop)}
 #pMove{left:calc(25% + 2px);top:var(--sy)}#pAim{left:calc(75% - (var(--pw) + 30px) / 2);top:var(--sy)}
-#pad .tbtn.pad-jump,#pad .tbtn.pad-block{z-index:2;right:calc(34px + env(safe-area-inset-right,0px));width:var(--pw);height:calc((100% - var(--ft) - 10px - 56px - env(safe-area-inset-bottom,0px)) / 2);
+#pad .tbtn.pad-jump,#pad .tbtn.pad-block{z-index:2;right:calc(30px + env(safe-area-inset-right,0px));width:var(--pw);height:calc((100% - var(--ft) - 10px - 56px - env(safe-area-inset-bottom,0px)) / 2);
   border-radius:30px;border:4px solid var(--fi);color:var(--fi);font:400 clamp(17px,4.4vh,22px) var(--fd);letter-spacing:0;gap:6px;
   background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd,0) * 100%),transparent 0),var(--fc);box-shadow:inset 0 -5px 0 rgba(14,11,22,.15),0 6px 0 var(--fi)}
-#pad .tbtn.pad-jump{top:calc(var(--ft) + 20px)}
-#pad .tbtn.pad-block{bottom:calc(30px + env(safe-area-inset-bottom,0px));border-color:var(--fi);background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd) * 100%),transparent 0),var(--fz)}
+#pad .tbtn.pad-jump{top:calc(var(--ft) + 20px);border-radius:22px 40px 22px 22px / 22px 46% 22px 22px}
+#pad .tbtn.pad-block{bottom:calc(30px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 40px 22px / 22px 22px 46% 22px;border-color:var(--fi);background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd) * 100%),transparent 0),var(--fz)}
 #pad .tbtn.down{transform:translateY(5px);box-shadow:inset 0 -2px 0 rgba(14,11,22,.15),0 1px 0 var(--fi)}
 #pad .tbtn.pad-jump::before{border-width:6px}#pad .tbtn.pad-block::before{border-width:6px}
 #pad .pad-msg{z-index:3;top:30%;transform:translate(-50%,-50%) rotate(-2deg);padding:8px 18px;border-radius:14px;border:3px solid var(--fi);background:var(--fz);color:var(--fi);box-shadow:4px 4px 0 var(--fg);font:400 22px var(--fd);letter-spacing:0}
@@ -4487,7 +4487,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-flickpad';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-padcurve';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
