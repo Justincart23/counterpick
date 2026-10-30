@@ -25,7 +25,7 @@ README.md describes every feature in detail; read it before changing a system.
 - Run `node tests/run-all.js` (and the relevant browser scripts for UI changes) before every push. Look at screenshots for layout work: desktop 1440x900, phone upright 390x844, phone sideways 844x390.
 - Commit messages end with: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
 - Secrets live only in Vercel env vars. Never read or share `.env.local`. Leave the old Supabase env vars alone. Keep the Google TXT record at Namecheap.
-- Never use ROUNDS' copyrighted art or audio. All music and sound is generated in code.
+- Never use ROUNDS' copyrighted art or audio. Music and most sound are generated in code; the big moments use CC0 samples from Kenney (kenney.nl), embedded as `SAMP_SRC`. Only add CC0 sounds.
 - The Big Screen phone controller (`#pad`, `padSticks`, `padSend`) is the reference for **Flick Controllers**, the standard controller in all Flick games (the `flick-controllers` skill, `~/.claude/skills/flick-controllers`). Keep the two in step: a change to the controller's look, layout or feel goes into the skill's kit too, and the reverse.
 - Phone controls show on touch devices only. Menus are laid out for an upright phone; matches ask to turn sideways.
 - Test browsers run muted and are closed afterwards.
