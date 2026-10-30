@@ -47,6 +47,8 @@ async function browser(port, name, phone) {
   await S.top(`window.scrollTo(0,0)`); await S.game(`document.querySelector('#game').focus()`);
   for (const k of ['ArrowDown', 'Space', 'PageDown']) { await S.cdp('Input.dispatchKeyEvent', { type: 'keyDown', code: k, key: k === 'Space' ? ' ' : k, windowsVirtualKeyCode: k === 'Space' ? 32 : k === 'ArrowDown' ? 40 : 34 }); await S.cdp('Input.dispatchKeyEvent', { type: 'keyUp', code: k, key: k === 'Space' ? ' ' : k }) }
   await sleep(300); ok(await S.top(`window.scrollY===0`), `arrow keys and Space never scroll the site's page (scrollY ${await S.top('window.scrollY')})`);
+  // Space on the menu picks the highlighted tile (Big Screen leads the menu now), so step back out of its lobby first
+  await S.game(`(()=>{const b=document.querySelector('#bigLobby:not([hidden]) [data-act=bsCancel]');if(b)b.click()})()`); await sleep(400);
   // a match: the site hears it start, can pause and mute it, and hears it end
   await S.game(`document.querySelector('#menu [data-sub=main] [data-act=solo]').click();document.querySelector('[data-act=cpu]').click()`);
   ok(await S.until(() => S.top(`window.__msgs.some(m=>m.flick==='gameplayStart'&&m.mode==='cpu')`), 5000), 'the site hears gameplayStart when a match begins');

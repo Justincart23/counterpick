@@ -609,6 +609,10 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .mlist.tiles .mt:not(:has(.mt-d)) .mt-t{grid-row:1 / 3;align-self:center}
 .mlist.tiles .mt:hover,.mlist.tiles .mt:focus,.mlist.tiles .mt:focus-visible{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,rgba(20,12,30,.85));transform:translateY(-3px);box-shadow:0 8px 0 rgba(0,0,0,.35),0 0 26px color-mix(in srgb,var(--tc) 30%,transparent);outline:none;color:#fff;text-shadow:none}
 .mlist.tiles .mt.big{min-height:118px;padding:16px;font-size:clamp(19px,1.85vw,24px);column-gap:12px}.mlist.tiles .mt.big .mi{width:50px;height:50px;padding:11px;border-radius:15px}
+/* Big Screen leads the main menu: a full-width tile, lit in its colour. On phones (usually the controller) the code entry goes first instead */
+.mlist.tiles .mt.hero{grid-column:1 / -1;min-height:112px;border-color:color-mix(in srgb,var(--tc) 70%,transparent);background:linear-gradient(115deg,color-mix(in srgb,var(--tc) 24%,rgba(22,13,33,.95)),rgba(22,13,33,.94) 65%)}
+.mlist.tiles .mt.hero .mt-t{font-size:1.25em}.mlist.tiles .mt.hero .mt-d{color:var(--text)}
+@media (pointer:coarse){[data-sub=main]:not([hidden]){display:flex;flex-direction:column}[data-sub=main]>.mobile-row{order:-1;margin:0 0 10px}}
 .mlist.tiles .mt.small{grid-column:span 2;min-height:62px;padding:10px 12px;font-size:clamp(15px,1.5vw,18px);column-gap:10px}.mlist.tiles .mt.small .mi{width:36px;height:36px;padding:7px;border-radius:11px}
 .mlist.tiles .mt.back{grid-column:1 / -1;min-height:46px;padding:8px 14px;justify-content:center;grid-template-columns:auto auto;font-size:17px;background:rgba(255,255,255,.04);box-shadow:none;--tc:#b9a7e6}
 .mlist.tiles .mt.back .mi{width:28px;height:28px;padding:5px;border-radius:9px}
@@ -1085,14 +1089,15 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
       <nav class="mlist tiles" aria-label="Main menu">
-        <button type="button" class="mt big" data-act="solo" data-ic="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Single player</span><span class="mt-d">Practice, party, Survival, Sandbox</span></button>
-        <button type="button" class="mt big" data-act="multi" data-ic="multi" data-hint="Play with friends: duel one-on-one, team up 2v2, put it on a Big Screen, or take on Survival together." style="--i:1;--tc:#3d8bff"><span class="mt-t">Multiplayer</span><span class="mt-d">Duel, 2v2, Big Screen, co-op</span></button>
-        <button type="button" class="mt small" data-act="locker" data-ic="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:2;--tc:#ff6fa8"><span class="mt-t">Customize</span></button>
-        <button type="button" class="mt small" data-act="help" data-ic="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3;--tc:#3fd0b0"><span class="mt-t">How to play</span></button>
-        <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
+        <button type="button" class="mt big hero" data-act="bsQuick" data-ic="bigscreenMenu" data-hint="Put CUUED on this screen, a laptop or a TV. Friends scan the code and their phones become controllers: up to 4 players, versus or co-op." style="--i:0;--tc:#ffb547"><span class="mt-t">Big Screen</span><span class="mt-d">Play on this screen. Friends join with their phones.</span></button>
+        <button type="button" class="mt big" data-act="solo" data-ic="solo" data-hint="Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox." style="--i:1;--tc:#ff7a1a"><span class="mt-t">Single player</span><span class="mt-d">Practice, party, Survival, Sandbox</span></button>
+        <button type="button" class="mt big" data-act="multi" data-ic="multi" data-hint="Everyone on their own phone or computer, from anywhere: duel, free-for-all, teams or co-op Survival." style="--i:2;--tc:#3d8bff"><span class="mt-t">Online</span><span class="mt-d">Everyone on their own screen</span></button>
+        <button type="button" class="mt small" data-act="locker" data-ic="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:3;--tc:#ff6fa8"><span class="mt-t">Customize</span></button>
+        <button type="button" class="mt small" data-act="help" data-ic="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:4;--tc:#3fd0b0"><span class="mt-t">How to play</span></button>
+        <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:5;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
       </nav>
-      <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own: practice against the CPU, take on Survival, or try any card in the Sandbox.</p>
-      <div class="mobile-row touch-only"><button type="button" class="btn join-q" data-act="join"><b>Got a code?</b> Join a friend or a Big Screen</button><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
+      <p class="menu-hint" id="menuHint" aria-live="polite">Put CUUED on this screen, a laptop or a TV. Friends scan the code and their phones become controllers: up to 4 players, versus or co-op.</p>
+      <div class="mobile-row touch-only"><button type="button" class="btn join-q" data-act="join"><b>Got a code?</b> Join a game</button><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
     </div>
     <div data-sub="solo" hidden>
       <div class="lbl sublbl">Single player</div>
@@ -1249,7 +1254,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <ol class="tut-steps">
           <li style="--tc:#ff7a1a"><i class="tut-ic" data-ic="host"></i><span><b>Host</b> Multiplayer, pick a mode, then <b>Own screens</b>. Send your friend the code or the link.</span></li>
           <li style="--tc:#3d8bff"><i class="tut-ic" data-ic="join"></i><span><b>Join</b> Multiplayer, <b>Join with a code</b>, type it in. Or just open their link.</span></li>
-          <li style="--tc:#ffb547"><i class="tut-ic" data-ic="bigscreenMenu"></i><span><b>Big Screen</b> Pick <b>One big screen</b> on a laptop or TV. Friends scan the code; phones become controllers.</span></li>
+          <li style="--tc:#ffb547"><i class="tut-ic" data-ic="bigscreenMenu"></i><span><b>Big Screen</b> Pick <b>Big Screen</b> on a laptop or TV. Friends scan the code; phones become controllers.</span></li>
         </ol>
         <h3>Play with friends</h3>
         <p>Every room has a 4-letter code, like <span class="tut-code">KX7Q</span></p>
@@ -1396,7 +1401,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <section class="bs-join" aria-label="How to join">
         <div class="lbl">Scan with a phone camera</div>
         <div class="bs-qr"><canvas id="bsQr" width="240" height="240" aria-label="QR code that opens this game on a phone"></canvas><span class="bs-qr-wait">QR code loading…</span></div>
-        <p class="bs-or">or open <b id="bsHost">cuued.com</b> and join with</p>
+        <p class="bs-or">or go to <b id="bsHost">cuued.com</b> and type</p>
         <div class="code" id="bsCode" aria-live="polite">····</div>
         <button type="button" class="btn bs-link" data-act="roomlink" id="bsLinkBtn" hidden>Copy invite link</button>
       </section>
@@ -4483,7 +4488,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-30-synth';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-30-bigscreen-first';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5034,7 +5039,7 @@ function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=b
 const bsJoinUrl=()=>inviteUrl(net.code);
 const inviteUrl=c=>portal.share?portal.share+(portal.share.includes('?')?'&':'?')+'join='+c:`${location.origin}${location.pathname}?join=${c}`;   // on a game site: its own page, which hands ?join= on to CUUED
 const siteHost=()=>{try{return new URL(portal.share||location.href).host.replace(/^www\./,'')}catch(e){return'cuued.com'}};
-function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',siteHost());bsQr(bsJoinUrl());bsLobbyChanged()}
+function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',siteHost()==='flickarcade.com'?'flickarcade.com/join':siteHost());bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
 function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.parentNode,g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
   const QR=()=>typeof window!=='undefined'&&typeof window.qrcode==='function'?window.qrcode:null;
@@ -5543,6 +5548,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
   else if(a==='fullscreen')toggleFull();
+  else if(a==='bsQuick')openBigScreen();   // the main menu's Big Screen: straight to the room code (mode is picked in the lobby)
   else if(a==='bigscreen'){settings.bsMode=mpKind==='coop'?'surv':settings.bsMode==='teams'?'teams':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
   else if(a==='bsStart'){if(net.room)partyStart();else bsStart()}
   else if(a==='roomlink'){const v=inviteUrl(net.code);if(!net.code)return;if(touch.on&&navigator.share){navigator.share({title:'CUUED',text:`Join my CUUED game! Code ${net.code}`,url:v}).catch(()=>{});return}

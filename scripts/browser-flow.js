@@ -56,7 +56,7 @@ async function tab(port, url) {
   ok(await A.ev(`/3 of 5/.test(document.querySelector('#tutStep').textContent)`), 'Next and → turn the pages of the guide');
   await A.ev(`document.querySelector('#tut [data-tut=skip]').click()`);
   ok(await A.until(`document.querySelector('#tut').hidden&&localStorage.getItem('cuued.tut')==='1'`, 2000), 'Skip closes the guide and remembers it');
-  ok(await A.ev(`[...document.querySelectorAll('#menu [data-sub="main"] .mlist button')].map(b=>b.querySelector('.mt-t').textContent).join('|')`) === 'Single player|Multiplayer|Customize|How to play|Settings', 'the menu lists Single player, Multiplayer, Customize, How to play, Settings');
+  ok(await A.ev(`[...document.querySelectorAll('#menu [data-sub="main"] .mlist button')].map(b=>b.querySelector('.mt-t').textContent).join('|')`) === 'Big Screen|Single player|Online|Customize|How to play|Settings', 'the menu lists Big Screen, Single player, Online, Customize, How to play, Settings');
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');
   await sleep(900); await A.ev(`document.querySelector('#pick .card').click()`);
