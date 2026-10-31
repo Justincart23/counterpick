@@ -1653,9 +1653,10 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
 /* Chimes: 7 columns rising to a peak in the middle, each a faint shaft with wide blocks you jump up through every 220px.
-   Each column's top is 130px below its neighbour's, so the blocks zigzag up the mountain one easy jump at a time */
+   Each column's top is 130px below its neighbour's, so the blocks zigzag up the mountain one easy jump at a time. The two
+   outer columns are the chimes: their top block hangs on a line from the sky and swings when it's shot or landed on */
 const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:180+Math.abs(i-3)*130}));
-const chimeBlocks=chimeCols.flatMap(c=>{const out=[];for(let y=c.top;y<=830;y+=220)out.push([c.x-60,y,120,40]);return out});
+const chimeBlocks=chimeCols.flatMap((c,i)=>{const out=[];for(let y=c.top;y<=830;y+=220)if(!((i===0||i===6)&&y===c.top))out.push([c.x-60,y,120,40]);return out});
 const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],more:[[140,610,200,38],[1580,610,200,38],[860,440,200,38]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
@@ -1665,7 +1666,7 @@ const MAPS=[
  {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],more:[[880,400,160,38],[40,860,150,40],[1730,860,150,40]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,600,220,40],[1180,600,220,40]],sp:[[200,750],[1400,750]]},
  {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],hangs:[{x:220,y:470,w:180},{x:1200,y:470,w:180}],sp:[[300,690],[1300,690]]},
- {name:'Chimes',rects:chimeBlocks,shafts:chimeCols.map(c=>[c.x-34,c.top,68]),sp:[[chimeCols[1].x,chimeCols[1].top-24],[chimeCols[5].x,chimeCols[5].top-24]]},
+ {name:'Chimes',rects:chimeBlocks,shafts:chimeCols.slice(1,6).map(c=>[c.x-34,c.top,68]),swings:[0,6].map(i=>({ax:chimeCols[i].x,len:chimeCols[i].top+17,w:120,h:34})),sp:[[chimeCols[1].x,chimeCols[1].top-24],[chimeCols[5].x,chimeCols[5].top-24]]},
  {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,36],[1180,485,320,36],[100,665,320,36],[1180,665,320,36],[560,310,480,36],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
  {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:610,w:220,h:30},{ax:1000,len:610,w:220,h:30},{ax:800,len:400,w:160,h:30}],sp:[[200,770],[1400,770]]},
@@ -1673,6 +1674,10 @@ const MAPS=[
  {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,38],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:30,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:30,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,40],[740,404,120,16,3],[180,300,240,38],[1180,300,240,38]],sp:[[400,740],[1200,740]]},
  {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],more:[[140,560,200,38],[1580,560,200,38],[740,460,150,38],[1030,460,150,38]],sp:[[260,740],[1340,740]]},
+ // Chimney: two tall towers you wall-jump up (hold toward a wall in the air to grip it), a pad between them that fires you
+ // up the chimney to the crown, side steps up to the tower tops. Fights go vertical: below, inside and over the chimney
+ {name:'Chimney',w:1920,h:1080,rects:[[0,940,1920,140],[640,520,80,420,1],[1200,520,80,420,1],[900,924,120,16,3],[820,330,280,38],[760,700,120,38],[1040,700,120,38],
+   [180,780,260,40],[1480,780,260,40],[380,610,200,38],[1340,610,200,38]],sp:[[300,900],[1620,900]]},
  {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
  {name:'Piston',rects:[[0,780,1600,120],[520,590,40,190,1],[1040,590,40,190,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
@@ -4515,7 +4520,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-31-crisp';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-31-chimney';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
