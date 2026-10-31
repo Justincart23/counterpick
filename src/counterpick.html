@@ -1779,7 +1779,8 @@ let view={s:1,ox:0,oy:0,cs:1,cox:0,coy:0};
    controls live, so a thumb never covers the fight. 'Fill screen': the arena runs edge to edge (zoomed in a little) */
 let thumbRoom=false;
 function phoneView(){let pv='room';try{pv=settings.pview||'room'}catch(e){}let on=false;try{on=touch.on}catch(e){}thumbRoom=on&&pv!=='fill';try{document.body.classList.toggle('room',thumbRoom)}catch(e){}resize()}
-function resize(){const dpr=Math.min(2,devicePixelRatio||1),vv=window.visualViewport,ww=Math.round(vv&&vv.width||innerWidth),wh=Math.round(vv&&vv.height||innerHeight);   // the part actually on screen (phone browser bars come and go)
+function resize(){const vv=window.visualViewport,ww=Math.round(vv&&vv.width||innerWidth),wh=Math.round(vv&&vv.height||innerHeight),   // the part actually on screen (phone browser bars come and go)
+  dpr=Math.max(1,Math.min(3,devicePixelRatio||1,Math.sqrt(6e6/Math.max(1,ww*wh))));   /* the screen's own sharpness (a phone is 3x), up to about 6 megapixels so a big monitor stays smooth */
   if(typeof scrollTo==='function'&&(scrollX||scrollY))scrollTo(0,0);cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
   cv.style.width=ww+'px';cv.style.height=wh+'px';const gut=thumbRoom?clamp(ww*.1,64,120):0,s=Math.min((ww-2*gut)/VW,wh/VH);{const st=document.documentElement&&document.documentElement.style;if(st&&st.setProperty)st.setProperty('--gut',gut+'px')}view={s:s*dpr,ox:(ww-VW*s)/2*dpr,oy:(wh-VH*s)/2*dpr,cs:s,cox:(ww-VW*s)/2,coy:(wh-VH*s)/2}}
 addEventListener('resize',resize);resize();
@@ -1788,6 +1789,9 @@ addEventListener('orientationchange',()=>{resize();setTimeout(resize,250);setTim
 const bgC=document.createElement('canvas');bgC.width=W;bgC.height=H;const bgx=bgC.getContext('2d');
 const platC=document.createElement('canvas');platC.width=W;platC.height=H;const platx=platC.getContext('2d');
 const decC=document.createElement('canvas');decC.width=W;decC.height=H;const dec=decC.getContext('2d');
+/* the sky, platforms and splats are drawn once per arena into these layers, at the screen's own pixel density (LQ pixels per
+   arena unit), so they stay crisp on a phone or a big monitor instead of being stretched up from 1x */
+let LQ=1;
 const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f'],['#5d514b','#73665e','#463b36']];
 const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6','#a39282'];   // kind 4: dark iron-and-timber, anything physical (it swings, falls or gets shot down)
 const isOneway=(h,k)=>!k&&h<=40;
@@ -1846,12 +1850,12 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
   for(const[base,amp,col]of[[H*.72,70,dawn?`rgba(${Math.round(40+60*dawn)},${Math.round(22+20*dawn)},${Math.round(58+10*dawn)},.6)`:'rgba(40,22,58,.55)'],[H*.82,50,dawn?`rgba(${Math.round(28+40*dawn)},${Math.round(15+12*dawn)},${Math.round(42+6*dawn)},.75)`:'rgba(28,15,42,.7)']]){g.fillStyle=col;g.beginPath();g.moveTo(0,H);
     const ph=rand(0,TAU);for(let x=0;x<=W;x+=40)g.lineTo(x,base-Math.sin(x/230+ph)*amp-Math.sin(x/97+ph*2)*amp*.35);g.lineTo(W,H);g.fill()}
   g.save();g.globalCompositeOperation='lighter';const sx=dawn>.3?sunX:mx;
-  for(let i=0;i<4;i++){const a=rand(-.5,.5),w0=rand(30,90),w1=rand(220,420);g.fillStyle=`rgba(255,190,170,${rand(.014,.026)})`;g.beginPath();
+  for(let i=0;i<4;i++){const a=rand(-.5,.5),w0=rand(30,90),w1=rand(220,420);g.fillStyle=`rgba(255,190,170,${rand(.008,.015)})`;g.beginPath();
     g.moveTo(sx-w0,-10);g.lineTo(sx+w0,-10);g.lineTo(sx+w0+Math.sin(a)*H*1.2+w1,H+10);g.lineTo(sx-w0+Math.sin(a)*H*1.2-w1,H+10);g.fill()}
   g.restore();
   {const R=artRng(strSeed((map.label||map.name)+W+'x'+H)),a=1-dawn;
     // the moon's light: one soft cone down the sky, like the card art's spotlight
-    if(a>.05){const bw=150+R()*70,bx=mx+(R()-.5)*120,lg=g.createLinearGradient(0,my,0,H);lg.addColorStop(0,`rgba(255,220,205,${.075*a})`);lg.addColorStop(1,'rgba(255,220,205,0)');
+    if(a>.05){const bw=150+R()*70,bx=mx+(R()-.5)*120,lg=g.createLinearGradient(0,my,0,H);lg.addColorStop(0,`rgba(255,220,205,${.045*a})`);lg.addColorStop(1,'rgba(255,220,205,0)');
       g.save();g.globalCompositeOperation='lighter';g.fillStyle=lg;g.beginPath();g.moveTo(mx-40,my);g.lineTo(mx+40,my);g.lineTo(bx+bw*2,H);g.lineTo(bx-bw*2,H);g.fill();g.restore()}
     // drifting sandstone cubes, far off: small, dim, and never behind a real platform so they can't be mistaken for one
     const clear=(cx,cy,sz)=>map.rects.every(r=>cx+sz+40<r[0]||cx-40>r[0]+r[2]||cy+sz+40<r[1]||cy-40>r[1]+r[3]);
@@ -1860,7 +1864,7 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
       g.fillStyle=hi2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+d,cy-d);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz,cy);g.fill();   // top
       g.fillStyle=lo2;g.beginPath();g.moveTo(cx+sz,cy);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz+d,cy+sz-d);g.lineTo(cx+sz,cy+sz);g.fill();   // side
       g.fillStyle=base;g.fillRect(cx,cy,sz,sz);g.fillStyle='rgba(53,32,74,.22)';g.fillRect(cx,cy,sz,sz);g.restore()}}
-  g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.025)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
+  g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.01)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
   // shafts (Chimes): faint columns behind the blocks, down to the bottom edge. Scenery only, nothing stands on them
   for(const[x,y,w]of map.shafts||[]){const sg=g.createLinearGradient(0,y,0,H);sg.addColorStop(0,'rgba(20,10,36,.5)');sg.addColorStop(1,'rgba(20,10,36,.2)');
     g.fillStyle=sg;g.fillRect(x,y,w,H-y);g.fillStyle='rgba(255,240,255,.06)';g.fillRect(x,y,3,H-y)}
@@ -2125,7 +2129,8 @@ function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
   if(!game.bg)cv.focus();
 }
 function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h||VH;BOUNDS=mkBounds();
-  for(const c of[bgC,platC,decC])if(c.width!==W||c.height!==H){c.width=W;c.height=H}
+  LQ=clamp(Math.min(Math.ceil(view.s*4)/4,Math.sqrt(5e6/(W*H))),1,3);const lw=Math.round(W*LQ),lh=Math.round(H*LQ);   // within ~5 megapixels a layer (phones cap canvas memory)
+  for(const c of[bgC,platC,decC]){if(c.width!==lw||c.height!==lh){c.width=lw;c.height=lh}c.getContext('2d').setTransform(LQ,0,0,LQ,0,0)}
   swings=(game.map.swings||[]).map(d=>{const s={swing:true,ax:d.ax,ay:d.ay||0,len:d.len,w:d.w,h:d.h,ang:rand(-.04,.04),av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,4);edgeDecor(ag,0,0,d.w,d.h,4,false);s.x=s.ax+Math.sin(s.ang)*s.len-s.w/2;s.y=s.ay+Math.cos(s.ang)*s.len-s.h/2;s.px=s.x;s.py=s.y;return s});
   // moving platforms ride the same carry/push/sync path as hanging blocks; their 'ang' is the phase of a smooth back-and-forth
@@ -4277,12 +4282,12 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
     viewT=()=>ctx.setTransform(view.s,0,0,view.s,view.ox+sx*view.s,view.oy+sy*view.s);
   worldT();
   // a big arena shown whole leaves screen around it: carry the sky's edges outward (a touch darker) instead of black bars
-  if(W>VW||H>VH){const E=4000;ctx.drawImage(bgC,0,0,W,2,-E,-E,W+2*E,E);ctx.drawImage(bgC,0,H-2,W,2,-E,H,W+2*E,E);ctx.drawImage(bgC,0,0,2,H,-E,0,E,H);ctx.drawImage(bgC,W-2,0,2,H,W,0,E,H);
+  if(W>VW||H>VH){const E=4000;const q=LQ;ctx.drawImage(bgC,0,0,W*q,2*q,-E,-E,W+2*E,E);ctx.drawImage(bgC,0,(H-2)*q,W*q,2*q,-E,H,W+2*E,E);ctx.drawImage(bgC,0,0,2*q,H*q,-E,0,E,H);ctx.drawImage(bgC,(W-2)*q,0,2*q,H*q,W,0,E,H);
     ctx.fillStyle='rgba(8,4,14,.4)';ctx.fillRect(-E,-E,W+2*E,E);ctx.fillRect(-E,H,W+2*E,E);ctx.fillRect(-E,0,E,H);ctx.fillRect(W,0,E,H)}
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
-  ctx.drawImage(bgC,0,0);
+  ctx.drawImage(bgC,0,0,W,H);
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
-  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0);ctx.drawImage(decC,0,0);
+  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
   drawPadGlow();drawRides();drawRigs();
@@ -4503,7 +4508,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-31-bigger-arenas';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-31-crisp';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
