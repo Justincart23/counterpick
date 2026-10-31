@@ -228,7 +228,9 @@ const DT = 1 / 60;
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view
   // prediction probes: the guest's own fighter should react on its own screen before the host even hears about it,
   // and corrections from the host should never make it visibly jump
-  let swingClip = 0, embedded = 0, tunnels = 0, lastMe = null; const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
+  let swingClip = 0, embedded = 0, tunnels = 0, rigTunnels = 0, lastMe = null;
+  // a rig (chandelier beam, bridge, lift) is a physics piece each screen simulates its own copy of, steered together like a hanging block
+  const rigAt = (A, x, y) => A.solids.some((r) => r.rig && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2); const solidAt = (A, x, y) => A.solids.some((r) => !r.bound && !r.oneway && x > r.x + 2 && x < r.x + r.w - 2 && y > r.y + 2 && y < r.y + r.h - 2);
   const sm = { sw: 0, swShake: 0, hist: [], path: 0, pathSum: 0, pathOff: 0 }; const cons = { n: 0, alive: 0, hp: 0, hpRun: 0, shields: 0, parries: 0, charges: 0, ducks: 0 }; const bm = { wasDown: false, clickAt: null, lat: [], seen: new WeakSet(), seenBefore: new WeakSet(), n: 0, jerk: 0 }; let hitAt = -999, lastHp = null, probeKey = 'KeyD', mapMismatch = 0, probe = 0, probeT = 0, gx0 = 0, hx0 = 0, responsive = null, hostStill = null, visJumps = 0, lastVis = null, lastMap = -1;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
@@ -249,8 +251,9 @@ const DT = 1 / 60;
     if (probe === 1 || probe === 2) { for (const k of ['KeyA', 'KeyD', 'KeyW', 'KeyS']) G.keys.delete(k); G.mouse.down = false } else drive(G, G.players[1], G.players[0], frames + 31);
     if (probe === 1 && ++probeT >= 20 && !still(H.players[1])) probeT = 0;   // wait until the host's copy is standing still
     if (probe === 1 && G.game.state !== 'play') probeT = 0;   // a new point's countdown started: wait for live play
-    if (probe === 1 && (!me.grounded || Math.abs(me.vx) > 5)) probeT = 0;   // the guest's own copy runs a little ahead: it must be standing still too, the whole wait
-    if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; probeKey = G.solids.some((r) => !r.oneway && !r.bound && me.x + 60 > r.x && me.x < r.x + r.w && me.y > r.y - me.r && me.y < r.y + r.h + me.r) || me.x > 1400 ? 'KeyA' : 'KeyD'; G.keys.add(probeKey) }
+    if (probe === 1 && (!me.grounded || Math.abs(me.vx) > 5)) probeT = 0;
+    if (probe === 1 && H.solids.some((r) => (r.ride || r.swing || r.rig) && Math.abs(H.players[1].x - (r.x + r.w / 2)) < r.w / 2 + 80 && Math.abs(H.players[1].y - (r.y + r.h / 2)) < r.h / 2 + 120)) probeT = 0;   // a moving platform close by could nudge the host's copy   // the guest's own copy runs a little ahead: it must be standing still too, the whole wait
+    if (probe === 1 && probeT >= 20) { probe = 2; probeT = 0; gx0 = me.x; hx0 = H.players[1].x; probeKey = G.solids.some((r) => !r.oneway && !r.bound && me.x + 60 > r.x && me.x < r.x + r.w && me.y > r.y - me.r && me.y < r.y + r.h + me.r) || me.x > (G.game.map.w || 1600) - 200 ? 'KeyA' : 'KeyD'; G.keys.add(probeKey) }
     else if (probe === 2 && (H.players[1].hurtT > 0 || H.players[1].kT > 0)) { probe = 0; G.keys.delete(probeKey) }   // a shot knocked it: try again later
     else if (probe === 2) { G.keys.add(probeKey); if (++probeT >= 3) { responsive = Math.abs(me.x - gx0); hostStill = Math.abs(H.players[1].x - hx0); probe = 3; G.keys.delete(probeKey) } }
     frame();
@@ -296,7 +299,7 @@ const DT = 1 / 60;
     lastVis = vis; lastMap = G.game.mapIdx;
     if (G.game.state === 'play' && me.alive && Number.isFinite(me.x)) {   // the guest's own fighter must never sit in or pass through a wall
       if (solidAt(G, me.x, me.y)) { const onSwing = G.solids.some((r) => r.swing && me.x > r.x + 2 && me.x < r.x + r.w - 2 && me.y > r.y + 2 && me.y < r.y + r.h - 2); if (onSwing) swingClip++; else embedded++; if (process.env.CLIPDBG) { const r = G.solids.find((r) => !r.bound && !r.oneway && me.x > r.x + 2 && me.x < r.x + r.w - 2 && me.y > r.y + 2 && me.y < r.y + r.h - 2); console.log('CLIP', G.game.map.name, 'me', Math.round(me.x), Math.round(me.y), 'r', me.r.toFixed(1), 'v', Math.round(me.vx), Math.round(me.vy), 'wall', r && [r.x, r.y, r.w, r.h, r.swing ? 'swing' : r.mover ? 'mover' : 'static'], 'host', Math.round(H.players[1].x), Math.round(H.players[1].y), 'blinkN', me.blinkN, 'charge', (me.chargeT || 0).toFixed(2), 'off', Math.round(G.net.offX), Math.round(G.net.offY), 'cards', me.cards.map((c) => c.n).join('/')) } }
-      else if (lastMe && !blinked && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { tunnels++; if (process.env.CLIPDBG) console.log('TUNNEL', G.game.map.name, 'from', Math.round(lastMe[0]), Math.round(lastMe[1]), 'to', Math.round(me.x), Math.round(me.y), 'v', Math.round(me.vx), Math.round(me.vy), 'blinkN', me.blinkN, 'wells', G.wells ? G.wells.length : '?', 'off', Math.round(G.net.offX), Math.round(G.net.offY), 'hurt', me.hurtT, 'host', Math.round(H.players[1].x), Math.round(H.players[1].y)); break } }
+      else if (lastMe && !blinked && lastMe[2] === G.game.mapIdx && lastMe[3] === G.net.snapN) { const n = Math.ceil(Math.hypot(me.x - lastMe[0], me.y - lastMe[1]) / 3); for (let i = 1; i < n; i++) if (solidAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) { if (rigAt(G, lastMe[0] + (me.x - lastMe[0]) * i / n, lastMe[1] + (me.y - lastMe[1]) * i / n)) rigTunnels++; else tunnels++; if (process.env.CLIPDBG) console.log('TUNNEL', G.game.map.name, 'from', Math.round(lastMe[0]), Math.round(lastMe[1]), 'to', Math.round(me.x), Math.round(me.y), 'v', Math.round(me.vx), Math.round(me.vy), 'blinkN', me.blinkN, 'wells', G.wells ? G.wells.length : '?', 'off', Math.round(G.net.offX), Math.round(G.net.offY), 'hurt', me.hurtT, 'host', Math.round(H.players[1].x), Math.round(H.players[1].y)); break } }
       lastMe = [me.x, me.y, G.game.mapIdx, G.net.snapN] } else lastMe = null;
     const hp = H.players[1];
     if (H.game.state === 'play' && hp.alive) { if (lastX.v != null) guestMoved += Math.abs(hp.x - lastX.v); lastX.v = hp.x } else lastX.v = null;
@@ -322,6 +325,7 @@ const DT = 1 / 60;
   check(hostStill != null && hostStill < 1, `...before the host has even received that input (host moved ${hostStill && hostStill.toFixed(1)}px), proving the response is local`);
   check(mapMismatch < 10, `the guest should always be on the host's arena (${mapMismatch} frames on a different one)`);
   check(swingClip <= 3, `the guest's own fighter should (almost) never overlap a hanging block (${swingClip} frames)`);   /* each screen swings its own copy of a block, steered together */
+  check(rigTunnels <= 1, `the guest's own fighter should (almost) never pass through a rig (${rigTunnels} times)`);
   check(embedded === 0 && tunnels <= (swingClip ? 1 : 0), `the guest's own fighter should never clip into or through walls (${embedded} frames inside, ${tunnels} pass-throughs)`);
   check(visJumps <= 1 + frames / 60 / (JITTER ? 3 : 40), `prediction corrections should never make the guest's own fighter jump on screen (${visJumps} jumps over 60px)`);
   check(G.game.wins.join() === H.game.wins.join(), `final score should match (${H.game.wins} vs ${G.game.wins})`);

@@ -101,12 +101,12 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
 
   // wall jumps work off the arena's blocks: jumping against one in mid-air with no double jump left kicks you up and away
   {
-    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
-    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 620; P.vy = 100; P.grounded = false; P.ground = null; P.airJumps = 0; P.coyote = 0;
+    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.w === 60 && r.h === 290);
+    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = wall.y + 150; P.vy = 100; P.grounded = false; P.ground = null; P.airJumps = 0; P.coyote = 0;
     A.keys.add('KeyD'); A.edges.add('KeyW'); A.keys.add('KeyW'); step(); A.keys.delete('KeyD'); A.keys.delete('KeyW');
     check(P.vy < -500 && P.vx < -150, `jumping off a block should wall-jump up and away (vy ${P.vy | 0}, vx ${P.vx | 0})`);
     // and you can climb it: hug the wall and keep jumping until you're on top of it
-    const [Q] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); Q.ctrl = 'mouse'; Q.x = 700; Q.s.airJumps = 0; Q.airJumps = 0; let top = Q.y;   // no double jump: only wall jumps can get you up there
+    const [Q] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); Q.ctrl = 'mouse'; Q.x = wall.x - 70; Q.s.airJumps = 0; Q.airJumps = 0; let top = Q.y;   // no double jump: only wall jumps can get you up there
     for (let f = 0; f < 400; f++) { A.keys.add('KeyD'); if (f % 14 === 0) A.edges.add('KeyW'); if (f % 14 < 9) A.keys.add('KeyW'); else A.keys.delete('KeyW'); step(); top = Math.min(top, Q.y) }
     A.keys.delete('KeyD'); A.keys.delete('KeyW');
     check(top < wall.y - Q.r + 5, `wall-jumping should get you to the top of a tall block (top ${top | 0}, wall top ${wall.y})`);
@@ -115,7 +115,7 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   // the CPU climbs blocks too: on Divider it gets over the centre wall to reach you
   {
     const [P, E] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); E.ctrl = 'cpu'; let crossed = false;
-    for (let f = 0; f < 60 * 12 && !crossed; f++) { step(); P.hp = P.s.maxHp; E.hp = E.s.maxHp; if (E.x < 760) crossed = true }
+    for (let f = 0; f < 60 * 12 && !crossed; f++) { step(); P.hp = P.s.maxHp; E.hp = E.s.maxHp; if (E.x < A.solids.find((r) => r.w === 60 && r.h === 290).x - 10) crossed = true }
     check(crossed, `the CPU should get over Divider's centre wall (x ${E.x | 0})`);
   }
 
@@ -175,9 +175,9 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   }
   // wall grip: hold toward a wall in the air and you barely slide
   {
-    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.x === 770);
-    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = 560; P.vy = 0; P.grounded = false; P.ground = null; A.keys.add('KeyD'); step(30); A.keys.delete('KeyD');
-    check(P.vy <= 75 && P.y < 600, `holding toward a wall should grip it (vy ${P.vy | 0}, slid to ${P.y | 0})`);
+    const [P] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Divider')); const wall = A.solids.find((r) => r.w === 60 && r.h === 290);
+    P.ctrl = 'mouse'; P.x = wall.x - P.r - 1; P.y = wall.y + 90; P.vy = 0; P.grounded = false; P.ground = null; A.keys.add('KeyD'); step(30); A.keys.delete('KeyD');
+    check(P.vy <= 75 && P.y < wall.y + 130, `holding toward a wall should grip it (vy ${P.vy | 0}, slid to ${P.y | 0})`);
   }
   // fast fall: holding S in the air drops you faster
   {
@@ -187,7 +187,7 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   // a hanging block swung hard into you hurts; blocking knocks it back instead
   {
     const hitBy = (blocking) => { const [P, E] = setup([], [], A.MAPS.findIndex((m) => m.name === 'Gallows')); const w = A.swings[0]; E.x = 1300;
-      P.x = w.ax + w.w / 2 + P.r - 10; P.y = w.len; P.vy = 0; P.grounded = false; P.ground = null; w.ang = -.25; w.av = 2.4; w.lastHit = E; const hp = P.hp;
+      P.x = w.ax + w.w / 2 + P.r - 10; P.y = w.ay + w.len; P.vy = 0; P.grounded = false; P.ground = null; w.ang = -.25; w.av = 2.4; w.lastHit = E; const hp = P.hp;
       if (blocking) A.doBlock(P); for (let i = 0; i < 20; i++) { A.update(1 / 60); P.vy = Math.min(P.vy, 0) } return { lost: hp - P.hp, av: w.av } };
     const hit = hitBy(false), safe = hitBy(true);
     check(hit.lost >= 12, `a fast-swinging block should hurt whoever it hits (lost ${hit.lost | 0})`);

@@ -1517,6 +1517,8 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const wrapA=a=>{while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a};
 
 /* ---------- stats & cards (k: gun | shot | guard | body) ---------- */
+/* a duel fighter has 50% more health than BASE (4 plain hits instead of 3, even with a small damage boost), so points last long enough to outplay someone */
+const VS_HP=1.5;
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1180,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:0,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
@@ -1650,31 +1652,31 @@ function drawIcon(g,name,x,y,size,color,lw=2){const f=ICONS[name];if(!f)return;g
 const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
-/* Chimes: 13 columns rising to a peak in the middle, each a faint shaft with small blocks you jump up through every 190px.
-   Each column's top is 95px below its neighbour's, so the blocks zigzag up the mountain one easy jump at a time */
-const chimeCols=Array.from({length:13},(_,i)=>({x:800+(i-6)*116,top:150+Math.abs(i-6)*95}));
-const chimeBlocks=chimeCols.flatMap(c=>{const out=[];for(let y=c.top;y<=830;y+=190)out.push([c.x-24,y,48,40]);return out});
+/* Chimes: 7 columns rising to a peak in the middle, each a faint shaft with wide blocks you jump up through every 220px.
+   Each column's top is 130px below its neighbour's, so the blocks zigzag up the mountain one easy jump at a time */
+const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:180+Math.abs(i-3)*130}));
+const chimeBlocks=chimeCols.flatMap(c=>{const out=[];for(let y=c.top;y<=830;y+=220)out.push([c.x-60,y,120,40]);return out});
 const MAPS=[
- {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],sp:[[220,720],[1380,720]]},
+ {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],more:[[140,610,200,38],[1580,610,200,38],[860,440,200,38]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
- {name:'Archipelago',rects:[[120,640,360,56],[620,520,360,56],[1120,640,360,56],[370,360,220,38],[1010,360,220,38]],sp:[[300,600],[1300,600]]},
- {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,590,240,40],[1180,590,240,40],[600,310,400,38]],crates:[[420,700,60],[1120,700,60]],sp:[[200,720],[1400,720]]},
- {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,600,400,40],[740,720,120,60]],sp:[[225,610],[1375,610]]},
- {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],sp:[[250,470],[1350,470]]},
+ {name:'Archipelago',rects:[[120,640,360,56],[620,520,360,56],[1120,640,360,56],[370,360,220,38],[1010,360,220,38]],more:[[840,400,240,38],[620,960,90,40],[1210,960,90,40]],sp:[[300,600],[1300,600]]},
+ {name:'Divider',rects:[[0,760,1600,140],[770,470,60,290,1],[180,590,240,40],[1180,590,240,40],[600,310,400,38]],crates:[[420,700,60],[1120,700,60]],more:[[40,600,180,38],[1700,600,180,38],[880,340,160,38]],sp:[[200,720],[1400,720]]},
+ {name:'Stairs',rects:[[0,780,1600,120],[0,640,300,140],[0,500,150,140],[1300,640,300,140],[1450,500,150,140],[600,600,400,40],[740,720,120,60]],more:[[400,480,200,38],[1320,480,200,38],[880,420,160,38]],sp:[[225,610],[1375,610]]},
+ {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],more:[[880,400,160,38],[40,860,150,40],[1730,860,150,40]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,600,220,40],[1180,600,220,40]],sp:[[200,750],[1400,750]]},
  {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],hangs:[{x:220,y:470,w:180},{x:1200,y:470,w:180}],sp:[[300,690],[1300,690]]},
- {name:'Chimes',rects:chimeBlocks,shafts:chimeCols.map(c=>[c.x-22,c.top,44]),sp:[[chimeCols[1].x,chimeCols[1].top-24],[chimeCols[11].x,chimeCols[11].top-24]]},
+ {name:'Chimes',rects:chimeBlocks,shafts:chimeCols.map(c=>[c.x-34,c.top,68]),sp:[[chimeCols[1].x,chimeCols[1].top-24],[chimeCols[5].x,chimeCols[5].top-24]]},
  {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,36],[1180,485,320,36],[100,665,320,36],[1180,665,320,36],[560,310,480,36],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
  {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:610,w:220,h:30},{ax:1000,len:610,w:220,h:30},{ax:800,len:400,w:160,h:30}],sp:[[200,770],[1400,770]]},
  {name:'Ferry',rects:[[0,700,420,200],[1180,700,420,200],[620,480,360,38]],movers:[{x:440,y:640,w:180,h:30,mx:540,my:0,period:6}],sp:[[210,660],[1390,660]]},
  {name:'Elevator',rects:[[0,780,1600,120],[640,340,320,38],[770,540,60,240,1]],movers:[{x:330,y:300,w:160,h:30,mx:0,my:380,period:5},{x:1110,y:300,w:160,h:30,mx:0,my:380,period:5,phase:.5}],sp:[[160,740],[1440,740]]},
  {name:'Springs',rects:[[0,780,500,120],[1100,780,500,120],[200,764,100,16,3],[1300,764,100,16,3],[620,420,360,40],[740,404,120,16,3],[180,300,240,38],[1180,300,240,38]],sp:[[400,740],[1200,740]]},
- {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],sp:[[260,740],[1340,740]]},
+ {name:'Crossroads',rects:[[0,780,1600,120],[770,250,60,400,1],[560,440,480,38],[150,600,220,40],[1230,600,220,40],[40,764,90,16,3],[1470,764,90,16,3]],more:[[140,560,200,38],[1580,560,200,38],[740,460,150,38],[1030,460,150,38]],sp:[[260,740],[1340,740]]},
  {name:'Catwalk',rects:[[100,520,500,40],[1000,520,500,40],[300,730,240,50],[1060,730,240,50]],movers:[{x:620,y:380,w:160,h:30,mx:200,my:0,period:4}],sp:[[300,480],[1300,480]]},
  {name:'Piston',rects:[[0,780,1600,120],[520,590,40,190,1],[1040,590,40,190,1],[600,330,400,38],[140,764,100,16,3],[1360,764,100,16,3]],movers:[{x:690,y:520,w:220,h:30,mx:0,my:180,period:3.5}],sp:[[300,740],[1300,740]]},
  {name:'Towers',rects:[[180,780,1240,120],[180,600,120,180],[1300,600,120,180],[640,690,320,90],[340,470,140,56],[1120,470,140,56],[700,340,200,56],[470,700,60,80],[1070,700,60,80]],sp:[[240,560],[1360,560]]},
- {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],crates:[[560,720,60],[980,720,60]],sp:[[200,740],[1400,740]]},
+ {name:'Bunkers',rects:[[0,780,1600,120],[420,680,60,100],[1120,680,60,100],[700,640,200,140],[180,600,200,40],[1220,600,200,40],[650,460,300,40],[60,430,160,40],[1380,430,160,40]],crates:[[560,720,60],[980,720,60]],more:[[380,460,200,38],[1340,460,200,38]],sp:[[200,740],[1400,740]]},
  {name:'Shelves',rects:[[0,760,500,140],[1100,760,500,140],[250,590,300,40],[1050,590,300,40],[90,420,260,40],[1250,420,260,40],[700,500,200,60],[740,700,120,70],[560,320,180,40],[860,320,180,40]],sp:[[300,720],[1300,720]]},
  {name:'Lanterns',rects:[[100,700,400,40],[1100,700,400,40],[650,560,300,36]],swings:[{ax:400,len:330,w:70,h:70},{ax:1200,len:330,w:70,h:70},{ax:800,len:200,w:110,h:40}],sp:[[250,670],[1350,670]]},
  // rigs: dark pieces held up by hollow supports (shoot one out and physics takes over)
@@ -1737,6 +1739,11 @@ function fitArena(m,TW,TH){const kx=TW/(m.w||VW),dy=TH-(m.h||VH),X=v=>Math.round
       :d.t==='lift'?{...d,a:{...d.a,x:mid(d.a.x,d.a.w),y:d.a.y+dy},b:{...d.b,x:mid(d.b.x,d.b.w),y:d.b.y+dy},wy:d.wy+dy}
       :d.t==='stack'?{...d,x:X(d.x),y:d.y+dy}:d)}:{}),
     sp:m.sp.map(([x,y])=>[X(x),y+dy])}}
+/* Duel arenas are 1920 x 1080 (1.2 screens, shown whole): each standard arena spreads sideways with sky on top, and most get
+   extra perches and cover in that space (`more`, in the bigger arena's units): longer fights, more angles to shoot from.
+   Springs, Piston, Chimes, Quarry and the rig arenas keep their size: their gaps, piston, columns, crates and rigs are built for it */
+for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(m.big||m.rigs||['Springs','Piston','Chimes','Quarry'].includes(m.name))continue;
+  const f=fitArena(m,1920,1080);f.rects=[...f.rects,...(m.more||[])];delete f.more;MAPS[i]=f}
 // the big Survival arenas: 2240 x 1260 (1.4 screens)
 for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260);
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
@@ -2040,7 +2047,7 @@ function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   /* Survival levels: +5% health, +4% damage each, up to level 15 */
-  if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
+  if(!survOn())s.maxHp*=VS_HP;if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   /* soft caps: every extra copy still pays off, with shrinking returns, and no build floods the screen (or the network) with
      shots: bullets grow to about 2.6x, a fan holds 7 pellets, a burst 4 shots, and the gun puts out at most 24 pellets a second.
@@ -2061,7 +2068,8 @@ function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:
 function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];const R=Math.max(BASE_R,p.r||0);   // a big fighter (Thick Skin, a boss) needs a bigger spot
   // a good spot: the body fits, and there's fixed floor (nothing that swings, falls or breaks) close under the whole body
   const fixed=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&!r.rig&&r.kind!==3&&r.kind!==4),under=(x,y)=>fixed.some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
-  const ok=(x,y)=>x>FRAME+R&&x<W-FRAME-R&&y>FRAME+R&&!solidBoxP(x,y,R,R)&&[-R*.7,0,R*.7].every(dx=>{for(let gy=y+R;gy<y+R+90;gy+=4)if(under(x+dx,gy))return true;return false});
+  // ...and out of a wrecking ball's swing (it would bowl the fighter over before they land)
+  const ok=(x,y)=>x>FRAME+R&&x<W-FRAME-R&&y>FRAME+R&&!solidBoxP(x,y,R,R)&&!rigs.some(c=>c.ball&&c.mode==='swing'&&Math.abs(Math.hypot(x-c.ax,y-c.ay)-c.len)<c.w+R+30)&&[-R*.7,0,R*.7].every(dx=>{for(let gy=y+R;gy<y+R+90;gy+=4)if(under(x+dx,gy))return true;return false});
   // every standing spot on every fixed surface, nearest to (tx,ty) first, that's free of the others
   const near=(tx,ty,free)=>{let best=null,bd=1e18;for(const r of fixed){if(r.w<56)continue;const y=r.y-R-2;for(let x=r.x+R+4;x<=r.x+r.w-R-4;x+=12){const d=(x-tx)**2+(y-ty)**2;if(d<bd&&ok(x,y)&&free(x,y)){bd=d;best=[x,y]}}}return best};
   if(p.team===0){const hs=heroes(),i=hs.indexOf(p);if(i<=0)return sp[0];   // more heroes start beside the first, each in the nearest free spot with floor under it
@@ -4502,7 +4510,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-30-join-probe';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-31-bigger-arenas';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

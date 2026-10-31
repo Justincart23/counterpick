@@ -39,10 +39,10 @@ const { load } = require('./env');
   { const [P, E] = setup('Quarry'); P.alive = E.alive = false; P.x = E.x = -999; const c = A.rides.find((r) => r.crate); c.y = 1000; c.vy = 900; run(.2);
     check(c.gone > 0, 'a crate below the arena should be gone for a moment'); run(3.5); check(!(c.gone > 0) && c.x === c.x0 && c.y >= c.y0 - 1, 'it should come back where it started') }
   // rope drop: shoot the red target over a fighter on the floor of Cutline
-  { const [P, E] = setup('Cutline'); const c = A.rides.find((r) => r.hang); A.resetPlayer(E, [c.x + c.w / 2, 800]); A.resetPlayer(P, [150, 640]); const hp = E.hp;
+  { const [P, E] = setup('Cutline'); const c = A.rides.find((r) => r.hang); A.resetPlayer(E, [c.x + c.w / 2, A.game.map.h - 100]); A.resetPlayer(P, A.game.map.sp[0]); const hp = E.hp;
     A.spawnBullet(P, c.tx - 40, c.ty, 0, { plain: true, dmg: 10, r: 6, speed: 1800 }); run(.1);
     check(c.st === 1, 'shooting the red target should drop the platform'); run(1.5); out.ropeHit = Math.round(hp - E.hp);
-    check(E.hp < hp, 'the dropped platform should hurt the fighter it lands on'); check(!A.solids.some((r) => !r.bound && !r.oneway && E.x > r.x + 2 && E.x < r.x + r.w - 2 && E.y > r.y + 2 && E.y < r.y + r.h - 2), 'the fighter it landed on should not end up inside the floor or the platform'); check(c.st === 2 && Math.abs(c.y + c.h - 820) < 2, `it should rest on the floor (st ${c.st}, bottom ${Math.round(c.y + c.h)})`);
+    check(E.hp < hp, 'the dropped platform should hurt the fighter it lands on'); check(!A.solids.some((r) => !r.bound && !r.oneway && E.x > r.x + 2 && E.x < r.x + r.w - 2 && E.y > r.y + 2 && E.y < r.y + r.h - 2), 'the fighter it landed on should not end up inside the floor or the platform'); check(c.st === 2 && Math.abs(c.y + c.h - (A.game.map.h - 80)) < 2, `it should rest on the floor (st ${c.st}, bottom ${Math.round(c.y + c.h)})`);
     // the next point puts everything back
     A.loadMap(A.game.mapIdx); const d = A.rides.find((r) => r.hang); check(d.st === 0 && d.y === A.game.map.hangs[0].y && A.solids.includes(d) && !A.solids.includes(c), 'the rope drop should be back up at the next point') }
   console.log(JSON.stringify({ ...out, failures: fail.length }));

@@ -78,7 +78,9 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(H.spick && H.spick.ids.length === 4, 'the screen should show all four pickers');
   G.forEach((A, i) => A.padPick(i % 3)); frame(30);
   check(G.every((A) => A.ctl.picked >= 0), 'each phone should show its pick locked in');
-  frame(60 * 6 + 4 * Math.ceil((LATENCY + JITTER) / (1000 / 60)));
+  // the CPU takes up to ~4 s to pick, then the cards flip one by one: wait for the reveal to finish (12 s at most)
+  for (let i = 0; i < 12 * 60 && H.spick; i++) frame();
+  frame(4 * Math.ceil((LATENCY + JITTER) / (1000 / 60)));
   check(!H.spick && H.players.every((p) => p.cards.length === 1), `after the reveal everyone should hold their card (${H.players.map((p) => p.cards.length)})`);
   check(G.every((A, i) => H.players[A.ctl.me].cards[0] && A.ctl.hand === null), 'the phones should go back to the controls');
   // --- a phone's input reaches its fighter within a few frames

@@ -25,7 +25,7 @@ const check = (ok, msg) => { if (!ok) fail.push(msg) };
     };
     const setup = () => {
       A.startMatch('cpu'); A.loadMap(0); A.game.state = 'play'; A.game.dropT = 0; A.game.dropOff = 0;
-      const [p, e] = A.players; e.ctrl = 'idle'; e.alive = false; p.cards = []; A.recompute(p); A.resetPlayer(p, [400, 700]);
+      const [p, e] = A.players; e.ctrl = 'idle'; e.alive = false; p.cards = []; A.recompute(p); A.resetPlayer(p, [700, (A.game.map.h || 900) - 180]);   // on the floor, with clear running room to the right
       A.keys.clear(); A.edges.clear(); A.mouse.down = false; play(1, () => new Set()); return p;
     };
     const none = () => new Set();
