@@ -4495,7 +4495,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-10-30-chimes-columns';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-10-30-join-probe';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4639,6 +4639,7 @@ function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net
     setTimeout(()=>{if(net.peer===peer&&!net.relayReady&&!net.connected){hostMsg(netErr(err));leaveOnline(true)}},6500)});
   peer.on('disconnected',()=>{if(net.peer===peer&&!net.connected)try{peer.reconnect()}catch(e){}});
   peer.on('connection',conn=>{if(net.peer!==peer)return;
+    if(conn.metadata&&conn.metadata.probe){conn.on('open',()=>{try{conn.close()}catch(e){}});return}   // Flick's Join page checking which game has this code: never a player
     if(roomFull()){conn.on('open',()=>{conn.send({t:'full',party:net.party?1:0,started:net.party&&!net.lobbyOpen?1:0});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // time for the message to arrive (a lost packet is resent) before the link closes
     attachConn(conn);if(!net.party)hostMsg('A challenger is connecting…')})}
 // a duel or co-op room holds one guest; a party room up to three, and only while its lobby is open
