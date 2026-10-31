@@ -15,7 +15,7 @@ const path = require('path');
     // open gaps: columns with nothing solid between mid-height and the bottom edge
     const open = []; for (let x = 40; x <= 1560; x += 40) if (!A.solids.some((r) => !r.bound && x > r.x - P.r && x < r.x + r.w + P.r && r.y + r.h > 520)) open.push(x);
     let saved = 0;
-    // on an arena made only of hanging blocks (Chimes), whether a block is in reach depends on how they happen to be swinging:
+    // on an arena made only of hanging blocks, whether a block is in reach depends on how they happen to be swinging:
     // a spot gets a second try with fresh starting angles there
     const allSwing = !A.game.map.rects.length;
     for (const x0 of open) {
