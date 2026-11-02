@@ -2049,9 +2049,11 @@ function padEdge(p,i){const k=p.index+':'+i,now=padBtn(p,i),was=padPrev[k];padPr
 
 /* ---------- game state ---------- */
 // lag: seconds the CPU's picture of you trails reality · turn: max aim swing (rad/s) · lead: how much it predicts your motion · err: aim wobble (rad)
-const DIFF={easy:{block:.06,dodge:.12,err:.2,react:.28,hes:.7,lag:.4,turn:2.6,lead:.3},
-  normal:{block:.22,dodge:.25,err:.11,react:.16,hes:.4,lag:.25,turn:4.2,lead:.6},
-  hard:{block:.5,dodge:.45,err:.05,react:.09,hes:.18,lag:.13,turn:8,lead:.9}};
+/* save: the chance a CPU, once it leaves the ground, plays that jump safe (plans a landing) instead of winging it, so CPUs
+   still misjudge a jump now and then, easy ones more often */
+const DIFF={easy:{block:.06,dodge:.12,err:.2,react:.28,hes:.7,lag:.4,turn:2.6,lead:.3,save:.45},
+  normal:{block:.22,dodge:.25,err:.11,react:.16,hes:.4,lag:.25,turn:4.2,lead:.6,save:.7},
+  hard:{block:.5,dodge:.45,err:.05,react:.09,hes:.18,lag:.13,turn:8,lead:.9,save:.9}};
 const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,map:null,mapIdx:-1,stT:0,endT:0,banner:'',bannerT:0,
   slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
 let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
@@ -4066,7 +4068,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   // the ground under us is falling away (a chime shot out): get off it
   if(p.grounded&&p.ground&&p.ground.rig&&p.ground.mode==='fall')jump=true;
   // in the air: follow a landing plan whenever the current course comes down on nothing
-  if(!p.grounded&&!p.wallDir){const pl=cpuFallPlan(p,ai,dir,e);if(pl){dir=pl.dir;const jt=pl.jt;
+  if(p.grounded)ai.safe=null;else if(ai.safe==null)ai.safe=Math.random()<(sk.save??1);
+  if(!p.grounded&&!p.wallDir&&ai.safe){const pl=cpuFallPlan(p,ai,dir,e);if(pl){dir=pl.dir;const jt=pl.jt;
       jump=p.airJumps>0&&(jt==='now'||jt==='apex'&&p.vy>=-40||jt==='late'&&p.vy>=260);if(jump)ai.fp=undefined;
       if(jt!=='none'||p.vy<0)ai.jumpHold=Math.max(ai.jumpHold,.2)}}
   else ai.fp=undefined;
@@ -4585,7 +4588,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-cpu-landing6';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-cpu-landing-skill';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
