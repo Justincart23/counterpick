@@ -1646,10 +1646,10 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
 /* Chimes: seven wide chimes, every one hanging on its own line from the sky, rising to a peak in the middle. Neighbours
-   are 95px apart in height, one easy jump, and each swings when it's shot or landed on, so the path keeps moving. Under
-   every other chime sits a fixed jump-through ledge: steady footing to spawn on, regroup on and climb back up from */
-const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:310+Math.abs(i-3)*95}));
-const chimeBlocks=[1,3,5].map(i=>[chimeCols[i].x-80,i===3?560:720,160,40]);
+   are 95px apart in height, one easy jump. Each line is held by a support just above its chime: two shots break it and the
+   chime drops, with whoever was standing on it, onto whoever is under it. A new chime is lowered back on the same line a
+   few seconds later (its outline shows where), so the climb keeps changing but never runs out */
+const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:400+Math.abs(i-3)*95}));
 const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],more:[[140,610,200,38],[1580,610,200,38],[860,440,200,38]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
@@ -1659,7 +1659,7 @@ const MAPS=[
  {name:'Bridge',rects:[[180,500,140,400,1],[1280,500,140,400,1],[440,600,720,40],[560,380,180,38],[860,380,180,38]],more:[[880,400,160,38],[40,860,150,40],[1730,860,150,40]],sp:[[250,470],[1350,470]]},
  {name:'Hourglass',rects:[[0,780,1600,120,2],[700,0,200,330,1],[650,620,300,160],[200,600,220,40],[1180,600,220,40]],sp:[[200,750],[1400,750]]},
  {name:'Gallows',rects:[[100,720,500,180],[1000,720,500,180],[760,700,80,200,1]],swings:[{ax:800,len:500,w:300,h:30}],hangs:[{x:220,y:470,w:180},{x:1200,y:470,w:180}],sp:[[300,690],[1300,690]]},
- {name:'Chimes',rects:chimeBlocks,swings:chimeCols.map(c=>({ax:c.x,len:c.top+20,w:130,h:40})),sp:[[chimeCols[1].x,696],[chimeCols[5].x,696]]},
+ {name:'Chimes',rects:[],rigs:chimeCols.map(c=>({t:'chime',x:c.x,top:c.top,w:130,h:40})),sp:[[chimeCols[1].x,chimeCols[1].top-24],[chimeCols[5].x,chimeCols[5].top-24]]},
  {name:'Scaffold',rects:[[60,420,40,440,1],[1500,420,40,440,1],[100,485,320,36],[1180,485,320,36],[100,665,320,36],[1180,665,320,36],[560,310,480,36],[0,860,1600,40,2]],
    swings:[{ax:800,len:500,w:200,h:40}],sp:[[260,640],[1340,640]]},
  {name:'Swingset',rects:[[0,800,420,100],[1180,800,420,100]],swings:[{ax:600,len:610,w:220,h:30},{ax:1000,len:610,w:220,h:30},{ax:800,len:400,w:160,h:30}],sp:[[200,770],[1400,770]]},
@@ -2467,6 +2467,7 @@ function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)
   const D=KIND[4][0],N='#ffb35a',ln=(x0,y0,x1,y1)=>{g.beginPath();g.moveTo(ox+x0*k,oy+y0*k);g.lineTo(ox+x1*k,oy+y1*k);g.stroke()};
   for(const d of m.rigs||[]){
     if(d.t==='beam'){R(d.x,d.y,d.w,d.h,D);for(const r of d.ropes){const x=d.x+d.w/2+r.ox;ln(x,r.ay||0,x,d.y);R(x-8,d.y-64,16,16,N)}}
+    else if(d.t==='chime'){ln(d.x,0,d.x,d.top);R(d.x-d.w/2,d.top,d.w,d.h,D);R(d.x-8,d.top-64,16,16,N)}
     else if(d.t==='ball'){ln(d.ax,d.ay||0,d.ax,(d.ay||0)+d.len);R(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,D);R(d.ax-8,(d.ay||0)+d.len-64,16,16,N)}
     else if(d.t==='bridge'){R(d.dir>0?d.px:d.px-(d.th||30),d.py-d.L,d.th||30,d.L,D);ln(d.px,d.py-d.L,d.rx,d.ry)}
     else if(d.t==='lift')for(const q of[d.a,d.b]){ln(q.x+q.w/2,d.wy,q.x+q.w/2,q.y);R(q.x,q.y,q.w,q.h,D)}
@@ -3384,6 +3385,8 @@ function buildRigs(){rigs=[];lifts=[];
     if(!c.art)c.art=c.prop?null:rigArt(w,h,o.ball);rigs.push(c);return c},rope=(ax,ay,ox=0)=>({k:'rope',ox,ax,ay,alive:true,hp:1,max:1});
   for(const d of game.map.rigs||[]){
     if(d.t==='beam'){const c=mk(d.x,d.y,d.w,d.h);c.nodes=d.ropes.map(r=>rope(d.x+d.w/2+r.ox,r.ay||0,r.ox))}
+    else if(d.t==='chime'){const c=mk(d.x-d.w/2,d.top,d.w,d.h,{chime:true,mode:'swing',ax:d.x,ay:0,len:d.top,damp:.22,grow:1,regrow:0});
+      c.nodes=[{...rope(d.x,0),hp:2,max:2}];placeRig(c)}
     else if(d.t==='ball'){const c=mk(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,{ball:true,mode:'swing',ax:d.ax,ay:d.ay||0,len:d.len,ang:d.amp||0,damp:.05,mass:2.2});c.nodes=[rope(d.ax,d.ay||0)];placeRig(c)}
     else if(d.t==='bridge'){const th=d.th||30,c=mk(d.dir>0?d.px:d.px-th,d.py-d.L,th,d.L,{bridge:true,dir:d.dir,hx:d.px,hy:d.py,L:d.L,th,phi:Math.PI/2,pv:0,art:rigArt(d.L,th)});
       c.nodes=[rope(d.rx,d.ry),{k:'hinge',alive:true,hp:2,max:2}]}
@@ -3409,7 +3412,7 @@ function rigReact(c){
   if(!up.length){if(c.mode!=='fall'&&c.mode!=='gone'){const sw=c.mode==='swing';c.mode='fall';c.vx=sw?clamp(c.dx/FIXED,-700,700):0;c.vy=sw?clamp(c.dy/FIXED,-600,600):0;c.tv=c.ball?0:(c.tilt>0?1:-1)*.6}return}
   if(up.length===1&&c.mode==='hold'){const n=up[0];c.mode='swing';c.ax=n.ax;c.ay=n.ay;c.off=n.ox;c.len=Math.max(60,c.y-n.ay);c.ang=0;
     c.av=Math.sign(n.ox)*Math.min(.9,300/c.len);c.lean=-Math.sign(n.ox)*.09;c.damp=.25;placeRig(c)}}
-const rigBlocked=c=>solids.some(o=>o!==c&&!o.bound&&!o.oneway&&!o.ride&&!o.swing&&boxOver(c,c.x,c.y,o));
+const rigBlocked=c=>solids.some(o=>o!==c&&!o.bound&&!o.oneway&&(!o.ride||c.chime&&o.chime&&o.mode==='swing')&&!o.swing&&boxOver(c,c.x,c.y,o));
 function rigThud(c,k=1){burst(c.x+c.w/2,c.y+c.h/2,'#cfd8e3',5,200,3,.25);sfx('thud');addShake(3*k)}
 function rigSwing(c,dt){const pa=c.ang;[c.ang,c.av]=rigPend(c.ang,c.av,c.len,c.damp,dt);placeRig(c);c.pa=pa;
   if(rigBlocked(c)){const hit=Math.abs(c.av);c.ang=pa;c.av*=-.45;placeRig(c);if(hit>.35)rigThud(c,c.mass)}}
@@ -3423,6 +3426,15 @@ function rigFall(c,dt){const g=c.ground;
   if(rideFall(c,dt,false)){if(was==='fall'){c.mode='rest';c.vx=0;c.tv=-c.tilt*7}}
   else if(was==='rest'&&c.vy>60){c.mode='fall';if(c.stack&&c.stack.broken){c.vx=c.stack.lean*(1+c.lvl*.4);c.tv=Math.sign(c.stack.lean)*(.5+c.lvl*.3)}}
   if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0}}
+/* a chime whose support is shot out drops straight through everything (nothing below can catch it), crushing whoever it
+   lands on, and goes; the host lowers a fresh one onto the same line once the spot under its line is clear */
+const CHIME_BACK=6;
+function chimeFall(c,dt){c.vy=Math.min(1600,c.vy+PG*gMul()*dt);const ny=c.y+c.vy*dt;c.x+=c.vx*dt;c.vx*=Math.max(0,1-dt*.8);
+  if(c.vy>CRUSH_V)for(const p of players)if(p.alive&&p.ground!==c&&p.y>ny+c.h*.4&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h}))rideCrush(c,p,30);
+  c.y=ny;if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0;c.regrow=CHIME_BACK}}
+function chimeBack(c,dt){if(game.mode==='online-guest'||(c.regrow-=dt)>0)return;
+  const hx=c.ax-c.w/2,hy=c.len;if(players.some(p=>p.alive&&boxHit(p.x,p.y,p.r+20,p.r+20,{x:hx,y:hy,w:c.w,h:c.h})))return;
+  c.mode='swing';c.ang=0;c.av=0;c.tilt=0;c.tv=0;c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}placeRig(c);c.px=c.lx=c.x;c.py=c.ly=c.y}
 function rigTilt(c,dt){if(c.bridge&&c.mode!=='fall'){c.tilt=0;c.tv=0;return}
   if(c.ball){if(c.mode==='swing')c.tilt=c.ang;else if(c.mode==='fall')c.tilt+=c.vx*.004*dt;return}
   if(c.mode==='fall'){c.tilt=clamp(c.tilt+c.tv*dt,-.35,.35);return}
@@ -3437,7 +3449,11 @@ function liftPlace(L){L.b[0].y=L.b[0].y0+L.s;L.b[1].y=L.b[1].y0-L.s}
 function updateRigs(dt,keep){if(!rigs.length)return;
   if(!keep)for(const c of rigs){c.px=c.x;c.py=c.y}
   for(const L of lifts)liftStep(L,dt);
-  for(const c of rigs){if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
+  for(const c of rigs)if(c.chime){if(c.grow<1)c.grow=Math.min(1,c.grow+dt*2.5);if(c.mode==='gone')chimeBack(c,dt);
+    // landing on a chime or running across it sets it swaying
+    else if(c.mode==='swing'&&game.mode!=='online-guest')for(const p of players)if(p.alive&&p.ground===c){if(!p.onChime){p.onChime=c;c.av=clamp(c.av+(p.vx||0)*.0009+Math.sign(p.x-(c.x+c.w/2))*.12,-1,1)}c.av=clamp(c.av+(p.vx||0)*.0012*dt,-1,1)}}
+  for(const p of players)if(p.onChime&&p.ground!==p.onChime)p.onChime=null;
+  for(const c of rigs){if(c.chime&&c.mode==='fall'){chimeFall(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;continue}if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
     rigTilt(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0;
     // a moving piece that sweeps over a shot stops it there (a falling beam can't pass over a bullet; Ghost Rounds still drill)
     if((c.dx||c.dy)&&c.mode!=='gone'&&game.mode!=='online-guest')for(const b of bullets)if(!b.dead&&!b.phase&&!b.stuck&&b.x>c.x-b.r&&b.x<c.x+c.w+b.r&&b.y>c.y-b.r&&b.y<c.y+c.h+b.r){rigShove(c,b);killBullet(b,true,c)}}}
@@ -3458,23 +3474,25 @@ function rigTarget(p,e){for(const c of rigs){if(c.mode==='gone')continue;
     if(!over&&!near)continue;for(const n of c.nodes){if(!n.alive)continue;let[tx,ty]=nodePos(c,n);
       const sx=n.k==='self'?tx-Math.sign(tx-p.x||1)*(c.w/2+4):tx;if(losClear(p.x,p.y,sx,ty))return{tx,ty,get st(){return n.alive?0:1}}}}return null}
 function drawRigs(){if(!rigs.length)return;const t=performance.now()/1000,a=clamp(game.alpha||0,0,1);
+  for(const c of rigs)if(c.chime&&c.mode==='gone'&&c.regrow<2.5){const k=1-Math.max(0,c.regrow)/2.5,x=c.ax-c.w/2,y=c.len;ctx.save();ctx.globalAlpha=.15+.35*k;
+    ctx.strokeStyle='#cfc6e6';ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.lineDashOffset=-t*30;slabPath(ctx,x,y,c.w,c.h);ctx.stroke();ctx.setLineDash([]);chain(c.ax,0,c.ax,y*k);ctx.restore()}
   for(const L of lifts){const[b0,b1]=L.b,x0=b0.x+b0.w/2,x1=b1.x+b1.w/2;chain(x0,0,x0,L.wy-16);chain(x1,0,x1,L.wy-16);if(!L.broken)chain(x0,L.wy-16,x1,L.wy-16);
     for(const x of[x0,x1]){ctx.fillStyle='#3a312d';ctx.beginPath();ctx.arc(x,L.wy,17,0,TAU);ctx.fill();ctx.strokeStyle='#8f8278';ctx.lineWidth=3;ctx.stroke();
       ctx.save();ctx.translate(x,L.wy);ctx.rotate(L.s*.03*(x===x0?1:-1));ctx.strokeStyle='#8f8278';ctx.lineWidth=2.5;ctx.beginPath();for(let k=0;k<3;k++){const q=k/3*Math.PI;ctx.moveTo(Math.cos(q)*13,Math.sin(q)*13);ctx.lineTo(-Math.cos(q)*13,-Math.sin(q)*13)}ctx.stroke();ctx.restore()}}
-  for(const c of rigs){if(c.mode==='gone')continue;
+  for(const c of rigs){if(c.mode==='gone')continue;const ga=ctx.globalAlpha;if(c.chime&&c.grow<1)ctx.globalAlpha=ga*c.grow;
     for(const n of c.nodes){if(n.k!=='rope')continue;if(n.alive){const[x0,y0]=attachPt(c,n);if(c.lift){chain(n.ax,n.ay,x0,y0)}else{if(n.ay>0){ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(n.ax,n.ay,6,0,TAU);ctx.fill()}chain(n.ax,n.ay,x0,y0)}}
       else if(!c.lift)chain(n.ax,n.ay,n.ax,n.ay+34)}   // a snapped rope's stub
     if(c.prop){drawNode(c.x+c.w/2,c.y+c.h/2,c.nodes[0].hp,c.nodes[0].max,t,c.w/2,c.h/2);continue}
     if(c.bridge&&c.mode!=='fall'){const ph=c.lphi!=null&&c.mode==='flip'?c.lphi+(c.phi-c.lphi)*a:c.phi,[ax,ay,bx,by]=bridgeAxes(c,ph);ctx.save();ctx.translate(c.hx,c.hy);ctx.transform(ax,ay,bx,by,0,0);ctx.drawImage(c.art,0,0);ctx.restore()}
     else{ctx.save();ctx.translate(c.x+c.w/2,c.y+c.h/2);ctx.rotate(c.tilt+(c.bridge&&!c.down?Math.PI/2:0));if(c.mode!=='rest'&&!c.ball&&!c.bridge){ctx.fillStyle='rgba(0,0,0,.28)';slabPath(ctx,-c.w/2+8,-c.h/2+10,c.w,c.h);ctx.fill()}
       ctx.drawImage(c.art,-c.art.width/2,-c.art.height/2);ctx.restore()}
-    for(const n of c.nodes)if(n.alive&&n.k!=='self'){const[x,y]=nodePos(c,n);drawNode(x,y,n.hp,n.max,t)}}}
+    for(const n of c.nodes)if(n.alive&&n.k!=='self'){const[x,y]=nodePos(c,n);drawNode(x,y,n.hp,n.max,t)}ctx.globalAlpha=ga}}
 // online guest: the same physics here, nudged toward the host's numbers (a break arrives as a cleared bit and plays out locally)
 function guestRigs(h){if(!rigs.length)return;const k=Math.min(1,h*6),lead=clamp((net.leadS||0)+2*FIXED,0,.45),ls=Math.round(lead/FIXED);
   for(const c of rigs){c.px=c.x;c.py=c.y}
   for(const L of lifts)if(L.gs!=null&&!L.broken){const ts=clamp(L.gs+L.gv*lead,-L.range,L.range);L.s+=(ts-L.s)*k;L.v+=(L.gv-L.v)*k;liftPlace(L)}
   for(const c of rigs){const g=c.g;if(!g)continue;const hm=RIG_M[g[2]]||c.mode;
-    if(hm!==c.mode){c.gT=(c.gT||0)+h;if(c.gT>.3){c.gT=0;if(c.bridge&&g[6]<.5)bridgeLower(c);if(hm==='swing'&&!(c.len>0))continue;c.mode=hm;c.x=g[0];c.y=g[1];c.ang=g[4];c.av=g[5];if(c.bridge)c.phi=g[6];c.vx=c.vy=0;c.px=c.lx=c.x;c.py=c.ly=c.y}continue}c.gT=0;
+    if(hm!==c.mode){c.gT=(c.gT||0)+h;if(c.gT>.3){c.gT=0;if(c.bridge&&g[6]<.5)bridgeLower(c);if(hm==='swing'&&!(c.len>0))continue;if(c.chime&&hm==='swing'){c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}}c.mode=hm;c.x=g[0];c.y=g[1];c.ang=g[4];c.av=g[5];if(c.bridge)c.phi=g[6];c.vx=c.vy=0;c.px=c.lx=c.x;c.py=c.ly=c.y}continue}c.gT=0;
     if(hm==='swing'){let ang=g[4],av=g[5];for(let j=0;j<ls;j++)[ang,av]=rigPend(ang,av,c.len,c.damp,FIXED);const d=ang-c.ang;if(Math.abs(d)>.3){c.ang=ang;c.av=av}else{c.ang+=d*k;c.av+=(av-c.av)*k}placeRig(c)}
     else if(hm==='hold'||hm==='rest'){if(c.bridge&&!c.down)continue;const ex=g[0]-c.x,ey=g[1]-c.y;if(Math.hypot(ex,ey)>60){c.x=g[0];c.y=g[1]}else{c.x+=ex*k;c.y+=ey*k}}
     else if(hm==='fall'&&Math.hypot(g[0]-c.x,g[1]-c.y)>120){c.x=g[0];c.y=g[1]}}
@@ -4513,7 +4531,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-chimes-hang';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-chimes-supports';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

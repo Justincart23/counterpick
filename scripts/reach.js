@@ -15,9 +15,9 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
     A.startMatch('cpu'); flush(); A.loadMap(mi); A.game.state = 'play'; A.game.dropT = 0; A.game.dropOff = 0;
     const [P, E] = A.players; E.alive = false; E.x = -999; P.cards = []; A.recompute(P); P.s.jumpPower = .88;   // a margin: nothing should need a pixel-perfect max-height jump (12% short of the real max)
     // a surface is a solid you can stand on: rects by position, hanging blocks / movers by their index (they move)
-    const key = (r) => !r ? null : r.swing ? 'swing' + A.solids.filter((q) => q.swing).indexOf(r) : `${r.x},${r.y},${r.w},${r.h}`;
+    const key = (r) => !r ? null : r.swing ? 'swing' + A.solids.filter((q) => q.swing).indexOf(r) : r.chime ? 'chime' + A.solids.filter((q) => q.chime).indexOf(r) : `${r.x},${r.y},${r.w},${r.h}`;
     const standable = (r) => !r.bound && r.kind !== 3 && (r.swing || r.y > 2 * P.r + 14);   // pads launch you; a block flush with the ceiling has no top
-    const surf = A.solids.filter(standable).map((r) => ({ k: key(r), name: r.swing ? (r.mover ? 'moving platform' : 'hanging block') + ' ' + key(r).slice(5) : `[${r.x},${r.y},${r.w},${r.h}]` }));
+    const surf = A.solids.filter(standable).map((r) => ({ k: key(r), name: r.swing ? (r.mover ? 'moving platform' : 'hanging block') + ' ' + key(r).slice(5) : r.chime ? key(r) : `[${r.x},${r.y},${r.w},${r.h}]` }));
     const spots = (r) => { const xs = []; for (let x = r.x + P.r + 2; x <= r.x + r.w - P.r - 2; x += 40) xs.push(x); if (!xs.length) xs.push(r.x + r.w / 2); return xs };
     const progs = [[], [0], [0, .2], [0, .3], [0, .4], [0, .7], [0, .9], [0, 1.1], [0, .25, .5, .75, 1.0, 1.25], [0, .3, .55, .8, 1.05, 1.3]];
     const waits = [0, .5, 1, 1.5, 2, 2.5];   // moving parts: try leaving at different moments
