@@ -714,7 +714,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 /* a phone: the lobby in one column that fits the width (scrolls when tall, never cut off at the top); the code, the QR and the
    link button in a row; Start and Close stay in reach at the bottom */
 @media (max-width:760px),(max-height:520px){
-  #bigLobby{align-items:flex-start}#bigLobby .bs-wrap{margin:0 auto;padding:max(10px,env(safe-area-inset-top,0px)) 14px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+  #bigLobby{align-items:flex-start;justify-content:flex-start}#bigLobby .bs-wrap{margin:0 auto;padding:max(10px,env(safe-area-inset-top,0px)) 14px calc(80px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
   #bigLobby .bs-wrap .screen-title{font-size:clamp(24px,7vw,32px);transform:none;text-align:center}
   #bigLobby .bs-grid{grid-template-columns:minmax(0,1fr);gap:12px}
   #bigLobby .bs-join{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto;align-items:center;justify-items:start;text-align:left;column-gap:14px;row-gap:4px}
@@ -725,6 +725,20 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   #bigLobby .bs-acts{position:fixed;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:0;padding:10px max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(14,8,22,.96) 30%)}
   #bigLobby .bs-acts .btn{font-size:18px;padding:10px}
 }
+/* a phone on its side: two columns, so the code never scrolls away: QR, code and invite on the left (they stay put), players
+   and settings on the right */
+@media (max-height:520px) and (min-aspect-ratio:4/3){
+  #bigLobby .bs-wrap{width:100%;gap:6px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+  #bigLobby .bs-wrap .screen-title{font-size:22px;margin:0}
+  #bigLobby .bs-grid{grid-template-columns:minmax(190px,32%) minmax(0,1fr);gap:18px;align-items:start}
+  #bigLobby .bs-join{position:sticky;top:8px;grid-template-columns:1fr;grid-template-rows:none;justify-items:center;text-align:center;row-gap:6px}
+  #bigLobby .bs-qr{grid-column:auto;grid-row:auto;width:min(120px,28vh)}
+  #bigLobby .bs-join .lbl,#bigLobby .bs-or,#bigLobby .bs-join .code,#bigLobby .bs-link{grid-column:auto}
+  #bigLobby .bs-join .code{font-size:40px}
+  #bigLobby .bs-seats{display:grid;grid-template-columns:1fr 1fr;gap:6px}#bigLobby .bs-seats li{margin:0}
+}
+/* an odd one out among the settings spans the whole row instead of sitting alone */
+#bigLobby .bs-opt.wide{grid-column:1 / -1}
 @media (max-width:440px){#bigLobby .bs-ov{font-size:14px;gap:2px}#bigLobby .bs-ov i{width:22px;height:24px;font-size:17px}#bigLobby .bs-ov .val{flex:1;text-align:center}}
 @media (max-width:860px){.bs-grid{grid-template-columns:1fr}.bs-join{grid-template-columns:auto auto;align-items:center;justify-items:start;text-align:left}.bs-qr{grid-row:span 3;width:150px}}
 @media (max-height:700px){.bs-wrap .screen-title{font-size:34px}.bs-opt{padding:4px 8px 5px 10px}.bs-ov{font-size:16px}.bs-seats li{padding:5px 10px 5px 30px;font-size:17px}}
@@ -4533,7 +4547,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-chimes-fall-through';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-lobby-phone';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5109,6 +5123,8 @@ function bsFill(list){list=list.slice();const teams=bsTeams();let n=bsSurvMode()
   while(n-->0){const side=t=>list.filter((e,k)=>e&&k%2===t).length,free=list.map((e,k)=>e?-1:k).filter(k=>k>=0);
     const k=teams?free.sort((a,b)=>side(a%2)-side(b%2)||a-b)[0]:free[0];list[k]={cpu:1,n:'CPU',team:teams?k%2:k,seat:k}}
   return list}
+function bsTidyOpts(){const v=[...document.querySelectorAll('#bigLobby .bs-opt')].filter(e=>getComputedStyle(e).display!=='none');v.forEach((e,i)=>e.classList.toggle('wide',v.length%2===1&&i===v.length-1))}
+try{const lb=$('#bigLobby');if(lb&&typeof MutationObserver!=='undefined')new MutationObserver(bsTidyOpts).observe(lb,{attributes:true,attributeFilter:['class','hidden']})}catch(e){}
 function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
