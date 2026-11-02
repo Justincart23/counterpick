@@ -52,10 +52,20 @@ const { load, flushTimers } = require('./env');
     check(key.mode === 'gone' && top.every((c, i) => c.y > y0[i] + 30 && c.mode === 'rest'), 'Topple: keystone shot out, the blocks above come down and settle');
     check(top.some((c, i) => Math.abs(c.x - (key.x + key.w / 2 - c.w / 2)) > 20), 'Topple: and they topple sideways'); check(!embedded(H), 'Topple: nothing inside a block');
     check(near(12), 'Topple: the guest shows the same pile') }
+  // Chimes: seven chimes on their own two-hit supports. Shot out, a chime drops away; 6 s later a fresh one hangs on the same
+  // line, on the guest too, and a guest's chime swaying under the host's snapshots stays with the host's
+  both('Chimes'); { const c = H.rigs[2]; check(H.rigs.length === 7 && H.rigs.every((r) => r.chime && r.mode === 'swing' && r.nodes[0].max === 2), 'Chimes: seven chimes, each on a two-hit support');
+    const home = [c.x, c.y]; c.av = 0.6; run(2, true); check(near(30), `Chimes: the guest's chimes sway with the host's (${Math.round(Math.hypot(G.rigs[2].x - c.x, G.rigs[2].y - c.y))} px)`);
+    const n = c.nodes[0]; H.hitNode(c, n, null); check(n.alive && n.hp === 1 && c.mode === 'swing', 'Chimes: one shot only cracks the support');
+    H.hitNode(c, n, null); run(1.5, true); check(c.mode === 'gone' && G.rigs[2].mode === 'gone', `Chimes: two shots and the chime drops away (host ${c.mode}, guest ${G.rigs[2].mode})`);
+    run(6, true); const g = G.rigs[2]; check(c.mode === 'swing' && c.nodes[0].alive && c.nodes[0].hp === 2, `Chimes: a fresh chime hangs back on its line (${c.mode})`);
+    check(g.mode === 'swing' && g.nodes[0].alive && g.nodes[0].hp === 2 && Math.hypot(g.x - c.x, g.y - c.y) < 12, 'Chimes: and on the guest, support and all');
+    check(Math.abs(c.y - home[1]) < 40, 'Chimes: back at its own height');
+    H.hitNode(c, c.nodes[0], null); check(G.rigs[2].nodes[0].hp === 2, 'Chimes: (the guest keeps the host\'s crack count from snapshots)'); run(0.3, true); check(G.rigs[2].nodes[0].hp === 1, 'Chimes: the guest sees the support crack') }
   // every rig arena: a minute of CPU play never leaves a piece inside a fixed block, and nothing throws
   // the wide (co-op) versions: the bridges still meet across the wider gap
   both('Wide Drawbridge'); { const [L, R] = H.rigs; brk(L, 0); brk(R, 0); run(2.5, true); check(L.down && R.down && Math.abs(L.x + L.w - R.x) < 2, `Wide Drawbridge: the bridges come down and meet (${Math.round(L.x + L.w)} / ${Math.round(R.x)})`) }
-  for (const n of ['Chandelier', 'Drawbridge', 'Wrecking Yard', 'Pulley', 'Topple', 'Foundry', 'Wide Chandelier', 'Wide Drawbridge', 'Wide Wrecking Yard', 'Wide Pulley', 'Wide Topple']) { H.startMatch('cpu'); flushTimers(); H.loadMap(mi(H, n)); H.game.state = 'play';
+  for (const n of ['Chimes', 'Chandelier', 'Drawbridge', 'Wrecking Yard', 'Pulley', 'Topple', 'Foundry', 'Wide Chandelier', 'Wide Drawbridge', 'Wide Wrecking Yard', 'Wide Pulley', 'Wide Topple']) { H.startMatch('cpu'); flushTimers(); H.loadMap(mi(H, n)); H.game.state = 'play';
     for (const p of H.players) { p.ctrl = 'cpu'; p.hp = 1e6 } let bad = 0; for (let i = 0; i < 60 / h; i++) { H.update(h); flushTimers(); if (i % 60 === 0 && embedded(H)) bad++ } check(!bad, `${n}: a piece ended up inside a block during CPU play`) }
   if (fail.length) { console.log('FAIL\n  - ' + fail.join('\n  - ')); process.exit(1) }
-  console.log(JSON.stringify({ arenas: 11, failures: 0 })) })();
+  console.log(JSON.stringify({ arenas: 12, failures: 0 })) })();

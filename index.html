@@ -1653,7 +1653,7 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
 /* Chimes: seven wide chimes, every one hanging on its own line from the sky, rising to a peak in the middle. Neighbours
-   are 95px apart in height, one easy jump. Each line is held by a support just above its chime: two shots break it and the
+   are 95px apart in height, one easy jump. Each line is held by a support high above its chime (out of the way of shots at whoever stands on it): two shots break it and the
    chime drops, with whoever was standing on it, onto whoever is under it. A new chime is lowered back on the same line a
    few seconds later (its outline shows where), so the climb keeps changing but never runs out */
 const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:400+Math.abs(i-3)*95}));
@@ -2474,7 +2474,7 @@ function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)
   const D=KIND[4][0],N='#ffb35a',ln=(x0,y0,x1,y1)=>{g.beginPath();g.moveTo(ox+x0*k,oy+y0*k);g.lineTo(ox+x1*k,oy+y1*k);g.stroke()};
   for(const d of m.rigs||[]){
     if(d.t==='beam'){R(d.x,d.y,d.w,d.h,D);for(const r of d.ropes){const x=d.x+d.w/2+r.ox;ln(x,r.ay||0,x,d.y);R(x-8,d.y-64,16,16,N)}}
-    else if(d.t==='chime'){ln(d.x,0,d.x,d.top);R(d.x-d.w/2,d.top,d.w,d.h,D);R(d.x-8,d.top-64,16,16,N)}
+    else if(d.t==='chime'){ln(d.x,0,d.x,d.top);R(d.x-d.w/2,d.top,d.w,d.h,D);R(d.x-8,d.top-CHIME_NODE-8,16,16,N)}
     else if(d.t==='ball'){ln(d.ax,d.ay||0,d.ax,(d.ay||0)+d.len);R(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,D);R(d.ax-8,(d.ay||0)+d.len-64,16,16,N)}
     else if(d.t==='bridge'){R(d.dir>0?d.px:d.px-(d.th||30),d.py-d.L,d.th||30,d.L,D);ln(d.px,d.py-d.L,d.rx,d.ry)}
     else if(d.t==='lift')for(const q of[d.a,d.b]){ln(q.x+q.w/2,d.wy,q.x+q.w/2,q.y);R(q.x,q.y,q.w,q.h,D)}
@@ -3362,7 +3362,7 @@ function guestRides(h){updateRides(h);const k=Math.min(1,h*6);
    on its hinge, falls, brings a stack down, or drops a pair of lifts). Collision stays level, so standing and shooting stay
    exact and online stays in step; the drawn piece leans a little while it moves and settles flat when it rests.
    The host decides every break; a guest runs the same physics and is pulled to where the host says. */
-const NODE=15,NODE_D=56,RIG_M=['hold','swing','flip','fall','rest','lift','gone'];
+const NODE=15,NODE_D=56,CHIME_NODE=170,RIG_M=['hold','swing','flip','fall','rest','lift','gone'];
 let rigs=[],lifts=[];
 function rigArt(w,h,ball){const c=document.createElement('canvas');c.width=Math.ceil(w);c.height=Math.ceil(h);const g=c.getContext('2d');
   if(ball){const r=w/2;g.save();g.translate(r,r);try{const gr=g.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r);gr.addColorStop(0,'#8c7f74');gr.addColorStop(.6,'#5a4e47');gr.addColorStop(1,'#2f2724');g.fillStyle=gr}catch(e){g.fillStyle='#5a4e47'}
@@ -3384,7 +3384,7 @@ function drawNode(x,y,hp,max,t,s=NODE,sy=s){ctx.save();ctx.translate(x,y);const 
 const bridgeAxes=(c,ph)=>{const d=c.dir,co=Math.cos(ph),si=Math.sin(ph);return[d*co,-si,d*si,co]};
 function attachPt(c,n){if(c.bridge){const[ax,ay,bx,by]=bridgeAxes(c,c.phi);return[c.hx+ax*c.L+bx*c.th/2,c.hy+ay*c.L+by*c.th/2]}return[c.x+c.w/2+(n.ox||0),c.y]}
 function nodePos(c,n){if(n.k==='hinge')return[c.hx,c.hy+c.th/2];if(n.k==='self')return[c.x+c.w/2,c.y+c.h/2];
-  const[x0,y0]=attachPt(c,n),dx=n.ax-x0,dy=n.ay-y0,d=Math.hypot(dx,dy)||1,s=Math.min(NODE_D,d*.5);return[x0+dx/d*s,y0+dy/d*s]}
+  const[x0,y0]=attachPt(c,n),dx=n.ax-x0,dy=n.ay-y0,d=Math.hypot(dx,dy)||1,s=Math.min(n.d||NODE_D,d*.5);return[x0+dx/d*s,y0+dy/d*s]}
 function placeRig(c){c.x=c.ax+Math.sin(c.ang)*c.len-c.w/2-c.off;c.y=c.ay+Math.cos(c.ang)*c.len}
 function rigPend(ang,av,len,damp,h){av+=(-(1530/len)*Math.sin(ang)-damp*av)*h;ang=clamp(ang+av*h,-1.2,1.2);if(Math.abs(ang)>=1.2)av*=-.3;return[ang,av]}
 function buildRigs(){rigs=[];lifts=[];
@@ -3393,7 +3393,7 @@ function buildRigs(){rigs=[];lifts=[];
   for(const d of game.map.rigs||[]){
     if(d.t==='beam'){const c=mk(d.x,d.y,d.w,d.h);c.nodes=d.ropes.map(r=>rope(d.x+d.w/2+r.ox,r.ay||0,r.ox))}
     else if(d.t==='chime'){const c=mk(d.x-d.w/2,d.top,d.w,d.h,{chime:true,mode:'swing',ax:d.x,ay:0,len:d.top,damp:.22,grow:1,regrow:0});
-      c.nodes=[{...rope(d.x,0),hp:2,max:2}];placeRig(c)}
+      c.nodes=[{...rope(d.x,0),hp:2,max:2,d:CHIME_NODE}];placeRig(c)}
     else if(d.t==='ball'){const c=mk(d.ax-d.z/2,(d.ay||0)+d.len,d.z,d.z,{ball:true,mode:'swing',ax:d.ax,ay:d.ay||0,len:d.len,ang:d.amp||0,damp:.05,mass:2.2});c.nodes=[rope(d.ax,d.ay||0)];placeRig(c)}
     else if(d.t==='bridge'){const th=d.th||30,c=mk(d.dir>0?d.px:d.px-th,d.py-d.L,th,d.L,{bridge:true,dir:d.dir,hx:d.px,hy:d.py,L:d.L,th,phi:Math.PI/2,pv:0,art:rigArt(d.L,th)});
       c.nodes=[rope(d.rx,d.ry),{k:'hinge',alive:true,hp:2,max:2}]}
@@ -3419,7 +3419,9 @@ function rigReact(c){
   if(!up.length){if(c.mode!=='fall'&&c.mode!=='gone'){const sw=c.mode==='swing';c.mode='fall';c.vx=sw?clamp(c.dx/FIXED,-700,700):0;c.vy=sw?clamp(c.dy/FIXED,-600,600):0;c.tv=c.ball?0:(c.tilt>0?1:-1)*.6}return}
   if(up.length===1&&c.mode==='hold'){const n=up[0];c.mode='swing';c.ax=n.ax;c.ay=n.ay;c.off=n.ox;c.len=Math.max(60,c.y-n.ay);c.ang=0;
     c.av=Math.sign(n.ox)*Math.min(.9,300/c.len);c.lean=-Math.sign(n.ox)*.09;c.damp=.25;placeRig(c)}}
-const rigBlocked=c=>solids.some(o=>o!==c&&!o.bound&&!o.oneway&&(!o.ride||c.chime&&o.chime&&o.mode==='swing')&&!o.swing&&boxOver(c,c.x,c.y,o));
+const rigBlocked=c=>solids.some(o=>o!==c&&!o.bound&&!o.oneway&&(!o.ride||c.chime&&o.chime&&o.mode==='swing')&&!o.swing&&boxOver(c,c.x,c.y,o))
+  // a chime also stops rather than lift or carry whoever rides it into another chime
+  ||c.chime&&players.some(p=>p.alive&&p.ground===c&&solids.some(o=>o!==c&&!o.bound&&!o.oneway&&boxHit(p.x+c.x-c.px,p.y+c.y-c.py,p.r,p.r,o)));
 function rigThud(c,k=1){burst(c.x+c.w/2,c.y+c.h/2,'#cfd8e3',5,200,3,.25);sfx('thud');addShake(3*k)}
 function rigSwing(c,dt){const pa=c.ang;[c.ang,c.av]=rigPend(c.ang,c.av,c.len,c.damp,dt);placeRig(c);c.pa=pa;
   if(rigBlocked(c)){const hit=Math.abs(c.av);c.ang=pa;c.av*=-.45;placeRig(c);if(hit>.35)rigThud(c,c.mass)}}
@@ -3433,15 +3435,15 @@ function rigFall(c,dt){const g=c.ground;
   if(rideFall(c,dt,false)){if(was==='fall'){c.mode='rest';c.vx=0;c.tv=-c.tilt*7}}
   else if(was==='rest'&&c.vy>60){c.mode='fall';if(c.stack&&c.stack.broken){c.vx=c.stack.lean*(1+c.lvl*.4);c.tv=Math.sign(c.stack.lean)*(.5+c.lvl*.3)}}
   if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0}}
-/* a chime whose support is shot out drops straight through everything (nothing below can catch it), crushing whoever it
-   lands on, and goes; the host lowers a fresh one onto the same line once the spot under its line is clear */
+/* a chime whose support is shot out drops straight through everything (nothing below can catch it, and it never shoves a
+   body into anything: it falls like a jump-through plank), crushing whoever it lands on, and goes; the host lowers a fresh one onto the same line once the spot under its line is clear */
 const CHIME_BACK=6;
-function chimeFall(c,dt){c.vy=Math.min(1600,c.vy+PG*gMul()*dt);const ny=c.y+c.vy*dt;c.x+=c.vx*dt;c.vx*=Math.max(0,1-dt*.8);
+function chimeFall(c,dt){c.oneway=true;c.vy=Math.min(1600,c.vy+PG*gMul()*dt);const ny=c.y+c.vy*dt;c.x+=c.vx*dt;c.vx*=Math.max(0,1-dt*.8);
   if(c.vy>CRUSH_V)for(const p of players)if(p.alive&&p.ground!==c&&p.y>ny+c.h*.4&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h}))rideCrush(c,p,30);
   c.y=ny;if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0;c.regrow=CHIME_BACK}}
 function chimeBack(c,dt){if(game.mode==='online-guest'||(c.regrow-=dt)>0)return;
   const hx=c.ax-c.w/2,hy=c.len;if(players.some(p=>p.alive&&boxHit(p.x,p.y,p.r+20,p.r+20,{x:hx,y:hy,w:c.w,h:c.h})))return;
-  c.mode='swing';c.ang=0;c.av=0;c.tilt=0;c.tv=0;c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}placeRig(c);c.px=c.lx=c.x;c.py=c.ly=c.y}
+  c.mode='swing';c.oneway=false;c.ang=0;c.av=0;c.tilt=0;c.tv=0;c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}placeRig(c);c.px=c.lx=c.x;c.py=c.ly=c.y}
 function rigTilt(c,dt){if(c.bridge&&c.mode!=='fall'){c.tilt=0;c.tv=0;return}
   if(c.ball){if(c.mode==='swing')c.tilt=c.ang;else if(c.mode==='fall')c.tilt+=c.vx*.004*dt;return}
   if(c.mode==='fall'){c.tilt=clamp(c.tilt+c.tv*dt,-.35,.35);return}
@@ -3460,7 +3462,7 @@ function updateRigs(dt,keep){if(!rigs.length)return;
     // landing on a chime or running across it sets it swaying
     else if(c.mode==='swing'&&game.mode!=='online-guest')for(const p of players)if(p.alive&&p.ground===c){if(!p.onChime){p.onChime=c;c.av=clamp(c.av+(p.vx||0)*.0009+Math.sign(p.x-(c.x+c.w/2))*.12,-1,1)}c.av=clamp(c.av+(p.vx||0)*.0012*dt,-1,1)}}
   for(const p of players)if(p.onChime&&p.ground!==p.onChime)p.onChime=null;
-  for(const c of rigs){if(c.chime&&c.mode==='fall'){chimeFall(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;continue}if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
+  for(const c of rigs){if(c.chime&&c.mode==='fall'){chimeFall(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0;continue}if(c.mode==='swing')rigSwing(c,dt);else if(c.mode==='flip')rigFlip(c,dt);else if(c.mode==='fall'||c.mode==='rest')rigFall(c,dt);
     rigTilt(c,dt);c.dx=c.x-c.px;c.dy=c.y-c.py;if(Math.abs(c.dx)>200||Math.abs(c.dy)>200)c.dx=c.dy=0;
     // a moving piece that sweeps over a shot stops it there (a falling beam can't pass over a bullet; Ghost Rounds still drill)
     if((c.dx||c.dy)&&c.mode!=='gone'&&game.mode!=='online-guest')for(const b of bullets)if(!b.dead&&!b.phase&&!b.stuck&&b.x>c.x-b.r&&b.x<c.x+c.w+b.r&&b.y>c.y-b.r&&b.y<c.y+c.h+b.r){rigShove(c,b);killBullet(b,true,c)}}}
@@ -3499,7 +3501,7 @@ function guestRigs(h){if(!rigs.length)return;const k=Math.min(1,h*6),lead=clamp(
   for(const c of rigs){c.px=c.x;c.py=c.y}
   for(const L of lifts)if(L.gs!=null&&!L.broken){const ts=clamp(L.gs+L.gv*lead,-L.range,L.range);L.s+=(ts-L.s)*k;L.v+=(L.gv-L.v)*k;liftPlace(L)}
   for(const c of rigs){const g=c.g;if(!g)continue;const hm=RIG_M[g[2]]||c.mode;
-    if(hm!==c.mode){c.gT=(c.gT||0)+h;if(c.gT>.3){c.gT=0;if(c.bridge&&g[6]<.5)bridgeLower(c);if(hm==='swing'&&!(c.len>0))continue;if(c.chime&&hm==='swing'){c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}}c.mode=hm;c.x=g[0];c.y=g[1];c.ang=g[4];c.av=g[5];if(c.bridge)c.phi=g[6];c.vx=c.vy=0;c.px=c.lx=c.x;c.py=c.ly=c.y}continue}c.gT=0;
+    if(hm!==c.mode){c.gT=(c.gT||0)+h;if(c.gT>.3){c.gT=0;if(c.bridge&&g[6]<.5)bridgeLower(c);if(hm==='swing'&&!(c.len>0))continue;if(c.chime&&hm==='swing'){c.oneway=false;c.grow=0;c.hit=[];for(const n of c.nodes){n.alive=true;n.hp=n.max}}c.mode=hm;c.x=g[0];c.y=g[1];c.ang=g[4];c.av=g[5];if(c.bridge)c.phi=g[6];c.vx=c.vy=0;c.px=c.lx=c.x;c.py=c.ly=c.y}continue}c.gT=0;
     if(hm==='swing'){let ang=g[4],av=g[5];for(let j=0;j<ls;j++)[ang,av]=rigPend(ang,av,c.len,c.damp,FIXED);const d=ang-c.ang;if(Math.abs(d)>.3){c.ang=ang;c.av=av}else{c.ang+=d*k;c.av+=(av-c.av)*k}placeRig(c)}
     else if(hm==='hold'||hm==='rest'){if(c.bridge&&!c.down)continue;const ex=g[0]-c.x,ey=g[1]-c.y;if(Math.hypot(ex,ey)>60){c.x=g[0];c.y=g[1]}else{c.x+=ex*k;c.y+=ey*k}}
     else if(hm==='fall'&&Math.hypot(g[0]-c.x,g[1]-c.y)>120){c.x=g[0];c.y=g[1]}}
@@ -4538,7 +4540,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-chimes-supports';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-chimes-fall-through';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
