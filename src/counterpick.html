@@ -1660,10 +1660,11 @@ const CATNAME={gun:'Gun',shot:'Bullets',guard:'Block',body:'Body'};
 
 /* ---------- arenas: rect [x,y,w,h,kind 0 plank | 1 pillar | 2 hot]; swing {ax,len,w,h} hangs from the ceiling ---------- */
 /* Chimes: seven wide chimes, every one hanging on its own line from the sky, rising to a peak in the middle. Neighbours
-   are 95px apart in height, one easy jump. Each line is held by a support high above its chime (out of the way of shots at whoever stands on it): two shots break it and the
+   are 95px apart in height, one easy jump, and the outer two are low enough to climb back onto from a plain bounce off the
+   bottom (a pop and a double jump), so falling never strands anyone. Each line is held by a support high above its chime (out of the way of shots at whoever stands on it): two shots break it and the
    chime drops, with whoever was standing on it, onto whoever is under it. A new chime is lowered back on the same line a
    few seconds later (its outline shows where), so the climb keeps changing but never runs out */
-const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:400+Math.abs(i-3)*95}));
+const chimeCols=Array.from({length:7},(_,i)=>({x:800+(i-3)*210,top:435+Math.abs(i-3)*95}));
 const MAPS=[
  {name:'Yard',rects:[[0,760,1600,140],[300,590,260,40],[1040,590,260,40],[670,420,260,40]],more:[[140,610,200,38],[1580,610,200,38],[860,440,200,38]],sp:[[220,720],[1380,720]]},
  {name:'Pit',rects:[[0,700,560,200],[1040,700,560,200],[520,520,40,180,1],[1040,520,40,180,1]],swings:[{ax:800,len:420,w:200,h:30}],sp:[[250,660],[1350,660]]},
@@ -3444,7 +3445,7 @@ function rigFall(c,dt){const g=c.ground;
   if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0}}
 /* a chime whose support is shot out drops straight through everything (nothing below can catch it, and it never shoves a
    body into anything: it falls like a jump-through plank), crushing whoever it lands on, and goes; the host lowers a fresh one onto the same line once the spot under its line is clear */
-const CHIME_BACK=6;
+const CHIME_BACK=4.5;
 function chimeFall(c,dt){c.oneway=true;c.vy=Math.min(1600,c.vy+PG*gMul()*dt);const ny=c.y+c.vy*dt;c.x+=c.vx*dt;c.vx*=Math.max(0,1-dt*.8);
   if(c.vy>CRUSH_V)for(const p of players)if(p.alive&&p.ground!==c&&p.y>ny+c.h*.4&&boxHit(p.x,p.y,p.r,p.r,{x:c.x,y:ny,w:c.w,h:c.h}))rideCrush(c,p,30);
   c.y=ny;if(c.y>H+80){c.mode='gone';c.y=H+5000;c.vx=c.vy=0;c.regrow=CHIME_BACK}}
@@ -3972,6 +3973,36 @@ function dropSafe(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<H;y+=16)if
 const wallAhead=(p,dir)=>solidBoxP(p.x+dir*(p.r+14),p.y,6,p.r*.8);
 const onewayAbove=p=>solids.some(r=>r.oneway&&p.x>r.x&&p.x<r.x+r.w&&r.y<p.y-p.r&&r.y>p.y-p.r-230);
 function nearestPerch(p){let best=null,bd=1e9;for(const r of solids){if(r.bound)continue;const cx=clamp(p.x,r.x+10,r.x+r.w-10),d=Math.abs(cx-p.x)+Math.max(0,r.y-p.y)*.3+(r.y<p.y-200?400:0);if(d<bd){bd=d;best=cx}}return best??W/2}
+/* the CPU's landing plan: while airborne it plays its fall forward with the real air physics (steering, gravity, a held
+   jump, the double jump) and checks it comes down on something. If not, it tries each way to steer with the double jump
+   now, at the top or late, and takes the plan that lands soonest (not on hot ground, never into the border) */
+const FALL_JT=['none','now','apex','late'];
+function fallSim(p,dir,jt,jh,bounce){const s=p.s,spd=520*s.moveSpeed*(1-(p.slowAmt||0)),acc=Math.min(1,AIR_ACC*s.agility/60),jv=1010*s.jumpPower,R=p.r,st=1/60,g0=PG*gMul();
+  let x=p.x,y=p.y,vx=p.vx,vy=p.vy,aj=p.airJumps,jumped=jt==='none',popped=0,blk=bounce&&(p.blockCd<=0||p.blockStock>0);
+  const land=solids.filter(r=>!r.bound&&r.kind!==3&&!(r.rig&&(r.mode==='fall'||r.mode==='gone'))&&r.y<H);
+  for(let i=0;i<(bounce?170:110);i++){
+    if(!jumped&&aj>0&&(jt==='now'||jt==='apex'&&vy>=-40||jt==='late'&&vy>=260)){vy=Math.min(-jv*.85,Math.max(vy-jv*.45,-jv*1.05));aj--;jumped=true}
+    vx+=(dir*spd-vx)*acc;let g=g0;if(vy<0&&!jh)g*=1.9;vy=Math.min(1900,vy+g*st);
+    const nx=x+vx*st,wall=land.find(r=>!r.oneway&&nx+R>r.x&&nx-R<r.x+r.w&&y+R>r.y+2&&y-R<r.y+r.h);
+    if(wall){if(dir&&!wall.swing&&!wall.ride&&Math.sign(wall.x+wall.w/2-x)===dir&&!land.some(o=>o!==wall&&!o.oneway&&x+R>o.x&&x-R<o.x+o.w&&o.y+o.h<=y-R+2&&o.y+o.h>wall.y-2*R))return{t:i*st,x,hot:false,jumped:jt!=='none',popped,wall:true};vx=0}else x=nx;   // steering into a wall it can climb (nothing over the climb): it grips, slides slowly and gets its air jump back
+    if(x<FRAME+R||x>W-FRAME-R)return null;
+    const pb=y+R;y+=vy*st;const b=y+R;
+    if(vy>0)for(const r of land)if(pb<=r.y+1&&b>=r.y&&x>r.x+6&&x<r.x+r.w-6)return{t:i*st,x,hot:r.kind===2,jumped:jt!=='none',popped};
+    if(vy<0)for(const r of land)if(!r.oneway&&x+R>r.x&&x-R<r.x+r.w&&y-R<r.y+r.h&&y-R>r.y){y=r.y+r.h+R;vy=0}
+    // the bottom border pops you back up with your air jump back (a block there is a full-height launch and costs nothing)
+    if(y>H-R){if(!bounce||popped)return null;popped=blk?1:2;y=H-R;vy=-(blk?EDGE_BLOCK_POP:EDGE_FLOOR_POP);aj=p.s.airJumps;jumped=false;jt='apex'}}
+  return null}
+function cpuFallPlan(p,ai,dir,e){
+  if((ai.fpT=(ai.fpT||0)-1/60)>0&&ai.fp!==undefined)return ai.fp;ai.fpT=.08;
+  const keep=fallSim(p,dir,'none',p.input.jumpH);if(keep&&!keep.hot){ai.fp=null;return null}
+  // still going where it meant to: if that way lands with the double jump spent at some point, just make sure it's spent
+  if(dir&&p.airJumps>0)for(const jt of['apex','late','now']){const r=fallSim(p,dir,jt,true);if(r&&!r.hot){ai.fp={dir,jt};return ai.fp}}
+  let best=null,bs=1e9;
+  for(const d of[-1,0,1])for(const jt of FALL_JT){if(jt!=='none'&&p.airJumps<=0)continue;const r=fallSim(p,d,jt,true);if(!r)continue;
+    const sc=r.t+(r.hot?3:0)+(r.jumped?.25:0)+(e?Math.abs(r.x-e.x)/4000:0)+(d!==dir?.05:0);if(sc<bs){bs=sc;best={dir:d,jt}}}
+  // nothing lands from here: plan through one pop off the bottom instead, so it drifts to where it can climb back
+  if(!best)for(const d of[-1,0,1]){const r=fallSim(p,d,'none',true,true);if(!r)continue;const sc=r.t+(r.popped===2?2:.5)+(r.hot?3:0)+(e?Math.abs(r.x-e.x)/4000:0);if(sc<bs){bs=sc;best={dir:d,jt:'none'}}}
+  ai.fp=best;return best}
 function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(game.bg?'normal':game.diff)];inp.jumpP=false;inp.blockP=false;inp.fire=false;inp.down=false;
   if(!e.alive){inp.move=0;inp.jumpH=false;return}
   ai.errT-=dt;if(ai.errT<=0){ai.errT=rand(.3,.7);ai.err=(Math.random()+Math.random()-1)*sk.err*(1+Math.hypot(e.x-p.x,e.y-p.y)/700)}
@@ -4032,6 +4063,13 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     if(dir&&p.wallDir===dir)jump=true;
     if(ai.mode==='engage'&&!ai.los&&dir===Math.sign(dx)&&wallAhead(p,dir)){if(p.grounded)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}}   // closing in with a wall between: climb it
   else{const tx=nearestPerch(p);dir=Math.sign(tx-p.x)||1;if(p.vy>60&&(p.airJumps>0||p.wallDir))jump=true}
+  // the ground under us is falling away (a chime shot out): get off it
+  if(p.grounded&&p.ground&&p.ground.rig&&p.ground.mode==='fall')jump=true;
+  // in the air: follow a landing plan whenever the current course comes down on nothing
+  if(!p.grounded&&!p.wallDir){const pl=cpuFallPlan(p,ai,dir,e);if(pl){dir=pl.dir;const jt=pl.jt;
+      jump=p.airJumps>0&&(jt==='now'||jt==='apex'&&p.vy>=-40||jt==='late'&&p.vy>=260);if(jump)ai.fp=undefined;
+      if(jt!=='none'||p.vy<0)ai.jumpHold=Math.max(ai.jumpHold,.2)}}
+  else ai.fp=undefined;
   inp.down=down;
   const bit=1<<p.id;
   for(const b of bullets){if(b.owner===p&&!b.bounced)continue;if(b.owner&&b.owner!==p&&b.owner.team===p.team)continue;if(b.seen&bit)continue;
@@ -4547,7 +4585,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-lobby-phone';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-02-cpu-landing6';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
