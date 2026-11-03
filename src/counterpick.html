@@ -400,6 +400,8 @@ body.touch #chatForm{top:calc(8px + env(safe-area-inset-top,0px))}#bPause svg{fi
 /* the painted logo, once it has loaded (the lettering above stays as the fallback) */
 .logo .logo-img{display:none;height:1.5em;width:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.3))} .logo.img .logo-img{display:block} .logo.img span{display:none} .logo.img{text-shadow:none;margin-bottom:.06em}
 @keyframes logoBob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(-3deg) translateY(-6px)}}
+.logo .logo-img{touch-action:manipulation;-webkit-tap-highlight-color:transparent} .logo.devflash .logo-img{animation:devFlash .9s ease-out}
+@keyframes devFlash{0%{filter:drop-shadow(0 0 0 #ffd36b) brightness(1.8)}100%{filter:drop-shadow(0 6px 0 rgba(0,0,0,.3)) brightness(1)}}
 .mlist{display:grid;justify-items:start;gap:0}
 .mlist.centered{justify-items:center}
 .mlist button{font-family:var(--display);font-size:clamp(26px,3.6vw,42px);letter-spacing:.04em;text-transform:uppercase;color:rgba(241,236,247,.5);background:none;border:0;
@@ -2356,6 +2358,14 @@ function lockGo(){const it=COS[lockK]&&COS[lockK].find(i=>i.id===lockSel);if(!it
 function lockUnlock(v){const it=COS.hat.find(i=>i.secret);if(!it)return false;
   if(!secretOk(v)){sfx('empty',true);renderLocker("That's not it.");return false}
   if(!wallet.owned.includes('hat:'+it.id))wallet.owned.push('hat:'+it.id);wearHat(it.id,true);lockK='hat';lockSel=it.id;saveWallet();sfx('round',true);renderLocker(`Unlocked the <b>${it.n}</b>!`);return true}
+// dev unlock all: own every hat, pattern and trail in Customize (secret included); coins and what you wear stay as they are
+function devUnlockAll(){for(const k in COS)for(const it of COS[k]){const key=k+':'+it.id;if(!wallet.owned.includes(key))wallet.owned.push(key)}saveWallet();refreshWallet();if(!$('#locker').hidden)renderLocker('Dev unlock: everything is yours.')}
+/* the hidden trigger: tap the bullet's head in the painted logo 10 times (a pause over 2 s starts the count again). The
+   head sits at about 71-86% across and 70-90% down the 720x340 image; offsetX/Y are in the image's own (unrotated) box */
+{let n=0,last=0;const img=$('.logo .logo-img');if(img)img.addEventListener('click',e=>{const fx=e.offsetX/img.clientWidth,fy=e.offsetY/img.clientHeight,now=performance.now();
+  if(fx<.7||fx>.87||fy<.68||fy>.92){n=0;return}n=now-last>2000?1:n+1;last=now;if(n<10)return;n=0;initAudio();devUnlockAll();sfx('round',true);
+  const h=img.parentNode,tg=$('.tagline');h.classList.remove('devflash');void h.offsetWidth;h.classList.add('devflash');
+  if(tg){const was=tg.textContent;tg.textContent='Dev unlock: all items yours.';setTimeout(()=>tg.textContent=was,2600)}})}
 {const root=$('#locker');root.addEventListener('click',e=>{const t=e.target;let b;initAudio();
   if((b=t.closest('[data-lockk]'))){lockK=b.dataset.lockk;lockSel=null;sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-side]'))){lockSide=+b.dataset.side;sfx('tick',true);renderLocker();return}
@@ -4599,7 +4609,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-03-tap-aim-around-walls';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-03-dev-unlock-all';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
