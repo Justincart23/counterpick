@@ -3972,7 +3972,8 @@ function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.mi
   let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,drill=s.phase||0;
   for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(!r.bound&&circleRect(x,y,br,r)){hit=r;break}
     if(hit){if(drill>0)drill-=Math.hypot(vx,vy)*st;else return s.bounces>0&&Math.random()<.3}
-    if(Math.hypot(x-e.x,y-e.y)<e.r+br+10)return true;if(y>H+40)return false}return false}
+    if(Math.hypot(x-e.x,y-e.y)<e.r+br+10){shotT=i*st;return true}if(y>H+40)return false}return false}
+let shotT=0;   // the flight time of the last arc clearShot found reaching its target
 function landingSpot(p,dir){const up=140+(p.airJumps>0?75:0);for(let dx=70;dx<=360;dx+=24){const x=p.x+dir*dx;for(let dy=-up;dy<=280;dy+=14){const y=p.y+p.r+dy;if(pointSolid(x,y)&&!pointSolid(x,y-p.r*2))return true}}return false}
 function dropSafe(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<H;y+=16)if(pointSolid(x,y))return true;return false}
 const wallAhead=(p,dir)=>solidBoxP(p.x+dir*(p.r+14),p.y,6,p.r*.8);
@@ -4556,9 +4557,16 @@ function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a
   else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
 function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
   if(!me||!Number.isFinite(me.x))return;const a=tapTarget(me,e);if(a!=null){touch.aimA=a;touchAim()}}
-// where a tap auto-fires: the nearest rival (anything else, a health crate say, you aim at yourself)
-function tapTarget(p,e){
-  return e&&e.alive?aimSolution(p,e):null}
+// where a tap auto-fires: the nearest rival (anything else, a health crate say, you aim at yourself). Behind a wall, the
+// straight shot would only hit the wall, so it looks for the nearest angle (a lob over it, say) whose arc reaches them;
+// with none, it aims straight at them. The search runs at most 10 times a second per fighter and only when blocked.
+const TAP_SWEEP=(()=>{const L=[];for(let d=4;d<=70;d+=4)L.push(-d,d);return L.map(d=>d*Math.PI/180)})();
+function tapTarget(p,e){if(!e||!e.alive)return null;const a=aimSolution(p,e),now=performance.now()/1000,c=p.tapAim;
+  if(c&&c.e===e&&now-c.at<.1)return c.d==null?a:a+c.d;
+  let d=null;if(!clearShot(p,a,e)){for(const k of TAP_SWEEP)if(clearShot(p,a+k,e)){d=k;break}}else d=0;
+  if(d){const t=shotT,L={x:clamp(e.x+e.vx*t,FRAME+20,W-FRAME-20),y:e.y+(e.grounded?0:e.vy*t*.4),r:e.r};   // a lob is in the air a while: lead it to where they'll be
+    for(let j=0;j<=6;j++){const k=d+(j%2?1:-1)*Math.ceil(j/2)*.035;if(clearShot(p,a+k,L)){d=k;break}}}
+  p.tapAim={e,at:now,d};return d==null?a:a+d}
 const touchAiming=()=>!!(touch.aim&&(touch.aim.maxD||0)>=TAP_MOVE&&Math.hypot(touch.aim.dx,touch.aim.dy)>=AIM_DEAD);
 function touchMe(){return game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse')}
 // keep the virtual mouse out along the aim, wherever the fighter goes
@@ -4591,7 +4599,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-03-pad-corner-buttons';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-03-tap-aim-around-walls';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
