@@ -1034,7 +1034,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 @media (max-height:460px){.pad-sheet{gap:4px;align-content:start;padding-top:4px}.pad-h{font-size:24px}.pad-p{font-size:13px}.pad-timer{font-size:17px}}
 /* ---- Flick Controller look (the flick-controllers skill, ~/.claude/skills/flick-controllers): the Big Screen phone controller looks the same in
    every Flick game. Chunky Joy-Con grips in the seat colour (--pc), ink outlines, offset grape shadows, Archivo Black. Behaviour above is unchanged ---- */
-#pad{--fi:#0e0b16;--fis:#1b1428;--fg:#7000ff;--fz:#ccff33;--fc:#f7f5ff;--fpop:#ff3ea5;--fd:'Archivo Black','Arial Black',system-ui,sans-serif;--fb:'Rubik',system-ui,sans-serif;--pw:clamp(108px,15vw,150px);--ft:calc(64px + env(safe-area-inset-top,0px));--sk:clamp(104px,min(30vh,17vw),132px);--sy:calc((100% + var(--ft) - 6px) / 2 - 10px);
+#pad{--fi:#0e0b16;--fis:#1b1428;--fg:#7000ff;--fz:#ccff33;--fc:#f7f5ff;--fpop:#ff3ea5;--fd:'Archivo Black','Arial Black',system-ui,sans-serif;--fb:'Rubik',system-ui,sans-serif;--pw:clamp(116px,17vw,170px);--ft:calc(64px + env(safe-area-inset-top,0px));--sk:clamp(104px,min(30vh,17vw),132px);--pl:max(8px,calc(env(safe-area-inset-left,0px) - 26px));--pr:max(12px,calc(env(safe-area-inset-right,0px) - 26px));--pb:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));--br:calc(var(--pr) + 12px);--sy:calc((100% + var(--ft) + 4px - var(--pb)) / 2);
   background-color:var(--fi);background-image:radial-gradient(ellipse 70% 60% at 50% 120%,color-mix(in srgb,var(--fg) 45%,transparent),transparent 70%),radial-gradient(rgba(247,245,255,.07) 1.2px,transparent 1.2px);background-size:100% 100%,22px 22px;color:var(--fc)}
 #pad .pad-bar{padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:6px}
 #pad .pad-me{font:400 22px var(--fd);letter-spacing:0}#pad .pad-me b{color:var(--fc)}
@@ -1045,13 +1045,13 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #pad .pad-b:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--fg)}#pad #padFind{background:var(--fz);border-color:var(--fi)}
 #pad .pad-hp{left:28%;right:28%;top:calc(48px + env(safe-area-inset-top,0px));height:12px;border-radius:999px;border:2px solid var(--fi);background:var(--fis);box-shadow:0 0 0 2px rgba(247,245,255,.15)}
 #pad .pad-hp i{border-radius:999px;background:var(--fz)}
-#pad .pad-live::before,#pad .pad-live::after{content:"";position:absolute;top:calc(var(--ft) + 4px);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;margin:0;pointer-events:none;
+#pad .pad-live::before,#pad .pad-live::after{content:"";position:absolute;top:calc(var(--ft) + 4px);bottom:var(--pb);width:auto;margin:0;pointer-events:none;
   background:var(--pc);background-image:linear-gradient(rgba(255,255,255,.22),transparent 40%),radial-gradient(rgba(14,11,22,.12) 1.4px,transparent 1.4px);background-size:100% 100%,16px 16px;
   border:4px solid var(--fi);box-shadow:inset 0 -6px 0 rgba(14,11,22,.18),6px 6px 0 var(--fg)}
-#pad .pad-live::before{left:calc(10px + env(safe-area-inset-left,0px));right:calc(50% + 5px);border-radius:52px 24px 24px 52px / 30% 24px 24px 30%}
-#pad .pad-live::after{left:calc(50% + 5px);right:calc(16px + env(safe-area-inset-right,0px));border-radius:24px 52px 52px 24px / 24px 30% 30% 24px}
-#pad .pad-zl{z-index:1;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:fit-content;margin:0 auto;padding:3px 10px;border-radius:10px;background:rgba(14,11,22,.78);font:800 11px/1.3 var(--fb);color:var(--fc);text-align:center;white-space:normal;text-wrap:balance;transform:none}
-#pad .pad-zl.l{left:calc(30px + env(safe-area-inset-left,0px));right:calc(50% + 22px)}#pad .pad-zl.r{left:calc(50% + 20px);right:calc(var(--pw) + 50px + env(safe-area-inset-right,0px))}
+#pad .pad-live::before{left:var(--pl);right:calc(50% + 5px);border-radius:52px 24px 24px 52px / 30% 24px 24px 30%}
+#pad .pad-live::after{left:calc(50% + 5px);right:var(--pr);border-radius:24px 52px 52px 24px / 24px 30% 30% 24px}
+#pad .pad-zl{z-index:1;bottom:calc(var(--pb) + 12px);width:fit-content;margin:0 auto;padding:3px 10px;border-radius:10px;background:rgba(14,11,22,.78);font:800 11px/1.3 var(--fb);color:var(--fc);text-align:center;white-space:normal;text-wrap:balance;transform:none}
+#pad .pad-zl.l{left:max(calc(var(--pl) + 20px),calc(env(safe-area-inset-left,0px) + 10px));right:calc(50% + 22px)}#pad .pad-zl.r{left:calc(50% + 20px);right:calc(var(--br) + var(--pw) + 14px)}
 #pad .tstick,#pad .tstick .knob{box-sizing:border-box}#pad .tstick{z-index:1;width:var(--sk);height:var(--sk);margin:calc(var(--sk) / -2) 0 0 calc(var(--sk) / -2);opacity:1;background:radial-gradient(circle,rgba(14,11,22,.55) 55%,rgba(14,11,22,.7));border:4px solid var(--fi);box-shadow:inset 0 6px 10px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.25)}
 #pad .tstick.on{box-shadow:inset 0 6px 10px rgba(0,0,0,.4),0 0 0 5px rgba(255,255,255,.55)}
 #pad .tstick .knob{width:calc(var(--sk) * .48);height:calc(var(--sk) * .48);margin:calc(var(--sk) * -.24) 0 0 calc(var(--sk) * -.24);background:radial-gradient(circle at 50% 40%,#fff,var(--fc) 55%,#d9d3ee);border:4px solid var(--fi);box-shadow:0 5px 0 var(--fi)}
@@ -1061,12 +1061,12 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 #pMove{left:calc(25% + 2px);top:var(--sy)}
 /* thumb check (padThumbs): the move stick breathes and its label lights up until a thumb comes back */
 #pad .pad-live.idle-l #pMove{opacity:1;animation:thumbCall 1.1s ease-in-out infinite}#pad .pad-live.idle-l .pad-zl.l{color:#fff;background:rgba(14,11,22,.95)}
-@keyframes thumbCall{50%{transform:scale(1.16);box-shadow:0 0 0 10px rgba(255,255,255,.16)}}@media (prefers-reduced-motion:reduce){#pad .pad-live.idle-l #pMove{animation:none;box-shadow:0 0 0 6px rgba(255,255,255,.2)}}#pAim{left:calc(75% - (var(--pw) + 30px) / 2);top:var(--sy)}
-#pad .tbtn.pad-jump,#pad .tbtn.pad-block{z-index:2;right:calc(30px + env(safe-area-inset-right,0px));width:var(--pw);height:calc((100% - var(--ft) - 10px - 56px - env(safe-area-inset-bottom,0px)) / 2);
+@keyframes thumbCall{50%{transform:scale(1.16);box-shadow:0 0 0 10px rgba(255,255,255,.16)}}@media (prefers-reduced-motion:reduce){#pad .pad-live.idle-l #pMove{animation:none;box-shadow:0 0 0 6px rgba(255,255,255,.2)}}#pAim{left:calc(75% + (5px - var(--br) - var(--pw)) / 2);top:var(--sy)}   /* centred in the space between the middle and the buttons */
+#pad .tbtn.pad-jump,#pad .tbtn.pad-block{z-index:2;right:var(--br);width:var(--pw);height:calc((100% - var(--ft) - 16px - var(--pb) - 12px - 10px) / 2);
   border-radius:30px;border:4px solid var(--fi);color:var(--fi);font:400 clamp(17px,4.4vh,22px) var(--fd);letter-spacing:0;gap:6px;
   background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd,0) * 100%),transparent 0),var(--fc);box-shadow:inset 0 -5px 0 rgba(14,11,22,.15),0 6px 0 var(--fi)}
-#pad .tbtn.pad-jump{top:calc(var(--ft) + 20px);border-radius:22px 40px 22px 22px / 22px 46% 22px 22px}
-#pad .tbtn.pad-block{bottom:calc(30px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 40px 22px / 22px 22px 46% 22px;border-color:var(--fi);background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd) * 100%),transparent 0),var(--fz)}
+#pad .tbtn.pad-jump{top:calc(var(--ft) + 16px);border-radius:22px 40px 22px 22px / 22px 46% 22px 22px}
+#pad .tbtn.pad-block{bottom:calc(var(--pb) + 12px);border-radius:22px 22px 40px 22px / 22px 22px 46% 22px;border-color:var(--fi);background:linear-gradient(to top,rgba(14,11,22,.45) calc(var(--cd) * 100%),transparent 0),var(--fz)}
 #pad .tbtn.down{transform:translateY(5px);box-shadow:inset 0 -2px 0 rgba(14,11,22,.15),0 1px 0 var(--fi)}
 #pad .tbtn.pad-jump::before{border-width:6px}#pad .tbtn.pad-block::before{border-width:6px}
 #pad .pad-msg{z-index:3;top:30%;transform:translate(-50%,-50%) rotate(-2deg);padding:8px 18px;border-radius:14px;border:3px solid var(--fi);background:var(--fz);color:var(--fi);box-shadow:4px 4px 0 var(--fg);font:400 22px var(--fd);letter-spacing:0}
@@ -4598,7 +4598,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-02-solo-phone-pad';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-03-pad-corner-buttons';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
