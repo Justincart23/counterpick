@@ -2300,13 +2300,13 @@ const cosValid=(k,id)=>k==='hat'?hatList(id).length>0&&hatList(id).join(',')===S
 // a Flick Plus look: never bought or kept, worn while Flick says you have Plus
 function plusItem(k,id){return!!(COS[k]&&COS[k].some(i=>i.id===id&&i.plus))}
 // your own look as others see it: Plus looks only while Plus is on (the choice stays saved for when it's back)
-function myCos(){const c=cleanCos(wallet.eq);if(!portal.plus)for(const k of['pattern','trail'])if(plusItem(k,c[k]))c[k]='';return c}
+function myCos(){const c=cleanCos(wallet.eq);if(portal.plus)c.m=1;else{for(const k of['pattern','trail'])if(!bought(k,c[k]))c[k]='';if(c.hat)c.hat=hatList(c.hat).filter(h=>bought('hat',h)).join(',')}return c}
 function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest','plusCoins'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
   const sb={};if(wallet.survBy&&typeof wallet.survBy==='object')for(const c in wallet.survBy)if(/^[\w -]{1,20}$/.test(c))sb[c]=Math.max(0,Math.floor(+wallet.survBy[c]||0));wallet.survBy=sb;
   wallet.owned=[...new Set(Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))&&!plusItem(x.split(':')[0],x.split(':')[1])):[])];
   wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k])&&!plusItem(k,wallet.eq[k]))wallet.eq[k]=''}}
 fixWallet();
-function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;return o}
+function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;if(c&&c.m===1)o.m=1;return o}
 /* your colour: a shade of orange (when you play the orange side) and of blue (the blue side). Each stays inside its colour
    family, so a fighter always reads as orange or blue. Stored as [hue, lightness] and checked here (it also arrives online) */
 function cleanShade(v,f){const F=SHADE[f];if(!Array.isArray(v)||v.length!==2)return null;const h=Math.round(+v[0]),l=Math.round(+v[1]);if(!Number.isFinite(h)||!Number.isFinite(l))return null;return[clamp(h,F.h[0],F.h[1]),clamp(l,F.l[0],F.l[1])]}
@@ -2329,7 +2329,7 @@ const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(CO
 // which shows the Plus looks and house rules (anywhere else they stay hidden)
 function setPlus(on){portal.flick=true;portal.plus=on;if(!on&&typeof settings.bsTwist==='string'){settings.bsTwist=false;saveSettings()}refreshOpts();refreshWallet();if(!$('#locker').hidden)renderLocker()}
 // every coin earned goes through here: Flick Plus doubles it (and keeps count, for the trial's recap)
-function earn(n){const b=portal.plus?n:0;wallet.coins+=n+b;wallet.earned+=n+b;if(b)wallet.plusCoins=(wallet.plusCoins|0)+b;return n+b}
+function earn(n){wallet.coins+=n;wallet.earned+=n;return n}
 // coins for winning a full match, shown on the end screen (once per match)
 function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='online-host'?(game.party?net.hostId:0):game.mode==='cpu'||game.mode==='party'?0:-1;if(game.party&&me>=0)me=players[me].team;   // a party: your team's win is yours
   const el=$('#endCoins');if(el)el.hidden=true;
@@ -2342,7 +2342,8 @@ function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='onl
 // The secret hat shows as ??? and opens a code box instead
 let lockK='color',lockSide=0,lockSel=null;
 const COIN_HTML='<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i>';
-const owns=(k,id)=>!id||wallet.owned.includes(k+':'+id)||(portal.plus&&plusItem(k,id));
+const bought=(k,id)=>!id||wallet.owned.includes(k+':'+id);
+const owns=(k,id)=>bought(k,id)||(portal.plus&&!!COS[k]&&COS[k].some(i=>i.id===id&&!i.secret));   // Flick Plus: every look but the secret one, worn while Plus is on
 function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??null}renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
 const openShop=(k,id)=>openLocker(k||'hat',id);
@@ -2362,7 +2363,7 @@ function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lock
         <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}}
   else for(const it of [{id:'',n:'None',price:0},...COS[lockK]].filter(i=>!i.plus||portal.flick)){const own=owns(lockK,it.id),wear=wearing(lockK,it.id),hid=it.secret&&!own,b=document.createElement('button');b.type='button';
     b.className='ward-item'+(wear?' eq':'')+(lockSel===it.id||(lockSel==null&&wear)?' sel':'')+(hid?' secret':'')+(it.plus?' plus':'');b.dataset.lock=it.id;
-    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':lockK==='hat'&&!it.id?'No hats':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${lockK==='hat'&&!it.id?(wear?'Bare head':'Take all off'):wear?'Wearing':it.plus?'Flick Plus':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':lockK==='hat'&&!it.id?'No hats':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${lockK==='hat'&&!it.id?(wear?'Bare head':'Take all off'):wear?'Wearing':it.plus?'Flick Plus':own?(bought(lockK,it.id)?'Owned':'With Plus'):hid?'Secret':COIN_HTML+' '+it.price}</span>`;
     const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(hid)drawSecret(g);else drawCosPreview(g,lockK==='trail'&&!it.id?'hat':lockK,it.id)}grid.appendChild(b)}
   // the stage's button: Wear, Wearing, Buy, Need more; a secret: the code box
   const it=!col&&lockSel!=null?[{id:'',n:'None',price:0},...COS[lockK]].find(i=>i.id===lockSel):null,go=$('#lockGo'),nm=$('#lockPick'),code=$('#lockCode');
@@ -2370,8 +2371,8 @@ function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lock
   if(it&&!hid&&it.plus&&!own){go.disabled=false;go.innerHTML='Try Flick Plus'}
   else if(it&&!hid){const wear=wearing(lockK,it.id),hat=lockK==='hat'&&it.id;go.disabled=(wear&&!hat)||(!own&&wallet.coins<it.price);
     go.innerHTML=wear?(hat?'Take off':'Wearing ✓'):own?(hat&&hatList(wallet.eq.hat).some(h=>HAT_SLOT[h]===HAT_SLOT[it.id])?'Swap in':'Wear'):wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
-  $('#lockMsg').innerHTML=msg||(it&&it.plus?(own?'A Flick Plus look. Yours to wear while you have Plus.':'A Flick Plus look. New Flick accounts get Plus free for 7 days, with double coins and house rules too.'):col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
-    :hid?'Something special. Only a code unlocks it.':lockK==='hat'?'Stack up to four: one on top, ears or horns, a headband and a halo. Tap one you own to put it on or take it off.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.')}
+  $('#lockMsg').innerHTML=msg||(it&&it.plus?(own?'A Flick Plus look. Yours to wear while you have Plus.':'A Flick Plus look. Plus unlocks every look in the locker, a member name tag and house rules. New Flick accounts get it free for 7 days.'):col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
+    :hid?'Something special. Only a code unlocks it.':lockK==='hat'?'Stack up to four: one on top, ears or horns, a headband and a halo. Tap one you own to put it on or take it off.':(portal.plus?'Flick Plus: every look here is yours to wear.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.'+(portal.flick?' Or unlock every look with Flick Plus.':'')))}
 // the secret's tile: a dark silhouette with a question mark
 function drawSecret(g){g.save();g.translate(110,92);g.fillStyle='#14141c';g.beginPath();g.arc(0,0,40,0,TAU);g.fill();g.fillStyle='#ffd36b';g.font='54px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',0,2);g.restore()}
 function lockPick(id){lockSel=id;const own=owns(lockK,id);if(own){if(lockK==='hat')wearHat(id,!wearing('hat',id));else wallet.eq[lockK]=id;saveWallet();sfx('pick',true)}else sfx('tick',true);renderLocker()}
@@ -4298,7 +4299,11 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   // fighters bunched together: each tag (name, health, ammo) stacks above the one below it instead of on top of it
   const stack=players.filter(q=>q!==p&&q.alive&&q.id<p.id&&Math.abs(q.x-p.x)<70&&Math.abs(q.y-p.y)<40).length;
   const bw=Math.max(46,R*2.2),by=-R-24-stack*34;ctx.translate(0,-R-6);ctx.scale(1.6,1.6);ctx.translate(0,R+6);   // bold tags in every mode: easy to read on a phone, a laptop or across the room
-  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.party&&!game.ffa?PCOL()[p.team][1]:p.glow;ctx.fillText(playerLabel(p),0,by-14);   // name tags in the fighter's colour (a party: the team's)
+  ctx.font='800 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle=game.party&&!game.ffa?PCOL()[p.team][1]:p.glow;
+  if(p.cos&&p.cos.m&&!p.boss){const lab=playerLabel(p),tw=ctx.measureText(lab).width,t=performance.now()/600;   // a Flick Plus member: a glowing tag with a gold + badge
+    ctx.save();ctx.shadowColor='#ffd36b';ctx.shadowBlur=RM?6:6+3*Math.sin(t);ctx.fillText(lab,6,by-14);ctx.restore();
+    const bx=-tw/2-5,bY=by-18.5;ctx.fillStyle='#ffd36b';ctx.beginPath();ctx.arc(bx,bY,6,0,TAU);ctx.fill();ctx.fillStyle='#1b1230';ctx.fillRect(bx-3.5,bY-1,7,2);ctx.fillRect(bx-1,bY-3.5,2,7)}
+  else ctx.fillText(playerLabel(p),0,by-14);   // name tags in the fighter's colour (a party: the team's)
   ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-bw/2-1,by-1,bw+2,6);ctx.fillStyle=C.hp;ctx.fillRect(-bw/2,by,bw*clamp(p.hp/p.s.maxHp,0,1),4);
   const n=p.s.ammo,pw=Math.min(6,(bw-(n-1)*2)/n),x0=-(n*pw+(n-1)*2)/2;
   for(let i=0;i<n;i++){ctx.fillStyle=i<p.ammo?p.glow:'rgba(255,255,255,.15)';ctx.fillRect(x0+i*(pw+2),by+7,pw,3)}
@@ -4636,7 +4641,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-flick-plus';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-plus-locker';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

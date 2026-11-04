@@ -70,7 +70,7 @@ The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause
 | `mute` / `unmute` | Sound off / on |
 | `config` | `{ flick: 'config', share, join, site }`: same as the options above, after loading |
 | `load` | `{ flick: 'load', data }`: a save the site kept (e.g. on the player's account). The site's coins and looks win; items owned and records set on this device are kept too |
-| `plus` | `{ flick: 'plus', on }`: Flick only (checked by the sender's address, flickarcade.com). Turns Flick Plus on or off: double coins, the Plus looks in Customize, and the Big Screen "Always" house rules. Off Flick, Plus looks and house rules stay hidden |
+| `plus` | `{ flick: 'plus', on }`: Flick only (checked by the sender's address, flickarcade.com). Turns Flick Plus on or off: every look in Customize (but the secret hat) unlocked to wear, the Plus-only looks, a member mark (`cos.m`, a glowing name tag friends see online and on the Big Screen), and the Big Screen "Always" house rules. Off Flick, Plus looks and house rules stay hidden |
 
 A good place for an ad is on `gameplayStop`, before the player starts again.
 
