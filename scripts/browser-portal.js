@@ -47,6 +47,11 @@ async function browser(port, name, phone) {
   await S.top(`document.getElementById('game').contentWindow.postMessage({flick:'load',data:{coins:77,owned:['hat:crown'],eq:{hat:'crown',pattern:'',trail:''}}},'*')`); await sleep(300);
   ok(await S.game(`(w=>w.coins===77&&w.eq.hat==='crown')(JSON.parse(localStorage.getItem('cuued.wallet')))&&JSON.parse(localStorage.getItem('cuued.wallet')).coins===77&&document.querySelector('[data-coins]').textContent==='77'`), 'a save from the site loads into the game and shows');
   ok(await S.top(`window.__msgs.some(m=>m.flick==='save'&&m.data&&m.data.coins===77)`), 'the game tells the site when its save changes');
+  // Flick Plus is only believed from flickarcade.com: this stand-in site can't switch it on
+  await S.top(`document.getElementById('game').contentWindow.postMessage({flick:'plus',on:true},'*')`); await sleep(300);
+  await S.game(`document.querySelector('#menu [data-act=locker]').click()`); await sleep(300); await S.game(`document.querySelector('#locker [data-lockk=trail]').click()`); await sleep(200);
+  ok(await S.game(`document.querySelectorAll('#lockGrid .ward-item').length>5&&!document.querySelector('#lockGrid .ward-item.plus')`), 'a site that is not Flick cannot turn on Flick Plus (Customize shows no Plus looks)');
+  await S.game(`(()=>{const b=document.querySelector('#locker [data-act=lockBack],#locker .back,#locker [data-act=back]');if(b)b.click();else document.dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}))})()`); await sleep(300);
   ok(await S.game(`document.querySelector('#a2hs').hidden&&document.querySelector('#mA2').hidden`), 'no Add to Home Screen prompt inside a site');
   // arrow keys and Space stay in the game
   await S.top(`window.scrollTo(0,0)`); await S.game(`document.querySelector('#game').focus()`);

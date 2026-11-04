@@ -57,7 +57,7 @@ if (process.argv.includes('--portal')) {
     orientation: 'landscape', touch: true, keyboard: true, gamepad: false, multiplayer: true, minPlayers: 1, maxPlayers: 4,
     iframe: { allow: 'fullscreen; autoplay; clipboard-write; web-share; screen-wake-lock', sandbox: 'allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock' },
     params: { share: "your page's address, so invite links and QR codes bring friends back to your site", join: 'a 4-letter room code to join on load', mute: '1 to start muted' },
-    events: ['ready', 'gameplayStart', 'gameplayStop', 'gameOver', 'save'], commands: ['pause', 'resume', 'mute', 'unmute', 'config', 'load'],
+    events: ['ready', 'gameplayStart', 'gameplayStop', 'gameOver', 'save', 'plusOffer'], commands: ['pause', 'resume', 'mute', 'unmute', 'config', 'load', 'plus'],
   }, null, 2) + '\n');
   fs.rmSync(path.join(dist, 'cuued.zip'), { force: true });
   try { execSync('zip -qr cuued.zip cuued', { cwd: dist }) } catch (e) { console.error('zip failed:', e.message) }

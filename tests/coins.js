@@ -41,6 +41,16 @@ const { load } = require('./env');
   check(['hat:crown', 'trail:gold', 'hat:party'].every((x) => W.owned.includes(x)) && !W.owned.includes('hat:nope'), `items from both are kept, unknown ones dropped (${W.owned})`);
   check(W.earned === 50 && W.wins === 4 && W.best === 3 && W.survBest === 12 && W.survBy.Duelist === 12 && W.survBy.Tank === 7 && !('<b>' in W.survBy), 'the best of each record is kept');
   A.loadWallet('junk'); A.loadWallet(null); A.loadWallet([1]); check(W.coins === 40, 'a broken save is ignored');
+  // Flick Plus: off Flick nothing changes; with Plus, coins double, Plus looks can be worn (and show), house rules start; without it, they don't
+  Object.assign(W, { coins: 0, earned: 0, plusCoins: 0, owned: [], eq: { hat: '', pattern: '', trail: 'flick' } });
+  check(A.myCos().trail === '' && !A.owns('trail', 'flick'), 'a Plus look is not worn without Plus');
+  check(A.earn(2) === 2 && W.coins === 2, 'coins are normal without Plus');
+  A.setPlus(true); check(A.portal.flick && A.myCos().trail === 'flick' && A.owns('trail', 'flick'), 'with Plus the Plus look is worn and shows');
+  check(A.earn(2) === 4 && W.coins === 6 && W.plusCoins === 2, `Plus doubles coins and counts the bonus (${W.coins}, ${W.plusCoins})`);
+  A.fixWallet(); check(W.eq.trail === 'flick' && !W.owned.includes('trail:flick'), 'a Plus look stays chosen but is never owned');
+  A.settings.bsTwist = 'low'; A.startMatch('cpu'); A.game.screen = true;
+  A.setPlus(false); check(A.settings.bsTwist === false && A.myCos().trail === '', 'losing Plus turns off house rules and Plus looks');
+  W.owned = ['trail:flick', 'hat:party']; A.fixWallet(); check(!W.owned.includes('trail:flick') && W.owned.includes('hat:party'), 'a Plus look can never end up owned');
   console.log(JSON.stringify({ coins: W.coins, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

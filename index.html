@@ -234,6 +234,7 @@ body:not(.ingame) #hudbtns{display:none}
 #locker{z-index:2}
 .ward-code{display:flex;gap:8px}.ward-code .text-in{flex:1;min-width:0;text-align:center;font-size:20px;letter-spacing:.2em}.ward-code .btn{font-family:var(--display);border-radius:10px}
 .ward-item.secret .nm{letter-spacing:.2em}.ward-item.secret{border-style:dashed}
+.ward-item.plus{border-color:rgba(204,255,51,.45)}.ward-item.plus .pr{color:#ccff33}   /* Flick Plus looks (only on Flick) */
 /* the shop, the locker and the sandbox share one look: a rounded dark panel like the pause menu, a stage with your fighter,
    pill tabs, a tidy grid that scrolls inside itself, and a big main button */
 .ward-wrap{padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));box-sizing:border-box}
@@ -1521,7 +1522,9 @@ const $=s=>document.querySelector(s);
    about play through postMessage, and CUUED leaves the page itself alone. See PORTAL.md. Options come from the iframe's
    address (?share=, ?join=, ?mute=1) or a {flick:'config'} message from the site ---------- */
 const EMBED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
-const portal={on:EMBED,share:'',name:''};
+const portal={on:EMBED,share:'',name:'',flick:false,plus:false};
+// Flick Plus is only believed from Flick itself (a site can't hand out Plus by saying so); localhost is for testing Flick
+const FLICK_ORIGIN=/^https:\/\/(www\.)?flickarcade\.com$|^http:\/\/localhost(:\d+)?$/;
 {const q=(()=>{try{return new URLSearchParams(location.search)}catch(e){return null}})();const sh=q&&q.get('share');if(sh&&/^https:\/\//.test(sh))portal.share=sh.slice(0,300);const nm=q&&q.get('site');if(nm)portal.name=String(nm).replace(/[<>]/g,'').slice(0,40)}
 // tell the site what's happening (a site that doesn't listen loses nothing)
 function portalSay(type,data){if(!portal.on)return;try{parent.postMessage({flick:type,game:'cuued',...(data||{})},'*')}catch(e){}}
@@ -2134,7 +2137,7 @@ function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
   const ctrls={survival:['mouse',game.coop?'net':'cpu'],sandbox:['mouse',sandbox.cpu==='still'?'idle':'cpu'],demo:['cpu','cpu'],watch:['cpu','cpu'],cpu:['mouse','cpu'],party:['mouse','cpu'],'2p':['mouse','p2'],'online-host':['mouse','net'],'online-guest':['net','mouse']}[mode];
   const names={survival:[you,game.coop?net.remoteName||'Partner':'Raider'],sandbox:[you,'CPU'],demo:['Orange','Blue'],watch:['Orange','Blue'],cpu:[you,'CPU'],party:[you,'CPU'],'2p':[you,'Player 2'],'online-host':[you,net.remoteName||'Challenger'],'online-guest':[net.remoteName||'Host',you]}[mode];
   players=[makePlayer(0,ctrls[0],names[0]),makePlayer(1,ctrls[1],names[1])];
-  {const mine=cleanCos(wallet.eq),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||(game.coop?[mine,theirs]:[mine,{}]);players.forEach((p,k)=>p.cos=cos[k]||{})}
+  {const mine=myCos(),theirs=cleanCos(net.remoteCos);const cos={demo:[randomCos(),randomCos()],watch:[randomCos(),randomCos()],'online-host':[mine,theirs],'online-guest':[theirs,mine]}[mode]||(game.coop?[mine,theirs]:[mine,{}]);players.forEach((p,k)=>p.cos=cos[k]||{})}
   // a party: two teams of two (offline with CPUs, or online with the host's roster); a Big Screen can also play every one for themselves
   game.party=mode==='party'||!!net.party&&(mode==='online-host'||mode==='online-guest');
   if(game.party)players=partyPlayers(mode);
@@ -2190,7 +2193,7 @@ function newPoint(fresh){
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
-  if(game.screen){if(!game.bsSurv)game.twist=settings.bsTwist&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
+  if(game.screen){if(!game.bsSurv)game.twist=typeof settings.bsTwist==='string'&&portal.plus?TWISTS.find(t=>t.id===settings.bsTwist)||null:settings.bsTwist===true&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
   game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
@@ -2286,9 +2289,10 @@ const COS={
   hat:[{id:'party',n:'Party Hat',price:3},{id:'band',n:'Headband',price:4},{id:'antenna',n:'Antenna',price:4},{id:'beanie',n:'Beanie',price:5},{id:'horns',n:'Horns',price:5},{id:'cat',n:'Cat Ears',price:6},{id:'halo',n:'Halo',price:6},
     {id:'tophat',n:'Top Hat',price:8},{id:'cowboy',n:'Cowboy Hat',price:9},{id:'crown',n:'Crown',price:12},{id:'viking',n:'Viking Helm',price:12},{id:'wizard',n:'Wizard Hat',price:15},
     {id:'darkhelm',n:'Dark Helm',price:0,secret:1}],   // the secret: shown as ??? until its code is entered
-  pattern:[{id:'stripes',n:'Stripes',price:4},{id:'spots',n:'Spots',price:4},{id:'checker',n:'Checker',price:6},{id:'zigzag',n:'Zigzag',price:6},{id:'stars',n:'Stars',price:7},{id:'hearts',n:'Hearts',price:8},{id:'bolt',n:'Lightning',price:10},{id:'galaxy',n:'Galaxy',price:16}],
+  pattern:[{id:'stripes',n:'Stripes',price:4},{id:'spots',n:'Spots',price:4},{id:'checker',n:'Checker',price:6},{id:'zigzag',n:'Zigzag',price:6},{id:'stars',n:'Stars',price:7},{id:'hearts',n:'Hearts',price:8},{id:'bolt',n:'Lightning',price:10},{id:'galaxy',n:'Galaxy',price:16},{id:'neon',n:'Neon Grid',price:0,plus:1},{id:'aurora',n:'Aurora',price:0,plus:1}],
   trail:[{id:'ember',n:'Ember',price:5},{id:'frost',n:'Frost',price:5},{id:'void',n:'Void',price:6},{id:'toxic',n:'Toxic',price:6},{id:'sakura',n:'Sakura',price:8},{id:'shadow',n:'Shadow',price:8},{id:'gold',n:'Gold',price:9},
-    {id:'spark',n:'Spark',price:12},{id:'rainbow',n:'Rainbow',price:14},{id:'plasma',n:'Plasma',price:18}]};
+    {id:'spark',n:'Spark',price:12},{id:'rainbow',n:'Rainbow',price:14},{id:'plasma',n:'Plasma',price:18},
+    {id:'flick',n:'Flick',price:0,plus:1},{id:'aurora',n:'Aurora',price:0,plus:1}]};   // plus: worn free with Flick Plus, and only shown on Flick
 const TRAIL_COL={ember:'#ff7a3a',frost:'#9fe8ff',void:'#b874ff',gold:'#ffd36b',toxic:'#9be15d',sakura:'#ffa3c7',shadow:'#7b5cc0'};
 // the secret hat's code is checked by its hash, so it isn't sitting in the page as plain text
 const SECRET_H=847270965,secretOk=v=>strSeed('cuued:'+String(v||'').trim())===SECRET_H;
@@ -2300,10 +2304,14 @@ const HAT_ORDER=['band','ears','top','halo'];   // drawn from the head outward
 const hatList=v=>{const out=[],used=new Set();for(const id of String(v||'').split(',').slice(0,6)){const sl=HAT_SLOT[id];if(sl&&!used.has(sl)){used.add(sl);out.push(id)}}return out};
 const cosValid=(k,id)=>k==='hat'?hatList(id).length>0&&hatList(id).join(',')===String(id):!!COS[k]&&COS[k].some(i=>i.id===id);
 // tidies whatever is in the wallet (it comes from storage, or from the game site's account), so a bad save can't break the game
-function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
+// a Flick Plus look: never bought or kept, worn while Flick says you have Plus
+function plusItem(k,id){return!!(COS[k]&&COS[k].some(i=>i.id===id&&i.plus))}
+// your own look as others see it: Plus looks only while Plus is on (the choice stays saved for when it's back)
+function myCos(){const c=cleanCos(wallet.eq);if(!portal.plus)for(const k of['pattern','trail'])if(plusItem(k,c[k]))c[k]='';return c}
+function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest','plusCoins'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
   const sb={};if(wallet.survBy&&typeof wallet.survBy==='object')for(const c in wallet.survBy)if(/^[\w -]{1,20}$/.test(c))sb[c]=Math.max(0,Math.floor(+wallet.survBy[c]||0));wallet.survBy=sb;
-  wallet.owned=[...new Set(Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))):[])];
-  wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]=''}}
+  wallet.owned=[...new Set(Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))&&!plusItem(x.split(':')[0],x.split(':')[1])):[])];
+  wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k])&&!plusItem(k,wallet.eq[k]))wallet.eq[k]=''}}
 fixWallet();
 function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;return o}
 /* your colour: a shade of orange (when you play the orange side) and of blue (the blue side). Each stays inside its colour
@@ -2318,17 +2326,22 @@ const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wal
 /* the site's account has a save: it wins (coins, what you wear), but anything owned or any record set on this device is kept,
    so signing in never takes away what you already have */
 function loadWallet(w){if(!w||typeof w!=='object'||Array.isArray(w))return;const mine={...wallet,owned:wallet.owned.slice(),survBy:{...wallet.survBy}};
-  for(const k of['coins','earned','wins','streak','best','owned','eq','survBest','survBy'])if(k in w)wallet[k]=w[k];fixWallet();
-  wallet.owned=[...new Set([...wallet.owned,...mine.owned])];for(const k of['earned','wins','best','survBest'])wallet[k]=Math.max(wallet[k],mine[k]|0);
+  for(const k of['coins','earned','wins','streak','best','owned','eq','survBest','survBy','plusCoins'])if(k in w)wallet[k]=w[k];fixWallet();
+  wallet.owned=[...new Set([...wallet.owned,...mine.owned])];for(const k of['earned','wins','best','survBest','plusCoins'])wallet[k]=Math.max(wallet[k],mine[k]|0);
   for(const c in mine.survBy)wallet.survBy[c]=Math.max(wallet.survBy[c]|0,mine.survBy[c]|0);
   saveWallet();refreshWallet();if(!$('#locker').hidden)renderLocker()}
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
 const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k].filter(i=>!i.secret)).id:'';return o};
+// Flick tells us whether this player has Flick Plus (only Flick: see FLICK_ORIGIN). It also marks the game as being on Flick,
+// which shows the Plus looks and house rules (anywhere else they stay hidden)
+function setPlus(on){portal.flick=true;portal.plus=on;if(!on&&typeof settings.bsTwist==='string'){settings.bsTwist=false;saveSettings()}refreshOpts();refreshWallet();if(!$('#locker').hidden)renderLocker()}
+// every coin earned goes through here: Flick Plus doubles it (and keeps count, for the trial's recap)
+function earn(n){const b=portal.plus?n:0;wallet.coins+=n+b;wallet.earned+=n+b;if(b)wallet.plusCoins=(wallet.plusCoins|0)+b;return n+b}
 // coins for winning a full match, shown on the end screen (once per match)
 function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='online-host'?(game.party?net.hostId:0):game.mode==='cpu'||game.mode==='party'?0:-1;if(game.party&&me>=0)me=players[me].team;   // a party: your team's win is yours
   const el=$('#endCoins');if(el)el.hidden=true;
   if(me<0||game.awarded)return;game.awarded=true;
-  if(w===me){const n=(game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2;wallet.coins+=n;wallet.earned+=n;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
+  if(w===me){const n=earn((game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
 // ---- Customize: your look and the shop in one page. Colour: your shades. Hats, Patterns, Trails: everything, owned or not.
@@ -2336,7 +2349,7 @@ function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='onl
 // The secret hat shows as ??? and opens a code box instead
 let lockK='color',lockSide=0,lockSel=null;
 const COIN_HTML='<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i>';
-const owns=(k,id)=>!id||wallet.owned.includes(k+':'+id);
+const owns=(k,id)=>!id||wallet.owned.includes(k+':'+id)||(portal.plus&&plusItem(k,id));
 function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??null}renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
 const openShop=(k,id)=>openLocker(k||'hat',id);
@@ -2354,21 +2367,23 @@ function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lock
   if(col){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
       box.innerHTML=`<p class="lbl">${f==='o'?'Your orange':'Your blue'}</p><div class="sw">${F.sw.map(([h,l])=>`<button type="button" data-shade="${f}:${h}:${l}" style="background:${hslHex(h,F.s,l)}" class="${h===cur[0]&&l===cur[1]?'on':''}" aria-label="${f==='o'?'Orange':'Blue'} shade"></button>`).join('')}</div>
         <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}}
-  else for(const it of [{id:'',n:'None',price:0},...COS[lockK]]){const own=owns(lockK,it.id),wear=wearing(lockK,it.id),hid=it.secret&&!own,b=document.createElement('button');b.type='button';
-    b.className='ward-item'+(wear?' eq':'')+(lockSel===it.id||(lockSel==null&&wear)?' sel':'')+(hid?' secret':'');b.dataset.lock=it.id;
-    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':lockK==='hat'&&!it.id?'No hats':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${lockK==='hat'&&!it.id?(wear?'Bare head':'Take all off'):wear?'Wearing':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
+  else for(const it of [{id:'',n:'None',price:0},...COS[lockK]].filter(i=>!i.plus||portal.flick)){const own=owns(lockK,it.id),wear=wearing(lockK,it.id),hid=it.secret&&!own,b=document.createElement('button');b.type='button';
+    b.className='ward-item'+(wear?' eq':'')+(lockSel===it.id||(lockSel==null&&wear)?' sel':'')+(hid?' secret':'')+(it.plus?' plus':'');b.dataset.lock=it.id;
+    b.innerHTML=`<canvas width="192" height="144" aria-hidden="true"></canvas><span class="nm">${hid?'???':lockK==='hat'&&!it.id?'No hats':it.n}</span><span class="pr${own?' own':wallet.coins<it.price?' poor':''}">${lockK==='hat'&&!it.id?(wear?'Bare head':'Take all off'):wear?'Wearing':it.plus?'Flick Plus':own?'Owned':hid?'Secret':COIN_HTML+' '+it.price}</span>`;
     const g=b.querySelector('canvas').getContext('2d');if(g){g.scale(192/220,144/164);if(hid)drawSecret(g);else drawCosPreview(g,lockK==='trail'&&!it.id?'hat':lockK,it.id)}grid.appendChild(b)}
   // the stage's button: Wear, Wearing, Buy, Need more; a secret: the code box
   const it=!col&&lockSel!=null?[{id:'',n:'None',price:0},...COS[lockK]].find(i=>i.id===lockSel):null,go=$('#lockGo'),nm=$('#lockPick'),code=$('#lockCode');
   const own=it&&owns(lockK,it.id),hid=it&&it.secret&&!own;nm.hidden=!it;nm.textContent=it?(hid?'???':it.n):'';code.hidden=!hid;go.hidden=!it||hid;
-  if(it&&!hid){const wear=wearing(lockK,it.id),hat=lockK==='hat'&&it.id;go.disabled=(wear&&!hat)||(!own&&wallet.coins<it.price);
+  if(it&&!hid&&it.plus&&!own){go.disabled=false;go.innerHTML='Try Flick Plus'}
+  else if(it&&!hid){const wear=wearing(lockK,it.id),hat=lockK==='hat'&&it.id;go.disabled=(wear&&!hat)||(!own&&wallet.coins<it.price);
     go.innerHTML=wear?(hat?'Take off':'Wearing ✓'):own?(hat&&hatList(wallet.eq.hat).some(h=>HAT_SLOT[h]===HAT_SLOT[it.id])?'Swap in':'Wear'):wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
-  $('#lockMsg').innerHTML=msg||(col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
+  $('#lockMsg').innerHTML=msg||(it&&it.plus?(own?'A Flick Plus look. Yours to wear while you have Plus.':'A Flick Plus look. New Flick accounts get Plus free for 7 days, with double coins and house rules too.'):col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
     :hid?'Something special. Only a code unlocks it.':lockK==='hat'?'Stack up to four: one on top, ears or horns, a headband and a halo. Tap one you own to put it on or take it off.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.')}
 // the secret's tile: a dark silhouette with a question mark
 function drawSecret(g){g.save();g.translate(110,92);g.fillStyle='#14141c';g.beginPath();g.arc(0,0,40,0,TAU);g.fill();g.fillStyle='#ffd36b';g.font='54px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',0,2);g.restore()}
 function lockPick(id){lockSel=id;const own=owns(lockK,id);if(own){if(lockK==='hat')wearHat(id,!wearing('hat',id));else wallet.eq[lockK]=id;saveWallet();sfx('pick',true)}else sfx('tick',true);renderLocker()}
 function lockGo(){const it=COS[lockK]&&COS[lockK].find(i=>i.id===lockSel);if(!it)return;const key=lockK+':'+it.id;
+  if(it.plus&&!portal.plus){portalSay('plusOffer',{perk:'looks'});sfx('tick',true);return}
   if(owns(lockK,it.id)){if(lockK==='hat'){const on=!wearing('hat',it.id);wearHat(it.id,on);saveWallet();sfx('pick',true);renderLocker(on?`Wearing <b>${it.n}</b>.`:`Took off <b>${it.n}</b>.`);return}wallet.eq[lockK]=it.id;saveWallet();sfx('pick',true);renderLocker(`Wearing <b>${it.n}</b>.`);return}
   if(it.secret)return;
   if(wallet.coins<it.price){sfx('empty',true);renderLocker(`<b>${it.n}</b> costs ${it.price}. You have ${wallet.coins}: win ${it.price-wallet.coins} more.`);return}
@@ -2420,6 +2435,8 @@ function drawPattern(g,id,R){if(!id)return;g.save();g.beginPath();g.arc(0,0,R,0,
   else if(id==='bolt'){g.fillStyle='rgba(255,236,120,.55)';g.beginPath();const P=[[.15,-1],[-.35,.08],[0,.08],[-.2,1],[.42,-.18],[.06,-.18],[.3,-1]];P.forEach(([x,y],i)=>i?g.lineTo(x*R,y*R):g.moveTo(x*R,y*R));g.closePath();g.fill()}
   else if(id==='galaxy'){try{const gg=g.createRadialGradient(R*.2,-R*.2,R*.1,0,0,R);gg.addColorStop(0,'rgba(170,110,255,.55)');gg.addColorStop(.6,'rgba(60,40,140,.45)');gg.addColorStop(1,'rgba(10,8,40,.6)');g.fillStyle=gg;g.fillRect(-R,-R,R*2,R*2)}catch(e){}
     const tw=performance.now()/500;g.fillStyle='#ffffff';for(let i=0;i<9;i++){const a=i*2.4,d=R*(.2+.7*((i*37%10)/10));g.globalAlpha=.5+.5*Math.sin(tw+i);g.beginPath();g.arc(Math.cos(a)*d,Math.sin(a)*d,R*.04,0,TAU);g.fill()}g.globalAlpha=1}
+  else if(id==='neon'){g.strokeStyle='rgba(204,255,51,.5)';g.lineWidth=Math.max(1,R*.06);const q=R*.42,o=(performance.now()/60)%q;for(let i=-3;i<=3;i++){g.beginPath();g.moveTo(i*q+o-q,-R);g.lineTo(i*q+o-q,R);g.moveTo(-R,i*q);g.lineTo(R,i*q);g.stroke()}}
+  else if(id==='aurora'){try{const h=150+60*Math.sin(performance.now()/700),gg=g.createLinearGradient(-R,-R,R,R);gg.addColorStop(0,`hsla(${h},90%,60%,.55)`);gg.addColorStop(.5,`hsla(${h+60},90%,60%,.35)`);gg.addColorStop(1,`hsla(${h+120},90%,60%,.55)`);g.fillStyle=gg;g.fillRect(-R,-R,R*2,R*2)}catch(e){}}
   else if(id==='stars')for(const[x,y,r]of[[-.42,.3,.22],[.4,-.42,.18],[.48,.42,.14]]){g.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,rr=(i%2?.45:1)*r*R;g.lineTo(x*R+Math.cos(a)*rr,y*R+Math.sin(a)*rr)}g.fill()}
   g.restore()}
 function drawHat(g,id,R,col,ex=0,ey=-R*.12){if(!id)return;
@@ -2458,7 +2475,7 @@ function drawHelm(g,R,ex,ey){g.save();g.lineJoin='round';
   g.shadowBlur=0;g.strokeStyle='rgba(255,255,255,.22)';g.lineWidth=Math.max(1,R*.05);for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(x+i*R*.12,y+R*.26);g.lineTo(x+i*R*.12,y+R*.42);g.stroke()}   // the vent
   g.restore()}
 function trailColor(id,fallback,i){if(!id)return fallback;const t=performance.now();if(id==='rainbow')return`hsl(${(t/4+(i||0)*40)%360},95%,65%)`;
-  if(id==='plasma'){const z=Math.sin(t/37+(i||0)*1.7);return z>.82?'#f6e4ff':z>.2?'#c45bff':'#9b3dff'}   /* electric violet that crackles white (Rainbow sweeps every colour; Spark is white and yellow) */if(id==='spark')return((t/70+(i||0))|0)%3?'#fff6a0':'#ffffff';return TRAIL_COL[id]||fallback}
+  if(id==='plasma'){const z=Math.sin(t/37+(i||0)*1.7);return z>.82?'#f6e4ff':z>.2?'#c45bff':'#9b3dff'}   /* electric violet that crackles white (Rainbow sweeps every colour; Spark is white and yellow) */if(id==='spark')return((t/70+(i||0))|0)%3?'#fff6a0':'#ffffff';if(id==='flick')return((t/90+(i||0))|0)%2?'#ccff33':'#9b5cff';if(id==='aurora')return`hsl(${150+70*Math.sin(t/600+(i||0)*.6)},90%,62%)`;return TRAIL_COL[id]||fallback}
 function drawCosPreview(g,k,id){const W2=220,H2=164;g.clearRect(0,0,W2,H2);g.save();
   if(k==='trail'){const col=trailColor(id,'#ffc06b',1);g.lineCap='round';g.strokeStyle=col;const pts=[];for(let i=0;i<=20;i++){const t=i/20;pts.push([20+t*170,110-Math.sin(t*Math.PI)*70+t*20])}
     for(let s=0;s<3;s++){g.globalAlpha=.25+.25*s;g.lineWidth=3+s*3;g.beginPath();pts.slice(s*6).forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()}
@@ -2946,9 +2963,9 @@ function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});if(game
       const c=myHero().cards[+b.dataset.sell];b.dataset.nm=b.textContent;b.classList.add('sell');b.textContent=`Sell +${c?Math.floor(cardPrice(c)/2):0}?`;return}survSell(+b.dataset.sell);return}
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
-function survEnd(){if(game.bsSurv){bsSurvEnd();return}portalSay('gameplayStop');portalSay('gameOver',{mode:'survival',score:game.cleared||0});if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins=Math.floor(n/2);game.state='over';
+function survEnd(){if(game.bsSurv){bsSurvEnd();return}portalSay('gameplayStop');portalSay('gameOver',{mode:'survival',score:game.cleared||0});if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins0=Math.floor(n/2);game.state='over';
   const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
-  if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();
+  const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
   $('#endScore').textContent=`${ch}, level ${me.lvl||1}. `+(n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}${cb?`, ${cb} with ${ch}`:''}.`)+(opened.length?` Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
   $('#deckName0').textContent='Your build';endDeck($('#deck0'),[...(me.char?[me.char]:[]),...me.cards,...(me.ups||[])]);
@@ -4626,7 +4643,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-account-saves';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-flick-plus';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4798,7 +4815,7 @@ function attachConn(conn){if(net.role==='host'){hostAttach(conn);return}net.conn
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}hostMsg('A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0,tok:padTok()})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0,tok:padTok()})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
@@ -4807,7 +4824,7 @@ function hostAttach(conn){const pr={conn,fast:null,open:false,pid:-1,name:'',cos
     lastRecv:performance.now(),sendT:0,fxQ:[],relayed:!!conn.relayFrom};net.peers.push(pr);if(!net.conn)net.conn=conn;
   conn.on('iceStateChanged',st=>{if(pr.open||st!=='failed'||!net.peers.includes(pr))return;dropPeer(pr);hostMsg('A player tried to join, but your networks could not connect. Still waiting. They can try again.')});
   conn.on('open',()=>{if(!net.peers.includes(pr))return;pr.open=true;pr.lastRecv=net.lastRecv=performance.now();if(!net.party)net.connected=true;openFast(conn,pr);
-    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:cleanCos(wallet.eq),coop:net.wantCoop?1:0,party:net.party?1:0,screen:net.screen?1:0,sb:wallet.survBest||0})});
+    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.wantCoop?1:0,party:net.party?1:0,screen:net.screen?1:0,sb:wallet.survBest||0})});
   conn.on('data',m=>{if(net.peers.includes(pr)&&m&&typeof m==='object'){pr.lastRecv=net.lastRecv=performance.now();onNet(m,pr)}});
   conn.on('close',()=>{if(net.peers.includes(pr))peerGone(pr,`${pr.name||'A player'} left the match.`)});
   conn.on('error',()=>{if(net.peers.includes(pr))peerGone(pr,`The connection to ${pr.name||'a player'} dropped.`)})}
@@ -4853,7 +4870,7 @@ function lobbyTidy(){const ps=net.peers.filter(p=>p.open&&p.name);if(net.hostTea
   for(const p of ps)if(p.team!==0&&p.team!==1)p.team=n(1)<n(0)?1:n(0)<n(1)?0:net.hostTeam;   // the team with fewer players (a tie: the host's)
   return ps}
 // the lobby's two teams, in fighter order: [orange 1, blue 1, orange 2, blue 2] (null: an empty seat)
-function partyList(fill){const ps=lobbyTidy(),host={n:myName||'Host',cos:cleanCos(wallet.eq),host:1},T=[[],[]];
+function partyList(fill){const ps=lobbyTidy(),host={n:myName||'Host',cos:myCos(),host:1},T=[[],[]];
   if(net.room&&!bsTeams()){const L=[host,...ps.map(p=>({n:p.name,cos:p.cos,peer:p}))].slice(0,4);let bots=fill?Math.min(settings.bsBots|0,4-L.length):0;while(L.length<4)L.push(bots-->0?{cpu:1,n:'CPU'}:null);return fill?L.filter(Boolean):L}
   T[net.hostTeam].push(host);for(const p of ps)T[p.team].push({n:p.name,cos:p.cos,peer:p});
   const cell=(t,i)=>T[t][i]||(fill?{cpu:1,n:'CPU'}:null);return[cell(0,0),cell(1,0),cell(0,1),cell(1,1)]}
@@ -5475,7 +5492,7 @@ function padPicked(i){if(!ctl.hand)return;ctl.picked=i;[...$('#padCards').childr
   $('#padPick').classList.toggle('locked',true);setText('#padPickT','Locked in');setText('#padPickS',ctl.pickSv?'Waiting for the others · watch the big screen':'Watch the big screen for the reveal')}
 let padArtRaf=0,padLookRaf=0;
 function padLookLoop(){if(padLookRaf)return;const step=now=>{if(ctl.view!=='lobby'||$('#pad').hidden){padLookRaf=0;return}const c=$('#padLook'),col=getComputedStyle($('#pad')).getPropertyValue('--pc').trim();
-  const look={...cleanCos(wallet.eq)};try{drawLook(c,look,0,now/1000)}catch(e){}padLookRaf=requestAnimationFrame(step)};padLookRaf=requestAnimationFrame(step)}
+  const look={...myCos()};try{drawLook(c,look,0,now/1000)}catch(e){}padLookRaf=requestAnimationFrame(step)};padLookRaf=requestAnimationFrame(step)}
 function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
 function padAgainShow(){const b=$('#padAgain');if(b){b.hidden=!ctl.solo;b.disabled=false}setText('#padOverTip',ctl.solo?'Or put the phone down and pick on the big screen.':'Waiting for the host: a rematch, or back to the lobby.')}
@@ -5483,7 +5500,7 @@ function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView(
   setText('#padOverT',win?(/^Team /.test((ctl.sides[ctl.team]||{}).n||'')?'Your team wins!':'You win!'):s?`${s.n} wins`:'They win');   // a side is a team only when it's called one
   setText('#padOverS',win?'Nice. That one was yours.':'So close. Get them in the rematch.');
   const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;
-    if(win){wallet.coins+=2;wallet.earned+=2;wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +2 CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
+    if(win){const n=earn(2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
     else{wallet.streak=0;saveWallet();el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`}el.hidden=false}}
 /* ---------- the phone's shop (Co-op Survival on a Big Screen): your five offers as full-size cards to swipe through, tap one to
    buy it, lock one for the next shop, reroll, sell from your build (tap twice), then Ready. The host keeps the books ---------- */
@@ -5517,11 +5534,11 @@ let pshRaf=0;
 function padArtLoop(sel){cancelAnimationFrame(pshRaf);const t0=performance.now();
   const loop=now=>{if($('#padShop').hidden)return;for(const c of document.querySelectorAll(sel+' canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);pshRaf=requestAnimationFrame(loop)};pshRaf=requestAnimationFrame(loop)}
 // the run is over: this phone's coins and its own record (that's what unlocks characters)
-function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;padView('over');const n=Math.max(0,m.n|0),ch=cleanName(m.ch)||'',coins=Math.floor(n/2);
+function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;padView('over');const n=Math.max(0,m.n|0),ch=cleanName(m.ch)||'',coins0=Math.floor(n/2);
   setText('#padOverT',n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1');
   const best=wallet.survBest||0;setText('#padOverS',n>best?(best?`A new best! (was ${best})`:'Your first run on the board.'):`Your best is ${best}.`);
   const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
-    if(coins){wallet.coins+=coins;wallet.earned+=coins}saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
+    const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
     el.innerHTML=(coins?`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`:`Reach round 2 to earn CUUED coins (you have ${wallet.coins}).`)+(opened.length?` · Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
     el.hidden=false;buzz(coins?[40,60,40]:[70])}}
 // the sticks: the same feel as phone play (a flick up jumps, pulling down drops through ledges)
@@ -5610,13 +5627,14 @@ const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.sli
   bsMode:{vals:['ffa','teams','surv'],label:v=>v==='teams'?'Teams 2v2':v==='surv'?'Co-op Survival':'Free-for-all'},bsLen:{vals:[3,5,7],label:v=>String(v)},
   bsCards:{vals:['losers','all','none'],label:v=>({losers:'Round losers',all:'Everyone',none:'Off'})[v]||'Round losers'},
   bsBots:{vals:[0,1,2,3],label:v=>v?String(v):'None'},bsCpu:{vals:['normal','hard','easy'],label:v=>v[0].toUpperCase()+v.slice(1)},
-  bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true],label:v=>v?'On':'Off'}};
+  bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true,...TWISTS.map(t=>t.id)],label:v=>typeof v==='string'?'Always: '+TWISTS.find(t=>t.id===v).n.toLowerCase().replace(/^./,c=>c.toUpperCase())+(portal.plus?'':' (Plus)'):v?'Now and then':'Off'}};   // the 'Always' house rules come with Flick Plus
 for(const k in OPT)if(k.startsWith('bs')&&!OPT[k].vals.includes(settings[k]))settings[k]=OPT[k].vals[0];   // a saved choice that no longer exists
 // each setting's value gets real ‹ › arrows: a tap on either steps it that way (a tap anywhere else on the row steps forward)
 for(const v of document.querySelectorAll('.mlist.opts button[data-opt]>.val')){const w=document.createElement('span');w.className='ov';v.replaceWith(w);
   const a=(d,t)=>{const i=document.createElement('i');i.dataset.dir=d;i.setAttribute('aria-hidden','true');i.textContent=t;return i};w.append(a(-1,'‹'),v,a(1,'›'))}
 function refreshOpts(){for(const k in OPT)document.querySelectorAll(`[data-opt=${k}] .val`).forEach(el=>el.textContent=OPT[k].label(settings[k]))}
-function cycleOpt(k,dir){const o=OPT[k],vals=k==='bsMode'&&mpKind!=='coop'?['ffa','teams']:o.vals,i=vals.indexOf(settings[k]);settings[k]=vals[(i+dir+vals.length)%vals.length];
+function cycleOpt(k,dir){const o=OPT[k],vals=k==='bsMode'&&mpKind!=='coop'?['ffa','teams']:k==='bsTwist'&&!portal.flick?[false,true]:o.vals,i=vals.indexOf(settings[k]);settings[k]=vals[(i+dir+vals.length)%vals.length];
+  if(k==='bsTwist'&&typeof settings[k]==='string'&&!portal.plus)portalSay('plusOffer',{perk:'houseRules'});
   if(k==='diff'&&!game.bg)game.diff=settings.diff;if(k==='sound'&&muted===settings.sound)toggleMute(true);if(k==='vol'&&master)master.gain.value=settings.vol;if(k==='pview')phoneView();saveSettings();refreshOpts();sfx('tick',true);if(k.startsWith('bs')){if(net.room)roomLobbyChanged();else bsLobbyChanged()}}
 function helpTab(t){const h=$('[data-sub=help]');if(!h)return;const tabs=[...h.querySelectorAll('[data-htab]')];if(typeof t==='number'){const i=tabs.findIndex(b=>b.classList.contains('on'));t=tabs[(i+t+tabs.length)%tabs.length].dataset.htab}
   tabs.forEach(b=>{const on=b.dataset.htab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});h.querySelectorAll('[data-hpage]').forEach(p=>p.hidden=p.dataset.hpage!==t)}
@@ -5765,6 +5783,7 @@ if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=
   if(m.flick==='pause'){if(!net.role&&!game.bg&&!game.paused&&['play','ready','pointEnd'].includes(game.state))togglePause()}
   else if(m.flick==='resume'){if(!net.role&&game.paused)togglePause()}
   else if(m.flick==='load')loadWallet(m.data)
+  else if(m.flick==='plus'){if(FLICK_ORIGIN.test(e.origin))setPlus(!!m.on)}
   else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
   else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);
     const c=String(m.join||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length===4)joinFromLink(c)}});
