@@ -64,7 +64,7 @@ body{margin:0}
 [hidden]{display:none!important}
 body{background:var(--night);color:var(--text);font-family:var(--body);overflow:hidden;user-select:none;-webkit-user-select:none}
 #game{position:fixed;inset:0;display:block;outline:none;cursor:crosshair}
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:auto;overscroll-behavior:contain;
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden auto;overscroll-behavior:contain;
   padding-block:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.7);backdrop-filter:blur(2px)}
@@ -466,7 +466,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .screen-title.big{font-size:clamp(44px,8vw,96px)}
 /* the pause menu: one tidy panel. A big Resume, quick toggles side by side, then the rest, with leaving set apart at the bottom */
 #pause{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:radial-gradient(ellipse at center,rgba(14,8,22,.7),rgba(14,8,22,.92))}
-#pause .pausepanel{display:grid;justify-items:stretch;gap:8px;width:min(360px,92vw);padding:16px;background:rgba(33,21,47,.94);border:2px solid var(--line);border-radius:14px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45)}
+#pause .pausepanel{display:grid;justify-items:stretch;gap:8px;width:min(360px,100%);box-sizing:border-box;padding:16px;background:rgba(33,21,47,.94);border:2px solid var(--line);border-radius:14px;box-shadow:0 10px 0 rgba(0,0,0,.3),0 20px 50px rgba(0,0,0,.45)}
 #pause .pausepanel button{font-size:20px;letter-spacing:.04em;color:var(--text);background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:10px;padding:9px 14px;width:100%;text-align:center;transform:none}
 #pause .pausepanel button::before,#pause .pausepanel button::after{display:none}
 #pause .pausepanel button:hover,#pause .pausepanel button:focus{border-color:var(--orange);background:rgba(255,171,26,.12);text-shadow:none}
@@ -635,6 +635,18 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   .mlist.tiles .mt.back{min-height:36px;font-size:14px;padding:4px 10px}.mlist.tiles .mt.back .mi{width:22px;height:22px;padding:3px}
 }
 @media (max-width:520px){.mlist.tiles .mt{grid-column:1 / -1}.mlist.tiles .mt.small{grid-column:span 2}}
+/* an upright phone, inside a sub-menu (Single player, Multiplayer, Settings, How to play...): like an app screen. The header
+   shrinks to a small logo, the tiles get compact, and Back stays pinned at the bottom so it's always one tap away */
+@media (max-width:520px) and (min-height:521px){
+  .menu-wrap:has(>[data-sub]:not([data-sub=main]):not([hidden])){gap:12px}
+  .menu-wrap:has(>[data-sub]:not([data-sub=main]):not([hidden])) .logo{font-size:30px}
+  .menu-wrap:has(>[data-sub]:not([data-sub=main]):not([hidden])) .tagline,.menu-wrap:has(>[data-sub]:not([data-sub=main]):not([hidden]))>.playing-as{display:none}
+  [data-sub]:not([data-sub=main]) .mlist.tiles{gap:8px}
+  [data-sub]:not([data-sub=main]) .mlist.tiles .mt{min-height:66px;padding:10px 12px;column-gap:12px}
+  [data-sub]:not([data-sub=main]) .mlist.tiles .mt .mi{width:38px;height:38px;padding:8px}
+  [data-sub]:not([data-sub=main]) .mlist.tiles .mt.big{min-height:76px}
+  #menu [data-sub]:not([data-sub=main]) [data-act=back]{position:sticky;bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:2;background:rgba(30,20,44,.97);box-shadow:0 -10px 20px rgba(14,8,22,.85)}
+}
 /* a smaller, secondary row (Join with a code under the two ways to host) */
 .mlist.tiles .mt.mt.sub{grid-column:1 / -1;min-height:46px!important;padding:6px 14px!important;justify-content:center;grid-template-columns:auto auto;font-size:16px!important;border-style:dashed;border-color:color-mix(in srgb,var(--tc) 45%,transparent);background:rgba(255,255,255,.03);box-shadow:none}
 .mlist.tiles .mt.sub .mi{grid-row:auto;width:30px;height:30px;padding:5px;border-radius:9px}.mlist.tiles .mt.sub .mt-t{grid-row:auto!important;align-self:center}
@@ -853,7 +865,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 }
 /* ---- the first-run guide: five swipeable pages in the menus' look ---- */
 #tut{z-index:35;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:radial-gradient(ellipse at center,rgba(14,8,22,.75),rgba(14,8,22,.94))}
-.tut-card{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:12px;width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;box-sizing:border-box;padding:16px 18px 18px;border-radius:22px;
+.tut-card{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:12px;width:min(520px,100%);max-height:calc(100dvh - 24px);margin:auto;box-sizing:border-box;padding:16px 18px 18px;border-radius:22px;
   border:2px solid rgba(255,255,255,.1);background:rgba(22,13,33,.97);box-shadow:0 20px 60px rgba(0,0,0,.45);animation:tutIn .35s cubic-bezier(.2,1.4,.4,1)}
 @keyframes tutIn{from{transform:translateY(24px) scale(.96);opacity:0}}
 .tut-top{display:flex;justify-content:space-between;align-items:center}.tut-top .lbl{margin:0}
@@ -898,7 +910,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .tut-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05;box-shadow:0 4px 0 #a5520f}
 .tut-acts .btn[disabled]{visibility:hidden}
 .name-note{margin:-6px 0 0;max-width:34ch;color:var(--muted);font:600 15px/1.4 var(--body)}
-@media (max-height:520px){.tut-card{grid-template-rows:auto minmax(0,1fr) auto auto;gap:6px;padding:10px 14px 12px;width:min(640px,calc(100vw - 24px))}
+@media (max-height:520px){.tut-card{grid-template-rows:auto minmax(0,1fr) auto auto;gap:6px;padding:10px 14px 12px;width:min(640px,100%)}
   .tut-pg{grid-template-columns:auto minmax(0,1fr);grid-auto-flow:dense;column-gap:16px;row-gap:4px;text-align:left;justify-items:start;align-items:center}
   .tut-pg>:first-child{grid-row:1 / span 3}.tut-pg h3{font-size:24px}.tut-pg p{font-size:14px}
   #tutLook{width:min(200px,30vw)}.tut-tiles{width:min(260px,40vw);grid-template-columns:1fr}.tut-tile{padding:6px}.tut-tile small{display:none}
@@ -4651,7 +4663,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-lobby-pin';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-phone-menus';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
