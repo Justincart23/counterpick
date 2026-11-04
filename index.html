@@ -645,6 +645,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   [data-sub]:not([data-sub=main]) .mlist.tiles .mt{min-height:66px;padding:10px 12px;column-gap:12px}
   [data-sub]:not([data-sub=main]) .mlist.tiles .mt .mi{width:38px;height:38px;padding:8px}
   [data-sub]:not([data-sub=main]) .mlist.tiles .mt.big{min-height:76px}
+  #menu [data-sub=help]>nav.mlist:last-of-type{position:sticky;bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:2;padding:8px 0;background:linear-gradient(transparent,rgba(14,8,22,.96) 30%)}
   #menu [data-sub]:not([data-sub=main]) [data-act=back]{position:sticky;bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:2;background:rgba(30,20,44,.97);box-shadow:0 -10px 20px rgba(14,8,22,.85)}
 }
 /* a smaller, secondary row (Join with a code under the two ways to host) */
@@ -4663,7 +4664,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-phone-menus';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-phone-help';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
