@@ -55,10 +55,11 @@ CUUED posts to the parent page: `{ flick: <type>, game: 'cuued', ...data }`.
 
 | Type | When | Data |
 |---|---|---|
-| `ready` | loaded, menu showing | `title`, `orientation`, `multiplayer` |
+| `ready` | loaded, menu showing | `title`, `orientation`, `multiplayer`, `save` (the player's progress, see below) |
 | `gameplayStart` | a match or run begins | `mode` |
 | `gameplayStop` | it ends, or the player goes back to the menu | |
 | `gameOver` | the end screen shows | `mode`, `won` (true/false/null), `rounds`, or `score` (Survival: rounds survived) |
+| `save` | the progress changed (coins, items, looks, records) | `data`: the whole save, a small JSON object |
 
 The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause' }, '*')`):
 
@@ -67,6 +68,7 @@ The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause
 | `pause` / `resume` | Pauses a single-player match (online matches can't pause; use it for ads between games only) |
 | `mute` / `unmute` | Sound off / on |
 | `config` | `{ flick: 'config', share, join, site }`: same as the options above, after loading |
+| `load` | `{ flick: 'load', data }`: a save the site kept (e.g. on the player's account). The site's coins and looks win; items owned and records set on this device are kept too |
 
 A good place for an ad is on `gameplayStop`, before the player starts again.
 
@@ -74,6 +76,7 @@ A good place for an ad is on `gameplayStop`, before the player starts again.
 
 - Matches connect players directly, peer to peer, so they work on any domain.
 - For players on strict networks, CUUED fetches relay credentials from `https://www.cuued.com/api/turn`. That endpoint only answers sites it trusts: add the site's address to the Vercel environment variable `PORTAL_ORIGINS`, comma-separated, e.g. `https://flick.com,https://www.flick.com`. Without it, those few players fall back to the free public relays.
+- **Account saves:** a site with accounts keeps progress by storing `ready.save` and each `save` message, and sending its stored copy back with `load` when the game says `ready` on another device. Flick does this for signed-in players.
 - Saves (name, coins, looks, best runs) live in the browser storage of whatever domain serves the game. Copying the folder onto the site gives one save shared by everyone who plays there. Embedding `https://www.cuued.com` directly instead keeps a separate save from cuued.com's own page.
 
 ## Inside a frame, CUUED

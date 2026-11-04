@@ -42,6 +42,11 @@ async function browser(port, name, phone) {
   const S = await browser(9461, 'Host', false);
   await S.cdp('Page.navigate', { url: BASE + '/play/cuued' });
   ok(await S.until(() => S.top(`window.__msgs.some(m=>m.flick==='ready')`)), 'the game loads in the frame and tells the site it is ready');
+  ok(await S.top(`(()=>{const m=window.__msgs.find(m=>m.flick==='ready');return !!(m&&m.save&&typeof m.save.coins==='number')})()`), 'ready carries the save, so the site can keep it on an account');
+  // the site hands over its account's save: the game takes it, keeps it on this device, and reports the change back
+  await S.top(`document.getElementById('game').contentWindow.postMessage({flick:'load',data:{coins:77,owned:['hat:crown'],eq:{hat:'crown',pattern:'',trail:''}}},'*')`); await sleep(300);
+  ok(await S.game(`(w=>w.coins===77&&w.eq.hat==='crown')(JSON.parse(localStorage.getItem('cuued.wallet')))&&JSON.parse(localStorage.getItem('cuued.wallet')).coins===77&&document.querySelector('[data-coins]').textContent==='77'`), 'a save from the site loads into the game and shows');
+  ok(await S.top(`window.__msgs.some(m=>m.flick==='save'&&m.data&&m.data.coins===77)`), 'the game tells the site when its save changes');
   ok(await S.game(`document.querySelector('#a2hs').hidden&&document.querySelector('#mA2').hidden`), 'no Add to Home Screen prompt inside a site');
   // arrow keys and Space stay in the game
   await S.top(`window.scrollTo(0,0)`); await S.game(`document.querySelector('#game').focus()`);

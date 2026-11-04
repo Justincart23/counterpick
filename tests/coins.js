@@ -34,6 +34,13 @@ const { load } = require('./env');
   // tampered or unknown values are dropped
   const cc = A.cleanCos({ hat: '<script>', pattern: 'stripes', trail: 'laser', extra: 1 }); check(cc.hat === '' && cc.pattern === 'stripes' && cc.trail === '' && !('extra' in cc), 'unknown cosmetics from a save or an opponent are ignored');
   A.render();   // fighters with a hat draw without errors
+  // a save from the game site's account: it wins, but what this device owns and its records are kept; junk is cleaned
+  Object.assign(W, { coins: 5, earned: 9, wins: 4, streak: 1, best: 3, owned: ['hat:party'], eq: { hat: 'party', pattern: '', trail: '' }, survBest: 12, survBy: { Duelist: 12 } });
+  A.loadWallet({ coins: 40, earned: 50, wins: 2, streak: 0, best: 1, owned: ['hat:crown', 'hat:nope', 'trail:gold'], eq: { hat: 'crown', pattern: '', trail: 'laser' }, survBest: 7, survBy: { Tank: 7, '<b>': 99 } });
+  check(W.coins === 40 && W.eq.hat === 'crown' && W.eq.trail === '', `the account's coins and look win (${W.coins}, ${W.eq.hat})`);
+  check(['hat:crown', 'trail:gold', 'hat:party'].every((x) => W.owned.includes(x)) && !W.owned.includes('hat:nope'), `items from both are kept, unknown ones dropped (${W.owned})`);
+  check(W.earned === 50 && W.wins === 4 && W.best === 3 && W.survBest === 12 && W.survBy.Duelist === 12 && W.survBy.Tank === 7 && !('<b>' in W.survBy), 'the best of each record is kept');
+  A.loadWallet('junk'); A.loadWallet(null); A.loadWallet([1]); check(W.coins === 40, 'a broken save is ignored');
   console.log(JSON.stringify({ coins: W.coins, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);

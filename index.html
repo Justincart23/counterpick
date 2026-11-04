@@ -2294,14 +2294,17 @@ const TRAIL_COL={ember:'#ff7a3a',frost:'#9fe8ff',void:'#b874ff',gold:'#ffd36b',t
 const SECRET_H=847270965,secretOk=v=>strSeed('cuued:'+String(v||'').trim())===SECRET_H;
 const wallet={coins:0,earned:0,wins:0,streak:0,best:0,owned:[],eq:{hat:'',pattern:'',trail:''}};
 try{const w=JSON.parse(localStorage.getItem('cuued.wallet')||'{}');if(w&&typeof w==='object')Object.assign(wallet,w)}catch(e){}
-for(const k of['coins','earned','wins','streak','best'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
 const HAT_SLOT={party:'top',beanie:'top',tophat:'top',cowboy:'top',crown:'top',viking:'top',wizard:'top',darkhelm:'top',horns:'ears',cat:'ears',antenna:'ears',band:'band',halo:'halo'};
 const HAT_ORDER=['band','ears','top','halo'];   // drawn from the head outward
 // hats you wear at once: one per spot on the head (top, ears, band, halo), kept as 'crown,horns'
 const hatList=v=>{const out=[],used=new Set();for(const id of String(v||'').split(',').slice(0,6)){const sl=HAT_SLOT[id];if(sl&&!used.has(sl)){used.add(sl);out.push(id)}}return out};
 const cosValid=(k,id)=>k==='hat'?hatList(id).length>0&&hatList(id).join(',')===String(id):!!COS[k]&&COS[k].some(i=>i.id===id);
-wallet.owned=Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))):[];
-wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]=''}
+// tidies whatever is in the wallet (it comes from storage, or from the game site's account), so a bad save can't break the game
+function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
+  const sb={};if(wallet.survBy&&typeof wallet.survBy==='object')for(const c in wallet.survBy)if(/^[\w -]{1,20}$/.test(c))sb[c]=Math.max(0,Math.floor(+wallet.survBy[c]||0));wallet.survBy=sb;
+  wallet.owned=[...new Set(Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))):[])];
+  wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k]))wallet.eq[k]=''}}
+fixWallet();
 function cleanCos(c){const o={};for(const k in COS)o[k]=c&&cosValid(k,c[k])?c[k]:'';const co=c&&cleanShade(c.co,'o'),cb=c&&cleanShade(c.cb,'b');if(co)o.co=co;if(cb)o.cb=cb;return o}
 /* your colour: a shade of orange (when you play the orange side) and of blue (the blue side). Each stays inside its colour
    family, so a fighter always reads as orange or blue. Stored as [hue, lightness] and checked here (it also arrives online) */
@@ -2310,7 +2313,15 @@ function hslHex(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+
 const shadeCol=(v,f)=>{const F=SHADE[f],[h,l]=v||F.def;return[hslHex(h,F.s,l),hslHex(h,F.s,Math.min(88,l+22))]};
 // a fighter on the orange or the blue side wears its player's shade of that colour
 function applyShade(p){const c=p.cos;if(!c||!C.orange)return;const f=p.color===C.orange?'o':p.color===C.blue?'b':null;if(!f)return;const v=c[f==='o'?'co':'cb'];if(v)[p.color,p.glow]=shadeCol(v,f)}
-const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wallet))}catch(e){}};
+// every change also goes to the game site (if any), which keeps it on the player's account there
+const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wallet))}catch(e){}portalSay('save',{data:wallet})};
+/* the site's account has a save: it wins (coins, what you wear), but anything owned or any record set on this device is kept,
+   so signing in never takes away what you already have */
+function loadWallet(w){if(!w||typeof w!=='object'||Array.isArray(w))return;const mine={...wallet,owned:wallet.owned.slice(),survBy:{...wallet.survBy}};
+  for(const k of['coins','earned','wins','streak','best','owned','eq','survBest','survBy'])if(k in w)wallet[k]=w[k];fixWallet();
+  wallet.owned=[...new Set([...wallet.owned,...mine.owned])];for(const k of['earned','wins','best','survBest'])wallet[k]=Math.max(wallet[k],mine[k]|0);
+  for(const c in mine.survBy)wallet.survBy[c]=Math.max(wallet.survBy[c]|0,mine.survBy[c]|0);
+  saveWallet();refreshWallet();if(!$('#locker').hidden)renderLocker()}
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
 const randomCos=()=>{const o={};for(const k in COS)o[k]=Math.random()<.7?pick(COS[k].filter(i=>!i.secret)).id:'';return o};
 // coins for winning a full match, shown on the end screen (once per match)
@@ -2644,7 +2655,6 @@ const bossOf=()=>players.find(p=>p.boss&&p.alive)||players.find(p=>p.boss);
 const cardsNamed=names=>names.map(n=>CARDS.find(c=>c.n===n)).filter(Boolean);
 // the boss for round n: the Crown every 25th round; otherwise the run's own (shuffled) order of the other five
 const survBossFor=n=>!n||n%BOSS_EVERY?null:n%25===0?CROWN:BOSSES[(game.bossOrder||[0,1,2,3,4])[((n/BOSS_EVERY-1)-Math.floor(n/25))%BOSSES.length]];
-wallet.survBest=Math.max(0,Math.floor(+wallet.survBest||0));wallet.survBy=wallet.survBy&&typeof wallet.survBy==='object'?wallet.survBy:{};
 const charOpen=c=>(wallet.survBest||0)>=c.unlock;
 const xpNeed=L=>25+15*L;
 function startSurvival(){startMatch('survival')}
@@ -4616,7 +4626,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-03-dev-unlock-all';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-account-saves';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5754,6 +5764,7 @@ function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#
 if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=>{const m=e.data;if(!m||typeof m!=='object'||e.source!==parent||typeof m.flick!=='string')return;
   if(m.flick==='pause'){if(!net.role&&!game.bg&&!game.paused&&['play','ready','pointEnd'].includes(game.state))togglePause()}
   else if(m.flick==='resume'){if(!net.role&&game.paused)togglePause()}
+  else if(m.flick==='load')loadWallet(m.data)
   else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
   else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);
     const c=String(m.join||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length===4)joinFromLink(c)}});
@@ -5762,7 +5773,7 @@ const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.h
   addEventListener('hashchange',()=>{const c=linkCode();if(c)joinFromLink(c)});   // a link opened in a tab where CUUED is already running
   a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);
   if(!myName)openNameScreen();else if(pendingJoin){const c=pendingJoin;pendingJoin='';showSub($('#menu'),'joining');$('#joinCode').value=c;joinGame(c)}requestAnimationFrame(t=>{last=t;frame(t)});
-  if(portal.on){try{if(new URLSearchParams(location.search).get('mute')==='1'&&!muted)toggleMute(true)}catch(e){}portalSay('ready',{title:'CUUED',orientation:'landscape',multiplayer:true})}};
+  if(portal.on){try{if(new URLSearchParams(location.search).get('mute')==='1'&&!muted)toggleMute(true)}catch(e){}portalSay('ready',{title:'CUUED',orientation:'landscape',multiplayer:true,save:wallet})}};
 (document.fonts&&document.fonts.load?Promise.race([Promise.all([document.fonts.load('40px "Lilita One"'),document.fonts.load('800 13px Nunito')]),new Promise(r=>setTimeout(r,1500))]):Promise.resolve()).then(boot,boot);
 })();
 </script>
