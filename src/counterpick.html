@@ -697,7 +697,10 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .bs-seats{width:min(560px,100%)}.bs-seats:not(.teams) .th{display:none}
 .bs-seats li{display:flex;justify-content:space-between;gap:8px}
 .bs-seats .ping{font:700 12px var(--mono);align-self:center;color:var(--muted)}.bs-seats .ping.good{color:var(--good)}.bs-seats .ping.ok{color:#ffd36b}.bs-seats .ping.bad{color:var(--bad)}
-#bigLobby{background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.86)}
+/* no backdrop blur here: it would make the overlay the frame for position:fixed, so the pinned Start/Close bar would scroll
+   away with the settings. Start/Close always stay in reach: pinned to the bottom on phones, stuck to the bottom on bigger screens */
+#bigLobby{background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.05),transparent 60%),rgba(14,8,22,.86);backdrop-filter:none;-webkit-backdrop-filter:none}
+#bigLobby .bs-acts{position:sticky;bottom:0;z-index:3;padding-block:8px;background:linear-gradient(transparent,rgba(14,8,22,.9) 35%)}
 .bs-survnote{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
 #bigLobby.surv .bs-opt:not([data-opt=bsMode]),#bigLobby.surv .menu-hint{display:none}
 #bigLobby.room .bs-opt[data-opt=bsTwist],#bigLobby.surv .bs-opt[data-opt=bsMode]{display:none}
@@ -4641,7 +4644,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-plus-locker';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-lobby-pin';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
