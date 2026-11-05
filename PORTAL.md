@@ -59,7 +59,7 @@ CUUED posts to the parent page: `{ flick: <type>, game: 'cuued', ...data }`.
 | `gameplayStart` | a match or run begins | `mode` |
 | `gameplayStop` | it ends, or the player goes back to the menu | |
 | `gameOver` | the end screen shows | `mode`, `won` (true/false/null), `rounds`, or `score` (Survival: rounds survived) |
-| `save` | the progress changed (coins, items, looks, records) | `data`: the whole save, a small JSON object |
+| `save` | the progress changed (coins, items, looks, records, stats) | `data`: the whole save, a small JSON object. Includes `pid` (the player's random id, how friends are recognised), `md` (wins–losses per mode), `vs` (record against each rival by id, the 40 most recent) and `runs`. Keep `pid` with the account so the player is the same friend on every device |
 | `plusOffer` | the player picked something that comes with Flick Plus (a Plus look or a house rule) without having it | `perk`: `looks` or `houseRules` |
 
 The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause' }, '*')`):

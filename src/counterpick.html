@@ -317,6 +317,24 @@ body:not(.ingame) #hudbtns{display:none}
   .pick-shop .build .lbl,.pick-shop .msg{display:none}
   .pick-shop .chip{white-space:nowrap}
 }
+.end-rivalry{margin:0;font:700 16px var(--body);color:var(--text)}.end-rivalry .linkish{font-size:14px;color:var(--muted);margin-left:4px}
+#stats{z-index:3}
+.stats-panel{display:flex;flex-direction:column;width:min(620px,100%);max-height:100%;margin:auto;box-sizing:border-box;background:rgba(22,13,33,.97);border:2px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}
+.stats-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.stats-head h2{margin:0;font:400 26px var(--display);letter-spacing:.5px}
+.stats-body{overflow:hidden auto;overscroll-behavior:contain;padding:12px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.stats-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 22px}
+.stats-top .hero-n{font:400 54px/0.9 var(--display);color:#ffd36b}.stats-top .hero-n small{display:block;font:800 13px var(--body);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+.stats-top .kv{font:800 13px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.stats-top .kv b{display:block;font:400 24px var(--display);color:var(--text);letter-spacing:0;text-transform:none}
+.stats-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.stats-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05)}
+.stats-list .nm{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stats-list .rec{font:400 20px var(--display)}
+.stats-list .sub{grid-column:1 / -1;font-size:13px;color:var(--muted)}
+.stats-list .bar{grid-column:1 / -1;height:5px;border-radius:3px;background:var(--blue);overflow:hidden}.stats-list .bar i{display:block;height:100%;background:var(--hot)}
+.stats-list li.lead .rec{color:#ffd36b}
+.stats-empty{margin:0;padding:12px;border-radius:12px;background:rgba(255,255,255,.04);color:var(--muted);font-size:14px}
+.stats-note{margin:0;font-size:13px;color:var(--muted)}
+.statchip{margin-left:6px;color:var(--text)}.statchip svg{width:16px;height:16px}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
 /* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
 body:not(.touch) .touch-only{display:none!important}
@@ -1119,7 +1137,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
     <p class="playing-as">Playing as <b data-myname>—</b>
-      <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button></p>
+      <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button><button type="button" class="coinchip statchip" data-act="stats" title="Your wins, records and rivals"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2zm5 0h2V3H7zm5 0h2V6h-2z"/></svg>Stats</button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
       <nav class="mlist tiles" aria-label="Main menu">
@@ -1379,6 +1397,18 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   </div>
 </div>
 
+<div id="stats" class="overlay ward-wrap" hidden>
+  <div class="stats-panel" role="dialog" aria-labelledby="statsTitle">
+    <div class="stats-head"><h2 id="statsTitle">Your stats</h2><button type="button" class="btn" data-statsact="close"><span class="desk-only-i">Done · Esc</span><span class="touch-only-i">Done</span></button></div>
+    <div class="stats-body">
+      <div class="stats-top" id="statsTop"></div>
+      <div><div class="lbl">Rivals</div><ul class="stats-list" id="statsRivals"></ul></div>
+      <div><div class="lbl">By mode</div><ul class="stats-list" id="statsModes"></ul></div>
+      <p class="stats-note" id="statsNote"></p>
+    </div>
+  </div>
+</div>
+
 <div id="pause" class="overlay pause-screen" hidden>
   <div class="center-wrap">
     <h2 class="screen-title" id="pauseTitle">Paused</h2>
@@ -1418,6 +1448,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <p id="endScore" class="end-score"></p>
       <div class="end-stats" id="endStats"></div>
       <p id="endCoins" class="end-coins" hidden></p>
+      <p id="endRival" class="end-rivalry" hidden><span></span> <button type="button" class="linkish" data-act="stats">Your stats</button></p>
       <div class="end-build"><div class="lbl" id="deckName0">Your build</div><div class="ecards" id="deck0"></div></div>
       <div class="end-rival"><div class="lbl" id="deckName1">Their deck</div><div class="deck" id="deck1"></div></div>
       <nav class="mlist end-acts" data-sub="main" aria-label="Match over">
@@ -1519,6 +1550,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <h2 class="pad-h" id="padOverT">Match over</h2>
     <p class="pad-p" id="padOverS"></p>
     <p class="end-coins" id="padCoins" hidden></p>
+    <p class="end-rivalry" id="padRival" hidden><span></span></p>
     <button type="button" class="btn primary pad-again" data-act="padAgain" id="padAgain" hidden>Play again</button>
     <p class="pad-tip" id="padOverTip">Waiting for the host: a rematch, or back to the lobby.</p>
   </div>
@@ -2044,6 +2076,7 @@ addEventListener('keydown',e=>{initAudio();
   if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#tut').hidden){tutKey(e);return}
   if(!$('#a2hs').hidden){if(e.code==='Escape'){e.preventDefault();a2Close(true)}return}
+  if(!$('#stats').hidden){if(e.code==='Escape'){e.preventDefault();closeStats()}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
   if(sbOpen()){if(e.code==='Tab'||e.code==='Escape'&&sandbox.played){e.preventDefault();closeSandbox()}else if(e.code==='Escape'){e.preventDefault();toMenu()}else if(e.code==='KeyM')toggleMute();return}
   if(e.code==='Tab'&&game.mode==='sandbox'&&$('#pause').hidden&&['play','ready','pointEnd'].includes(game.state)){e.preventDefault();openSandbox();return}
@@ -2137,7 +2170,7 @@ function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{c
     if(game.screen||game.room){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=net.role==='host'?settings.bsHp:net.roomHp||1;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
     return p})}
 function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
-  game.token++;tpick=null;game.awarded=false;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
+  game.token++;tpick=null;game.awarded=false;game.endIds=null;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.paused=false;game.lastWinner=-1;
   game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.room=!game.screen&&!!net.room&&!!net.party&&(mode==='online-host'||mode==='online-guest');game.ffa=game.screen&&!bsTeams()&&!game.bsSurv||game.room&&!!net.ffa;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:game.room?(net.role==='host'?settings.bsLen:net.tg||5):settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
@@ -2227,7 +2260,7 @@ function resolvePoint(){
 function endMatch(w){
   game.state='over';game.overW=w;
   if(game.bg){setTimeout(()=>{if(game.bg)startMatch('demo')},1500);return}
-  netSend({t:'end',w});showEnd(w)}
+  netSend({t:'end',w,r:matchIds()});showEnd(w)}
 /* ---------- the end screen's fighter: you, up close. A win: hopping, arms up, beaming, under confetti. A loss: slumped low,
    eyes down, a tear. (No local fighter, like a Big Screen: the winner, celebrating) ---------- */
 let endHero=null,endRAF=0;
@@ -2305,8 +2338,47 @@ const COS={
 const TRAIL_COL={ember:'#ff7a3a',frost:'#9fe8ff',void:'#b874ff',gold:'#ffd36b',toxic:'#9be15d',sakura:'#ffa3c7',shadow:'#7b5cc0'};
 // the secret hat's code is checked by its hash, so it isn't sitting in the page as plain text
 const SECRET_H=847270965,secretOk=v=>strSeed('cuued:'+String(v||'').trim())===SECRET_H;
-const wallet={coins:0,earned:0,wins:0,streak:0,best:0,owned:[],eq:{hat:'',pattern:'',trail:''}};
+const wallet={coins:0,earned:0,wins:0,streak:0,best:0,owned:[],eq:{hat:'',pattern:'',trail:''},pid:'',md:{},vs:{},runs:0};
 try{const w=JSON.parse(localStorage.getItem('cuued.wallet')||'{}');if(w&&typeof w==='object')Object.assign(wallet,w)}catch(e){}
+/* ---------- stats and rivalries (free for everyone): wins and losses by mode, and your record against every friend you've
+   played (online or on a Big Screen). Friends are known by a random player id sent in the hello (kept in the save, so it
+   follows a Flick account across devices); their name is just the latest one they used ---------- */
+const PID_RE=/^[a-z0-9]{8,16}$/,STAT_MODES=['cpu','party','online','screen'],RIVALS_MAX=40;
+const statName=v=>String(v||'').replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
+// from the crypto RNG (not Math.random, which the game's seeded replays and tests share)
+function newPid(){const a='abcdefghijklmnopqrstuvwxyz0123456789';let b=null;try{b=crypto.getRandomValues(new Uint8Array(12))}catch(e){}
+  let o='';for(let i=0;i<12;i++)o+=a[(b?b[i]:Math.floor(Math.random()*256))%36];return o}
+const cleanPid=v=>typeof v==='string'&&PID_RE.test(v)?v:'';
+function fixStats(){if(!PID_RE.test(wallet.pid||''))wallet.pid=newPid();
+  const md={},M=wallet.md&&typeof wallet.md==='object'?wallet.md:{};for(const k of STAT_MODES){const r=Array.isArray(M[k])?M[k]:[];md[k]=[Math.max(0,Math.floor(+r[0]||0)),Math.max(0,Math.floor(+r[1]||0))]}wallet.md=md;
+  const vs={},V=wallet.vs&&typeof wallet.vs==='object'&&!Array.isArray(wallet.vs)?wallet.vs:{};
+  for(const id in V){const r=V[id];if(!PID_RE.test(id)||id===wallet.pid||!r||typeof r!=='object')continue;
+    vs[id]={n:statName(r.n)||'Player',w:Math.max(0,Math.floor(+r.w||0)),l:Math.max(0,Math.floor(+r.l||0)),t:Math.max(0,+r.t||0),s:Math.max(-999,Math.min(999,Math.floor(+r.s||0)))}}
+  // the save stays small: keep the friends played most recently
+  const ids=Object.keys(vs).sort((a,b)=>vs[b].t-vs[a].t);for(const id of ids.slice(RIVALS_MAX))delete vs[id];wallet.vs=vs}
+// an account save arrived: games counted on either side are kept (counts only grow), the newest name and streak win
+function mergeStats(mine){for(const k of STAT_MODES){const a=wallet.md[k],b=(mine.md||{})[k];if(Array.isArray(b)){a[0]=Math.max(a[0],b[0]|0);a[1]=Math.max(a[1],b[1]|0)}}
+  for(const id in mine.vs||{}){const b=mine.vs[id],a=wallet.vs[id];if(!b||id===wallet.pid)continue;
+    if(!a){wallet.vs[id]=b;continue}const newer=(+b.t||0)>a.t;wallet.vs[id]={n:newer?b.n:a.n,w:Math.max(a.w,b.w|0),l:Math.max(a.l,b.l|0),t:Math.max(a.t,+b.t||0),s:newer?b.s|0:a.s}}
+  fixStats()}
+// the humans in this match, for every player's device to work out its rivals: [team, player id, name]. Sent with the end
+function matchIds(){if(net.role!=='host')return[];const me=game.screen?null:players[net.party?net.hostId:0];
+  return players.map(p=>[p.team|0,p===me?wallet.pid:p.peer&&p.peer.id?p.peer.id:!net.party&&p!==me&&net.peers[0]?net.peers[0].id||'':'',p.name]).filter(r=>r[1])}
+function cleanIds(r){return Array.isArray(r)?r.slice(0,8).map(x=>Array.isArray(x)?[x[0]|0,cleanPid(x[1]),statName(x[2])||'Player']:null).filter(x=>x&&x[1]):[]}
+// who this match counts against: a win counts against every human on the other sides; a loss only against the winners
+const rivalsIn=(ids,myTeam,w,won)=>ids.filter(([t,id])=>id!==wallet.pid&&t!==myTeam&&(won||t===w)).map(([,id,n])=>({id,n}));
+// one finished match: the mode's record, and each rival's. Returns what to say about the rivalry on the end screen
+function recordMatch(kind,won,rivals){if(!STAT_MODES.includes(kind))return'';wallet.md[kind][won?0:1]++;const now=Date.now(),lines=[];
+  for(const{id,n}of rivals||[]){if(!PID_RE.test(id)||id===wallet.pid)continue;const r=wallet.vs[id]||(wallet.vs[id]={n,w:0,l:0,t:0,s:0});r.n=statName(n)||r.n;r.t=now;
+    if(won){r.w++;r.s=r.s>0?r.s+1:1}else{r.l++;r.s=r.s<0?r.s-1:-1}lines.push(rivalLine(r))}
+  fixStats();return lines.slice(0,2).join(' ')}
+const rivalLead=r=>r.w===r.l?`You and ${r.n} are level, ${r.w}–${r.l}.`:r.w>r.l?`You lead ${r.n} ${r.w}–${r.l}.`:`${r.n} leads you ${r.l}–${r.w}.`;
+function rivalLine(r){const n=r.w+r.l;if(n===1)return r.w?`Your first match against ${r.n}, and you took it.`:`Your first match against ${r.n}. Rematch?`;
+  if(r.s>=3)return`${r.s} wins in a row against ${r.n}. ${rivalLead(r)}`;
+  if(r.s<=-3)return`${r.n} has won the last ${-r.s}. ${rivalLead(r)}`;
+  if(r.l-r.w===1)return`${rivalLead(r).replace(/\.$/,'')}: one more win to tie it.`;
+  if(r.w===r.l)return`${rivalLead(r).replace(/\.$/,'')}. Next one decides it.`;
+  return rivalLead(r)}
 const HAT_SLOT={party:'top',beanie:'top',tophat:'top',cowboy:'top',crown:'top',viking:'top',wizard:'top',darkhelm:'top',horns:'ears',cat:'ears',antenna:'ears',band:'band',halo:'halo'};
 const HAT_ORDER=['band','ears','top','halo'];   // drawn from the head outward
 // hats you wear at once: one per spot on the head (top, ears, band, halo), kept as 'crown,horns'
@@ -2317,7 +2389,8 @@ const cosValid=(k,id)=>k==='hat'?hatList(id).length>0&&hatList(id).join(',')===S
 function plusItem(k,id){return!!(COS[k]&&COS[k].some(i=>i.id===id&&i.plus))}
 // your own look as others see it: Plus looks only while Plus is on (the choice stays saved for when it's back)
 function myCos(){const c=cleanCos(wallet.eq);if(portal.plus)c.m=1;else{for(const k of['pattern','trail'])if(!bought(k,c[k]))c[k]='';if(c.hat)c.hat=hatList(c.hat).filter(h=>bought('hat',h)).join(',')}return c}
-function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest','plusCoins'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
+function fixWallet(){for(const k of['coins','earned','wins','streak','best','survBest','plusCoins','runs'])wallet[k]=Math.max(0,Math.floor(+wallet[k]||0));
+  fixStats();
   const sb={};if(wallet.survBy&&typeof wallet.survBy==='object')for(const c in wallet.survBy)if(/^[\w -]{1,20}$/.test(c))sb[c]=Math.max(0,Math.floor(+wallet.survBy[c]||0));wallet.survBy=sb;
   wallet.owned=[...new Set(Array.isArray(wallet.owned)?wallet.owned.filter(x=>typeof x==='string'&&Object.keys(COS).some(k=>COS[k].some(i=>i.id===x.split(':')[1])&&x.startsWith(k+':'))&&!plusItem(x.split(':')[0],x.split(':')[1])):[])];
   wallet.eq=cleanCos(wallet.eq);for(const k in COS)if(wallet.eq[k]){if(k==='hat')wallet.eq.hat=hatList(wallet.eq.hat).filter(h=>wallet.owned.includes('hat:'+h)).join(',');else if(!wallet.owned.includes(k+':'+wallet.eq[k])&&!plusItem(k,wallet.eq[k]))wallet.eq[k]=''}}
@@ -2335,8 +2408,9 @@ const saveWallet=()=>{try{localStorage.setItem('cuued.wallet',JSON.stringify(wal
 /* the site's account has a save: it wins (coins, what you wear), but anything owned or any record set on this device is kept,
    so signing in never takes away what you already have */
 function loadWallet(w){if(!w||typeof w!=='object'||Array.isArray(w))return;const mine={...wallet,owned:wallet.owned.slice(),survBy:{...wallet.survBy}};
-  for(const k of['coins','earned','wins','streak','best','owned','eq','survBest','survBy','plusCoins'])if(k in w)wallet[k]=w[k];fixWallet();
-  wallet.owned=[...new Set([...wallet.owned,...mine.owned])];for(const k of['earned','wins','best','survBest','plusCoins'])wallet[k]=Math.max(wallet[k],mine[k]|0);
+  const mineStats={md:JSON.parse(JSON.stringify(wallet.md||{})),vs:JSON.parse(JSON.stringify(wallet.vs||{})),pid:wallet.pid};
+  for(const k of['coins','earned','wins','streak','best','owned','eq','survBest','survBy','plusCoins','pid','md','vs','runs'])if(k in w)wallet[k]=w[k];if(!PID_RE.test(wallet.pid))wallet.pid=mineStats.pid;fixWallet();mergeStats(mineStats);
+  wallet.owned=[...new Set([...wallet.owned,...mine.owned])];for(const k of['earned','wins','best','survBest','plusCoins','runs'])wallet[k]=Math.max(wallet[k],mine[k]|0);
   for(const c in mine.survBy)wallet.survBy[c]=Math.max(wallet.survBy[c]|0,mine.survBy[c]|0);
   saveWallet();refreshWallet();if(!$('#locker').hidden)renderLocker()}
 function refreshWallet(){document.querySelectorAll('[data-coins]').forEach(el=>el.textContent=wallet.coins);const st=$('#shopStats');if(st)st.textContent=`${wallet.wins} win${wallet.wins===1?'':'s'} · best streak ${wallet.best} · ${wallet.earned} earned`}
@@ -2348,8 +2422,12 @@ function setPlus(on){portal.flick=true;portal.plus=on;if(!on&&typeof settings.bs
 function earn(n){wallet.coins+=n;wallet.earned+=n;return n}
 // coins for winning a full match, shown on the end screen (once per match)
 function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='online-host'?(game.party?net.hostId:0):game.mode==='cpu'||game.mode==='party'?0:-1;if(game.party&&me>=0)me=players[me].team;   // a party: your team's win is yours
-  const el=$('#endCoins');if(el)el.hidden=true;
+  if(game.screen)me=-1;   // the big screen itself isn't a player
+  const el=$('#endCoins');if(el)el.hidden=true;showRival('#endRival','');
   if(me<0||game.awarded)return;game.awarded=true;
+  {const kind=game.mode==='cpu'?'cpu':game.mode==='party'?'party':'online',
+    ids=kind!=='online'?[]:net.role==='host'?matchIds():game.endIds||(net.remoteId?[[0,net.remoteId,net.remoteName]]:[]);
+    showRival('#endRival',recordMatch(kind,w===me,rivalsIn(ids,me,w,w===me)))}
   if(w===me){const n=earn((game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
@@ -2362,6 +2440,31 @@ const bought=(k,id)=>!id||wallet.owned.includes(k+':'+id);
 const owns=(k,id)=>bought(k,id)||(portal.plus&&!!COS[k]&&COS[k].some(i=>i.id===id&&!i.secret));   // Flick Plus: every look but the secret one, worn while Plus is on
 function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??null}renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
+// the end screen's (and the phone's) rivalry line
+function showRival(sel,text){const el=$(sel);if(!el)return;el.hidden=!text;const sp=el.querySelector('span');if(sp)sp.textContent=text||''}
+const statAgo=t=>{if(!t)return'';const m=Math.round((Date.now()-t)/60000);if(m<2)return'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<24)return h===1?'an hour ago':h+' hours ago';const d=Math.round(h/24);return d===1?'yesterday':d<30?d+' days ago':'a while ago'};
+const STAT_MODE_N={online:'Online',screen:'Big Screen (on your phone)',cpu:'Practice vs CPU',party:'Party vs CPUs'};
+// Your stats: what you've won, your rivals (everyone you've played, newest first) and your record in each mode
+function renderStats(){const md=wallet.md,W=STAT_MODES.reduce((a,k)=>a+md[k][0],0),L=STAT_MODES.reduce((a,k)=>a+md[k][1],0),N=W+L;
+  const kv=(k,v)=>`<span class="kv">${k}<b>${v}</b></span>`;
+  $('#statsTop').innerHTML=`<span class="hero-n">${wallet.wins}<small>${wallet.wins===1?'Win':'Wins'}</small></span>`+(N?kv('Win rate',Math.round(100*W/N)+'%'):'')+kv('Best streak',wallet.best)+kv('Survival best',wallet.survBest?'Round '+wallet.survBest:'—');
+  const rl=$('#statsRivals');rl.innerHTML='';const ids=Object.keys(wallet.vs).sort((a,b)=>wallet.vs[b].t-wallet.vs[a].t);
+  if(!ids.length){const p=document.createElement('li');p.className='stats-empty';p.style.display='block';p.textContent='Play a friend online or on a Big Screen, and your record against them shows up here.';rl.appendChild(p)}
+  for(const id of ids){const r=wallet.vs[id],li=document.createElement('li'),n=r.w+r.l;if(r.w>r.l)li.className='lead';
+    const st=r.s>=2?`You've won the last ${r.s}`:r.s<=-2?`${r.n} has won the last ${-r.s}`:r.w===r.l?'Level':r.w>r.l?'You lead':`${r.n} leads`;
+    li.innerHTML='<span class="nm"></span><span class="rec"></span><span class="bar"><i></i></span><span class="sub"></span>';
+    li.querySelector('.nm').textContent=r.n;li.querySelector('.rec').textContent=`${r.w}–${r.l}`;li.querySelector('.bar i').style.width=(n?100*r.w/n:50)+'%';
+    li.querySelector('.sub').textContent=`${st} · ${n} ${n===1?'match':'matches'} · ${statAgo(r.t)}`;rl.appendChild(li)}
+  const ml=$('#statsModes');ml.innerHTML='';
+  for(const k of['online','screen','cpu','party']){const[w,l]=md[k];if(!w&&!l)continue;const li=document.createElement('li');li.innerHTML='<span class="nm"></span><span class="rec"></span>';
+    li.querySelector('.nm').textContent=STAT_MODE_N[k];li.querySelector('.rec').textContent=`${w}–${l}`;ml.appendChild(li)}
+  if(wallet.runs){const li=document.createElement('li');li.innerHTML='<span class="nm">Survival runs</span><span class="rec"></span>';li.querySelector('.rec').textContent=wallet.runs;ml.appendChild(li)}
+  if(!ml.children.length){const p=document.createElement('li');p.className='stats-empty';p.style.display='block';p.textContent='Finish a match and it counts here.';ml.appendChild(p)}
+  $('#statsNote').textContent=portal.synced?'Saved to your Flick account, on every device you sign in on.':portal.flick?'Kept on this device. Sign in on Flick Arcade to keep them everywhere.':'Kept in this browser.'}
+function openStats(){renderStats();$('#stats').hidden=false;const b=$('#stats [data-statsact=close]');b&&b.focus({preventScroll:true})}
+function closeStats(){$('#stats').hidden=true;focusFirst($('#end').hidden?$('#menu'):$('#end'))}
+{const root=$('#stats');if(root&&root.addEventListener)root.addEventListener('click',e=>{if(e.target===root||(e.target.closest&&e.target.closest('[data-statsact=close]'))){sfx('tick',true);closeStats()}})}
+
 const openShop=(k,id)=>openLocker(k||'hat',id);
 function lockLook(){const it=lockK!=='color'&&lockSel?COS[lockK].find(i=>i.id===lockSel):null;if(it&&it.secret&&!owns(lockK,it.id))return wallet.eq;   // a locked secret is never shown
   if(lockK==='hat'&&lockSel!=null)return{...wallet.eq,hat:lockSel?hatWith(wallet.eq.hat,lockSel):''};   // trying a hat on: with the others you wear
@@ -2974,7 +3077,7 @@ function survAdvance(){closeShopUi();if(game.coop)netSend({t:'shopEnd'});if(game
   if((b=t.closest('[data-ps]'))){if(b.dataset.ps==='reroll')survReroll();else survNext()}})}
 // the run is over: how far you got, your best (overall and with this character), what that unlocked, and CUUED coins
 function survEnd(){if(game.bsSurv){bsSurvEnd();return}portalSay('gameplayStop');portalSay('gameOver',{mode:'survival',score:game.cleared||0});if(game.coop&&net.role==='host')netSend({t:'cend',n:game.cleared||0});const me=myHero(),n=game.cleared||0,best=wallet.survBest||0,ch=me.char?me.char.n:'Drifter',cb=wallet.survBy[ch]||0,coins0=Math.floor(n/2);game.state='over';
-  const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
+  const before=CHARS.filter(charOpen).length;wallet.runs++;if(n>best)wallet.survBest=n;if(n>cb)wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
   const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();
   $('#endTitle').textContent=n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1';$('#endTitle').style.color=me.color;
   $('#endScore').textContent=`${ch}, level ${me.lvl||1}. `+(n>best?(best?`A new best (was ${best}).`:'Your first run on the board.'):`Your best is ${best}${cb?`, ${cb} with ${ch}`:''}.`)+(opened.length?` Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
@@ -4657,7 +4760,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-phone-help';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-04-stats';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -4829,7 +4932,7 @@ function attachConn(conn){if(net.role==='host'){hostAttach(conn);return}net.conn
   conn.on('iceStateChanged',st=>{if(net.conn!==conn||net.connected||st!=='failed')return;
     if(net.role==='host'){net.conn=null;try{conn.close()}catch(e){}hostMsg('A challenger tried to join, but your networks could not connect. Still waiting. They can try again.')}
     else directFailed(net.code)});
-  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0,tok:padTok()})});
+  conn.on('open',()=>{if(net.conn!==conn)return;net.connected=true;net.lastRecv=performance.now();clearTimeout(net.joinTimer);openFast(conn);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.role==='host'&&net.wantCoop?1:0,sb:wallet.survBest|0,tok:padTok(),id:wallet.pid})});
   conn.on('data',m=>{if(net.conn===conn&&m&&typeof m==='object'){net.lastRecv=performance.now();onNet(m)}});
   conn.on('close',()=>{if(net.conn===conn)netLost(`${net.remoteName||'Your opponent'} left the match.`)});
   conn.on('error',()=>{if(net.conn===conn)netLost('The connection to your opponent dropped.')})}
@@ -4838,7 +4941,7 @@ function hostAttach(conn){const pr={conn,fast:null,open:false,pid:-1,name:'',cos
     lastRecv:performance.now(),sendT:0,fxQ:[],relayed:!!conn.relayFrom};net.peers.push(pr);if(!net.conn)net.conn=conn;
   conn.on('iceStateChanged',st=>{if(pr.open||st!=='failed'||!net.peers.includes(pr))return;dropPeer(pr);hostMsg('A player tried to join, but your networks could not connect. Still waiting. They can try again.')});
   conn.on('open',()=>{if(!net.peers.includes(pr))return;pr.open=true;pr.lastRecv=net.lastRecv=performance.now();if(!net.party)net.connected=true;openFast(conn,pr);
-    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.wantCoop?1:0,party:net.party?1:0,screen:net.screen?1:0,sb:wallet.survBest||0})});
+    conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),coop:net.wantCoop?1:0,party:net.party?1:0,screen:net.screen?1:0,sb:wallet.survBest||0,id:wallet.pid})});
   conn.on('data',m=>{if(net.peers.includes(pr)&&m&&typeof m==='object'){pr.lastRecv=net.lastRecv=performance.now();onNet(m,pr)}});
   conn.on('close',()=>{if(net.peers.includes(pr))peerGone(pr,`${pr.name||'A player'} left the match.`)});
   conn.on('error',()=>{if(net.peers.includes(pr))peerGone(pr,`The connection to ${pr.name||'a player'} dropped.`)})}
@@ -4852,7 +4955,7 @@ function peerGone(pr,msg){const wasOpen=pr.open;dropPeer(pr);
     if(tpick){const g=tpick.ids.indexOf(p.id);if(g>=0&&tpick.chosen[g]<0)setTimeout(()=>{if(tpick&&tpick.chosen[g]<0)teamChoose(g,g*3)},300)}}
   chatAdd('',msg,'#ffd36b');if(!net.peers.length)netLost('Everyone else left the party.')}
 function hostNet(m,pr){
-  if(m.t==='hello'){pr.name=cleanName(m.name)||'Player';pr.cos=cleanCos(m.cos);pr.sb=Math.max(0,m.sb|0);
+  if(m.t==='hello'){pr.name=cleanName(m.name)||'Player';pr.cos=cleanCos(m.cos);pr.sb=Math.max(0,m.sb|0);pr.id=cleanPid(m.id);
     if(m.v!==BUILD){linkSend(pr,{t:'oldver'});if(net.party){dropPeer(pr);partyLobbyChanged(`${pr.name} is on a different version of CUUED: they need to refresh the page.`)}else netLost(`${pr.name} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     if(net.screen){bsHello(pr,m);return}
     if(net.party){partyLobbyChanged();return}
@@ -4912,7 +5015,7 @@ function partyJoined(){joinedView(true);setText('#joinMsg',"You're in the party.
 function partyRoster(list,you,ffa){joinedView(true);const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L,ffa);$('#joinTeam').hidden=!!ffa;if(!ffa)teamButtons(you,L);setText('#joinMsg',`You're in (${list.filter(Boolean).length} of 4). Waiting for the host to start.`)}
 function onNet(m,pr){
   if(net.role==='host'&&pr){hostNet(m,pr);return}
-  if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);
+  if(m.t==='hello'){net.inQ=[];net.lastQ=-1;net.heldIn=null;net.lagSteps=0;net.snap=null;net.remote=null;net.lateMax=0;net.remoteName=cleanName(m.name)||(net.role==='host'?'Challenger':'Host');net.remoteCos=cleanCos(m.cos);net.remoteId=cleanPid(m.id);
     if(m.v!==BUILD){netSend({t:'oldver'});netLost(`${net.remoteName} is on a different version of CUUED. Both of you refresh the page, then try again.`);return}
     // the host's room decides the game: a duel, or Co-op Survival (the guest learns which from the host's hello)
     net.coopLive=net.role==='host'?!!net.wantCoop:!!m.coop;net.remoteBest=Math.max(0,m.sb|0);
@@ -4939,7 +5042,7 @@ function onNet(m,pr){
   else if(m.t==='tpick'){game.waitMsg='';const ids=(m.ids||[]).filter(id=>players[id]).slice(0,2);tpick={ids,hands:ids.map((id,g)=>((m.hands||[])[g]||[]).map(decodeCard).filter(Boolean).slice(0,3)),chosen:ids.map(()=>-1),sub:String(m.sub||'')};showTeamHand()}
   else if(m.t==='tchosen'){if(tpick){const i=m.i|0,g=i>=3?1:0;tpick.chosen[g]=i;animTeam(i)}}
   else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null;tpick=null}
-  else if(m.t==='end'){showEnd(m.w|0)}
+  else if(m.t==='end'){game.endIds=cleanIds(m.r);showEnd(m.w|0)}
   else if(m.t==='restart'){startMatch('online-guest')}}
 function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
@@ -5277,7 +5380,7 @@ function bsHello(pr,m){pr.pad=true;pr.joinN=++bsJoinN;pr.tok=String(m.tok||'').r
   game.banner=`${pr.name.toUpperCase()} ${back?'IS BACK':'JOINED'}`;game.bannerT=1.8;bsSendSeat(seat);
   for(const p of players)if(p.peer&&p!==seat)bsSendSeat(p);   // everyone's scoreboard gets the new name
   const S=spick;if(S&&S.hands[seat.id]&&S.chosen[seat.id]==null&&!S.revealed)linkSend(pr,{t:'phand',hand:S.hands[seat.id].map(cardCode),sub:S.sub,secs:Math.max(3,S.left)});
-  if(game.state==='over')linkSend(pr,{t:'end',w:game.overW})}
+  if(game.state==='over')linkSend(pr,{t:'end',w:game.overW,r:matchIds()})}
 // a friend who joins mid-match with a seat to spare: a fighter of their own, in from the next point, with as many cards as the
 // player with the fewest (so they aren't starting from nothing against built-up decks)
 function bsAddFighter(pr){const k=players.length,team=game.ffa?k:[0,1].sort((a,b)=>players.filter(p=>p.team===a&&!p.left).length-players.filter(p=>p.team===b&&!p.left).length||a-b)[0];
@@ -5464,7 +5567,7 @@ function padNet(m){
   if(m.t==='pshop'){padShop(m);return true}
   if(m.t==='pmsg'){ctl.hand=null;ctl.shop=null;$('#padPick').hidden=true;$('#padShop').hidden=true;padView('live');const el=$('#padMsg');if(el){el.textContent=String(m.msg||'').slice(0,100);el.hidden=false}return true}
   if(m.t==='send'){padSurvOver(m);return true}
-  if(m.t==='end'){padOver(m.w|0);return true}
+  if(m.t==='end'){padOver(m.w|0,cleanIds(m.r));return true}
   if(m.t==='ping'){netSend({t:'pong',at:m.at});return true}
   if(m.t==='bye'){netLost('The Big Screen game ended.');return true}
   return m.t==='s'||m.t==='fx'||m.t==='chat'||m.t==='restart'}   // nothing to draw on a controller
@@ -5510,10 +5613,10 @@ function padLookLoop(){if(padLookRaf)return;const step=now=>{if(ctl.view!=='lobb
 function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
 function padAgainShow(){const b=$('#padAgain');if(b){b.hidden=!ctl.solo;b.disabled=false}setText('#padOverTip',ctl.solo?'Or put the phone down and pick on the big screen.':'Waiting for the host: a rematch, or back to the lobby.')}
-function padOver(w){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');padAgainShow();
+function padOver(w,ids){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');padAgainShow();
   setText('#padOverT',win?(/^Team /.test((ctl.sides[ctl.team]||{}).n||'')?'Your team wins!':'You win!'):s?`${s.n} wins`:'They win');   // a side is a team only when it's called one
   setText('#padOverS',win?'Nice. That one was yours.':'So close. Get them in the rematch.');
-  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;
+  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;showRival('#padRival',recordMatch(ctl.solo?'cpu':'screen',win,rivalsIn(ids||[],ctl.team,w,win)));
     if(win){const n=earn(2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
     else{wallet.streak=0;saveWallet();el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`}el.hidden=false}}
 /* ---------- the phone's shop (Co-op Survival on a Big Screen): your five offers as full-size cards to swipe through, tap one to
@@ -5551,7 +5654,7 @@ function padArtLoop(sel){cancelAnimationFrame(pshRaf);const t0=performance.now()
 function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;padView('over');const n=Math.max(0,m.n|0),ch=cleanName(m.ch)||'',coins0=Math.floor(n/2);
   setText('#padOverT',n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1');
   const best=wallet.survBest||0;setText('#padOverS',n>best?(best?`A new best! (was ${best})`:'Your first run on the board.'):`Your best is ${best}.`);
-  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
+  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;wallet.runs++;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
     const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
     el.innerHTML=(coins?`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`:`Reach round 2 to earn CUUED coins (you have ${wallet.coins}).`)+(opened.length?` · Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
     el.hidden=false;buzz(coins?[40,60,40]:[70])}}
@@ -5727,6 +5830,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='loadout')openSandbox();
   else if(a==='shop')openLocker('hat');
   else if(a==='locker')openLocker('color');
+  else if(a==='stats')openStats();
   else if(a==='fullscreen')toggleFull();
   else if(a==='bsQuick')openBigScreen();
   else if(a==='soloPad')openBigScreen(true);   // the main menu's Big Screen: straight to the room code (mode is picked in the lobby)
@@ -5796,7 +5900,7 @@ function maybeUpdate(){if(updReady&&game.bg&&!net.role&&!$('#menu').hidden&&$('#
 if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=>{const m=e.data;if(!m||typeof m!=='object'||e.source!==parent||typeof m.flick!=='string')return;
   if(m.flick==='pause'){if(!net.role&&!game.bg&&!game.paused&&['play','ready','pointEnd'].includes(game.state))togglePause()}
   else if(m.flick==='resume'){if(!net.role&&game.paused)togglePause()}
-  else if(m.flick==='load')loadWallet(m.data)
+  else if(m.flick==='load'){portal.synced=true;loadWallet(m.data)}
   else if(m.flick==='plus'){if(FLICK_ORIGIN.test(e.origin))setPlus(!!m.on)}
   else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
   else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);

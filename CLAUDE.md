@@ -19,6 +19,7 @@ README.md describes every feature in detail; read it before changing a system.
 - Survival: `survRound`, `survKind` (wave/swarm/waves/twist/elite/boss wheel), `TRAITS`, `survResolve` (pay, boss loot), shop `SHOP_PRICE`/`cardPrice`, revives `downTick`/`DOWN_T`.
 - Phone card picks: `fitCards` / `#pick.flat` / `.pcard`. Customize: `renderLocker`. Hats stack one per slot (`HAT_SLOT`, `hatList`).
 - Invite links: `?join=CODE` (`linkCode`, `inviteUrl`).
+- Stats and rivalries (free for everyone): `fixStats`, `recordMatch`, `rivalsIn`, `rivalLine`, the `#stats` screen (`renderStats`, the Stats chip by the coins). Players are known by `wallet.pid` (sent as `id` in `hello`; made with the crypto RNG so seeded tests don't shift); the host sends who played as `r` in the `end` message (`matchIds`). A win counts against every human on the other sides, a loss only against the winners. Covered by `tests/stats.js`.
 - Game websites: portal mode when inside an iframe (`portal`, `portalSay`, `?share=`); package with `node scripts/build.js --portal`; guide in `PORTAL.md`; check with `scripts/browser-portal.js`.
 
 ## Rules
