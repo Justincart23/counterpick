@@ -71,6 +71,7 @@ The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause
 | `config` | `{ flick: 'config', share, join, site }`: same as the options above, after loading |
 | `load` | `{ flick: 'load', data }`: a save the site kept (e.g. on the player's account). The site's coins and looks win; items owned and records set on this device are kept too |
 | `plus` | `{ flick: 'plus', on, trial }`: Flick only (checked by the sender's address, flickarcade.com). Turns Flick Plus on or off: every look in Customize (but the secret hat) unlocked to wear, the Plus-only looks, a member mark (`cos.m`, a glowing name tag friends see online and on the Big Screen), the Big Screen "Always" house rules. `trial` (optional): no Plus yet but a free trial is waiting. Off Flick, Plus looks and house rules stay hidden. Big Screen rooms seat 4 for everyone |
+| `access` | `{ flick: 'access', full, tries }`: Flick only, sent to paid games (a catalog `price`). `full`: this player may play it all (they own it, have Flick Plus, or joined someone else's room); otherwise `tries` is how many free matches are left. A game may show a quiet note from it, but never gates or charges by itself: Flick does that between matches. CUUED is free, so it never gets this |
 
 A good place for an ad is on `gameplayStop`, before the player starts again.
 
