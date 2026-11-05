@@ -60,7 +60,7 @@ CUUED posts to the parent page: `{ flick: <type>, game: 'cuued', ...data }`.
 | `gameplayStop` | it ends, or the player goes back to the menu | |
 | `gameOver` | the end screen shows | `mode`, `won` (true/false/null), `rounds`, or `score` (Survival: rounds survived) |
 | `save` | the progress changed (coins, items, looks, records, stats) | `data`: the whole save, a small JSON object. Includes `pid` (the player's random id, how friends are recognised), `md` (wins–losses per mode), `vs` (record against each rival by id, the 40 most recent) and `runs`. Keep `pid` with the account so the player is the same friend on every device |
-| `plusOffer` | the player picked something that comes with Flick Plus (a Plus look or a house rule) without having it | `perk`: `looks` or `houseRules` |
+| `plusOffer` | the player picked something that comes with Flick Plus (a Plus look, a house rule, or seat 3 or 4 of a Big Screen room) without having it, or a 3rd phone tried to join the host's free Big Screen room (once per room) | `perk`: `looks`, `houseRules` or `bigRooms` |
 
 The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause' }, '*')`):
 
@@ -70,7 +70,7 @@ The site can send to the frame (`frame.contentWindow.postMessage({ flick: 'pause
 | `mute` / `unmute` | Sound off / on |
 | `config` | `{ flick: 'config', share, join, site }`: same as the options above, after loading |
 | `load` | `{ flick: 'load', data }`: a save the site kept (e.g. on the player's account). The site's coins and looks win; items owned and records set on this device are kept too |
-| `plus` | `{ flick: 'plus', on }`: Flick only (checked by the sender's address, flickarcade.com). Turns Flick Plus on or off: every look in Customize (but the secret hat) unlocked to wear, the Plus-only looks, a member mark (`cos.m`, a glowing name tag friends see online and on the Big Screen), and the Big Screen "Always" house rules. Off Flick, Plus looks and house rules stay hidden |
+| `plus` | `{ flick: 'plus', on, trial }`: Flick only (checked by the sender's address, flickarcade.com). Turns Flick Plus on or off: every look in Customize (but the secret hat) unlocked to wear, the Plus-only looks, a member mark (`cos.m`, a glowing name tag friends see online and on the Big Screen), the Big Screen "Always" house rules, and Big Screen rooms for 4 phones (2 without Plus; only the screen needs Plus, phones join free, and a phone already seated is never dropped when Plus turns off). `trial` (optional): no Plus yet but a free trial is waiting, so locked seats can say "free for 7 days". Off Flick, Plus looks and house rules stay hidden and Big Screen rooms seat 2, with seats 3 and 4 linking to CUUED on flickarcade.com |
 
 A good place for an ad is on `gameplayStop`, before the player starts again.
 
