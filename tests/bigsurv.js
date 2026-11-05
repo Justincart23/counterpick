@@ -56,7 +56,6 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   let all = [H, ...G], errors = 0, fcount = 0;
   const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++; for (const A of all) { try { A.update(DT); if (A === H && fcount % 6 === 0) A.render(); if (A !== H && A.ctl.on) A.padSend() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };
   const until = (f, max = 900) => { for (let i = 0; i < max; i++) { if (f()) return true; frame(1) } return f() };
-  H.setPlus(true);   // the host has Flick Plus: 4 seats (free rooms seat 2, see tests/plusrooms.js)
   H.openBigScreen(); frame(10); const code = H.net.code;
   for (const A of G) { A.joinGame(code); frame(30) }
   check(G.every((A) => A.ctl.on && A.ctl.view === 'lobby'), 'three phones become controllers in the lobby');

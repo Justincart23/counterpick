@@ -85,19 +85,15 @@ async function browser(port, name, phone) {
   ok(await S.until(() => S.game(`document.querySelectorAll('#bsSeats li:not(.open):not(.cpu):not(.th)').length===2`)), 'the host sees the friend in the lobby');
   await S.game(`document.querySelector('[data-act=bsStart]').click()`);
   ok(await S.until(() => S.game(`window.document.querySelector('#bigLobby').hidden`)) && await F.until(() => F.game(`document.querySelector('#menu').hidden`)), 'the match starts on both, inside the site');
-  // Big Screen room size and Flick Plus (localhost stands in for flickarcade.com, the only address Plus is believed from)
+  // Big Screen rooms seat 4 for everyone (localhost stands in for flickarcade.com)
   const L = await browser(9463, 'TV', false);
   await L.cdp('Page.navigate', { url: `http://localhost:${server.address().port}/play/cuued` });
   await L.until(() => L.top(`window.__msgs.some(m=>m.flick==='ready')`));
   await L.game(`document.querySelector('[data-act=bsQuick]').click()`);
-  ok(await L.until(() => L.game(`document.querySelectorAll('#bsSeats li.locked').length===2`)), 'before Flick says anything (as off Flick) a Big Screen room seats 2: seats 3 and 4 are locked');
-  ok(await L.game(`/up to 2/.test(document.querySelector('#bsSeatsL').textContent)&&/flickarcade\\.com/.test(document.querySelector('#bsSeats li.locked:last-child').textContent)`), 'off Flick the locked seat points to flickarcade.com');
+  await L.until(() => L.game(`document.querySelectorAll('#bsSeats li').length>=4`));
+  ok(await L.game(`!document.querySelector('#bsSeats li.locked')&&/up to 4/.test(document.querySelector('#bsSeatsL').textContent)`), 'a Big Screen room seats 4 for everyone, no Plus needed');
   await L.top(`document.getElementById('game').contentWindow.postMessage({flick:'plus',on:false,trial:true},'*')`); await sleep(300);
-  ok(await L.game(`/3–4 players with Flick Plus/.test(document.querySelector('#bsSeats li.locked').textContent)&&/Free for 7 days/.test(document.querySelector('#bsSeats li.locked:last-child').textContent)`), 'on Flick without Plus: "3–4 players with Flick Plus", free for 7 days');
-  await L.game(`document.querySelector('#bsSeats li.locked').click()`); await sleep(200);
-  ok(await L.top(`window.__msgs.some(m=>m.flick==='plusOffer'&&m.perk==='bigRooms')`), 'tapping a locked seat asks Flick to show Plus (perk bigRooms)');
-  await L.top(`document.getElementById('game').contentWindow.postMessage({flick:'plus',on:true},'*')`); await sleep(300);
-  ok(await L.game(`!document.querySelector('#bsSeats li.locked')&&/up to 4/.test(document.querySelector('#bsSeatsL').textContent)`), 'with Plus the room opens all 4 seats');
+  ok(await L.game(`!document.querySelector('#bsSeats li.locked')`), 'still 4 open seats on Flick without Plus');
   ok(!S.errors.length && !F.errors.length && !L.errors.length, `no page errors${S.errors.length + F.errors.length + L.errors.length ? ': ' + [...S.errors, ...F.errors, ...L.errors].slice(0, 2).join(' | ') : ''}`);
   for (const [r, w] of results) console.log(r.padEnd(5), w); const bad = results.filter((r) => r[0] === 'FAIL').length;
   console.log(bad ? `\n${bad} of ${results.length} failed` : `\nall ${results.length} passed`); server.close(); process.exit(bad ? 1 : 0)

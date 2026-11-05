@@ -56,7 +56,6 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   const all = [H, ...G]; let errors = 0, fcount = 0;
   const frame = (n = 1) => { for (let i = 0; i < n; i++) { fcount++; for (const A of all) { try { A.update(DT); if (A === H && fcount % 6 === 0) A.render(); if (A !== H) A.padSend() } catch (e) { if (errors++ < 3) console.error(e) } } advance(DT * 1000) } };
   // --- the lobby: phones join and become controllers
-  H.setPlus(true);   // the host has Flick Plus: 4 seats (free rooms seat 2, see tests/plusrooms.js)
   H.openBigScreen(); frame(10); const code = H.net.code;
   check(H.net.screen && H.net.lobbyOpen && H.net.role === 'host', 'Big Screen should open a lobby');
   for (const A of G) { A.joinGame(code); frame(30) }

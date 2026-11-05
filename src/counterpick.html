@@ -2493,7 +2493,7 @@ function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lock
   if(it&&!hid&&it.plus&&!own){go.disabled=false;go.innerHTML='Try Flick Plus'}
   else if(it&&!hid){const wear=wearing(lockK,it.id),hat=lockK==='hat'&&it.id;go.disabled=(wear&&!hat)||(!own&&wallet.coins<it.price);
     go.innerHTML=wear?(hat?'Take off':'Wearing ✓'):own?(hat&&hatList(wallet.eq.hat).some(h=>HAT_SLOT[h]===HAT_SLOT[it.id])?'Swap in':'Wear'):wallet.coins>=it.price?`Buy · ${it.price} `+COIN_HTML:`Need ${it.price-wallet.coins} more`}
-  $('#lockMsg').innerHTML=msg||(it&&it.plus?(own?'A Flick Plus look. Yours to wear while you have Plus.':'A Flick Plus look, made for members. Tap it to try it on. Plus also unlocks every look in the locker, a glowing member name tag and Big Screen rooms for 4 players.'+(portal.trial?' Free for 7 days with a new Flick account.':'')):col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
+  $('#lockMsg').innerHTML=msg||(it&&it.plus?(own?'A Flick Plus look. Yours to wear while you have Plus.':'A Flick Plus look, made for members. Tap it to try it on. Plus also unlocks every look in the locker, a glowing member name tag and house rules for your Big Screen room.'+(portal.trial?' Free for 7 days with a new Flick account.':'')):col?'You play orange or blue depending on your side. Pick a shade of each; your friend sees it online.'
     :hid?'Something special. Only a code unlocks it.':lockK==='hat'?'Stack up to four: one on top, ears or horns, a headband and a halo. Tap one you own to put it on or take it off.':(portal.plus?'Flick Plus: every look here is yours to wear.':'Tap one you own to wear it, or any other to try it on. Win matches for coins: <b>2</b> online or vs a Hard CPU, <b>1</b> otherwise.'+(portal.flick?' Or unlock every look with Flick Plus.':'')))}
 // the secret's tile: a dark silhouette with a question mark
 function drawSecret(g){g.save();g.translate(110,92);g.fillStyle='#14141c';g.beginPath();g.arc(0,0,40,0,TAU);g.fill();g.fillStyle='#ffd36b';g.font='54px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',0,2);g.restore()}
@@ -4763,7 +4763,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-04-stats-rooms';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-05-open-rooms';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5331,7 +5331,8 @@ function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.pa
 // Flick Plus: a Big Screen room seats 2 phones, or 4 when the host (the screen) has Plus; the phones never need it. Only checked
 // when a phone joins, so a phone already seated keeps its seat if Plus switches off (nobody is ever kicked). CPU fighters
 // still fill the room to four either way. Off Flick, where Plus can't be known, rooms seat 2 and the locked seats point to Flick
-const BS_FREE=2,BS_PLUS=4,FLICK_PLAY='https://flickarcade.com/play/cuued';
+// the owner's call: no player limit for anyone (BS_FREE = BS_PLUS), so the seat cap below never triggers. Kept so a game can set one later
+const BS_FREE=4,BS_PLUS=4,FLICK_PLAY='https://flickarcade.com/play/cuued';
 const bsCap=()=>portal.plus?BS_PLUS:BS_FREE;
 function bsPlusAsk(){if(portal.flick)portalSay('plusOffer',{perk:'bigRooms'});else try{window.open(FLICK_PLAY,'_blank','noopener')}catch(e){}}
 // a phone over the free limit: a friendly word on the phone, a gentle note on the screen (and, in the lobby on Flick, the offer once)
