@@ -44,7 +44,7 @@ if (process.argv.includes('--portal')) {
   const dist = path.join(root, 'dist', 'portal'), dir = path.join(dist, 'cuued');
   fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(path.join(dir, 'cards'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'index.html'), out);
-  for (const d of ['cards', 'bg']) { fs.mkdirSync(path.join(dir, d), { recursive: true }); for (const f of fs.readdirSync(path.join(root, d))) fs.copyFileSync(path.join(root, d, f), path.join(dir, d, f)) }
+  for (const d of ['cards', 'bg', 'guns']) { fs.mkdirSync(path.join(dir, d), { recursive: true }); for (const f of fs.readdirSync(path.join(root, d))) fs.copyFileSync(path.join(root, d, f), path.join(dir, d, f)) }
   for (const f of ['logo.webp', 'favicon.svg', 'favicon.ico', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest', 'PORTAL.md', 'LICENSE']) if (fs.existsSync(path.join(root, f))) fs.copyFileSync(path.join(root, f), path.join(dir, f));
   fs.copyFileSync(path.join(root, 'og-card.jpg'), path.join(dir, 'thumb-wide.jpg'));   // 1200 x 630
   try { execSync(`sips -s format jpeg -c 630 840 "${path.join(root, 'og-card.jpg')}" --out "${path.join(dir, 'thumb.jpg')}"`, { stdio: 'ignore' }); execSync(`sips -Z 480 "${path.join(dir, 'thumb.jpg')}"`, { stdio: 'ignore' }) } catch (e) { fs.copyFileSync(path.join(root, 'og-card.jpg'), path.join(dir, 'thumb.jpg')) }   // a 4:3 tile picture

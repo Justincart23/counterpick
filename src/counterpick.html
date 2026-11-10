@@ -4348,7 +4348,27 @@ function update(dt){pollPads();bsHostTick(dt);
 /* the gun grows with your picks: longer for faster rounds, thicker for bigger ones, a drum for extra ammo,
    stacked barrels for bursts, a flared muzzle for scatter, a coil for rail shots; the accent stripe shows your bullet type */
 function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.explode>0?'#ffab1a':s.homing>0?'#c9a0ff':s.phase?'#d8ccff':p.glow}
-function drawGun(p){const s=p.s,len=22+Math.min(26,Math.max(0,(s.bulletSpeed/1350-1)*30))+(s.explode>0?4:0),th=10*Math.min(1.8,Math.sqrt(s.bulletSize))*(s.dmg>80?1.15:1);
+/* painted guns (made with Higgsfield, in guns/): the build decides which one you hold, the same way it picks the shot sound,
+   so a draft that changes your gun type shows it in your hand. gx/gy: where the hand holds it, as a share of the picture;
+   w: its width in the arena. Until a picture loads (or if it fails) the drawn gun below stands in */
+const GUNS={sidearm:{n:'Sidearm',w:46,gx:.115,gy:.356},rail:{n:'Rail Rifle',w:80,gx:.22,gy:.49},scatter:{n:'Scattergun',w:62,gx:.133,gy:.37},
+  lob:{n:'Lobber',w:60,gx:.145,gy:.39},heavy:{n:'Hand Cannon',w:60,gx:.146,gy:.305},smg:{n:'SMG',w:52,gx:.12,gy:.283}};
+const gunKind=s=>s.bulletSpeed>2000?'rail':s.projectiles>2?'scatter':s.bulletGravity>1.3||s.explode>=85?'lob':s.dmg>=80?'heavy':s.fireDelay<.18?'smg':'sidearm';
+const gunImgs={};
+function gunImg(k){let im=gunImgs[k];if(im)return im;if(typeof Image==='undefined')return null;im=gunImgs[k]=new Image();im.decoding='async';im.src='guns/'+k+'.webp';return im}
+function warmGuns(){for(const k in GUNS)gunImg(k)}
+function drawGun(p){const k=gunKind(p.s),G=GUNS[k],im=gunImg(k);
+  if(p._gk&&p._gk!==k&&p.alive)parts.push({text:G.n.toUpperCase()+'!',x:p.x,y:p.y-p.r-40,vx:0,vy:-50,grav:0,life:1.4,max:1.4,color:'#fff3c4'});   // your gun just changed type
+  p._gk=k;
+  if(!im||!im.complete||!im.naturalWidth){drawBoxGun(p);return}
+  const w=G.w*(1+Math.min(.3,Math.max(0,(p.s.bulletSize-1)*.3))),h=w*im.naturalHeight/im.naturalWidth,len=(1-G.gx)*w,th=h*.5;ctx.drawImage(im,-G.gx*w,-G.gy*h,w,h);
+  const ac=gunAccent(p);if(ac!==p.glow){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.55;ctx.fillStyle=ac;ctx.beginPath();ctx.arc(len-2,0,th*.35,0,TAU);ctx.fill();ctx.restore()}   // poison, frost, blast or homing rounds tint the muzzle
+  muzzleFlash(p,len,th)}
+function muzzleFlash(p,len,th){if(p.shotT>0&&!RM){const k=clamp(p.shotT/.08,0,1),L=(16+th)*(.6+.6*k),S=th*.9*(.6+.4*k),sp=performance.now()/30;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(len+2,0);   // muzzle flash
+    for(const[col,m]of[[p.glow,1],['#fff4d6',.55]]){ctx.globalAlpha=.9*k;ctx.fillStyle=col;ctx.beginPath();
+      for(let i=0;i<10;i++){const a=i*TAU/10+Math.sin(sp+i)*.08,r=(i%2?S*.45:i===0?L*1.25:L*.6)*m;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*(i===0?1:.75))}ctx.closePath();ctx.fill()}   // five points, the forward one longest
+    ctx.restore()}}
+function drawBoxGun(p){const s=p.s,len=22+Math.min(26,Math.max(0,(s.bulletSpeed/1350-1)*30))+(s.explode>0?4:0),th=10*Math.min(1.8,Math.sqrt(s.bulletSize))*(s.dmg>80?1.15:1);
   ctx.fillStyle='#2b2f3a';ctx.beginPath();ctx.moveTo(1,th/2-1);ctx.lineTo(3+th*.75,th/2-1);ctx.lineTo(th*.55,th/2+th*.95);ctx.lineTo(-th*.25,th/2+th*.95);ctx.fill();   // grip
   ctx.fillStyle='#4a5161';ctx.fillRect(-2,-th/2,len,th);ctx.fillStyle='#98a1b1';ctx.fillRect(-2,-th/2,len,th*.48);ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(-2,-th/2,len,1.5);   // frame, slide, top glint
   ctx.fillStyle='#1c1f27';ctx.beginPath();ctx.arc(len-1,0,th*.28,0,TAU);ctx.fill();ctx.fillStyle='#2b2f3a';
@@ -4357,10 +4377,7 @@ function drawGun(p){const s=p.s,len=22+Math.min(26,Math.max(0,(s.bulletSpeed/135
   if(s.projectiles>1){const f=4+s.projectiles*1.5;ctx.beginPath();ctx.moveTo(len-3,-th/2);ctx.lineTo(len+9,-th/2-f);ctx.lineTo(len+9,th/2+f);ctx.lineTo(len-3,th/2);ctx.fill()}
   ctx.fillStyle=gunAccent(p);ctx.fillRect(4,-2,Math.min(len-8,8+len*.25),4);
   if(s.bulletSpeed>2000){ctx.fillStyle=p.glow;for(const x of[len-14,len-8])ctx.fillRect(x,-th/2-2,2.5,th+4)}
-  if(p.shotT>0&&!RM){const k=clamp(p.shotT/.08,0,1),L=(16+th)*(.6+.6*k),S=th*.9*(.6+.4*k),sp=performance.now()/30;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(len+2,0);   // muzzle flash
-    for(const[col,m]of[[p.glow,1],['#fff4d6',.55]]){ctx.globalAlpha=.9*k;ctx.fillStyle=col;ctx.beginPath();
-      for(let i=0;i<10;i++){const a=i*TAU/10+Math.sin(sp+i)*.08,r=(i%2?S*.45:i===0?L*1.25:L*.6)*m;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*(i===0?1:.75))}ctx.closePath();ctx.fill()}   // five points, the forward one longest
-    ctx.restore()}}
+  muzzleFlash(p,len,th)}
 const SKIN={};function skinOf(c){return SKIN[c]||(SKIN[c]=/^#[0-9a-f]{6}$/i.test(c)?{hi:shade(c,.3),lo:shade(c,-.22)}:{hi:c,lo:c})}   // light and shadow tones of a fighter colour
 /* brass casings kicked out of the gun, dust puffs at running feet and on landing: drawn only on this screen, never simulated */
 let fluff=[],fluffT=0;const FR=artRng(9),fr=(a,b)=>a+FR()*(b-a);   // its own dice: drawing never moves the game's
@@ -4811,7 +4828,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-clean-outlines';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-painted-guns';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5975,7 +5992,7 @@ if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=
   else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
   else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);
     const c=String(m.join||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length===4)joinFromLink(c)}});
-const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);setTimeout(warmBackdrops,1200);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
+const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);setTimeout(warmBackdrops,1200);setTimeout(warmGuns,600);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   {const c=linkCode();if(c)pendingJoin=c}
   addEventListener('hashchange',()=>{const c=linkCode();if(c)joinFromLink(c)});   // a link opened in a tab where CUUED is already running
   a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);
