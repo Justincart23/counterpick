@@ -1588,7 +1588,7 @@ const VS_HP=1.5;
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1180,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:0,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
-  split:0,grow:false,well:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false};
+  split:0,grow:false,launch:0,juggle:0,combo:0,uppercut:false,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare'];
 const CARDS=[
@@ -1633,12 +1633,15 @@ const CARDS=[
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+15%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.15}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
- {n:'Gravity Well',k:'shot',r:2,d:'Your bullets have their own gravity: shots that pass close to your rival bend into them, and hits slam an airborne rival to the ground.',st:[['130px','Pull range',1],['Slam','Airborne hits',1],['+40% range','Per copy',1]],a:s=>{s.well+=1}},
+ {n:'Launcher',k:'shot',r:2,d:'The more hurt your rival is, the farther your hits launch them. Launched into a wall or the arena edge, they crash for extra damage.',st:[['Up to x3','Launch on a hurt rival',1],['+22','Crash damage',1],['+50%','Launch per copy',1]],a:s=>{s.launch+=1}},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
  {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-25%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.75;s.moveSpeed*=.9}},
  {n:'Momentum',k:'body',r:1,d:'Move faster, and the faster you move, the harder you hit.',st:[['+15%','Speed',1],['Up to +60%','Damage at speed',1]],a:s=>{s.momentum=true;s.moveSpeed*=1.15},u:1},
+ {n:'Combo Chain',k:'shot',r:1,d:'Land hits back to back to build a combo: each hit within 1.2 seconds of the last deals 15% more, up to +90%. Getting hit breaks it.',st:[['+15%','Per hit in a row',1],['Up to +90%','Damage',1]],a:s=>{s.combo+=1},u:1},
+ {n:'Uppercut Guard',k:'guard',r:1,d:'Blocking pops every rival in reach straight up into the air for 12 damage. Set up the juggle.',st:[['170px','Reach',1],['12','Damage',1],['+0.3s','Block cooldown',0]],a:s=>{s.uppercut=true;s.blockCd+=.3},u:1},
+ {n:'Juggler',k:'shot',r:1,d:'Hits on an airborne rival deal 40% more and pop them back up, so they stay in the air.',st:[['+40%','Damage in the air',1],['Pop','Keeps them airborne',1]],a:s=>{s.juggle+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
@@ -1703,7 +1706,10 @@ const ICONS={
    IC.line(g,tx,ty,.5+Math.cos(a-.2)*.28,.5+Math.sin(a-.2)*.28,.5+Math.cos(a+.2)*.28,.5+Math.sin(a+.2)*.28,tx,ty)}},
  'Splinter Rounds':g=>{IC.line(g,.8,.1,.8,.9);IC.bullet(g,.08,.5,.5,.18);IC.line(g,.7,.42,.52,.2);IC.line(g,.7,.5,.5,.5);IC.line(g,.7,.58,.52,.8)},
  'Long Haul':g=>{IC.bullet(g,.06,.5,.3,.14);for(const[r,a]of[[.18,.6],[.3,.7],[.42,.8]]){IC.arc(g,.36,.5,r,-a,a)}IC.line(g,.86,.2,.86,.8)},
- 'Gravity Well':g=>{g.beginPath();for(let t=0;t<=4*Math.PI;t+=.2){const r=.04+.36*t/(4*Math.PI);g.lineTo(.5+Math.cos(t)*r,.5+Math.sin(t)*r)}g.stroke()},
+ 'Launcher':g=>{IC.circle(g,.18,.74,.1);g.beginPath();g.moveTo(.26,.68);g.quadraticCurveTo(.5,.08,.82,.3);g.stroke();IC.line(g,.88,.1,.88,.56);IC.line(g,.7,.22,.82,.3,.72,.4)},
+ 'Combo Chain':g=>{for(const[x,y]of[[.22,.62],[.5,.5],[.78,.38]]){g.beginPath();g.ellipse(x,y,.13,.08,-.4,0,TAU);g.stroke()}IC.plus(g,.84,.78,.08)},
+ 'Uppercut Guard':g=>{IC.shield(g,.32,.62,.34,.46);IC.line(g,.66,.86,.66,.26);IC.line(g,.56,.36,.66,.24,.76,.36);IC.circle(g,.66,.13,.08)},
+ 'Juggler':g=>{IC.circle(g,.5,.2,.1);IC.dashed(g,[.05,.05],()=>{IC.arc(g,.36,.58,.16,Math.PI,TAU);IC.arc(g,.64,.58,.16,Math.PI,TAU)});IC.line(g,.12,.86,.88,.86)},
  'Limpet Mines':g=>{IC.circle(g,.5,.62,.2);for(let i=0;i<6;i++){const a=i/6*TAU;IC.line(g,.5+Math.cos(a)*.2,.62+Math.sin(a)*.2,.5+Math.cos(a)*.3,.62+Math.sin(a)*.3)}IC.line(g,.5,.42,.58,.2);IC.plus(g,.66,.12,.06)},
  'Reflex Guard':g=>{IC.shield(g,.5,.5,.62,.8);IC.arc(g,.5,.48,.15,.5,TAU-.3);IC.line(g,.6,.33,.66,.44,.54,.46)},
  'Quickdraw Guard':g=>{IC.shield(g,.5,.5,.62,.8);IC.bullet(g,.34,.47,.32,.12);IC.line(g,.36,.62,.64,.62)},
@@ -1916,7 +1922,30 @@ function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fill
 function matchProgress(){if(game.bg||!game.target||game.target>=99)return 0;
   const lead=Math.max(game.wins[0]+game.points[0]/2,game.wins[1]+game.points[1]/2);return clamp(lead/(game.target-.5),0,1)}
 function mixHex(a,b,t){const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),m=sh=>Math.round(((pa>>sh)&255)+(((pb>>sh)&255)-((pa>>sh)&255))*t);return`rgb(${m(16)},${m(8)},${m(0)})`}
-function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGradient(0,0,0,H);
+/* painted backdrops (made with Higgsfield, one per arena theme): distant scenery only, so the platforms stay the brightest
+   thing on screen. Drawn cover-fit under a light veil; the match's night-to-dawn glow goes on top. Until one has loaded (or
+   if it fails), the arena keeps its drawn dusk sky */
+const BACKDROP={Yard:'canyon',Pit:'canyon',Stairs:'canyon',Quarry:'canyon',Canyon:'canyon',Mesa:'canyon',Dunes:'canyon',Cutline:'canyon',
+  Archipelago:'islands',Islands:'islands',Ferry:'islands',Springs:'islands',Bridge:'islands',Elevator:'islands',
+  Ruins:'ruins',Crossroads:'ruins',Towers:'ruins',Spire:'ruins',Hourglass:'ruins',Plaza:'ruins',
+  Fortress:'fortress',Drawbridge:'fortress',Bunkers:'fortress',Divider:'fortress',Gallows:'fortress',
+  Foundry:'foundry',Gearworks:'foundry',Piston:'foundry',Chimney:'foundry',Pulley:'foundry','Wrecking Yard':'foundry',Scaffold:'foundry',
+  Skyline:'skyline',Catwalk:'skyline',Shelves:'skyline',Topple:'skyline',
+  Lanterns:'lanterns',Chimes:'lanterns',Chandelier:'lanterns',Swingset:'lanterns',Ropeyard:'lanterns'};
+const bdImgs={};
+const backdropOf=map=>BACKDROP[map.label||map.name]||'canyon';
+function backdropImg(id){let im=bdImgs[id];if(im)return im;if(typeof Image==='undefined')return null;im=bdImgs[id]=new Image();im.decoding='async';
+  im.onload=()=>{if(game.map&&backdropOf(game.map)===id)paintSky(game.map,matchProgress())};im.src='bg/'+id+'.webp';return im}
+function warmBackdrops(){for(const id of new Set(Object.values(BACKDROP)))backdropImg(id)}
+function drawBackdrop(g,map,dawn){const im=backdropImg(backdropOf(map));if(!im||!im.complete||!im.naturalWidth)return false;
+  const k=Math.max(W/im.naturalWidth,H/im.naturalHeight),dw=im.naturalWidth*k,dh=im.naturalHeight*k;g.drawImage(im,(W-dw)/2,H-dh,dw,dh);   // anchored to the bottom: the scenery sits on the horizon
+  g.fillStyle='rgba(16,8,30,.24)';g.fillRect(0,0,W,H);
+  const vg=g.createLinearGradient(0,H*.55,0,H);vg.addColorStop(0,'rgba(16,8,30,0)');vg.addColorStop(1,'rgba(16,8,30,.38)');g.fillStyle=vg;g.fillRect(0,H*.55,W,H*.45);
+  if(dawn>.05){const dg=g.createLinearGradient(0,0,0,H);dg.addColorStop(0,`rgba(90,120,200,${.22*dawn})`);dg.addColorStop(.6,`rgba(255,150,120,${.18*dawn})`);dg.addColorStop(1,`rgba(255,190,120,${.3*dawn})`);
+    g.save();g.globalCompositeOperation='lighter';g.fillStyle=dg;g.fillRect(0,0,W,H);g.restore()}
+  return true}
+function paintSky(map,dawn){const g=bgx;
+  if(!drawBackdrop(g,map,dawn)){const gr=g.createLinearGradient(0,0,0,H);
   gr.addColorStop(0,mixHex('#1a1029','#34477f',dawn));gr.addColorStop(.55,mixHex('#35204a','#a8577a',dawn));gr.addColorStop(1,mixHex('#5b3352','#ffa765',dawn));g.fillStyle=gr;g.fillRect(0,0,W,H);
   // dusk sky: a low moon with halo, faint stars, two layers of distant hills
   // the moon sinks and fades as dawn comes; the sun rises over the horizon
@@ -1943,10 +1972,13 @@ function buildBg(map){const g=bgx,dawn=matchProgress();const gr=g.createLinearGr
       g.fillStyle=hi2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+d,cy-d);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz,cy);g.fill();   // top
       g.fillStyle=lo2;g.beginPath();g.moveTo(cx+sz,cy);g.lineTo(cx+sz+d,cy-d);g.lineTo(cx+sz+d,cy+sz-d);g.lineTo(cx+sz,cy+sz);g.fill();   // side
       g.fillStyle=base;g.fillRect(cx,cy,sz,sz);g.fillStyle='rgba(53,32,74,.22)';g.fillRect(cx,cy,sz,sz);g.restore()}}
+  }
   g.save();g.font='200px "Lilita One", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(255,255,255,.01)';g.fillText((map.label||map.name).toUpperCase(),W/2,H*.4);g.restore();
   // shafts (Chimes): faint columns behind the blocks, down to the bottom edge. Scenery only, nothing stands on them
   for(const[x,y,w]of map.shafts||[]){const sg=g.createLinearGradient(0,y,0,H);sg.addColorStop(0,'rgba(20,10,36,.5)');sg.addColorStop(1,'rgba(20,10,36,.2)');
     g.fillStyle=sg;g.fillRect(x,y,w,H-y);g.fillStyle='rgba(255,240,255,.06)';g.fillRect(x,y,3,H-y)}
+}
+function buildBg(map){const g=bgx,dawn=matchProgress();paintSky(map,dawn);
   // platforms live on their own layer so a new arena can drop into place
   platx.clearRect(0,0,W,H);
   // every shadow first, so a shadow can never fall on top of another platform (or a pad's onto the ground it sits on)
@@ -2066,7 +2098,6 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'boing':tone('sine',150,420,t,.12,.12);break;                                                                                         // springy boing
   case'arm':tone('square',1800,1800,t,.04,.05);tone('square',2200,2200,t+.07,.04,.05);break;                                               // mine arms
   case'pop':noise(t,.1,.18,'highpass',3000);tone('sine',900,300,t,.12,.12);break;                                                          // shield bubble pops
-  case'well':tone('sine',220*v,46,t,.5,.32,room);noise(t,.45,.2,'lowpass',900,120,1,crunch);tone('triangle',660*v,180,t,.25,.05);break;   // a gravity well opens
   case'grab':[880,1320,1760].forEach((f,i)=>tone('triangle',f*v,f*v,t+i*.05,.14,.08));noise(t,.08,.06,'highpass',6000);break;   // power-up taken
   case'blink':noise(t,.12,.14,'bandpass',700*v,5200,2.5,room);tone('sine',380*v,1700*v,t,.11,.1,room);tone('triangle',1900*v,2600,t+.08,.09,.05);break;   // teleport: a rising zip
   }}catch(e){}}
@@ -3357,10 +3388,20 @@ const ART={
      g.beginPath();g.arc(x,0,14+heat*22,0,TAU);g.fill();g.restore();AH.trail(g,x,0,0,40+q*160,8,heat>.6?'255,236,170':'255,245,215');AH.bullet(g,x,0,0,.8);
      g.fillStyle='rgba(255,255,255,.8)';g.font='bold 22px "JetBrains Mono", monospace';g.textAlign='center';g.fillText('x'+(1+q*3).toFixed(1),x,-34)}
    else{const q=(k-.8)/.2;for(let i=0;i<3;i++)AH.ring(g,150,0,20+q*(90+i*40),8*(1-q),1-q*(.6+i*.15))}},
- 'Gravity Well':(g,t)=>{const ph=t*.55%1,bx=90,by0=-30;const jump=ph<.55?Math.sin(ph/.55*Math.PI)*60:0;let by=by0-jump;
-   if(ph<.45){const k=ph/.45,x=-180+k*250,bend=Math.max(0,(k-.55)/.45),y=-90+bend*bend*50;AH.ring(g,bx,by,130*(.6+.4*Math.sin(t*6)),1.5,.25);AH.trail(g,x,y,bend*.5,60,6);AH.bullet(g,x,y,bend*.5,.8)}
-   else if(ph<.75){const k=(ph-.45)/.3;by=by0-60+k*k*150;AH.ring(g,bx,by,30+k*30,3,1-k)}else by=by0+90;
-   AH.blob(g,bx,Math.min(by,by0+90),24,{look:-1,ouch:ph>.45&&ph<.85});g.fillStyle='rgba(255,255,255,.25)';g.fillRect(20,by0+116,160,6)},
+ 'Launcher':(g,t)=>{const ph=t*.55%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(150,-100,10,200);AH.blob(g,-150,40,26,{look:1});
+   if(ph<.25){const x=-120+ph/.25*150;AH.trail(g,x,30,0,70,7);AH.bullet(g,x,30,0,.9)}
+   else if(ph<.6){const k=(ph-.25)/.35,x=30+k*96,y=30-Math.sin(k*Math.PI)*70;g.fillStyle='rgba(255,255,255,.4)';for(let i=1;i<4;i++)g.fillRect(x-24-i*20,y-2+i*3,14,4);AH.blob(g,x,y,22,{look:-1,ouch:1})}
+   else{const k=(ph-.6)/.4;AH.blob(g,126,30+k*k*50,22,{look:-1,ouch:1,a:1-k*.3});AH.ring(g,140,30,12+k*70,7*(1-k),1-k);g.fillStyle='#fff';for(let i=0;i<8;i++){const a=i/8*TAU;g.globalAlpha=1-k;g.fillRect(140+Math.cos(a)*(18+k*60)-3,30+Math.sin(a)*(18+k*60)-3,6,6)}g.globalAlpha=1}
+   const hp=ph<.25?.7:.25;g.fillStyle='rgba(255,255,255,.25)';g.fillRect(40,-80,90,8);g.fillStyle='#ff8a7a';g.fillRect(40,-80,90*hp,8)},
+ 'Combo Chain':(g,t)=>{const k=t*1.1%1,n=Math.floor(k*6);AH.blob(g,-150,20,24,{look:1});AH.blob(g,130,20,26,{look:-1,ouch:k%(1/6)<.06});
+   for(let i=0;i<3;i++){const u=(k*6+i*.33)%1,x=-120+u*230;AH.trail(g,x,14,0,40,5);AH.bullet(g,x,14,0,.6)}
+   g.fillStyle='#fff';g.font='bold 34px "JetBrains Mono", monospace';g.textAlign='center';g.globalAlpha=.4+.6*(n/5);g.fillText((n+1)+' HIT',130,-40);g.globalAlpha=1},
+ 'Uppercut Guard':(g,t)=>{const k=t*.7%1;AH.blob(g,-50,60,28,{look:1});g.save();g.translate(-50,60);AH.shield(g,44,k<.2?1:.4);g.restore();
+   const y=k<.15?60:60-Math.sin(Math.min(1,(k-.15)/.7)*Math.PI)*180;if(k>=.15&&k<.35){const q=(k-.15)/.2;AH.ring(g,40,80,10+q*50,6*(1-q),1-q)}
+   AH.blob(g,40,y,24,{look:-1,ouch:k>.15&&k<.85});g.fillStyle='rgba(255,255,255,.5)';g.fillRect(-180,92,360,5)},
+ 'Juggler':(g,t)=>{const k=t*1.2%1,y=-40-Math.sin(k*Math.PI)*60;AH.blob(g,60,y,22,{look:-1,ouch:k<.15});
+   AH.blob(g,-130,70,24,{look:1});if(k>.7){const q=(k-.7)/.3,x=-110+q*170,yy=60-q*100;AH.trail(g,x,yy,-.53,50,6);AH.bullet(g,x,yy,-.53,.7)}if(k<.15)AH.ring(g,60,-40,14+k*200,5,1-k/.15);
+   g.fillStyle='rgba(255,255,255,.5)';g.fillRect(-180,98,360,5)},
  'Limpet Mines':(g,t)=>{const k=t*.6%1;g.fillStyle='rgba(255,255,255,.85)';g.fillRect(122,-100,10,200);
    if(k<.3){const x=-170+k/.3*282;AH.trail(g,x,0,0,70,7);AH.bullet(g,x,0,0,.9)}
    else if(k<.7){const q=(k-.3)/.4,blink=Math.floor(q*(4+q*10))%2;g.fillStyle=blink?'#ff5a4f':'#fff';g.beginPath();g.arc(112,0,10,0,TAU);g.fill();AH.ring(g,112,0,16+q*6,2,.6)}
@@ -3762,7 +3803,7 @@ function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.spe
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase>0,drill:plain?0:s.phase,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
-   split:plain?0:s.split,grow:!plain&&s.grow,dist:0,well:plain?0:s.well,mines:!plain&&s.mines,stuck:false,fuse:0})}
+   split:plain?0:s.split,grow:!plain&&s.grow,dist:0,launch:plain?0:s.launch,juggle:plain?0:s.juggle,mines:!plain&&s.mines,stuck:false,fuse:0})}
 const BLOCK_T=.3;
 function doBlock(p){if(!p.alive)return;const s=p.s;
   if(p.blockCd>0){if(!(p.blockStock>0)||p.blockT>0)return;p.blockStock--}else{p.blockCd=s.blockCd;p.blockStock=s.blockStock}
@@ -3787,6 +3828,9 @@ function blockFx(p){const s=p.s;
     const e=other(p);if(e.alive){const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<320&&losClear(p.x,p.y,e.x,e.y)){const a=Math.atan2(e.y-p.y,e.x-p.x);e.vx+=Math.cos(a)*1100;e.vy+=Math.sin(a)*900-250;e.kT=.35;damage(e,10,p)}}
     for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2;if(Math.hypot(cx-p.x,cy-p.y)<320)pushSwing(w,Math.sign(cx-p.x)*900)}}
   if(s.blockVolley){const n=s.blockVolley;for(let i=0;i<n;i++)ringShot(p,p.aim+i/n*TAU,22,5,1.3,1100)}
+  if(s.uppercut){burst(p.x,p.y-p.r,p.glow,14,420,4,.35,-300,true);   // Uppercut Guard: pop every rival in reach straight up
+    for(const e of players)if(e!==p&&e.alive&&foes(p,e)&&Math.hypot(e.x-p.x,e.y-p.y)<170+e.r&&losClear(p.x,p.y,e.x,e.y)){e.vx=e.vx*.3+Math.sign(e.x-p.x||1)*120;e.vy=-1250;e.ground=null;e.grounded=false;e.kT=.35;
+      ring(e.x,e.y+e.r,'#ffffff',50);burst(e.x,e.y+e.r,'#ffffff',10,420,4,.3,-500,true);addShake(6);sfx('crush');if(e.blockT>0)sfx('tink');else damage(e,12,p)}}
   if(s.staticGuard)p.staticReady=true;
   // Blink never lands past an edge (below the bottom you'd end up under the floor)
   if(s.blink)blinkMove(p)}
@@ -3813,7 +3857,7 @@ const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
    already in the air, a shared explosion, a fall) while the point wraps up, so every point goes to Orange or Blue */
 const POINT_END=1.7;
 const pointDecided=()=>game.state==='pointEnd';
-function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;if(src&&src!==p)p.comboT=0;
   if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,Math.min(amt,had),p.hp<=0&&!(p.revives>0));   // overkill earns nothing
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
@@ -3847,13 +3891,12 @@ function killBullet(b,impact,wall,n){
     sparks(b.x,b.y,'#fff6e8',6,420+sp*.15,ang,1.05);sparks(b.x,b.y,b.glow,4,300,ang,1.4)}
   burst(b.x,b.y,b.glow,4,240,3,.25,600,true);splat(b.x,b.y,b.color,3,8,3);if(b.explode>0)explode(b,null)}
 /* Long Haul: +25% damage per 100 px flown, up to x4; hits past x2 land with a shockwave that shoves everyone nearby */
-/* Gravity Well: bullets with their own gravity. A shot passing close to the rival bends into them (stronger the closer
-   it passes; it never turns back around), and a hit slams an airborne rival to the ground and takes its air jump until it
-   lands. Each copy widens and strengthens the pull */
-const WELL_R=130;
-function wellBend(b,t,dt){if(!t||!t.alive)return;const dx=t.x-b.x,dy=t.y-b.y,d=Math.hypot(dx,dy),R=Math.min(300,WELL_R*(1+.4*(b.well-1)));if(d>=R)return;
-  const cur=Math.atan2(b.vy,b.vx),off=wrapA(Math.atan2(dy,dx)-cur);if(Math.abs(off)>1.6)return;
-  const turn=9*(1-d/R)*(1+.25*(b.well-1))*dt,na=cur+clamp(off,-turn,turn),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}
+/* Launcher: knockback grows with how hurt the rival is (like a fighting game's damage percent), and a launched rival who
+   slams into a wall or the arena edge crashes for extra damage. The host decides the crash */
+const LAUNCH_T=.7,CRASH_DMG=22,CRASH_SPEED=650;
+function launchCrash(p){if(!(p.launchT>0)||game.mode==='online-guest'||!p.alive)return;p.launchT=0;const by=p.launchBy;
+  ring(p.x,p.y,'#ffffff',90);burst(p.x,p.y,'#fff3c4',22,620,6,.45,0,true);burst(p.x,p.y,p.color,14,480,5,.4);addShake(14);game.hitstop=.06;sfx('crush');
+  parts.push({text:'CRASH!',x:p.x,y:p.y-p.r-24,vx:0,vy:-70,grav:0,life:.8,max:.8,color:'#fff3c4'});damage(p,CRASH_DMG,by&&by!==p?by:null)}
 const rangeMult=b=>Math.min(3,1+b.dist*.002);
 function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
   ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);sfx('boom');
@@ -3863,13 +3906,18 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   if(b.gunShot){game.hits=(game.hits||0)+1;if(b.owner){game.hitsBy=game.hitsBy||[0,0];game.hitsBy[b.owner.id]++}}
   if(b.owner&&b.owner.ctrl==='mouse'&&b.owner!==p)game.hitMark=.22;   // hit marker on your crosshair   // (counted for tuning: how often trigger pulls land)
   const o=b.owner;if(o&&o!==p&&o.s.reflexGuard)o.blockCd=Math.max(0,o.blockCd-o.s.reflexGuard);
-  p.vx+=b.vx/sp*380*kf;p.vy+=b.vy/sp*300*kf-120*kf;p.ground=null;p.kT=.35;
-  if(b.poison){p.dots.push({dps:b.dmg*1.5/2,t:2,src:b.owner});p.hurtT=.1;cloud(p.x,p.y,C.poison,6,20)}
-  else damage(p,b.dmg,b.owner)
+  const air=!p.grounded;let dm=b.dmg,kk=kf;
+  if(b.launch){const hurt=clamp(1-Math.max(0,p.hp-dm)/p.s.maxHp,0,1);kk*=1+hurt*2*(1+.5*(b.launch-1));if(hurt>.3){p.launchT=LAUNCH_T;p.launchBy=o}}   // Launcher
+  if(b.juggle&&air)dm*=1+.4*b.juggle;   // Juggler
+  if(o&&o!==p&&o.s.combo){o.comboN=o.comboT>0?(o.comboN||0)+1:1;o.comboT=1.2;dm*=1+Math.min(.9,.15*(o.comboN-1));
+    if(o.comboN>1)parts.push({text:o.comboN+' HIT',x:p.x,y:p.y-p.r-22,vx:0,vy:-80,grav:0,life:.6,max:.6,color:o.comboN>=5?'#ffd36b':'#ffffff'})}   // Combo Chain
+  p.vx+=b.vx/sp*380*kk;p.vy+=b.vy/sp*300*kk-120*kk;p.ground=null;p.kT=.35;
+  if(b.juggle&&air&&p.alive)p.vy=Math.min(p.vy,-460-60*b.juggle);
+  if(b.poison){p.dots.push({dps:dm*1.5/2,t:2,src:b.owner});p.hurtT=.1;cloud(p.x,p.y,C.poison,6,20)}
+  else damage(p,dm,b.owner)
   if(b.slow){p.slowT=1.6;p.slowAmt=Math.max(p.slowAmt,Math.min(.8,b.slow));
     if(b.owner&&b.owner.s.freeze&&p.alive){p.chill=(p.chillT>0?p.chill||0:0)+1;p.chillT=2;
       if(p.chill>=3){p.chill=0;p.frozenT=1;p.vx*=.2;ring(p.x,p.y,'#d8f4ff',60);burst(p.x,p.y,'#e6f8ff',18,320,4,.5,0,true);sfx('freeze')}}}
-  if(b.well&&p.alive&&!p.grounded){p.vy=Math.max(p.vy,1150);p.vx*=.4;p.airJumps=0;ring(p.x,p.y,b.glow,60);burst(p.x,p.y,b.glow,12,380,4,.35,0,true);moveFx(p,()=>sfx('well'))}   // Gravity Well: slammed down
   if(p.alive&&p.s.spite>0){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
   burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;sfx('hit');
   b.dead=true;if(b.explode>0)explode(b,p)}
@@ -3902,7 +3950,6 @@ function updateBullets(dt){
     const hom=Math.max(b.homing,game.overtime&&!b.plainRing?.6:0);
     if(hom>0){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx),des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,
       na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
-    if(b.well)wellBend(b,other(b.owner),dt);
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
     if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*gMul()*dt;
@@ -4012,7 +4059,7 @@ function moveCollide(p,dt){
     if(step>0&&step<=12&&p.vy>=-1&&!r.swing&&!solidBoxP(p.x,r.y-R-.5,R,R)){p.y=r.y-R-.5;continue}
     if(p.vx>0&&p.x<r.x)p.x=r.x-R;else if(p.vx<0&&p.x>r.x+r.w)p.x=r.x+r.w+R;else{pushOut(p,r);continue}
     if(r.crate&&p.grounded&&p.input&&p.input.move===Math.sign(p.vx)){const v=Math.sign(p.vx)*Math.min(Math.abs(p.vx),CRATE_PUSH);r.pushV=v;r.pushT=.08;p.vx=v;continue}   // walking into a crate pushes it, at a slower walk
-    p.vx=0}
+    if(Math.abs(p.vx)>CRASH_SPEED)launchCrash(p);p.vx=0}
   // vertical: land on planks only from above; clipping a ceiling corner by ≤10px slides you past it
   const wasG=p.grounded,vyIn=p.vy,prevBottom=p.y+R;p.grounded=false;p.y+=p.vy*mdt;
   for(const r of solids){if(r.bound||!boxHit(p.x,p.y,R,R,r))continue;
@@ -4021,13 +4068,13 @@ function moveCollide(p,dt){
     else if(p.vy<0){const ol=p.x+R-r.x,or=r.x+r.w-(p.x-R);
       if(ol<=10&&!solidBoxP(p.x-ol-.5,p.y,R,R)){p.x-=ol+.5;continue}
       if(or<=10&&!solidBoxP(p.x+or+.5,p.y,R,R)){p.x+=or+.5;continue}
-      p.y=r.y+r.h+R;p.vy=0}}
+      if(p.vy<-CRASH_SPEED)launchCrash(p);p.y=r.y+r.h+R;p.vy=0}}
   for(const r of swings)if(boxHit(p.x,p.y,R,R,r))swingPush(p,r);
   for(const r of rigs)if(r.mode==='swing'&&boxHit(p.x,p.y,R,R,r))swingPush(p,r);
   }
   // safety net: never end a step with the body's centre inside a wall
   for(const r of solids)if(!r.oneway&&!r.bound&&p.x>r.x&&p.x<r.x+r.w&&p.y>r.y&&p.y<r.y+r.h){if(r.swing)swingPush(p,r);else pushOut(p,r)}
-  p.edgeHit=edgeBounce(p);
+  {const lvx=p.vx,lvy=p.vy;p.edgeHit=edgeBounce(p);if(p.edgeHit&&p.edgeHit!=='bottom'&&Math.max(Math.abs(lvx),Math.abs(lvy))>CRASH_SPEED)launchCrash(p)}
   if(!p.grounded)p.ground=null;
   p.wallDir=0;if(!p.grounded){if(solidBoxP(p.x+3,p.y,R,R*.6))p.wallDir=1;else if(solidBoxP(p.x-3,p.y,R,R*.6))p.wallDir=-1}
   p.squash+=((p.duck?.6:1)-p.squash)*Math.min(1,dt*12);p.walk+=Math.abs(p.vx)*dt*.045;
@@ -4035,7 +4082,7 @@ function moveCollide(p,dt){
 // movement puffs and sounds: the host still shows them for the guest's fighter, but doesn't send them, because the guest predicts its own
 function moveFx(p,fn){if(net.role==='host'&&p.ctrl==='net'){net.noRec=true;try{fn()}finally{net.noRec=false}}else fn()}
 function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
-  p.fireT-=dt;p.blockT-=dt;p.sinceShot+=dt;p.kT=(p.kT||0)-dt;p.crushT=(p.crushT||0)-dt;   // kT: just knocked by something the host decided (a hit, a blast)
+  p.fireT-=dt;p.blockT-=dt;p.sinceShot+=dt;p.kT=(p.kT||0)-dt;p.launchT=(p.launchT||0)-dt;p.comboT=(p.comboT||0)-dt;p.crushT=(p.crushT||0)-dt;   // kT: just knocked by something the host decided (a hit, a blast)
   p.hurtT-=dt;p.shotT-=dt;p.emptyT-=dt;p.buffOver=(p.buffOver||0)-dt;p.buffRapid=(p.buffRapid||0)-dt;p.chillT=(p.chillT||0)-dt;p.frozenT=(p.frozenT||0)-dt;
   if(p.frozenT>0){const i=inp;i.move=0;i.jumpP=false;i.jumpH=false;i.fire=false;i.blockP=false;i.down=false}   // frozen solid
   if(p.blockCd>0){p.blockCd-=dt;if(p.blockCd<=0)personal(p,'ready')}
@@ -4763,7 +4810,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-05-open-rooms';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-smash-cards';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5244,7 +5291,7 @@ function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
   const now=performance.now();
   // a ghost the host never confirms within 0.7 s was a phantom shot (counted, so tests can catch prediction drift); past
   // 0.45 s an unconfirmed ghost turns faint so it fades rather than pops
-  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;if(b.well)wellBend(b,game.coop?other(me):players[0],dt);const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
+  for(const b of G){if(now-b.born>700){b.dead=true;net.gLost=(net.gLost||0)+1;continue}b.phasing=now-b.born>450;b.vy+=BGRAV*b.g*dt;const st=Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/6));
     for(let k=0;k<st&&!b.dead;k++){b.x+=b.vx*dt/st;b.y+=b.vy*dt/st;
       for(const r of solids){if(r.bound||b.phase)continue;const n=bulletRect(b,r);if(!n)continue;
         if(b.bounces>0){const d=b.vx*n.nx+b.vy*n.ny;if(d<0){b.vx-=2*d*n.nx;b.vy-=2*d*n.ny}b.bounces--}else b.dead=true;break}}
@@ -5253,7 +5300,7 @@ function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
 function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
-      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,well:s.well,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
+      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
 // a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
 function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV*b.g;let best=-1,bs=1e9,bt=0;
@@ -5927,7 +5974,7 @@ if(portal.on&&typeof addEventListener==='function')addEventListener('message',e=
   else if(m.flick==='mute'){if(!muted)toggleMute()}else if(m.flick==='unmute'){if(muted&&settings.sound!==false)toggleMute()}
   else if(m.flick==='config'){if(typeof m.share==='string'&&/^https:\/\//.test(m.share))portal.share=m.share.slice(0,300);if(typeof m.site==='string')portal.name=m.site.replace(/[<>]/g,'').slice(0,40);
     const c=String(m.join||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length===4)joinFromLink(c)}});
-const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
+const boot=()=>{document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setTimeout(warmCardArt,2500);setTimeout(warmBackdrops,1200);fetchIce();refreshWallet();if(!settings.sound)toggleMute(true);refreshOpts();refreshName();startMatch('demo');showSub($('#menu'),'main');
   {const c=linkCode();if(c)pendingJoin=c}
   addEventListener('hashchange',()=>{const c=linkCode();if(c)joinFromLink(c)});   // a link opened in a tab where CUUED is already running
   a2Sync();if(myName&&!pendingJoin)setTimeout(a2Maybe,2500);

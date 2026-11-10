@@ -222,7 +222,7 @@ const DT = 1 / 60;
       if (f % 300 >= 200 && f % 300 < 230) { for (const k of ['KeyA', 'KeyD']) A.keys.delete(k); A.keys.add(me.x < 800 ? 'KeyA' : 'KeyD') }   // run at walls / edges
     }
   };
-  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard', 'Blink Guard', 'Gravity Well'];
+  const FEATURE_DECK = ['Echo Guard', 'Shield Charge', 'Long Haul', 'Mirror Guard', 'Bulwark', 'Cluster Guard', 'Blink Guard', 'Launcher', 'Uppercut Guard', 'Juggler', 'Combo Chain'];
   const giveDecks = () => { for (const p of H.players) { const want = FEATURE_DECK.map((n) => H.CARDS.find((c) => c.n === n)); if (p.cards.length < want.length || !want.every((c) => p.cards.includes(c))) { p.cards = [...want, ...p.cards.filter((c) => !want.includes(c))]; H.recompute(p) } } };
   const sg = { dropRun: 0, hj: [], last: null, gaps: [], n: 0, stutter: 0, o1: null, o2: null, h1: null, h2: null };
   const hostTrail = [];   // the host fighter's recent positions, to compare against the guest's (network-delayed) view

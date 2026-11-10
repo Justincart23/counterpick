@@ -7,6 +7,7 @@ const run = (file, ...args) => ({ name: [file, ...args].join(' '), args: [path.j
 const withEnv = (t, env, tag) => ({ ...t, env, name: `${t.name} ${tag}` });
 const suite = [
   run('card-art.js'),
+  run('smash.js'),
   run('movement.js'),
   run('points.js'),
   run('combos.js'),
