@@ -13,7 +13,7 @@ const { load } = require('./env');
     const [P, E] = A.players; E.alive = false; E.x = -9999; P.cards = cards.map((n) => A.CARDS.find((c) => c.n === n)); A.recompute(P);
     P.x = 260; P.y = 330; P.aim = -0.35; A.bullets.length = 0;
     const path = A.aimPath(P, .3), c = Math.cos(P.aim), s = Math.sin(P.aim);
-    A.spawnBullet(P, P.x + c * (P.r + 30), P.y + s * (P.r + 30), P.aim, {}); const b = A.bullets[A.bullets.length - 1];
+    const T = A.gunTip(P); A.spawnBullet(P, T.x, T.y, P.aim, {}); const b = A.bullets[A.bullets.length - 1];
     let worst = 0, steps = 0; const x0 = b.x, y0 = b.y;
     for (let k = 0; k < path.length && !b.dead; k++) { A.updateBullets(A.FIXED); steps++; worst = Math.max(worst, Math.hypot(b.x - path[k][0], b.y - path[k][1])) }
     if (steps < path.length * .9 || Math.hypot(b.x - x0, b.y - y0) < 200) fail.push(`${twist || 'normal'} ${name}: the test shot didn't fly its course (${steps} steps, ${Math.round(Math.hypot(b.x - x0, b.y - y0))} px)`);

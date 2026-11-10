@@ -64,6 +64,15 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   // a storm of blasts stays capped
   { setup(); for (let i = 0; i < 300; i++) A.boomFx(400 + i, 400, 120, '#fff', 2); const imgs = A.parts ? A.parts.filter((q) => q.img).length : 0; check(imgs <= 40, `explosion sprites should be capped (${imgs})`) }
 
+  // Spite against Spite: shrapnel never sets off more shrapnel (it used to chain into 190,000 bullets and freeze co-op)
+  { const [P, E] = setup(['Spite', 'Spite'], ['Spite', 'Spite']); E.x = P.x + 30; E.y = P.y; P.s.maxHp = E.s.maxHp = P.hp = E.hp = 1e6; A.spawnBullet(P, E.x - 30, E.y, 0);   // pressed together, so every shard lands
+    let most = 0; for (let i = 0; i < 240; i++) { P.hp = E.hp = 1e6; E.x = P.x + 30; E.y = P.y; step(); most = Math.max(most, A.bullets.length) } check(most < 200, `Spite shrapnel should not chain (peaked at ${most} bullets)`) }
+  // Long Haul + Hair Trigger + Blast Cap, both fighters shooting flat out for 10 s: bullets, particles and step time stay bounded
+  { const deck = ['Long Haul', 'Hair Trigger', 'Hair Trigger', 'Blast Cap', 'Spite', 'Cluster Guard'].filter((n) => A.CARDS.some((c) => c.n === n)); const [P, E] = setup(deck, deck);
+    P.s.maxHp = E.s.maxHp = 1e6; let most = 0, parts = 0, slow = 0; const t0 = Date.now();
+    for (let i = 0; i < 600; i++) { P.hp = E.hp = 1e6; for (const [a, b] of [[P, E], [E, P]]) { a.ammo = a.s.ammo; a.aim = Math.atan2(b.y - a.y, b.x - a.x); a.input.aim = a.aim; a.input.fire = true; a.ctrl = 'idle' }
+      const s0 = Date.now(); step(); slow = Math.max(slow, Date.now() - s0); most = Math.max(most, A.bullets.length); parts = Math.max(parts, A.parts ? A.parts.length : 0) }
+    check(most <= 600 && parts <= 1000, `Long Haul storm should stay bounded (${most} bullets, ${parts} particles)`); check(slow < 50, `a step in the storm took ${slow} ms`) }
   console.log(JSON.stringify({ healthy: +healthy.toFixed(0), hurt: +hurt.toFixed(0), plainHurt: +plainHurt.toFixed(0), failures: fail }));
   process.exit(fail.length ? 1 : 0);
 })();

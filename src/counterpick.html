@@ -97,7 +97,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .pick-head{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;display:grid;gap:4px;padding-inline:16px;z-index:3}
 .pick-head h2{font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4vw,46px);margin:0;line-height:1}
 .pick-head p{margin:0;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-#face{position:absolute;left:50%;bottom:-24vh;transform:translateX(-50%);width:min(68vh,560px);aspect-ratio:1;z-index:1;pointer-events:none}
+#face{position:absolute;left:50%;bottom:1.5vh;transform:translateX(-50%);width:min(44vh,460px);aspect-ratio:1;z-index:1;pointer-events:none}
 #fan{position:absolute;left:50%;top:44%;width:0;height:0;z-index:2}
 .card{--pc:var(--orange);--cat:#e85d3a;position:absolute;left:0;top:0;width:clamp(150px,15vw,206px);font:inherit;color:var(--text);text-align:center;cursor:pointer;
   background:none;border:0;padding:0;transform:translate(-50%,-50%) translate(var(--x),var(--y)) rotate(var(--r));
@@ -2972,7 +2972,7 @@ function bossTick(p,h){const B=p.boss,S=p.bs,e=other(p),inp=p.input;if(!B||!p.al
       // the laser tracks you slowly, then holds still for the last moment: move out of the line to dodge
       if(S.at>SNIPE_LOCK){const want=Math.atan2(e.y-p.y,e.x-p.x);S.lock+=clamp(wrapA(want-S.lock),-1.3*h,1.3*h)}
       inp.aim=S.lock;p.aim=S.lock;
-      if(S.at<=0){const m=safeSpawn(p,S.lock,p.r+30,6,false);
+      if(S.at<=0){const m=safeSpawn(p,S.lock,gunTip(p,S.lock),6,false);
         if(!m.smothered){spawnBullet(p,m.x,m.y,S.lock,{plain:true,dmg:44,r:6.5,speed:2700,life:2});const b=bullets[bullets.length-1];b.grav=.12;b.snipe=true}
         S.n=(S.n||0)+1;S.minTell=Math.min(S.minTell??9,SNIPE_AIM-S.at);flashFx(m.x,m.y,70,.12,B.glow);addShake(9);sfx('shotRail');p.vx-=Math.cos(S.lock)*260;S.state='idle';S.t=late?rand(2.4,3.4):rand(3.6,5)}}}
   else if(sp==='charge'){const dx=e.x-p.x;
@@ -3026,7 +3026,7 @@ function drawBossFx(){const p=bossOf();if(!p||!p.alive)return;const S=p.bs;ctx.s
     ctx.beginPath();ctx.arc(S.tx,S.ty,p.r*(1.6-.6*k),0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.15+.25*k;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(S.tx,S.ty,p.r,0,TAU);ctx.fill();ctx.globalAlpha=1}
   if(S.state==='raise'||p.mirror){const k=S.state==='raise'?1-S.at/FORT_RAISE:1,R=(p.r+34)*k;ctx.globalCompositeOperation='lighter';ctx.strokeStyle=p.glow;ctx.lineWidth=p.mirror?5:2;
     ctx.globalAlpha=p.mirror?.75+.2*Math.sin(performance.now()/90):.5;ctx.beginPath();ctx.arc(p.x,p.y,R,0,TAU);ctx.stroke();ctx.globalAlpha*=.25;ctx.fillStyle=p.glow;ctx.fill();ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
-  if(S.state==='aim'){const a=S.lock,c=Math.cos(a),s=Math.sin(a),x0=p.x+c*(p.r+30),y0=p.y+s*(p.r+30),L=2400,t=rayHit(x0,y0,x0+c*L,y0+s*L,2,true)*L,k=1-S.at/SNIPE_AIM,locked=S.at<=SNIPE_LOCK;
+  if(S.state==='aim'){const a=S.lock,c=Math.cos(a),s=Math.sin(a),T0=gunTip(p,a),x0=T0.x,y0=T0.y,L=2400,t=rayHit(x0,y0,x0+c*L,y0+s*L,2,true)*L,k=1-S.at/SNIPE_AIM,locked=S.at<=SNIPE_LOCK;
     ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
     ctx.strokeStyle='#ff2a44';ctx.globalAlpha=.18+.3*k;ctx.lineWidth=10+8*k;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+c*t,y0+s*t);ctx.stroke();
     ctx.strokeStyle=locked?'#ffffff':'#ff5a6a';ctx.globalAlpha=locked?1:.55+.45*k;ctx.lineWidth=locked?4:2+2*k;
@@ -3478,22 +3478,37 @@ addEventListener('keydown',()=>{faceGaze.mouse=false});
 function drawBigFace(p,mood){const o=bigFace;bigFace={p,mood,lx:o?o.lx:0,ly:o?o.ly:0,lt:o?o.lt:0};paintBigFace(performance.now()/1000)}
 function faceLook(B,t){const n=hand.length||1;let tx=n>1?(clamp(hl,0,n-1)/(n-1)-.5)*2:0,ty=0;
   if(faceGaze.mouse){const fc=$('#face'),r=fc&&fc.getBoundingClientRect&&fc.getBoundingClientRect();
-    if(r&&r.width){const cx=r.left+r.width/2,cy=r.top+r.height*.4;tx=clamp((faceGaze.x-cx)/(innerWidth*.38),-1,1);ty=clamp((faceGaze.y-cy)/(innerHeight*.45),-1,1)}}
+    if(r&&r.width){const cx=r.left+r.width/2,cy=r.top+r.height*.4;tx=clamp((faceGaze.x-cx)/(innerWidth*.34),-1,1);ty=clamp((faceGaze.y-cy)/(innerHeight*.4),-1,1)}}
   const dt=clamp(t-(B.lt||t),0,.1);B.lt=t;if(RM||!dt){B.lx=tx;B.ly=ty;return}const k=1-Math.exp(-dt*8);B.lx+=(tx-B.lx)*k;B.ly+=(ty-B.ly)*k}
-function paintBigFace(t){const B=bigFace,fc=$('#face'),g=fc&&fc.getContext&&fc.getContext('2d');if(!B||!g)return;const p=B.p,S=560,R=250,sk=skinOf(p.color);g.clearRect(0,0,S,S);
-  const br=RM?0:Math.sin(t*2.2),bob=br*6;g.save();g.translate(S/2,S/2+20+bob);g.scale(1-br*.012,1+br*.012);
+/* how far a hat (or a stack of them) reaches above and beside the body, in body radii: measured once from its real drawing,
+   so any hat, the Dark Helm included, fits the big fighter whole */
+const hatReach={};
+function hatBox(id){if(!id)return{up:1,side:1};if(hatReach[id])return hatReach[id];let r={up:2.6,side:1.3};
+  try{const c=document.createElement('canvas');c.width=c.height=600;const g=c.getContext('2d'),R=100;g.translate(300,360);drawHat(g,id,R,'#ffd36b',0,-R*.14);
+    const d=g.getImageData(0,0,600,600).data;let top=600,l=600,rt=0;for(let y=0;y<600;y++)for(let x=0;x<600;x++)if(d[(y*600+x)*4+3]>8){if(y<top)top=y;if(x<l)l=x;if(x>rt)rt=x}
+    if(top<600)r={up:Math.max(1,(360-top)/R),side:Math.max(1,(300-l)/R,(rt-300)/R)}}catch(e){}
+  return hatReach[id]=r}
+function paintBigFace(t){const B=bigFace,fc=$('#face'),g=fc&&fc.getContext&&fc.getContext('2d');if(!B||!g)return;const p=B.p,S=560,sk=skinOf(p.color);g.clearRect(0,0,S,S);
+  /* the whole fighter fits: head (and whatever it wears) to feet, sized to its tallest hat, standing on the bottom edge */
+  const hb=hatBox(p.cos&&p.cos.hat),R=Math.min(205,(S*.95-18)/(hb.up+1.18),(S/2-14)/(hb.side*1.06)),foot=S*.95;
+  faceLook(B,t);const dt=clamp(t-(B.st||t),0,.1);B.st=t;   // a lagging copy of the gaze swings the hat and body like they have weight
+  if(B.sw==null||RM){B.sw=B.lx;B.sv=0}else if(dt){B.sv+=((B.lx-B.sw)*90-B.sv*11)*dt;B.sw+=B.sv*dt}
+  const br=RM?0:Math.sin(t*2.2),bob=br*R*.025,lean=B.lx*.13+(B.lx-B.sw)*.35,cy=foot-R*1.12;
+  g.save();g.translate(S/2+B.lx*R*.1,cy+bob);
+  g.strokeStyle=sk.lo;g.lineCap='round';g.lineWidth=R*.34;for(const s2 of[-1,1]){const fx=s2*R*.3+B.lx*R*.06;g.beginPath();g.moveTo(s2*R*.32,R*.5);g.quadraticCurveTo(fx*1.05,R*.85,fx,R*1.08-bob);g.stroke()}   // stubby legs, planted
+  g.translate(0,R);g.rotate(lean);g.translate(0,-R);g.scale(1-br*.012,1+br*.012+B.ly*.02);
   try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,p.color);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=p.color}
   g.beginPath();g.arc(0,0,R,0,TAU);g.fill();
   g.save();g.beginPath();g.arc(0,0,R,0,TAU);g.clip();g.fillStyle='rgba(255,255,255,.07)';g.beginPath();g.moveTo(-R,-R*.1);g.lineTo(R*.2,-R);g.lineTo(R,-R);g.lineTo(-R,R*.4);g.fill();
   g.fillStyle='rgba(0,0,0,.08)';g.beginPath();g.moveTo(R,R*.1);g.lineTo(-R*.3,R);g.lineTo(R,R);g.fill();g.restore();
   if(p.cos&&p.cos.pattern)drawPattern(g,p.cos.pattern,R);
-  faceLook(B,t);const ex=B.lx*R*.22,ey=-R*.14+B.ly*R*.07,shut=!RM&&(t%3.7)<.13,happy=B.mood==='happy';
+  const ex=B.lx*R*.22,ey=-R*.14+B.ly*R*.07,shut=!RM&&(t%3.7)<.13,happy=B.mood==='happy';
   g.fillStyle='#16121c';g.strokeStyle='#16121c';g.lineCap='round';
   for(const s2 of[-1,1]){const x=ex+s2*R*.24;
     if(happy){g.lineWidth=R*.07;g.beginPath();g.arc(x,ey+R*.05,R*.09,Math.PI*1.1,Math.PI*1.9);g.stroke()}
     else{g.beginPath();g.ellipse(x,ey,R*.1,shut?R*.025:R*.2,0,0,TAU);g.fill();if(!shut){g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.arc(x-R*.03,ey-R*.08,R*.028,0,TAU);g.fill();g.fillStyle='#16121c'}}}
   if(B.mood==='think'&&!happy){g.lineWidth=R*.05;g.beginPath();for(const s2 of[-1,1]){g.moveTo(ex+s2*R*.12,ey-R*.31);g.lineTo(ex+s2*R*.36,ey-R*.36)}g.stroke()}
-  if(p.cos&&p.cos.hat)drawHat(g,p.cos.hat,R,p.glow,ex,ey);
+  if(p.cos&&p.cos.hat){g.save();g.translate(0,-R*.7);g.rotate((B.sw-B.lx)*.25);g.translate(0,R*.7);drawHat(g,p.cos.hat,R,p.glow,ex,ey);g.restore()}
   g.restore()}
 /* ---------- physics helpers ---------- */
 const boxHit=(x,y,hw,hh,r)=>x+hw>r.x&&x-hw<r.x+r.w&&y+hh>r.y&&y-hh<r.y+r.h;
@@ -3509,7 +3524,7 @@ function rayHit(x0,y0,x1,y1,rad,skipBounds){const dx=x1-x0,dy=y1-y0,n=Math.max(1
 const losClear=(x0,y0,x1,y1)=>rayHit(x0,y0,x1,y1,1,true)>=1;
 /* the muzzle is ~50px out from the body: never let it poke through a wall. Ray from body centre to muzzle. */
 /* also stops at the rival's body, so a point-blank shot lands instead of spawning past them */
-function safeSpawn(p,ang,dist,br,phase){const c=Math.cos(ang),s=Math.sin(ang),x1=p.x+c*dist,y1=p.y+s*dist;
+function safeSpawn(p,ang,dist,br,phase){let x1,y1;if(typeof dist==='object'){x1=dist.x;y1=dist.y;dist=Math.hypot(x1-p.x,y1-p.y)||1}else{x1=p.x+Math.cos(ang)*dist;y1=p.y+Math.sin(ang)*dist}const c=(x1-p.x)/dist,s=(y1-p.y)/dist;
   let t=phase?1:rayHit(p.x,p.y,x1,y1,br,true),hitEnemy=false;const blocked=t<1,smothered=!phase&&t<=0;
   const e=other(p);if(e&&e.alive&&!smothered){const fx=p.x-e.x,fy=p.y-e.y,R=e.r+br,b=fx*c+fy*s,cc=fx*fx+fy*fy-R*R,disc=b*b-cc;
     if(disc>=0){let k=-b-Math.sqrt(disc);if(cc<0)k=0;if(k>=0&&k/dist<t){t=Math.max(0,k-1)/dist;hitEnemy=true}}}
@@ -3827,7 +3842,7 @@ function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1
 /* ---------- shooting & blocking ---------- */
 function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1)*(twistOn('frenzy')?.625:1);p.burstLeft=p.s.burst;p.burstT=0}
 function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1)*grudgeMult(p);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
-  for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);
+  for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
@@ -3837,8 +3852,9 @@ function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s
 /* Grudge: hit harder for every round your rival leads you by */
 function grudgeMult(p){const g=p.s&&p.s.grudge;if(!g||!game.wins||survOn())return 1;const me=game.wins[p.team]||0;let lead=0;game.wins.forEach((w,i)=>{if(i!==p.team)lead=Math.max(lead,(w||0)-me)});return 1+Math.min(.6,.2*g*lead)}
 function shotSound(s){return s.bulletSpeed>2000?'shotRail':s.projectiles>2?'shotScatter':s.bulletGravity>1.3?'shotLob':s.dmg>=80?'shotHeavy':s.fireDelay<.18?'shotLight':'shoot'}
-function ringShot(p,a,dmg,r,life,speed){const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
-function spawnBullet(o,x,y,ang,opt={}){const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed)*(twistOn('fast')?1.35:1);
+function ringShot(p,a,dmg,r,life,speed){if(bullets.length>=420)return;const m=safeSpawn(p,a,p.r+10,r,false);if(m.smothered)return;spawnBullet(p,m.x,m.y,a,{plain:true,dmg,r,life,speed});bullets[bullets.length-1].plainRing=true}
+/* a hard ceiling: whatever stacks up, the arena never holds more than 600 bullets (the oldest goes) */
+function spawnBullet(o,x,y,ang,opt={}){if(bullets.length>=600)bullets.shift();const s=o.s,plain=!!opt.plain,sp=(opt.speed||s.bulletSpeed)*(twistOn('fast')?1.35:1);
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase>0,drill:plain?0:s.phase,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
@@ -3963,7 +3979,7 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
   if(b.slow){p.slowT=1.6;p.slowAmt=Math.max(p.slowAmt,Math.min(.8,b.slow));
     if(b.owner&&b.owner.s.freeze&&p.alive){p.chill=(p.chillT>0?p.chill||0:0)+1;p.chillT=2;
       if(p.chill>=3){p.chill=0;p.frozenT=1;p.vx*=.2;ring(p.x,p.y,'#d8f4ff',60);burst(p.x,p.y,'#e6f8ff',18,320,4,.5,0,true);sfx('freeze')}}}
-  if(p.alive&&p.s.spite>0){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
+  if(p.alive&&p.s.spite>0&&!b.plainRing&&bullets.length<360){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
   burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;sfx('hit');
   b.dead=true;if(b.explode>0)explode(b,p)}
 // a ducking fighter is a flat ellipse hugging the ground, so a shot at head height sails over
@@ -4169,18 +4185,18 @@ function aimSolution(p,e){return aimSolutionAt(p,e.x,e.y,e.vx,e.vy,e.grounded)}
 // lead uses the real flight time along the arc (a lobbed shot is in the air far longer than distance / speed), and a
 // target can't run past the arena edge
 function aimSolutionAt(p,ex,ey,evx,evy,grounded){const s=p.s,v=s.bulletSpeed,g=bulletG(s);let tx=ex,ty=ey;
-  // bullets leave the muzzle (p.r+30 out along the aim) at full speed, so the arc is solved from there, not the body's centre
-  const mz=p.r+30;let a=Math.atan2(ty-p.y,tx-p.x),mx=p.x,my=p.y;
+  // bullets leave the gun's tip (gunTip) at full speed, so the arc is solved from there, not the body's centre
+  const mz=gunTip(p).d;let a=Math.atan2(ty-p.y,tx-p.x),mx,my,T;
   if(Math.hypot(tx-p.x,ty-p.y)<mz*2.5)return Math.atan2(ey-p.y,ex-p.x);   // point-blank: the muzzle would be past the target, so aim straight at it
-  for(let i=0;i<4;i++){mx=p.x+Math.cos(a)*mz;my=p.y+Math.sin(a)*mz;a=ballistic(mx,my,tx,ty,v,g);
+  for(let i=0;i<4;i++){T=gunTip(p,a);mx=T.x;my=T.y;a=ballistic(mx,my,tx,ty,v,g);
     const dx=Math.abs(tx-mx),vx=Math.abs(Math.cos(a))*v,t=dx>1?dx/Math.max(vx,v*.2):Math.hypot(tx-mx,ty-my)/v;
     tx=clamp(ex+evx*t,FRAME+20,W-FRAME-20);ty=ey+(grounded?0:evy*t*.4)}
-  mx=p.x+Math.cos(a)*mz;my=p.y+Math.sin(a)*mz;return ballistic(mx,my,tx,ty,v,g)}
+  T=gunTip(p,a);return ballistic(T.x,T.y,tx,ty,v,g)}
 function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
   if(p.ctrl==='mouse'){const ar=!players.some(q=>q.ctrl==='p2');   // arrow keys move you too, unless a second local player owns them
     inp.move=(keys.has('KeyD')||ar&&keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||ar&&keys.has('ArrowLeft')?1:0);inp.down=keys.has('KeyS')||ar&&keys.has('ArrowDown');inp.jumpH=keys.has('KeyW')||keys.has('Space')||ar&&keys.has('ArrowUp');
     inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down||mouse.tapN>0;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
-    inp.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x)}
+    inp.aim=aimThrough(p,mouse.x,mouse.y)}
   else if(p.ctrl==='p2'){const pad=pads[0];let mv=(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0);
     inp.jumpH=keys.has('ArrowUp');inp.jumpP=edges.has('ArrowUp');inp.fire=keys.has('Period')||keys.has('Numpad0');inp.blockP=edges.has('Slash')||edges.has('Numpad1')||edges.has('ShiftRight');
     let aim=null;inp.down=keys.has('ArrowDown');
@@ -4221,7 +4237,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
 function groundAhead(p,dir){const x=p.x+dir*(p.r+34);for(let y=p.y+p.r;y<p.y+p.r+300;y+=18)if(pointSolid(x,y))return true;return false}
 function groundBelow(p){for(let y=p.y+p.r;y<H+40;y+=24)if(pointSolid(p.x,y)||pointSolid(p.x-p.r,y)||pointSolid(p.x+p.r,y))return true;return false}
 /* perception: simulate the real shot from the real muzzle, with the same wall rules bullets obey */
-function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.min(5*s.bulletSize,WALL_R),st=1/60,m=safeSpawn(p,ang,p.r+30,br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
+function clearShot(p,ang,e){const s=p.s,sp=s.bulletSpeed,g=bulletG(s),br=Math.min(5*s.bulletSize,WALL_R),st=1/60,m=safeSpawn(p,ang,gunTip(p,ang),br,s.phase);if(m.hitEnemy)return true;if(m.blocked)return false;
   let x=m.x,y=m.y,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,drill=s.phase||0;
   for(let i=0;i<110;i++){vy+=g*st;x+=vx*st;y+=vy*st;let hit=null;for(const r of solids)if(!r.bound&&circleRect(x,y,br,r)){hit=r;break}
     if(hit){if(drill>0)drill-=Math.hypot(vx,vy)*st;else return s.bounces>0&&Math.random()<.3}
@@ -4298,8 +4314,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     // stacked vertically with something between us: commit to one side and go around
     if((dy>110||dy<-110&&!onewayAbove(p)&&!(e.ground&&e.ground.oneway))&&(ai.side||Math.abs(dx)<140)&&Math.abs(dx)<320){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
       if(!ai.side){const g=p.ground;ai.sideG=g;const safeAt=x=>solids.some(r=>!r.bound&&!r.swing&&!r.oneway&&x>r.x&&x<r.x+r.w&&r.y>p.y&&r.y-p.y<420);   /* when only one end of the ledge drops onto solid ground, that end */
-      const sl=g&&!g.bound&&safeAt(g.x-p.r-6),sr=g&&!g.bound&&safeAt(g.x+g.w+p.r+6);ai.side=sl!==sr?(sl?-1:1):p.x<W/2?1:-1}dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
-    if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,p.r+30,5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
+      const sl=g&&!g.bound&&safeAt(g.x-p.r-6),sr=g&&!g.bound&&safeAt(g.x+g.w+p.r+6);ai.side=sl!==sr?(sl?-1:1):Math.sign(dx)||(p.x<W/2?1:-1)}/* both ends safe: drop on the rival's side, not off the far end over a gap and back up */dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
+    if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,gunTip(p,inp.aim),5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
     if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}   // a tall wall: the double jump goes at the top of the first, not on the way down
@@ -4397,9 +4413,16 @@ function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.
    so a draft that changes your gun type shows it in your hand. gx/gy: where the hand holds it, as a share of the picture;
    w: its width in the arena. Until a picture loads (or if it fails) the drawn gun below stands in */
 // hx/hy: the handle, where the fist closes (the gun hangs from it); gy: the barrel's line; sx/sy: where a two-handed gun's free hand holds it
-const GUNS={sidearm:{n:'Sidearm',w:46,hx:.128,hy:.62,gy:.356},rail:{n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
-  lob:{n:'Lobber',w:60,hx:.123,hy:.65,gy:.39,sx:.5,sy:.74},heavy:{n:'Hand Cannon',w:60,hx:.126,hy:.59,gy:.305},smg:{n:'SMG',w:52,hx:.108,hy:.58,gy:.283}};
+const GUNS={sidearm:{ar:0.5875,n:'Sidearm',w:46,hx:.128,hy:.62,gy:.356},rail:{ar:0.3125,n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{ar:0.384,n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
+  lob:{ar:0.447,n:'Lobber',w:60,hx:.123,hy:.65,gy:.39,sx:.5,sy:.74},heavy:{ar:0.506,n:'Hand Cannon',w:60,hx:.126,hy:.59,gy:.305},smg:{ar:0.659,n:'SMG',w:52,hx:.108,hy:.58,gy:.283}};
 const gunKind=s=>s.bulletSpeed>2000?'rail':s.projectiles>2?'scatter':s.bulletGravity>1.3||s.explode>=85?'lob':s.dmg>=80?'heavy':s.fireDelay<.18?'smg':'sidearm';
+/* where the drawn gun's barrel ends, in the arena: the hand sits R+14 out along the aim (6 back while the gun kicks), the barrel runs
+   len past it and sits off its line by `off` (above the grip; mirrored when facing left). Worked out from the gun table, not the
+   loaded picture, so the host, the guest, the CPU and tests all agree. Every shot, the aim guide and the CPU's aiming start here */
+function gunTip(p,ang=p.aim){const G=GUNS[gunKind(p.s)],w=G.w*(1+Math.min(.3,Math.max(0,(p.s.bulletSize-1)*.3))),h=w*G.ar,c=Math.cos(ang),sn=Math.sin(ang),
+  d=p.r+14+(p.shotT>0?-6:0)+(1-G.hx)*w,off=(G.gy-G.hy)*h*(c>=0?1:-1);return{x:p.x+c*d-sn*off,y:p.y+sn*d+c*off,d,off}}
+/* aim so the BARREL's line (not the body's centre line) runs through the point: the cursor sits right on the bullet's path */
+function aimThrough(p,tx,ty,ox=0,oy=0){const dx=tx-(p.x+ox),dy=ty-(p.y+oy),D=Math.hypot(dx,dy),a=Math.atan2(dy,dx);if(!p.s)return a;const off=gunTip(p,a).off;return D>Math.abs(off)*1.6?a-Math.asin(off/D):a}
 const gunImgs={};
 function gunImg(k){let im=gunImgs[k];if(im)return im;if(typeof Image==='undefined')return null;im=gunImgs[k]=new Image();im.decoding='async';im.src='guns/'+k+'.webp';return im}
 function warmGuns(){for(const k in GUNS)gunImg(k)}
@@ -4635,17 +4658,24 @@ function drawHUD(){ctx.save();ctx.textBaseline='middle';
        showing how much of the round they have. The scorer's circle fills in, a wipe from left to right */
       const sides=game.ffa?players.map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.team]||0})):game.party?[0,1].map(t=>({nm:'TEAM '+TEAM_N[t].toUpperCase(),col:players[t].color,glow:players[t].glow,pts:game.points[t]||0})):players.slice(0,2).map(p=>({nm:p.name.toUpperCase(),col:p.color,glow:p.glow,pts:game.points[p.id]||0}));
       const W0=sides[w],full=W0.pts+1>=2,match=full&&game.target<99&&(game.wins[w]||0)+1>=game.target,k=clamp((1.4-game.endT-.15)/.45,0,1),ease=1-Math.pow(1-k,3);
-      bigText(match?`${W0.nm} WINS`:`${full?'ROUND':'HALF'} ${W0.nm}`,84,VW/2,VH/2-70,W0.col);
-      sides.forEach((S,i)=>{const cx=VW/2+(i-(sides.length-1)/2)*240,cy=VH/2+70,cr=74,from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease);
+      /* once the circle has filled, each one shrinks and flies home to its row of round dots in the top left, so you learn
+         where rounds are kept: a quick ease-in-out (0.4 s), staggered a touch, landing exactly on the dot it becomes */
+      const e=1.4-game.endT,tot=game.target>=99?5:game.target,fly=i=>{const m=clamp((e-.86-i*.05)/.4,0,1);return m<.5?4*m*m*m:1-Math.pow(-2*m+2,3)/2};
+      ctx.save();ctx.globalAlpha=1-fly(0);bigText(match?`${W0.nm} WINS`:`${full?'ROUND':'HALF'} ${W0.nm}`,84,VW/2,VH/2-70,W0.col);ctx.restore();
+      sides.forEach((S,i)=>{const from=S.pts/2,to=i===w?(S.pts+1)/2:from,f=Math.min(1,from+(to-from)*ease),q=fly(i),won=i===w&&full,
+          hx=won?26+Math.min(tot-1,game.wins[i]||0)*22:26+tot*22+10+Math.min(1,i===w?S.pts:Math.max(0,S.pts-1))*16,hy=24+i*24,hr=won?8:5,
+          cx=VW/2+(i-(sides.length-1)/2)*240+(hx-VW/2-(i-(sides.length-1)/2)*240)*q,cy=VH/2+70+(hy-VH/2-70)*q,cr=74+(hr-74)*q;
+        if(q>=1&&!won&&!(i===w)&&f<=0)return;   // an empty circle has nothing to carry home: it just melts into its empty dot
         // everything stays inside the circle: the fill is liquid (a soft wavy edge that keeps rippling while it's half full),
         // lit from within (lighter at the centre, a sheen at the top) and the glow is an inner rim, never spilling outside
         ctx.save();ctx.beginPath();ctx.arc(cx,cy,cr,0,TAU);ctx.clip();ctx.fillStyle='rgba(12,7,19,.6)';ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);
-        if(f>0){const edge=cx-cr+cr*2*f,tt=performance.now()/1000,amp=f<.999?5+3*(1-ease):0;
+        if(f>0){const edge=cx-cr+cr*2*f,tt=performance.now()/1000,amp=f<.999?(5+3*(1-ease))*cr/74:0;
           ctx.beginPath();ctx.moveTo(cx-cr-2,cy-cr-2);for(let y=-cr-2;y<=cr+2;y+=3)ctx.lineTo(edge+Math.sin(y/13+tt*4.2)*amp+Math.sin(y/29-tt*2.3)*amp*.6,cy+y);ctx.lineTo(cx-cr-2,cy+cr+2);ctx.closePath();
           try{const lg=ctx.createRadialGradient(cx-cr*.25,cy-cr*.3,cr*.1,cx,cy,cr);lg.addColorStop(0,S.glow);lg.addColorStop(.55,S.col);lg.addColorStop(1,S.col);ctx.fillStyle=lg}catch(e){ctx.fillStyle=S.col}ctx.fill();
           ctx.fillStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.ellipse(cx-cr*.28,cy-cr*.52,cr*.42,cr*.16,-.35,0,TAU);ctx.fill()}
         try{const rim=ctx.createRadialGradient(cx,cy,cr*.68,cx,cy,cr);rim.addColorStop(0,'rgba(0,0,0,0)');rim.addColorStop(1,f>0?S.glow:'rgba(0,0,0,0)');ctx.globalAlpha=.45;ctx.fillStyle=rim;ctx.fillRect(cx-cr,cy-cr,cr*2,cr*2);ctx.globalAlpha=1}catch(e){}
-        ctx.restore();ctx.lineWidth=5;ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,cr-2.5,0,TAU);ctx.stroke()})}
+        ctx.restore();ctx.lineWidth=Math.max(2,5*cr/74);ctx.strokeStyle=S.col;ctx.beginPath();ctx.arc(cx,cy,Math.max(1,cr-ctx.lineWidth/2),0,TAU);ctx.stroke();
+        if(q>=1&&!RM){const pop=clamp((e-1.26-i*.05)/.14,0,1);if(pop>0&&pop<1){ctx.globalAlpha=1-pop;ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,cr+pop*12,0,TAU);ctx.stroke();ctx.globalAlpha=1}}})}   // a soft ring as it lands
     else if(!game.bg){const t=survOn()?(w===0?(enemies().some(e=>e.boss)?'BOSS DOWN!':'ROUND CLEARED'):'LIFE LOST'):players[Math.max(0,w)].name.toUpperCase()+' SCORES';
       bigText(t,68,VW/2,VH/2-40,players[Math.max(0,w)].color)}}
   ctx.restore()}
@@ -4799,21 +4829,21 @@ function drawFrame(){const fl=Math.max(0,game.edgeFlash||0)/.3,pulse=.55+.15*Mat
    point, speed (and the Fast Bullets twist), drop (low gravity, homing's lighter drop) and Accelerator's speed-up, in the
    same 1/120 s steps, so the dots sit exactly where the shot will fly */
 function aimPath(p,secs=.33){const s=p.s,a=p.aim,c=Math.cos(a),sn=Math.sin(a),sp0=s.bulletSpeed*(twistOn('fast')?1.35:1),h=FIXED,out=[];
-  let x=p.x+c*(p.r+30),y=p.y+sn*(p.r+30),vx=c*sp0,vy=sn*sp0;const g=bulletG(s);
+  const T=gunTip(p,a);let x=T.x,y=T.y,vx=c*sp0,vy=sn*sp0;const g=bulletG(s);
   for(let i=1;i*h<=secs+1e-9;i++){if(s.accel){const v=Math.hypot(vx,vy);if(v<sp0*3.5){const f=1+1.3*h;vx*=f;vy*=f}}vy+=g*h;x+=vx*h;y+=vy*h;out.push([x,y,i*h])}
   return out}
 function drawAimGuide(p=players.find(q=>q.ctrl==='mouse')){if(!p||!p.alive||!['play','ready','pointEnd'].includes(game.state))return;
-  const c=Math.cos(p.aim),sn=Math.sin(p.aim);if(pointSolid(p.x+c*(p.r+30),p.y+sn*(p.r+30)))return;
+  const T=gunTip(p);if(!losClear(p.x,p.y,T.x,T.y))return;
   /* the bullet's real path (same muzzle, speed and drop), dotted at an even spacing: small dots that taper and fade, drifting outward
      so the direction reads at a glance, ending in a small ring where it would strike a wall */
   const path=aimPath(p),big=game.screen,gap=big?28:24,max=big?560:440,r0=big?3.6:3,a0=big?.85:.7,drift=RM?0:(performance.now()/1000*38)%gap;
-  ctx.save();ctx.fillStyle=ctx.strokeStyle=p.glow;let px=p.x+c*(p.r+30),py=p.y+sn*(p.r+30),d=0,next=drift||gap*.5,hit=null;
+  ctx.save();ctx.fillStyle=ctx.strokeStyle=p.glow;let px=T.x,py=T.y,d=0,next=drift||gap*.5,hit=null;
   for(const[x,y]of path){const seg=Math.hypot(x-px,y-py);if(!seg)continue;
     let end=1;for(let j=1;j<=4;j++){const u=j/4;if(pointSolid(px+(x-px)*u,py+(y-py)*u)){end=(j-1)/4;hit=[px+(x-px)*end,py+(y-py)*end];break}}
     while(next<=d+seg*end&&next<=max){const u=(next-d)/seg,qx=px+(x-px)*u,qy=py+(y-py)*u,k=next/max;
       if(qy>=0&&qx>=0&&qx<=W&&qy<=H){ctx.globalAlpha=a0*(1-k*.85)*Math.min(1,next/gap);ctx.beginPath();ctx.arc(qx,qy,r0*(1-k*.45),0,TAU);ctx.fill()}next+=gap}
     d+=seg;px=x;py=y;if(hit||d>=max||x<0||x>W||y>H)break}
-  if(hit&&Math.hypot(hit[0]-p.x,hit[1]-p.y)<max+p.r+30){ctx.globalAlpha=a0*.9;ctx.lineWidth=2;ctx.beginPath();ctx.arc(hit[0],hit[1],big?7:5.5,0,TAU);ctx.stroke()}
+  if(hit&&Math.hypot(hit[0]-p.x,hit[1]-p.y)<max+T.d){ctx.globalAlpha=a0*.9;ctx.lineWidth=2;ctx.beginPath();ctx.arc(hit[0],hit[1],big?7:5.5,0,TAU);ctx.stroke()}
   ctx.restore()}
 function drawCrosshair(){const x=mouse.x,y=mouse.y;ctx.save();
   if(game.hitMark>0){const a=game.hitMark/.22,o=10+(1-a)*5;ctx.save();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.lineCap='round';ctx.globalAlpha=a;
@@ -4902,7 +4932,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-boom-cards';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-gun-tip';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5305,7 +5335,7 @@ function guestStep(h,busy){guestSwings(h);guestRides(h);guestRigs(h);const me=pl
   // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
   // and an aim taken after it would point back the other way, so the host would teleport the other way
   if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
-  else if(me&&me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
+  else if(me&&me.alive&&Number.isFinite(me.x))me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
   const mv=on?(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp')),dn=on&&(keys.has('KeyS')||keys.has('ArrowDown'));
   // firing is decided per physics step, with the same timers the host runs for this fighter, and the shot counter goes in
   // this step's record: the host fires on exactly this step
@@ -5341,7 +5371,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
     const liveThen=game.state==='play'||game.state==='pointEnd'||game.state==='ready'&&net.snap&&(net.snap.stT||0)-(net.inSeq+1-ack)*FIXED<=0;
     if(me&&me.alive&&liveThen&&(ready||me.blockStock>0&&!(me.localBlockT>0))){if(!ready)me.blockStock--;else{me.gCd=me.s.blockCd;me.blockStock=me.s.blockStock}
       // the aim this block (and its dash or teleport) uses, recorded for the host too
-      if(Number.isFinite(me.x))net.blockAim=me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
+      if(Number.isFinite(me.x))net.blockAim=me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
   const fade=Math.exp(-dt/.13);net.offX*=fade;net.offY*=fade;   // a correction glides in over about a tenth of a second
@@ -5390,7 +5420,7 @@ function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
     b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}
   for(let i=G.length-1;i>=0;i--)if(G[i].dead)G.splice(i,1)}
 function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
-  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,p.r+30,Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
+  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
       color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,heat:1})}
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
@@ -5409,7 +5439,7 @@ function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV
   b.lead=clamp(bt,0,.35);b.rx=g.x;b.ry=g.y;b.trail=g.trail}
 function guestSend(){const me=players[net.me];if(!me||!net.connected)return;
   const busy=!$('#pause').hidden||!$('#pick').hidden||!$('#end').hidden;
-  if(me.alive&&Number.isFinite(me.x))me.aim=Math.atan2(mouse.y-(me.y+net.offY),mouse.x-(me.x+net.offX));
+  if(me.alive&&Number.isFinite(me.x))me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);
   if(net.relayed&&(net.sendParity^=1))return;   // relayed: 30 input packets a second instead of 60 (press counters keep every press)
   netSend({t:'i',s:net.inSeq,st:net.steps.slice(-24),m:busy?0:(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp'))?1:0,jc:net.out.jc,
     f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0)})}
