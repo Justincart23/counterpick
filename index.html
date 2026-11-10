@@ -1929,28 +1929,35 @@ function facets(g,x,y,w,h,kind){const [base,hi,lo]=KIND[kind||0];g.save();g.fill
 function matchProgress(){if(game.bg||!game.target||game.target>=99)return 0;
   const lead=Math.max(game.wins[0]+game.points[0]/2,game.wins[1]+game.points[1]/2);return clamp(lead/(game.target-.5),0,1)}
 function mixHex(a,b,t){const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),m=sh=>Math.round(((pa>>sh)&255)+(((pb>>sh)&255)-((pa>>sh)&255))*t);return`rgb(${m(16)},${m(8)},${m(0)})`}
-/* painted backdrops (made with Higgsfield, one per arena theme): distant scenery only, so the platforms stay the brightest
+/* painted backdrops (made with Higgsfield, one per arena theme): the rest of the platforms' sandstone world, kept calm and distant, so the platforms stay the brightest
    thing on screen. Drawn cover-fit under a light veil; the match's night-to-dawn glow goes on top. Until one has loaded (or
    if it fails), the arena keeps its drawn dusk sky */
 const BACKDROP={Yard:'canyon',Pit:'canyon',Stairs:'canyon',Quarry:'canyon',Canyon:'canyon',Mesa:'canyon',Dunes:'canyon',Cutline:'canyon',
   Archipelago:'islands',Islands:'islands',Ferry:'islands',Springs:'islands',Bridge:'islands',Elevator:'islands',
   Ruins:'ruins',Crossroads:'ruins',Towers:'ruins',Spire:'ruins',Hourglass:'ruins',Plaza:'ruins',
-  Fortress:'fortress',Drawbridge:'fortress',Bunkers:'fortress',Divider:'fortress',Gallows:'fortress',
-  Foundry:'foundry',Gearworks:'foundry',Piston:'foundry',Chimney:'foundry',Pulley:'foundry','Wrecking Yard':'foundry',Scaffold:'foundry',
-  Skyline:'skyline',Catwalk:'skyline',Shelves:'skyline',Topple:'skyline',
-  Lanterns:'lanterns',Chimes:'lanterns',Chandelier:'lanterns',Swingset:'lanterns',Ropeyard:'lanterns'};
+  Fortress:'spires',Drawbridge:'spires',Bunkers:'spires',Divider:'spires',Gallows:'spires',
+  Foundry:'ember',Gearworks:'ember',Piston:'ember',Chimney:'ember',Pulley:'ember','Wrecking Yard':'ember',Scaffold:'ember',
+  Skyline:'coast',Catwalk:'coast',Shelves:'coast',Topple:'coast',
+  Lanterns:'lake',Chimes:'lake',Chandelier:'lake',Swingset:'lake',Ropeyard:'lake'};
 const bdImgs={};
 const backdropOf=map=>BACKDROP[map.label||map.name]||'canyon';
 function backdropImg(id){let im=bdImgs[id];if(im)return im;if(typeof Image==='undefined')return null;im=bdImgs[id]=new Image();im.decoding='async';
   im.onload=()=>{if(game.map&&backdropOf(game.map)===id)paintSky(game.map,matchProgress())};im.src='bg/'+id+'.webp';return im}
 function warmBackdrops(){for(const id of new Set(Object.values(BACKDROP)))backdropImg(id)}
 function drawBackdrop(g,map,dawn){const im=backdropImg(backdropOf(map));if(!im||!im.complete||!im.naturalWidth)return false;
-  const k=Math.max(W/im.naturalWidth,H/im.naturalHeight),dw=im.naturalWidth*k,dh=im.naturalHeight*k;g.drawImage(im,(W-dw)/2,H-dh,dw,dh);   // anchored to the bottom: the scenery sits on the horizon
+  const k=Math.max(W/im.naturalWidth,H/im.naturalHeight),dw=im.naturalWidth*k,dh=im.naturalHeight*k;g.save();g.filter='blur(2px) saturate(.85)';g.drawImage(im,(W-dw)/2,H-dh,dw,dh);g.restore();   // anchored to the bottom: the scenery sits on the horizon; a touch soft, so distant rock never reads as a platform
   g.fillStyle='rgba(16,8,30,.24)';g.fillRect(0,0,W,H);
   const vg=g.createLinearGradient(0,H*.55,0,H);vg.addColorStop(0,'rgba(16,8,30,0)');vg.addColorStop(1,'rgba(16,8,30,.38)');g.fillStyle=vg;g.fillRect(0,H*.55,W,H*.45);
   if(dawn>.05){const dg=g.createLinearGradient(0,0,0,H);dg.addColorStop(0,`rgba(90,120,200,${.22*dawn})`);dg.addColorStop(.6,`rgba(255,150,120,${.18*dawn})`);dg.addColorStop(1,`rgba(255,190,120,${.3*dawn})`);
     g.save();g.globalCompositeOperation='lighter';g.fillStyle=dg;g.fillRect(0,0,W,H);g.restore()}
   return true}
+/* the sky moves a little: stars twinkle, fading as dawn comes (the dust motes drift on their own layer). Drawn each frame behind the platforms,
+   from fixed per-arena positions, never simulated; off with reduced motion */
+let amb=null;
+function ambientFor(map){const R=artRng(strSeed('amb'+(map.label||map.name)));return{stars:Array.from({length:26},()=>({x:R()*W,y:R()*H*.45,r:.8+R()*1.4,ph:R()*TAU,sp:.6+R()*1.6}))}}
+function drawAmbient(){if(RM||!game.map)return;if(!amb||amb.map!==game.map){amb=ambientFor(game.map);amb.map=game.map}const t=performance.now()/1000,night=1-matchProgress()*.85;
+  ctx.save();ctx.fillStyle='#fff4ec';for(const s of amb.stars){const a=night*(.25+.45*(.5+.5*Math.sin(t*s.sp+s.ph)));if(a<.03)continue;ctx.globalAlpha=a;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,TAU);ctx.fill()}
+  ctx.restore()}
 function paintSky(map,dawn){const g=bgx;
   if(!drawBackdrop(g,map,dawn)){const gr=g.createLinearGradient(0,0,0,H);
   gr.addColorStop(0,mixHex('#1a1029','#34477f',dawn));gr.addColorStop(.55,mixHex('#35204a','#a8577a',dawn));gr.addColorStop(1,mixHex('#5b3352','#ffa765',dawn));g.fillStyle=gr;g.fillRect(0,0,W,H);
@@ -4358,8 +4365,9 @@ function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.
 /* painted guns (made with Higgsfield, in guns/): the build decides which one you hold, the same way it picks the shot sound,
    so a draft that changes your gun type shows it in your hand. gx/gy: where the hand holds it, as a share of the picture;
    w: its width in the arena. Until a picture loads (or if it fails) the drawn gun below stands in */
-const GUNS={sidearm:{n:'Sidearm',w:46,gx:.115,gy:.356},rail:{n:'Rail Rifle',w:80,gx:.22,gy:.49},scatter:{n:'Scattergun',w:62,gx:.133,gy:.37},
-  lob:{n:'Lobber',w:60,gx:.145,gy:.39},heavy:{n:'Hand Cannon',w:60,gx:.146,gy:.305},smg:{n:'SMG',w:52,gx:.12,gy:.283}};
+// hx/hy: the handle, where the fist closes (the gun hangs from it); gy: the barrel's line; sx/sy: where a two-handed gun's free hand holds it
+const GUNS={sidearm:{n:'Sidearm',w:46,hx:.128,hy:.62,gy:.356},rail:{n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
+  lob:{n:'Lobber',w:60,hx:.123,hy:.65,gy:.39,sx:.5,sy:.74},heavy:{n:'Hand Cannon',w:60,hx:.126,hy:.59,gy:.305},smg:{n:'SMG',w:52,hx:.108,hy:.58,gy:.283}};
 const gunKind=s=>s.bulletSpeed>2000?'rail':s.projectiles>2?'scatter':s.bulletGravity>1.3||s.explode>=85?'lob':s.dmg>=80?'heavy':s.fireDelay<.18?'smg':'sidearm';
 const gunImgs={};
 function gunImg(k){let im=gunImgs[k];if(im)return im;if(typeof Image==='undefined')return null;im=gunImgs[k]=new Image();im.decoding='async';im.src='guns/'+k+'.webp';return im}
@@ -4367,11 +4375,13 @@ function warmGuns(){for(const k in GUNS)gunImg(k)}
 function drawGun(p){const k=gunKind(p.s),G=GUNS[k],im=gunImg(k);
   if(p._gk&&p._gk!==k&&p.alive)parts.push({text:G.n.toUpperCase()+'!',x:p.x,y:p.y-p.r-40,vx:0,vy:-50,grav:0,life:1.4,max:1.4,color:'#fff3c4'});   // your gun just changed type
   p._gk=k;
-  if(!im||!im.complete||!im.naturalWidth){drawBoxGun(p);return}
-  const w=G.w*(1+Math.min(.3,Math.max(0,(p.s.bulletSize-1)*.3))),h=w*im.naturalHeight/im.naturalWidth,len=(1-G.gx)*w,th=h*.5;ctx.drawImage(im,-G.gx*w,-G.gy*h,w,h);
-  const ac=gunAccent(p);if(ac!==p.glow){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.55;ctx.fillStyle=ac;ctx.beginPath();ctx.arc(len-2,0,th*.35,0,TAU);ctx.fill();ctx.restore()}   // poison, frost, blast or homing rounds tint the muzzle
-  muzzleFlash(p,len,th)}
-function muzzleFlash(p,len,th){if(p.shotT>0&&!RM){const k=clamp(p.shotT/.08,0,1),L=(16+th)*(.6+.6*k),S=th*.9*(.6+.4*k),sp=performance.now()/30;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(len+2,0);   // muzzle flash
+  const g=gunGeom(p);if(!g){drawBoxGun(p);return}
+  const{w,h}=g,len=(1-G.hx)*w,by=(G.gy-G.hy)*h,th=h*.5;ctx.drawImage(im,-G.hx*w,-G.hy*h,w,h);
+  const ac=gunAccent(p);if(ac!==p.glow){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.55;ctx.fillStyle=ac;ctx.beginPath();ctx.arc(len-2,by,th*.35,0,TAU);ctx.fill();ctx.restore()}   // poison, frost, blast or homing rounds tint the muzzle
+  muzzleFlash(p,len,th,by)}
+// the painted gun's size for this build, or null while its picture loads
+function gunGeom(p){const k=gunKind(p.s),G=GUNS[k],im=gunImg(k);if(!im||!im.complete||!im.naturalWidth)return null;const w=G.w*(1+Math.min(.3,Math.max(0,(p.s.bulletSize-1)*.3)));return{G,w,h:w*im.naturalHeight/im.naturalWidth}}
+function muzzleFlash(p,len,th,by=0){if(p.shotT>0&&!RM){const k=clamp(p.shotT/.08,0,1),L=(16+th)*(.6+.6*k),S=th*.9*(.6+.4*k),sp=performance.now()/30;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(len+2,by);   // muzzle flash
     for(const[col,m]of[[p.glow,1],['#fff4d6',.55]]){ctx.globalAlpha=.9*k;ctx.fillStyle=col;ctx.beginPath();
       for(let i=0;i<10;i++){const a=i*TAU/10+Math.sin(sp+i)*.08,r=(i%2?S*.45:i===0?L*1.25:L*.6)*m;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r*(i===0?1:.75))}ctx.closePath();ctx.fill()}   // five points, the forward one longest
     ctx.restore()}}
@@ -4449,15 +4459,17 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   ctx.translate(0,bob);   // the body (and its arms) rides the step
   // off hand with the block orb (white = block ready)
   const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12)-clamp((p.vx||0)*.014,-12,12)-dirW*Math.sin(wph)*R*.3*amt,R*.25+Math.cos(wph*2)*1.5*amt-clamp((p.vy||0)*.012,-12,12)];   // the free hand trails behind the motion and swings against the stride
-  noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
-  ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
-  if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}
+  const offHand=()=>{noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
+    ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
+    if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}};
   // gun arm
-  const recoil=p.shotT>0?-6:0,hx=ax*(R+14+recoil),hy=ay*(R+14+recoil);
+  const recoil=p.shotT>0?-6:0,hx=ax*(R+14+recoil),hy=ay*(R+14+recoil),gg=gunGeom(p),two=gg&&gg.G.sx!=null&&!(p.blockT>0);
+  if(!two)offHand();
   noodle(face*R*.5,R*.05,hx,hy,10,lw,p.color);
   ctx.save();ctx.translate(hx,hy);ctx.rotate(p.aim);if(face<0)ctx.scale(1,-1);drawGun(p);   // grip always hangs down
   if(p.staticReady){ctx.fillStyle=C.hot;ctx.fillRect(14,-5,6,10)}ctx.restore();
   ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(hx,hy,lw*.62,0,TAU);ctx.fill();   // the fist wraps the grip
+  if(two){const{G,w,h}=gg,u=(G.sx-G.hx)*w,v=(G.sy-G.hy)*h*(face<0?-1:1),c=Math.cos(p.aim),sn=Math.sin(p.aim);oh[0]=hx+c*u-sn*v;oh[1]=hy+sn*u+c*v;offHand()}   // a long gun: the free hand (still the block orb) holds its front
   // body
   // body: squash and stretch from the jelly springs, a lean from the feet, and flattened against a wall it clings to
   const ja=p.ja||0,jw=p.jw||0,sy=p.squash*(1+ja),sx=(1/Math.sqrt(p.squash))*(1-ja*.7)*(1-.2*jw);
@@ -4605,7 +4617,7 @@ function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.f
   if(W>VW||H>VH){const E=4000;const q=LQ;ctx.drawImage(bgC,0,0,W*q,2*q,-E,-E,W+2*E,E);ctx.drawImage(bgC,0,(H-2)*q,W*q,2*q,-E,H,W+2*E,E);ctx.drawImage(bgC,0,0,2*q,H*q,-E,0,E,H);ctx.drawImage(bgC,(W-2)*q,0,2*q,H*q,W,0,E,H);
     ctx.fillStyle='rgba(8,4,14,.4)';ctx.fillRect(-E,-E,W+2*E,E);ctx.fillRect(-E,H,W+2*E,E);ctx.fillRect(-E,0,E,H);ctx.fillRect(W,0,E,H)}
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
-  ctx.drawImage(bgC,0,0,W,H);
+  ctx.drawImage(bgC,0,0,W,H);drawAmbient();
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
   ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
@@ -4835,7 +4847,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-painted-guns';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-calm-world';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
