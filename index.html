@@ -1879,8 +1879,15 @@ let view={s:1,ox:0,oy:0,cs:1,cox:0,coy:0};
    controls live, so a thumb never covers the fight. 'Fill screen': the arena runs edge to edge (zoomed in a little) */
 let thumbRoom=false;
 function phoneView(){let pv='room';try{pv=settings.pview||'room'}catch(e){}let on=false;try{on=touch.on}catch(e){}thumbRoom=on&&pv!=='fill';try{document.body.classList.toggle('room',thumbRoom)}catch(e){}resize()}
+/* smooth on every machine: if the game runs slow for a few seconds (under ~40 fps), effects step down: level 1 draws at
+   three quarters of the screen's sharpness with lighter explosions (fewer sprites and debris, no zoom punch or flash); level 2
+   draws at 1x with lean effects. Fast machines never change. fxCap is the particle ceiling for the level */
+let fxLow=0;const fxCap=()=>fxLow>=2?280:fxLow?480:800;
+const perf={avg:1/60,slowT:0,goodT:0};
+function perfWatch(dt){if(!(dt>.004&&dt<.12)||document.hidden||!['play','pointEnd','ready'].includes(game.state)||game.bg){perf.slowT=0;return}
+  perf.avg+=(dt-perf.avg)*.05;if(perf.avg>.025){perf.slowT+=dt;if(perf.slowT>3&&fxLow<2){fxLow++;perf.slowT=0;perf.avg=1/60;resize();console.info('[CUUED] running slow: lighter effects (level '+fxLow+')')}}else perf.slowT=Math.max(0,perf.slowT-dt)}
 function resize(){const vv=window.visualViewport,ww=Math.round(vv&&vv.width||innerWidth),wh=Math.round(vv&&vv.height||innerHeight),   // the part actually on screen (phone browser bars come and go)
-  dpr=Math.max(1,Math.min(3,devicePixelRatio||1,Math.sqrt(6e6/Math.max(1,ww*wh))));   /* the screen's own sharpness (a phone is 3x), up to about 6 megapixels so a big monitor stays smooth */
+  dpr0=Math.max(1,Math.min(3,devicePixelRatio||1,Math.sqrt(6e6/Math.max(1,ww*wh)))),dpr=fxLow>=2?1:fxLow?Math.max(1,dpr0*.75):dpr0;   /* the screen's own sharpness (a phone is 3x), up to about 6 megapixels so a big monitor stays smooth */
   if(typeof scrollTo==='function'&&(scrollX||scrollY))scrollTo(0,0);cv.width=Math.round(ww*dpr);cv.height=Math.round(wh*dpr);
   cv.style.width=ww+'px';cv.style.height=wh+'px';const gut=thumbRoom?clamp(ww*.1,64,120):0,s=Math.min((ww-2*gut)/VW,wh/VH);{const st=document.documentElement&&document.documentElement.style;if(st&&st.setProperty)st.setProperty('--gut',gut+'px')}view={s:s*dpr,ox:(ww-VW*s)/2*dpr,oy:(wh-VH*s)/2*dpr,cs:s,cox:(ww-VW*s)/2,coy:(wh-VH*s)/2}}
 addEventListener('resize',resize);resize();
@@ -1892,6 +1899,19 @@ const decC=document.createElement('canvas');decC.width=W;decC.height=H;const dec
 /* the sky, platforms and splats are drawn once per arena into these layers, at the screen's own pixel density (LQ pixels per
    arena unit), so they stay crisp on a phone or a big monitor instead of being stretched up from 1x */
 let LQ=1;
+/* the arena's cached layers (sky, platforms, splats, swinging pieces) are painted once per map. If the browser drops them (a GPU
+   reset: heavy effects on a laptop, phone or Chromebook) they come back blank and the arena would stay black behind the fighters.
+   Chrome says so (contextlost / contextrestored); other browsers are caught by a one-pixel check of the sky every 2 s.
+   Either way the layers are simply painted again */
+let layersLost=false,layerProbeT=0,skyMark=null;
+for(const c of[bgC,platC,decC])try{c.addEventListener('contextlost',()=>{layersLost=true});c.addEventListener('contextrestored',()=>{layersLost=true})}catch(e){}
+function skyAlpha(){try{return bgx.getImageData(Math.floor(bgC.width/2),2,1,1).data[3]}catch(e){return 255}}
+function repaintLayers(){if(!game.map)return;layersLost=false;
+  try{for(const c of[bgC,platC,decC])c.getContext('2d').setTransform(LQ,0,0,LQ,0,0);buildBg(game.map);
+    for(const o of[...swings,...rides])if((o.swing||o.hang)&&o.art&&o.art.getContext&&o.w&&o.h){const ag=o.art.getContext('2d');ag.setTransform(1,0,0,1,0,0);ag.clearRect(0,0,o.art.width,o.art.height);facets(ag,0,0,o.w,o.h,o.mover?2:4);edgeDecor(ag,0,0,o.w,o.h,o.mover?2:4,false)}}catch(e){console.error('[CUUED] repaint',e)}
+  skyMark=skyAlpha()}
+function checkLayers(dt){if(layersLost){if(!(bgx.isContextLost&&bgx.isContextLost()))repaintLayers();return}
+  if((layerProbeT-=dt)>0)return;layerProbeT=1;const a=skyAlpha();if(skyMark==null)skyMark=a;else if(skyMark>200&&a<8)repaintLayers()}
 const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f'],['#5d514b','#73665e','#463b36']];
 const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6','#a39282'];   // kind 4: dark iron-and-timber, anything physical (it swings, falls or gets shot down)
 const isOneway=(h,k)=>!k&&h<=40;
@@ -2012,7 +2032,7 @@ function buildBg(map){const g=bgx,dawn=matchProgress();paintSky(map,dawn);
   for(const r of map.rects)if(r[4]!==3){facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]));
     platx.save();platx.strokeStyle='rgba(14,6,24,.78)';platx.lineWidth=4;platx.lineJoin='round';slabPath(platx,r[0],r[1],r[2],r[3]);platx.stroke();platx.restore()}
   for(const r of map.rects)if(r[4]===3)padArt(platx,r[0],r[1],r[2],r[3]);   // pads on top of everything
-  dec.clearRect(0,0,W,H);
+  dec.clearRect(0,0,W,H);skyMark=null;layerProbeT=.5;
   motes=Array.from({length:RM?0:46},()=>({x:rand(0,W),y:rand(0,H),vx:rand(-8,8),vy:rand(-14,-3),s:rand(1,2.6),a:rand(.08,.25)}))}
 let motes=[];
 function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec.save();dec.fillStyle=color;
@@ -3834,14 +3854,14 @@ const FX_IMG={};function fxImg(k){let im=FX_IMG[k];if(!im){if(typeof Image==='un
 function warmFx(){for(const k of['explosion','smoke','scorch','booster'])fxImg(k)}
 let scorchAt=0;
 function boomFx(x,y,R,color,pow){fxRec('X',[x,y,R,color,pow]);pow=clamp(pow||1,.2,2.5);let imgs=0;for(const q of parts)if(q.img)imgs++;
-  if(imgs<36&&parts.length<760){const n=RM?1:2+Math.round(pow);for(let i=0;i<n;i++){const a=Math.random()*TAU,d=rand(0,R*.35),l=rand(.9,1.5);parts.push({img:'smoke',x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:Math.cos(a)*rand(20,60),vy:rand(-70,-30),grav:-20,life:l,max:l,s0:R*.5,s1:R*1.4,rot:rand(0,TAU),spin:rand(-.6,.6),alpha:.5})}
+  if(imgs<(fxLow>=2?6:fxLow?14:36)&&parts.length<fxCap()-40){const n=RM||fxLow>=2?0:fxLow?1:2+Math.round(pow);for(let i=0;i<n;i++){const a=Math.random()*TAU,d=rand(0,R*.35),l=rand(.9,1.5);parts.push({img:'smoke',x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:Math.cos(a)*rand(20,60),vy:rand(-70,-30),grav:-20,life:l,max:l,s0:R*.5,s1:R*1.4,rot:rand(0,TAU),spin:rand(-.6,.6),alpha:.5})}
     const l=.4+.08*pow;parts.push({img:'explosion',x,y,vx:0,vy:0,grav:0,life:l,max:l,s0:R*.6,s1:R*2.3,rot:rand(0,TAU),spin:rand(-.8,.8),alpha:1,pop:true})}
   if(game.map){let chunks=0;const hit=[];for(const r of game.map.rects){if(r[4]===3)continue;const cx=clamp(x,r[0],r[0]+r[2]),cy=clamp(y,r[1],r[1]+r[3]),d=Math.hypot(cx-x,cy-y);
-      if(d<R*.9){hit.push(r);for(let i=0;i<(RM?2:5)&&chunks<14&&parts.length<790;i++,chunks++){const a=Math.atan2(cy-y,cx-x)+Math.PI+rand(-1,1),v=rand(200,520)*Math.min(1.6,pow);parts.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-200,grav:1500,life:rand(.5,.9),max:.9,size:rand(3,7),color:Math.random()<.5?'#d9b27c':'#9c7448'})}}
-      if(d<R*1.8&&!RM){const x0=Math.max(r[0],x-R),x1=Math.min(r[0]+r[2],x+R);if(x1>x0)for(let i=0;i<4&&parts.length<790;i++)parts.push({x:rand(x0,x1),y:r[1]+r[3],vx:rand(-10,10),vy:rand(10,60),grav:260,life:rand(.8,1.4),max:1.4,size:rand(2,4),color:'#e8cfa4'})}}
-    const im=fxImg('scorch'),now=performance.now();if(im&&hit.length&&now-scorchAt>120){scorchAt=now;const S=R*1.5;dec.save();dec.beginPath();for(const r of hit)dec.rect(r[0]+2,r[1]+2,r[2]-4,r[3]-4);dec.clip();
+      if(d<R*.9){hit.push(r);for(let i=0;i<(RM||fxLow?2:5)&&chunks<(fxLow?6:14)&&parts.length<fxCap()-10;i++,chunks++){const a=Math.atan2(cy-y,cx-x)+Math.PI+rand(-1,1),v=rand(200,520)*Math.min(1.6,pow);parts.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-200,grav:1500,life:rand(.5,.9),max:.9,size:rand(3,7),color:Math.random()<.5?'#d9b27c':'#9c7448'})}}
+      if(d<R*1.8&&!RM&&!fxLow){const x0=Math.max(r[0],x-R),x1=Math.min(r[0]+r[2],x+R);if(x1>x0)for(let i=0;i<4&&parts.length<790;i++)parts.push({x:rand(x0,x1),y:r[1]+r[3],vx:rand(-10,10),vy:rand(10,60),grav:260,life:rand(.8,1.4),max:1.4,size:rand(2,4),color:'#e8cfa4'})}}
+    const im=fxImg('scorch'),now=performance.now();if(im&&hit.length&&now-scorchAt>(fxLow?400:120)){scorchAt=now;const S=R*1.5;dec.save();dec.beginPath();for(const r of hit)dec.rect(r[0]+2,r[1]+2,r[2]-4,r[3]-4);dec.clip();
       dec.globalAlpha=.6;dec.translate(x,y);dec.rotate(rand(0,TAU));dec.drawImage(im,-S/2,-S/2,S,S);dec.restore()}}
-  game.shake=Math.min(28,game.shake+(3+4*pow)*(RM?.3:1));if(!RM){game.punch=Math.max(game.punch||0,.022*pow);game.punchX=x;game.punchY=y;game.boomFlash=Math.max(game.boomFlash||0,.06*pow)}}
+  game.shake=Math.min(28,game.shake+(3+4*pow)*(RM?.3:1));if(!RM&&!fxLow){game.punch=Math.max(game.punch||0,.022*pow);game.punchX=x;game.punchY=y;game.boomFlash=Math.max(game.boomFlash||0,.06*pow)}}
 /* Pickpocket: a stolen bullet arcs over to the thief */
 function stealFx(x,y,o){if(!o)return;fxRec('Q',[x,y,o.id]);parts.push({steal:o.id,x,y,vx:0,vy:0,grav:0,life:.55,max:.55});parts.push({text:'+1',x:o.x,y:o.y-o.r-26,vx:0,vy:-60,grav:0,life:.7,max:.7,color:'#ffd36b'});sfx('pop')}
 function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1))}
@@ -4403,7 +4423,7 @@ function update(dt){pollPads();bsHostTick(dt);
   while(game.acc>=FIXED){game.acc-=FIXED;snapPrev();if(!simTick(FIXED)){game.acc=0;edges.clear();mouse.rEdge=false;break}}
   game.alpha=game.acc/FIXED;game.stepAt=performance.now()-game.acc*1000;   // the moment the latest step's state belongs to
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
-  parts=parts.filter(q=>q.life>0);
+  parts=parts.filter(q=>q.life>0);if(parts.length>fxCap())parts.splice(0,parts.length-fxCap());
   if(hostingNet()){net.pingT-=dt;const fx=net.fx.splice(0);let sn=null;
     for(const pr of net.peers.slice()){if(!pr.open||pr.pad||net.screen)continue;if(fx.length)pr.fxQ.push(...fx);pr.sendT-=dt;   /* a Big Screen phone draws nothing: it gets its status instead (bsHostTick) */
       if(pr.sendT<=1e-4){pr.sendT=Math.max(-.05,pr.sendT)+(pr.relayed?1/20:fastLane(pr)?1/60:1/30);   // carry the remainder (and a float-rounding slack) so it really is 30 a second, not every third frame
@@ -4693,7 +4713,7 @@ function render(){const saved=[],a=clamp(game.alpha||0,0,1),lerp=o=>{if(o.lx!=nu
   if(game.mode==='online-guest'){const me=players[net.me];if(me&&me.phys){lerp(me);if(!saved.some(e=>e[0]===me))saved.push([me,me.x,me.y]);me.x+=net.offX;me.y+=net.offY}}
   else for(const o of[...players,...bullets])lerp(o);
   try{renderNow()}finally{for(const[o,x,y]of saved){o.x=x;o.y=y}}}
-function renderNow(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0713';ctx.fillRect(0,0,cv.width,cv.height);
+function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;ctx.shadowColor='rgba(0,0,0,0)';if('filter'in ctx)ctx.filter='none';ctx.setLineDash&&ctx.setLineDash([]);ctx.lineDashOffset=0;ctx.fillStyle='#0c0713';ctx.fillRect(0,0,cv.width,cv.height);
   if(view.ox>1||view.oy>1){const k=Math.max(cv.width/W,cv.height/H);   // screen wider or taller than the arena: extend its sky to the edges
     ctx.drawImage(bgC,(cv.width-W*k)/2,(cv.height-H*k)/2,W*k,H*k);ctx.fillStyle='rgba(12,7,19,.22)';ctx.fillRect(0,0,cv.width,cv.height)}
   const sh=game.shake,sx=(Math.random()-.5)*sh,sy=(Math.random()-.5)*sh;camUpdate();
@@ -4934,12 +4954,13 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */update(dt);render();requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
+const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);if(frameErrs.has(k))return;frameErrs.add(k);console.error('[CUUED] frame error',e)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-gun-tip';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-steady';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5411,7 +5432,7 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
   bullets=net.ghosts.length?[...net.bmap.values(),...net.ghosts]:[...net.bmap.values()];
   guestSend();
   for(const q of parts){q.life-=dt;if(!q.ring&&!q.flash){q.vy+=q.grav*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.985}}
-  parts=parts.filter(q=>q.life>0);
+  parts=parts.filter(q=>q.life>0);if(parts.length>fxCap())parts.splice(0,parts.length-fxCap());
   edges.clear();mouse.rEdge=false}
 /* the visitor's own shots fire the instant they click (a ghost bullet from their own gun, same speed, drop, walls and
    bounces); when the host's real bullet shows up it takes over the ghost's place and trail, so the shot never hitches */
