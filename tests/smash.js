@@ -46,6 +46,24 @@ const card = (A, n) => A.CARDS.find((c) => c.n === n);
   { const [P, E] = setup(['Uppercut Guard']); E.x = P.x + 90; E.y = P.y; E.vx = E.vy = 0; P.blockCd = 0; const hp = E.hp; A.doBlock(P);
     check(E.vy < -1000, `Uppercut Guard should pop the rival up (vy ${E.vy.toFixed(0)})`); check(hp - E.hp >= 11, 'Uppercut Guard should deal 12 damage') }
 
+  // Afterburner: a hit straps on a rocket that keeps shoving the rival the way the shot flew
+  { const [P, E] = setup(['Afterburner']); E.vx = E.vy = 0; shoot(P, E); const v0 = E.vx; check(E.burnT > .4, 'Afterburner should strap a rocket on'); step(10);
+    check(E.vx > v0 && E.vx > 250, `the rocket should keep pushing (vx ${v0.toFixed(0)} -> ${E.vx.toFixed(0)})`); check(!A.CARDS.some((c) => c.n === 'Haymaker'), 'Haymaker became Afterburner') }
+  // Jammer Rounds: hits push the rival's block cooldown back
+  { const [P, E] = setup(['Jammer Rounds']); E.blockCd = 0; shoot(P, E); check(E.blockCd >= .39, `Jammer should delay their block (${E.blockCd.toFixed(2)})`) }
+  // Pickpocket: a gun hit steals a bullet, once per trigger pull, into a magazine with spare room
+  { const [P, E] = setup(['Pickpocket']); P.ammo = P.s.ammo; const ea = E.ammo; const n = A.bullets.length; A.spawnBullet(P, E.x - 40, E.y, 0); const b = A.bullets[n]; b.gunShot = true; b.dmg = 20;
+    for (let i = 0; i < 6 && !b.dead; i++) step(); check(E.ammo === ea - 1, 'Pickpocket should take a bullet'); check(P.ammo === P.s.ammo + 1, `Pickpocket should overfill your magazine (${P.ammo})`) }
+  // Detonator: charges stick (5 at most) and all blow on your block
+  { const [P, E] = setup(['Detonator']); for (let i = 0; i < 7; i++) { E.vx = E.vy = 0; const c = E.charges || 0; A.resetPlayer(E, A.game.map.sp[1]); E.charges = c; shoot(P, E) }
+    check(E.charges === 5, `Detonator charges should cap at 5 (${E.charges})`); E.x = P.x + 200; E.y = P.y; E.hp = E.s.maxHp; P.blockCd = 0; const hp = E.hp; A.doBlock(P);
+    check(E.charges === 0 && hp - E.hp >= 44, `blocking should blow all charges (dealt ${(hp - E.hp).toFixed(1)})`) }
+  // Grudge: +20% per round behind, up to +60%, nothing when level or ahead
+  { const [P] = setup(['Grudge']); A.game.wins = [0, 0]; const even = A.grudgeMult(P); A.game.wins = [0, 2]; const two = A.grudgeMult(P); A.game.wins = [0, 5]; const max = A.grudgeMult(P); A.game.wins = [3, 0]; const ahead = A.grudgeMult(P);
+    check(even === 1 && Math.abs(two - 1.4) < 1e-9 && Math.abs(max - 1.6) < 1e-9 && ahead === 1, `Grudge scaling wrong (${even}, ${two}, ${max}, ${ahead})`) }
+  // a storm of blasts stays capped
+  { setup(); for (let i = 0; i < 300; i++) A.boomFx(400 + i, 400, 120, '#fff', 2); const imgs = A.parts ? A.parts.filter((q) => q.img).length : 0; check(imgs <= 40, `explosion sprites should be capped (${imgs})`) }
+
   console.log(JSON.stringify({ healthy: +healthy.toFixed(0), hurt: +hurt.toFixed(0), plainHurt: +plainHurt.toFixed(0), failures: fail }));
   process.exit(fail.length ? 1 : 0);
 })();
