@@ -4459,8 +4459,10 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   ctx.translate(0,bob);   // the body (and its arms) rides the step
   // off hand with the block orb (white = block ready)
   const ready=p.blockCd<=0,oh=p.blockT>0?[ax*(R+12),ay*(R+12)]:[-face*(R+12)-clamp((p.vx||0)*.014,-12,12)-dirW*Math.sin(wph)*R*.3*amt,R*.25+Math.cos(wph*2)*1.5*amt-clamp((p.vy||0)*.012,-12,12)];   // the free hand trails behind the motion and swings against the stride
-  const offHand=()=>{noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
-    ctx.globalAlpha=ready?1:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
+  // on a long gun the orb sits over metal: a dark rim keeps it readable, and while block recharges it's a dark disc (not a faded one) with the white timer round it
+  const offHand=onGun=>{noodle(-face*R*.6,R*.1,oh[0],oh[1],8,lw*.9,sk.lo);
+    if(onGun){ctx.fillStyle='rgba(14,6,24,.9)';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+2.5,0,TAU);ctx.fill()}
+    ctx.globalAlpha=ready?1:onGun?.18:.35;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3,0,TAU);ctx.fill();ctx.globalAlpha=1;
     if(!ready){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(oh[0],oh[1],R*.3+3,-Math.PI/2,-Math.PI/2+TAU*(1-p.blockCd/p.s.blockCd));ctx.stroke()}};
   // gun arm
   const recoil=p.shotT>0?-6:0,hx=ax*(R+14+recoil),hy=ay*(R+14+recoil),gg=gunGeom(p),two=gg&&gg.G.sx!=null&&!(p.blockT>0);
@@ -4469,7 +4471,7 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   ctx.save();ctx.translate(hx,hy);ctx.rotate(p.aim);if(face<0)ctx.scale(1,-1);drawGun(p);   // grip always hangs down
   if(p.staticReady){ctx.fillStyle=C.hot;ctx.fillRect(14,-5,6,10)}ctx.restore();
   ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(hx,hy,lw*.62,0,TAU);ctx.fill();   // the fist wraps the grip
-  if(two){const{G,w,h}=gg,u=(G.sx-G.hx)*w,v=(G.sy-G.hy)*h*(face<0?-1:1),c=Math.cos(p.aim),sn=Math.sin(p.aim);oh[0]=hx+c*u-sn*v;oh[1]=hy+sn*u+c*v;offHand()}   // a long gun: the free hand (still the block orb) holds its front
+  if(two){const{G,w,h}=gg,u=(G.sx-G.hx)*w,v=(G.sy-G.hy)*h*(face<0?-1:1),c=Math.cos(p.aim),sn=Math.sin(p.aim);oh[0]=hx+c*u-sn*v;oh[1]=hy+sn*u+c*v;offHand(true)}   // a long gun: the free hand (still the block orb) holds its front
   // body
   // body: squash and stretch from the jelly springs, a lean from the feet, and flattened against a wall it clings to
   const ja=p.ja||0,jw=p.jw||0,sy=p.squash*(1+ja),sx=(1/Math.sqrt(p.squash))*(1-ja*.7)*(1-.2*jw);
@@ -4847,7 +4849,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-calm-world';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-orb-rim';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
