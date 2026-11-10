@@ -1992,9 +1992,10 @@ function buildBg(map){const g=bgx,dawn=matchProgress();paintSky(map,dawn);
   platx.fillStyle='rgba(10,4,18,.4)';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0]+10,r[1]+12,r[2],r[3]);platx.fill()}
   const sitsOn=r=>map.rects.some(o=>o!==r&&Math.abs(o[1]-(r[1]+r[3]))<3&&o[0]<r[0]+r[2]&&o[0]+o[2]>r[0]);
   for(const r of map.rects)if(!r[4]&&r[1]+r[3]<H-12&&!sitsOn(r))rockBelly(platx,r[0],r[1],r[2],r[3],0);
-  for(const r of map.rects)if(r[4]!==3){facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]))}
-  // a bold dark outline round every platform (like ROUNDS' crisp shapes): the arena reads at a glance, even from across a room
-  platx.save();platx.strokeStyle='rgba(14,6,24,.78)';platx.lineWidth=4;platx.lineJoin='round';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0],r[1],r[2],r[3]);platx.stroke()}platx.restore();
+  // a bold dark outline round every platform (like ROUNDS' crisp shapes): the arena reads at a glance, even from across a room.
+  // Each piece is outlined as it's drawn, so a piece in front (Crossroads' plank through its pillar) hides the outline behind it
+  for(const r of map.rects)if(r[4]!==3){facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]));
+    platx.save();platx.strokeStyle='rgba(14,6,24,.78)';platx.lineWidth=4;platx.lineJoin='round';slabPath(platx,r[0],r[1],r[2],r[3]);platx.stroke();platx.restore()}
   for(const r of map.rects)if(r[4]===3)padArt(platx,r[0],r[1],r[2],r[3]);   // pads on top of everything
   dec.clearRect(0,0,W,H);
   motes=Array.from({length:RM?0:46},()=>({x:rand(0,W),y:rand(0,H),vx:rand(-8,8),vy:rand(-14,-3),s:rand(1,2.6),a:rand(.08,.25)}))}
@@ -4817,7 +4818,7 @@ function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){p
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-smash-cards';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-clean-outlines';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
