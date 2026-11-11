@@ -56,7 +56,7 @@ async function tab(port, url) {
   ok(await A.ev(`/3 of 5/.test(document.querySelector('#tutStep').textContent)`), 'Next and → turn the pages of the guide');
   await A.ev(`document.querySelector('#tut [data-tut=skip]').click()`);
   ok(await A.until(`document.querySelector('#tut').hidden&&localStorage.getItem('cuued.tut')==='1'`, 2000), 'Skip closes the guide and remembers it');
-  ok(await A.ev(`[...document.querySelectorAll('#menu [data-sub="main"] .mlist button')].map(b=>b.querySelector('.mt-t').textContent).join('|')`) === 'Big Screen|Single player|Online|Customize|How to play|Settings', 'the menu lists Big Screen, Single player, Online, Customize, How to play, Settings');
+  ok(await A.ev(`[...document.querySelectorAll('#menu [data-sub="main"] .mlist button')].filter(b=>b.getClientRects().length).map(b=>b.querySelector('.mt-t').textContent).join('|')`) === 'Single player|Multiplayer|Customize|How to play|Settings', 'the menu lists Single player, Multiplayer, Customize, How to play, Settings');
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');
   await sleep(900); await A.ev(`document.querySelector('#pick .card').click()`);
@@ -116,7 +116,7 @@ async function tab(port, url) {
     const H = await tab(9335, LIVE), G = await tab(9335, LIVE);
     await sleep(2500);
     for (const T of [H, G]) { if (await T.ev(shown('#nameScreen'))) { await T.ev(`document.querySelector('#nameInput').focus()`); await T.cdp('Input.insertText', { text: T === H ? 'Host' : 'Guest' }); await T.key('Enter') } }
-    await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+    await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`);
     const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 20000);
     ok(gotCode, 'the live site opens an online room with a 4-letter code');
     if (gotCode) {
