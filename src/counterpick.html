@@ -640,6 +640,14 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .mlist.tiles .mt.back{grid-column:1 / -1;min-height:46px;padding:8px 14px;justify-content:center;grid-template-columns:auto auto;font-size:17px;background:rgba(255,255,255,.04);box-shadow:none;--tc:#b9a7e6}
 .mlist.tiles .mt.back .mi{width:28px;height:28px;padding:5px;border-radius:9px}
 .mlist.tiles .mt .rec{display:inline-block;vertical-align:.2em;margin-left:8px;padding:3px 8px;border-radius:99px;background:var(--tc);color:#170f22;font:800 11px/1 var(--body);letter-spacing:.08em;font-style:normal}
+#cpad{z-index:45;background:rgba(14,8,22,.96)}
+.cp-box{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:640px;margin:auto;padding:24px 16px;text-align:center}
+.cp-sub{margin:0;color:var(--muted);font:600 15px/1.45 var(--body);max-width:520px}
+.cp-row{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap}.cp-side{display:flex;flex-direction:column;align-items:center;gap:6px}.cp-side .bs-or{margin:0}
+#cpad .code{font-size:clamp(48px,8vh,84px)}#cpad .lobby-msg.ok{color:#9be37a}
+.cp-open{display:inline-flex;align-items:center;justify-content:center;gap:8px}.cp-open[hidden]{display:none!important}
+.cp-ic{display:inline-block;width:11px;height:17px;border:2px solid currentColor;border-radius:3px;flex:none;position:relative}.cp-ic::after{content:'';position:absolute;left:50%;bottom:1px;width:3px;height:2px;margin-left:-1.5px;background:currentColor;border-radius:1px}
+.cp-chip{display:inline-flex;align-items:center;gap:6px;color:#9be37a}.cp-chip[hidden]{display:none}
 .phone-tip{margin:12px 0 0;font:600 14px/1.35 var(--body);color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px}
 .phone-tip i{width:12px;height:19px;border:2px solid #ffb547;border-radius:4px;flex:none}
 [data-sub]:has(>.mlist.tiles)>.menu-hint{display:none}
@@ -1147,6 +1155,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
     <p class="playing-as">Playing as <b data-myname>—</b>
+      <button type="button" class="coinchip cp-chip" data-act="cpad" id="cpChip" hidden title="Your phone is your controller"><i class="cp-ic" aria-hidden="true"></i>Phone paired</button>
       <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button><button type="button" class="coinchip statchip" data-act="stats" title="Your wins, records and rivals"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2zm5 0h2V3H7zm5 0h2V6h-2z"/></svg>Stats</button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
@@ -1198,6 +1207,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <p class="lobby-msg" id="hostMsg" role="status">Opening a room…</p>
       <div class="link-row"><input id="hostLink" class="text-in" readonly aria-label="Invite link" value=""><button type="button" class="copy" data-act="copylink">Copy link</button></div>
       <ul class="roster" id="partyRoster" aria-label="Players" hidden></ul>
+      <button type="button" class="btn cp-open desk-only" data-act="cpad"><i class="cp-ic" aria-hidden="true"></i><span>Use my phone as controller</span></button>
       <div class="party-acts" id="partyActs" hidden><button type="button" class="btn" data-act="team" data-team="0">Team Orange</button><button type="button" class="btn" data-act="team" data-team="1">Team Blue</button><button type="button" class="btn go" data-act="partyStart" disabled>Start</button></div>
       <nav class="mlist"><button type="button" data-act="cancelOnline" style="--i:0">Cancel</button></nav>
     </div>
@@ -1206,6 +1216,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <input id="joinCode" class="text-in code-in" maxlength="4" placeholder="ABCD" spellcheck="false" autocapitalize="characters" inputmode="text">
       <p class="lobby-msg" id="joinMsg" role="status">Ask your host for their 4-letter code.</p>
       <ul class="roster" id="joinRoster" aria-label="Players" hidden></ul>
+      <button type="button" class="btn cp-open desk-only" data-act="cpad" id="joinCpad" hidden><i class="cp-ic" aria-hidden="true"></i><span>Use my phone as controller</span></button>
       <div class="party-acts" id="joinTeam" hidden><button type="button" class="btn" data-act="team" data-team="0">Team Orange</button><button type="button" class="btn" data-act="team" data-team="1">Team Blue</button></div>
       <nav class="mlist"><button type="submit" style="--i:0">Join</button><button type="button" data-act="cancelOnline" style="--i:1">Back</button></nav>
     </form>
@@ -1425,6 +1436,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <button type="button" data-act="resume" class="pp-main" style="--i:0">Resume</button>
       <button type="button" data-act="loadout" id="pLoadout" style="--i:1" hidden>Change cards</button>
       <div class="pp-row"><button type="button" data-opt="sound" data-hint="All game sound on or off (M)." style="--i:1">Sound <span class="val">On</span></button><button type="button" data-act="fullscreen" id="pFull" style="--i:1">Full screen</button></div>
+      <button type="button" data-act="cpad" class="desk-only" style="--i:2">Phone controller</button>
       <button type="button" data-act="settings" style="--i:2">Settings</button>
       <button type="button" data-act="restart" id="pRestart" style="--i:3">Restart match</button>
       <button type="button" data-act="bsLobby" id="pLobby" style="--i:3" hidden>Back to lobby</button>
@@ -1469,6 +1481,19 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   </div>
 </div>
 
+<div id="cpad" class="overlay pause-screen" hidden role="dialog" aria-labelledby="cpT">
+  <div class="cp-box">
+    <h2 class="screen-title" id="cpT">Phone controller</h2>
+    <p class="cp-sub">Your phone controls your fighter on this computer: practice, Survival, or online against a friend on their own screen.</p>
+    <div class="cp-row">
+      <div class="bs-qr" id="cpQrBox"><canvas id="cpQr" width="240" height="240" aria-label="QR code that pairs your phone"></canvas><span class="bs-qr-wait">QR code loading…</span></div>
+      <div class="cp-side"><div class="lbl">Scan with your phone camera</div><p class="bs-or">or go to <b id="cpHost">cuued.com</b> on your phone and type</p><div class="code" id="cpCode">····</div></div>
+    </div>
+    <p class="lobby-msg" id="cpMsg" role="status">Opening…</p>
+    <div class="party-acts"><button type="button" class="btn go" data-act="cpDone">Done</button><button type="button" class="btn" data-act="cpOff" id="cpOff" hidden>Unpair phone</button></div>
+  </div>
+</div>
+
 <div id="bigLobby" class="overlay pause-screen" hidden>
   <div class="bs-wrap" data-sub="main">
     <h2 class="screen-title">Big Screen</h2>
@@ -1479,6 +1504,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <p class="bs-or">or go to <b id="bsHost">cuued.com</b> and type</p>
         <div class="code" id="bsCode" aria-live="polite">····</div>
         <button type="button" class="btn bs-link" data-act="roomlink" id="bsLinkBtn" hidden>Copy invite link</button>
+        <button type="button" class="btn bs-link cp-open desk-only" data-act="cpad" id="bsCpad" hidden><i class="cp-ic" aria-hidden="true"></i><span>Use my phone as controller</span></button>
       </section>
       <section class="bs-side">
         <div class="lbl" id="bsSeatsL">Players · up to 4</div>
@@ -2188,6 +2214,7 @@ addEventListener('keydown',e=>{initAudio();
   const tg=e.target&&e.target.tagName;if(tg!=='INPUT'&&tg!=='TEXTAREA'&&/^(Space|Arrow(Up|Down|Left|Right)|PageUp|PageDown)$/.test(e.code))e.preventDefault();   // never scroll the page around the game (a game site's page, say)
   if(tg==='INPUT'||tg==='TEXTAREA'){if(e.code==='Escape'){e.target.blur();if(!$('#nameScreen').hidden&&myName)$('#nameScreen').hidden=true}return}
   if(!$('#tut').hidden){tutKey(e);return}
+  if(!$('#cpad').hidden){if(e.code==='Escape'||e.code==='Enter'){e.preventDefault();cpadSheet(false)}return}
   if(!$('#a2hs').hidden){if(e.code==='Escape'){e.preventDefault();a2Close(true)}return}
   if(!$('#stats').hidden){if(e.code==='Escape'){e.preventDefault();closeStats()}return}
   if(!$('#locker').hidden){if(e.code==='Escape'){e.preventDefault();closeLocker()}return}
@@ -2419,7 +2446,7 @@ function endDeck(el,list){el.innerHTML='';const m=new Map();for(const c of list)
   if(!m.size){const n=document.createElement('p');n.className='end-score';n.textContent='No cards this time.';el.appendChild(n)}}
 function endStats(list){const el=$('#endStats');if(!el)return;el.innerHTML='';for(const[k,v]of list){const sp=document.createElement('span');sp.innerHTML=`${k} <b>${v}</b>`;el.appendChild(sp)}}
 function endRibbon(text,sad){const r=$('#endRibbon');if(!r)return;r.textContent=text;r.classList.toggle('sad',!!sad);r.style.animation='none';void r.offsetWidth;r.style.animation=''}
-function showEnd(w){game.state='over';awardMatch(w);{const me=endMe();portalSay('gameplayStop');portalSay('gameOver',{mode:game.mode,won:me?me.team===w:null,rounds:game.wins.slice()})}
+function showEnd(w){game.state='over';cpadEnd(w);awardMatch(w);{const me=endMe();portalSay('gameplayStop');portalSay('gameOver',{mode:game.mode,won:me?me.team===w:null,rounds:game.wins.slice()})}
   {const b=$('#endLobby');if(b)b.hidden=!game.screen}
   const L=game.party&&!game.ffa?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
   $('#endScore').textContent=game.ffa?`${L.name} won ${game.wins[w]} rounds with ${L.cards.length} cards. Rounds ${game.wins.join('–')}.`:game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
@@ -5037,13 +5064,13 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();cpadTick(dt);if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
 const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);if(frameErrs.has(k))return;frameErrs.add(k);console.error('[CUUED] frame error',e)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-phonefirst';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-pairpad';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5086,7 +5113,7 @@ function linkSend(L,m){const f=L.fast;
 function openFast(conn,L=net){const pc=conn&&conn.peerConnection;if(!pc||typeof pc.createDataChannel!=='function')return;
   try{const ch=pc.createDataChannel('cuued-fast',{negotiated:true,id:42,ordered:false,maxRetransmits:0});L.fast=ch;
     ch.onmessage=e=>{if(L.conn!==conn||L.fast!==ch)return;let m;try{m=JSON.parse(e.data)}catch(err){return}
-      if(m&&typeof m==='object'&&FAST_T[m.t]){L.lastRecv=net.lastRecv=performance.now();onNet(m,L===net?null:L)}}}catch(e){L.fast=null}}
+      if(m&&typeof m==='object'&&FAST_T[m.t]){if(L.onMsg){L.lastRecv=performance.now();L.onMsg(m);return}L.lastRecv=net.lastRecv=performance.now();onNet(m,L===net?null:L)}}}catch(e){L.fast=null}}
 function makeCode(){let c='';for(let i=0;i<4;i++)c+=ROOM_ALPHA[Math.floor(Math.random()*ROOM_ALPHA.length)];return c}
 const inPreview=()=>/claude|anthropic/i.test(location.hostname||'');
 function netErr(err,code){const t=err&&err.type;
@@ -5296,7 +5323,7 @@ function partyStart(){if(net.role!=='host'||!net.party||!net.lobbyOpen)return;co
 function partyBegin(list){$("#bigLobby").hidden=true;$("#end").hidden=true;net.roster=list;net.connected=true;net.remoteName='';net.hostId=list.findIndex(e=>e.host);net.ffa=!!net.room&&!bsTeams();
   list.forEach((e,k)=>{if(e.peer)linkSend(e.peer,{t:'start',me:k,roster:list.map(x=>({n:x.n,cos:x.cos||{},cpu:x.cpu?1:0})),ffa:net.ffa?1:0,room:net.room?1:0,hp:net.room?settings.bsHp:1,tg:net.room?settings.bsLen:settings.len})});
   startMatch('online-host')}
-function joinedView(on){const f=$('#joinForm');if(f&&f.classList)f.classList.toggle('in',!!on);const b=$('#joinForm [data-act=cancelOnline]');if(b)b.textContent=on?'Leave room':'Back'}
+function joinedView(on){const f=$('#joinForm');if(f&&f.classList)f.classList.toggle('in',!!on);{const c=$('#joinCpad');if(c)c.hidden=!on}const b=$('#joinForm [data-act=cancelOnline]');if(b)b.textContent=on?'Leave room':'Back'}
 function partyJoined(){joinedView(true);setText('#joinMsg',"You're in the party. Waiting for the host to start…")}
 function partyRoster(list,you,ffa){joinedView(true);const L=list.map(e=>e?{n:cleanName(e.n)||'Player'}:null);renderRoster($('#joinRoster'),L,ffa);$('#joinTeam').hidden=!!ffa;if(!ffa)teamButtons(you,L);setText('#joinMsg',`You're in (${list.filter(Boolean).length} of 4). Waiting for the host to start.`)}
 function onNet(m,pr){
@@ -5586,7 +5613,7 @@ function roomShow(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost
 function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=bsTeams(),list=partyList(false),shown=partyList(true),hum=list.filter(e=>e).length,el=$('#bsSeats');
   {const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',true);lb.classList.toggle('surv',false);lb.classList.toggle('teams',teams)}}
   setText('#bigLobby .screen-title','Versus · Own screens');setText('#bsSeatsL','Players · up to 4');{const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan to join on a phone';}
-  {const b=$('#bsLinkBtn');if(b){b.hidden=false;b.textContent=touch.on&&navigator.share?'Share invite link':'Copy invite link'}}
+  {const b=$('#bsLinkBtn');if(b){b.hidden=false;b.textContent=touch.on&&navigator.share?'Share invite link':'Copy invite link'}}{const c=$('#bsCpad');if(c)c.hidden=false}
   {const tp=$('#bsTeamPick');if(tp)tp.hidden=!teams;if(teams)teamButtons(net.hostTeam,list)}
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
@@ -5602,6 +5629,13 @@ const inviteUrl=c=>portal.share?portal.share+(portal.share.includes('?')?'&':'?'
 const siteHost=()=>{try{return new URL(portal.share||location.href).host.replace(/^www\./,'')}catch(e){return'cuued.com'}};
 function bsShowRoom(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost',siteHost()==='flickarcade.com'?'flickarcade.com/join':siteHost());bsQr(bsJoinUrl());bsLobbyChanged()}
 // the QR code: drawn with a small library fetched on first use (the code and the address work without it)
+function qrTo(c,box,url,valid){if(!c||!c.getContext)return;const g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
+  const QR=()=>typeof window!=='undefined'&&typeof window.qrcode==='function'?window.qrcode:null;
+  const draw=()=>{const lib=QR();if(!lib||!valid())return;try{const q=lib(0,'M');q.addData(url);q.make();const n=q.getModuleCount(),s=Math.floor(c.width/(n+4)),o=Math.floor((c.width-s*n)/2);
+    g.fillStyle='#ffffff';g.fillRect(0,0,c.width,c.height);g.fillStyle='#170f22';for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.isDark(y,x))g.fillRect(o+x*s,o+y*s,s,s);if(box&&box.classList)box.classList.toggle('on',true)}catch(e){}};
+  if(QR()){draw();return}
+  if(!qrLib&&typeof document!=='undefined'&&document.createElement&&document.head){qrLib=document.createElement('script');qrLib.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';qrLib.async=true;document.head.appendChild(qrLib)}
+  if(qrLib&&qrLib.addEventListener)qrLib.addEventListener('load',draw)}
 function bsQr(url){const c=$('#bsQr');if(!c||!c.getContext)return;const box=c.parentNode,g=c.getContext('2d');if(box&&box.classList)box.classList.toggle('on',false);if(!url)return;
   const QR=()=>typeof window!=='undefined'&&typeof window.qrcode==='function'?window.qrcode:null;
   const draw=()=>{const lib=QR();if(!lib||$('#bsQr')!==c||bsJoinUrl()!==url)return;try{const q=lib(0,'M');q.addData(url);q.make();const n=q.getModuleCount(),s=Math.floor(c.width/(n+4)),o=Math.floor((c.width-s*n)/2);
@@ -5639,7 +5673,7 @@ function bsFill(list){list=list.slice();const teams=bsTeams();let n=bsSurvMode()
   return list}
 function bsTidyOpts(){const v=[...document.querySelectorAll('#bigLobby .bs-opt')].filter(e=>getComputedStyle(e).display!=='none');v.forEach((e,i)=>e.classList.toggle('wide',v.length%2===1&&i===v.length-1))}
 try{const lb=$('#bigLobby');if(lb&&typeof MutationObserver!=='undefined')new MutationObserver(bsTidyOpts).observe(lb,{attributes:true,attributeFilter:['class','hidden']})}catch(e){}
-function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',net.solo?(bsSurvMode()?'Solo Survival':'Phone controller'):bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
+function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',net.solo?(bsSurvMode()?'Solo Survival':'Phone controller'):bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;{const c=$('#bsCpad');if(c)c.hidden=true}const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
     let free=bsCap()-hum,lk=0;
@@ -5711,12 +5745,74 @@ function bsHostTick(dt){if(net.role==='host'&&net.room&&net.lobbyOpen){net.bsPin
     if(live&&pr.pad){pr.psT=(pr.psT||0)-dt;if(pr.psT<=0){pr.psT=Math.max(-.05,pr.psT)+1/15;bsStatus(pr)}}
     if(performance.now()-pr.lastRecv>15000)peerGone(pr,`Lost the connection to ${pr.name||'a player'}.`)}
   if(game.screen)for(const p of players)if(p.findT>0)p.findT=Math.max(0,p.findT-dt)}
-function bsStatus(pr){const p=players.find(q=>q.peer===pr),s=p&&p.s;
+function bsStatus(pr,p=players.find(q=>q.peer===pr)){const s=p&&p.s;
   linkSend(pr,{t:'ps',st:game.paused?'paused':game.state,hp:p?Math.max(0,Math.round(p.hp)):0,mh:s?Math.round(s.maxHp):100,al:p&&p.alive?1:0,
     bk:p&&s?r2(clamp(p.blockCd/s.blockCd,0,1)):0,w:game.wins,pt:game.points,lw:game.lastWinner,rt:Math.round(pr.rtt||0),
     ...(game.bsSurv&&p?{sv:1,rd:game.round|0,lv:game.lives|0,sc:p.scrap|0,lvl:p.lvl|0,dn:p.downT>0?Math.ceil(p.downT):0,rv:r2(p.reviveT||0),late:p.team!==0?1:0}:{})})}
+/* ---------- a phone paired to this computer (not a Big Screen): it drives your own fighter here, in any mode, including online
+   against a friend on their own screen. This computer opens a small room of its own for the phone (its own code and QR); the
+   phone joins it like a Big Screen and gets the same controller. The online match itself is untouched: your fighter's input
+   just comes from the phone instead of the keyboard and mouse, while the phone is being used ---------- */
+const cpad={peer:null,link:null,code:'',open:false,err:''};
+const cpadLocal=()=>game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse');
+function cpadDrives(){const L=cpad.link;if(!L||!L.open||!L.padIn)return false;const now=performance.now();return now-(L.lastInAt||0)<400&&now-(L.activeAt||0)<5000}   // the phone, unless it's been put down for a few seconds
+function cpadSend(m){const L=cpad.link;if(L&&L.open)linkSend(L,m)}
+function cpadSheet(on){const el=$('#cpad');if(!el)return;el.hidden=!on;if(on){cpadStart();cpadUI();const b=el.querySelector('[data-act=cpDone]');b&&b.focus({preventScroll:true})}}
+function cpadUI(){const L=cpad.link,on=!!(L&&L.open);setText('#cpCode',cpad.code||'····');setText('#cpHost',siteHost()==='flickarcade.com'?'flickarcade.com/join':siteHost());
+  {const m=$('#cpMsg');if(m){m.textContent=cpad.err||(on?`Paired with ${L.name||'your phone'}. Pick up your phone and play. The keyboard and mouse still work when you put it down.`:cpad.open?'Waiting for your phone…':'Opening…');if(m.classList)m.classList.toggle('ok',on)}}
+  {const b=$('#cpOff');if(b)b.hidden=!on}{const c=$('#cpChip');if(c)c.hidden=!on}
+  const url=cpad.code?inviteUrl(cpad.code):'';if(url&&cpad.qr!==url){cpad.qr=url;qrTo($('#cpQr'),$('#cpQrBox'),url,()=>cpad.qr===url)}}
+function cpadStart(){if(cpad.peer)return;if(!peerReady()){cpad.err=inPreview()?'Online play is blocked inside this preview. Open cuued.com to pair a phone.':"The online library didn't load. Check your connection and reload the page.";return}
+  cpad.err='';cpad.open=false;cpad.code=makeCode();cpad.qr='';withIce(()=>{if(cpad.peer)return;const peer=new Peer(ROOM_PREFIX+cpad.code,peerOpts());cpad.peer=peer;
+    peer.on('open',()=>{if(cpad.peer!==peer)return;cpad.open=true;cpadUI()});
+    peer.on('error',err=>{if(cpad.peer!==peer)return;if(err&&err.type==='unavailable-id'){cpad.peer=null;try{peer.destroy()}catch(e){}cpad.code='';cpadStart();cpadUI();return}
+      if(!cpad.open){cpad.err=netErr(err);cpad.peer=null;try{peer.destroy()}catch(e){}cpadUI()}});
+    peer.on('disconnected',()=>{if(cpad.peer===peer)try{peer.reconnect()}catch(e){}});
+    peer.on('connection',conn=>{if(cpad.peer!==peer)return;
+      if(conn.metadata&&conn.metadata.probe){conn.on('open',()=>{try{conn.close()}catch(e){}});return}
+      if(cpad.link&&cpad.link.open){conn.on('open',()=>{conn.send({t:'full',party:1,screen:1});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // one phone per computer
+      const L={conn,fast:null,open:false,name:'',lastRecv:performance.now(),lastInAt:0,activeAt:0,padIn:null,view:'',handKey:'',pingT:0,psT:0};L.onMsg=m=>cpadNet(m,L);cpad.link=L;
+      conn.on('open',()=>{if(cpad.link!==L)return;L.open=true;openFast(conn,L);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),party:1,screen:1,cp:1,id:wallet.pid})});
+      conn.on('data',m=>{if(cpad.link===L&&m&&typeof m==='object'){L.lastRecv=performance.now();cpadNet(m,L)}});
+      conn.on('close',()=>{if(cpad.link===L)cpadGone()});conn.on('error',()=>{if(cpad.link===L)cpadGone()})})});cpadUI()}
+function cpadGone(msg){const L=cpad.link;cpad.link=null;if(L){try{L.fast&&L.fast.close()}catch(e){}setTimeout(()=>{try{L.conn.close()}catch(e){}},150)}cpad.err='';cpadUI();if(msg)showMenuMsg(msg)}
+function cpadOff(){cpadSend({t:'bye'});cpadGone();const pe=cpad.peer;cpad.peer=null;cpad.open=false;cpad.code='';cpad.qr='';setTimeout(()=>{try{pe&&pe.destroy()}catch(e){}},300);cpadSheet(false)}
+function cpadNet(m,L){
+  if(m.t==='hello'){L.name=cleanName(m.name)||'your phone';if(m.v!==BUILD){L.conn.send({t:'oldver'});cpadGone();cpad.err='Your phone has a different version of CUUED. Refresh the page on both, then scan again.';cpadUI();return}
+    L.view='';L.handKey='';cpadUI();sfx('pick',true);return}
+  if(m.t==='c'){const now=performance.now();L.lastInAt=now;const o=L.padIn;if(o&&m.s<=o.s)return;
+    if(m.m||m.jh||m.d||m.ag||!o||m.jc!==o.jc||m.bc!==o.bc||m.sc!==o.sc||m.ac!==o.ac)L.activeAt=now;L.padIn=m;return}
+  if(m.t==='ppick'){if(cpadPicking()&&hand[m.i|0]){pickNow(m.i|0);cpadSend({t:'ppicked',i:m.i|0})}return}
+  if(m.t==='pagain'){if(game.state==='over')requestRematch();return}
+  if(m.t==='bye'){cpadGone();return}}
+const cpadPicking=()=>game.state==='pick'&&!pickLock&&(pickMode==='local'||pickMode==='remote')&&Array.isArray(hand)&&hand.length>0&&(!pickFor||pickFor.ctrl==='mouse'||pickMode==='remote');   // your own hand on this computer
+const cpadLive=()=>{const p=cpadLocal();return!!p&&!game.bg&&game.mode!=='demo'&&$('#menu').hidden&&!ctl.on}
+function cpadSides(){if(game.bsSurv||game.ffa||players.length>2)return bsSides();return[0,1].map(t=>{const p=players.find(q=>q.team===t);return{n:p?p.name:'?',c:p?p.color:'#888'}})}
+function cpadTick(dt){const L=cpad.link;if(!L||!L.open||!L.name)return;const now=performance.now();
+  if(now-L.lastRecv>15000){cpadGone('Lost the link to your phone. Open Phone controller to pair it again.');return}
+  const p=cpadLocal(),live=cpadLive();
+  if(!live){cpadFeed(dt);if(L.view!=='lobby'){L.view='lobby';L.handKey='';cpadSend({t:'plobby',seat:0,col:(p&&p.color)||PCOL()[0][0],team:-1,teams:0,n:1,sv:0,so:0,hp:0,cp:1,ln:''})}
+    if((L.pingT-=dt)<=0){L.pingT=2;cpadSend({t:'ping',at:now})}return}
+  if(game.state!=='over'&&L.view!=='live'){L.view='live';L.handKey='';
+    cpadSend({t:'pstart',me:p.id,n:p.name,col:p.color,glow:p.glow,team:p.team,teams:0,sides:cpadSides(),tg:game.target,sv:game.mode==='survival'?1:0,so:net.role?0:1,cp:1,lead:1})}
+  const picking=cpadPicking(),k=picking?hand.map(cardCode).join():'';
+  if(k!==L.handKey){if(k)cpadSend({t:'phand',hand:hand.map(cardCode),sub:'',ti:'',secs:0});else cpadSend({t:'pdone'});L.handKey=k}
+  cpadFeed(dt);if((L.psT-=dt)<=0){L.psT=1/15;bsStatus(L,p)}}
+// the phone plays the keyboard and mouse, the way this game's own touch controls do: so it works the same in every mode, as
+// host, as an online guest (whose screen predicts its fighter from the keys) or offline. Presses are running counters, none lost
+function cpadFeed(dt){const L=cpad.link,r=L&&L.padIn,on=cpadDrives()&&cpadLive();
+  if(!on){if(L&&L.held){L.held=false;for(const k of['KeyA','KeyD','KeyS','KeyW'])keys.delete(k)}if(r&&L)L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0};return}
+  const sn=L.seen||(L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0}),nw=k=>{const v=r[k]|0,n=Math.max(0,v-sn[k]);sn[k]=Math.max(sn[k],v);return n};
+  L.held=true;const mv=clamp(r.m|0,-1,1);tKey('KeyD',mv>0);tKey('KeyA',mv<0);tKey('KeyS',!!r.d);tKey('KeyW',!!r.jh);
+  if(nw('jc'))edges.add('KeyW');if(nw('bc'))mouse.rEdge=true;
+  const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me)),shots=nw('sc'),autos=nw('ac');
+  if(shots){L.shotA=r.a;L.holdT=.8;touchShoot(false)}else if(autos)touchShoot(true);
+  L.holdT=Math.max(0,(L.holdT||0)-dt);
+  let a=r.ag?r.a:L.holdT>0?L.shotA:null;if(a==null&&me&&e&&e!==me)a=tapTarget(me,e);   // between shots the gun follows the nearest rival
+  if(a!=null&&me&&Number.isFinite(me.x)){const g=game.mode==='online-guest';mouse.x=me.x+(g?net.offX:0)+Math.cos(a)*260;mouse.y=me.y+(g?net.offY:0)+Math.sin(a)*260}}
+function cpadEnd(w){const L=cpad.link;if(!L||!L.open||!L.name||!cpadLive())return;L.view='over';cpadSend({t:'end',w,r:matchIds()})}
 // a phone's controls on the host: the newest packet wins; presses, shots and taps are running counters, so none is lost
-function padInput(p){const inp=p.input,L=p.peer,r=L&&L.padIn;
+function padInput(p,L=p.peer){const inp=p.input,r=L&&L.padIn;
   if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
   const stale=performance.now()-(L.lastInAt||0)>300;   // no word from the phone for a moment (it locked, or the link hiccuped): stand still
   inp.move=stale?0:clamp(r.m|0,-1,1);inp.jumpH=!stale&&!!r.jh;inp.down=!stale&&!!r.d;
@@ -5869,13 +5965,15 @@ function padOpts(o){const el=$('#padOpts');if(!el)return;el.hidden=!o;if(!o)retu
     row.append(l,mk(-1,'‹'),v,mk(1,'›'));el.appendChild(row)}}
 function padNet(m){
   if(m.t==='plobby'){padTint(m.col);setText('#padName',myName||'You');setText('#padLobbyT',m.late?"You're in!":`You're in! Player ${(m.seat|0)+1}`);ctl.shop=null;
+    ctl.cp=!!m.cp;if(m.cp){setText('#padLobbyT','Paired!');setText('#padLobbyS','Your phone is the controller for your fighter on your computer. Start a match there, solo or online; the controls show up here.');
+      {const g=$('#padGo');if(g)g.hidden=true}{const w=$('#padWhy');if(w)w.hidden=true}padOpts(null);$('#padTeams').hidden=true;{const hp=$('#padPlus');if(hp)hp.hidden=true}ctl.hand=null;padView('lobby');return true}
     setText('#padLobbyS',m.late?'The run is on: you join at the start of the next round. Watch the big screen.':m.sv?'Co-op Survival: you and your friends against waves and bosses. Watch the big screen; the host starts the run.':m.teams?'Pick your team, then watch the big screen. The host starts the game.':m.lead?(m.so?'Get comfy, pick the game, then press Start. It plays on the big screen.':'You\'re in charge: pick the game and press Start when everyone\'s in.'):m.ln?`Watch the big screen. ${cleanName(m.ln)||'The first player'} starts the game from their phone.`:'Watch the big screen. The host starts the game.');
     ctl.lead=!!m.lead;{const g=$('#padGo');if(g){g.hidden=!(m.lead&&!m.late);g.disabled=!m.ok;g.textContent='Start'}}
     {const w=$('#padWhy');if(w){w.hidden=!(m.lead&&!m.late&&!m.ok);w.textContent=String(m.why||'').slice(0,80)}}
     padOpts(m.lead&&!m.late&&Array.isArray(m.o)?m.o:null);
     {const hp=$('#padPlus');if(hp)hp.hidden=!m.hp}$('#padTeams').hidden=!m.teams;document.querySelectorAll('[data-pteam]').forEach(b=>b.classList.toggle('primary',+b.dataset.pteam===m.team));
     ctl.hand=null;padView('lobby');return true}
-  if(m.t==='pstart'){ctl.solo=!!m.so;ctl.lead=!!m.lead;ctl.sv=!!m.sv;if(!m.sv)ctl.shop=null;ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
+  if(m.t==='pstart'){ctl.solo=!!m.so;ctl.lead=!!m.lead;ctl.cp=!!m.cp;ctl.sv=!!m.sv;if(!m.sv)ctl.shop=null;ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
     padTint(m.col);setText('#padName',cleanName(m.n)||myName||'You');if(ctl.view!=='live'){ctl.awarded=false;ctl.st=null}padView('live');padScore();return true}
   if(m.t==='ps'){padStatus(m);return true}
   if(m.t==='phand'){padHand(m);return true}
@@ -5929,11 +6027,11 @@ function padLookLoop(){if(padLookRaf)return;const step=now=>{if(ctl.view!=='lobb
   const look={...myCos()};try{drawLook(c,look,0,now/1000)}catch(e){}padLookRaf=requestAnimationFrame(step)};padLookRaf=requestAnimationFrame(step)}
 function ctlCardArt(){cancelAnimationFrame(padArtRaf);const t0=performance.now();
   const loop=now=>{if($('#padPick').hidden)return;for(const c of document.querySelectorAll('#padCards canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);padArtRaf=requestAnimationFrame(loop)};padArtRaf=requestAnimationFrame(loop)}
-function padAgainShow(){const me=ctl.solo||ctl.lead,b=$('#padAgain');if(b){b.hidden=!me;b.disabled=false}{const l=$('#padToLobby');if(l){l.hidden=!me;l.disabled=false}}setText('#padOverTip',me?'Play again, or change the mode, arena or CPUs first.':'Waiting for the first player: a rematch, or back to the lobby.')}
+function padAgainShow(){const me=ctl.solo||ctl.lead,b=$('#padAgain');if(b){b.hidden=!me;b.disabled=false}{const l=$('#padToLobby');if(l){l.hidden=!me||ctl.cp;l.disabled=false}}setText('#padOverTip',ctl.cp?'Play again, or pick what\'s next on your computer.':me?'Play again, or change the mode, arena or CPUs first.':'Waiting for the first player: a rematch, or back to the lobby.')}
 function padOver(w,ids){ctl.hand=null;const win=w===ctl.team,s=ctl.sides[w];padView('over');padAgainShow();
   setText('#padOverT',win?(/^Team /.test((ctl.sides[ctl.team]||{}).n||'')?'Your team wins!':'You win!'):s?`${s.n} wins`:'They win');   // a side is a team only when it's called one
   setText('#padOverS',win?'Nice. That one was yours.':'So close. Get them in the rematch.');
-  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;showRival('#padRival',recordMatch(ctl.solo?'cpu':'screen',win,rivalsIn(ids||[],ctl.team,w,win)));
+  const el=$('#padCoins');if(el&&ctl.cp){el.hidden=true;ctl.awarded=true}if(!ctl.awarded&&el){ctl.awarded=true;showRival('#padRival',recordMatch(ctl.solo?'cpu':'screen',win,rivalsIn(ids||[],ctl.team,w,win)));
     if(win){const n=earn(2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coins · you have ${wallet.coins}`;buzz([40,60,40,60,120])}
     else{wallet.streak=0;saveWallet();el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`}el.hidden=false}}
 /* ---------- the phone's shop (Co-op Survival on a Big Screen): your five offers as full-size cards to swipe through, tap one to
@@ -5971,7 +6069,7 @@ function padArtLoop(sel){cancelAnimationFrame(pshRaf);const t0=performance.now()
 function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;padView('over');const n=Math.max(0,m.n|0),ch=cleanName(m.ch)||'',coins0=Math.floor(n/2);
   setText('#padOverT',n?`Survived ${n} round${n>1?'s':''}`:'Out in round 1');
   const best=wallet.survBest||0;setText('#padOverS',n>best?(best?`A new best! (was ${best})`:'Your first run on the board.'):`Your best is ${best}.`);
-  const el=$('#padCoins');if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;wallet.runs++;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
+  const el=$('#padCoins');if(el&&ctl.cp){el.hidden=true;ctl.awarded=true}if(!ctl.awarded&&el){ctl.awarded=true;const before=CHARS.filter(charOpen).length;wallet.runs++;if(n>best)wallet.survBest=n;if(ch&&n>(wallet.survBy[ch]||0))wallet.survBy[ch]=n;const opened=CHARS.filter(charOpen).slice(before);
     const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
     el.innerHTML=(coins?`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`:`Reach round 2 to earn CUUED coins (you have ${wallet.coins}).`)+(opened.length?` · Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
     el.hidden=false;buzz(coins?[40,60,40]:[70])}}
@@ -6164,6 +6262,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
   else if(a==='padGo'){if(net.pad){netSend({t:'pgo'});b.disabled=true;b.textContent='Starting…'}}
   else if(a==='padAgain'){if(net.pad){netSend({t:'pagain'});b.disabled=true;setText('#padOverTip','Starting…')}}
+  else if(a==='cpad')cpadSheet(true);
+  else if(a==='cpDone')cpadSheet(false);
+  else if(a==='cpOff')cpadOff();
   else if(a==='padToLobby'){if(net.pad){netSend({t:'plob'});b.disabled=true;setText('#padOverTip','Back to the lobby…')}}
   else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
   else if(a==='versus'||a==='online'||a==='partyOnline'){mpKind='versus';menuBack='multi';openVersus()}   // online: everyone on their own screen

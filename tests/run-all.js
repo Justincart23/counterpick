@@ -38,7 +38,8 @@ const suite = [
   run('party.js'),   // 2v2 online: four screens, lobby and teams, team drafts, a full match, smooth views, a leaver, a rematch
   run('party.js', 90, 45),
   run('bigsolo.js'),
-  run('bigmulti.js'),   // Big Screen with friends: the first phone changes the game and starts it   // Big Screen solo: joining never starts the match; the phone's Start does
+  run('bigmulti.js'),
+  run('pairpad.js'),   // a phone paired to a computer drives its fighter: offline, and online against a friend's computer   // Big Screen with friends: the first phone changes the game and starts it   // Big Screen solo: joining never starts the match; the phone's Start does
   run('bigscreen.js'),   // Big Screen: the computer is the screen, phones are the controllers: lobby, at-once drafts, a full match, a leaver who rejoins, a late friend, Teams 2v2
   run('bigscreen.js', 90, 45),
   run('spawns.js'),   // every arena, every mode: nobody starts in a wall, over a pit, on top of someone, or falls out
