@@ -235,7 +235,7 @@ const DT = 1 / 60;
   while (H.game.state !== 'over' && frames < 60 * 60 * 12) {
     frames++;
     if (H.pickFor && H.pickMode === 'local' && !H.pickLock) { H.choose(H.hand[0], 0); hostDrafts++ }
-    if (G.pickFor && G.pickMode === 'remote' && !G.pickLock) { G.netChoose(1); guestDrafts++ }
+    if (G.pickFor && G.pickMode === 'remote' && !G.pickLock) { const h = G.hand || [], k = h.findIndex((c, i) => i >= 1 && c && !(FEATURES && FEATURE_DECK.includes(c.n))); G.netChoose(k >= 0 ? k : 1); guestDrafts++ }   // never a card the feature deck already gives (it would be merged away and look lost)
     if (FEATURES && H.game.state === 'ready') giveDecks();
     if (FEATURES && G.net.snap && H.game.state === 'play' && G.game.state === 'play' && G.game.mapIdx === H.game.mapIdx) {
       // host and guest agree on what matters: who is alive, health (within one snapshot of change), shield walls

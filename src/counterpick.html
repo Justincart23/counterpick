@@ -1857,7 +1857,40 @@ MAPS.push(
  // Foundry: a chandelier over the middle and a toppling tower each side (rigs, for four)
  {name:'Foundry',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[80,800,280,40],[1560,800,280,40],[120,600,220,38],[1580,600,220,38],[840,380,240,38]],
    rigs:[{t:'beam',x:700,y:560,w:520,h:34,ropes:[{ox:-220},{ox:220}]},{t:'stack',x:520,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80]]},{t:'stack',x:1400,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80]]}],
-   sp:[[220,760],[1700,760],[200,960],[1720,960]]});   // the floor spawns sit beside the pads, not on them
+   sp:[[220,760],[1700,760],[200,960],[1720,960]]},   // the floor spawns sit beside the pads, not on them
+ /* Arenas with rooms: one screen, but packed: storeys, half-open cells, tunnels, shafts and forts, so a fight moves
+   through places rather than across a few floating blocks. Each leans toward a different kind of build (never said:
+   players find out). They play in duels and in parties. Thin planks (40 or less) you jump up through; thicker slabs and
+   walls are solid, and walls are for gripping and wall-jumping */
+ // Tenement: a two-storey house of rooms in the middle, low walls to hop, a gap up through the floor (close range: body and block)
+ {name:'Tenement',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[560,640,40,260,1],[1320,640,40,260,1],[800,890,30,110,1],[1090,890,30,110,1],
+   [560,760,320,44],[980,760,380,44],[600,560,300,36],[1020,560,300,36],[945,620,30,140,1],[80,820,260,40],[1580,820,260,40],[200,640,200,38],[1520,640,200,38],[860,400,200,38]],
+   crates:[[680,940,60],[1180,940,60]],sp:[[180,960],[1740,960],[300,600],[1620,600]]},
+ // Longshot: long decks over a pit with almost no cover (long range: speed, Long Haul, rails)
+ {name:'Longshot',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,700,80],[1220,1000,700,80],[860,940,200,40],[120,820,620,40],[1180,820,620,40],[400,640,1120,40],[930,580,60,60],
+   [120,460,500,38],[1300,460,500,38],[760,300,400,38],[40,984,80,16,3],[1800,984,80,16,3]],sp:[[260,960],[1660,960],[220,780],[1700,780]]},
+ // Echo Hall: a low hall under ceiling slabs, walls hanging from them and hump walls on the floor (bounces and blasts)
+ {name:'Echo Hall',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,300,760,50],[1160,300,760,50],[700,350,40,160,1],[1180,350,40,160,1],[460,820,50,180,1],[1410,820,50,180,1],
+   [860,860,200,140],[180,700,240,38],[1500,700,240,38],[660,620,220,38],[1040,620,220,38],[300,500,220,38],[1400,500,220,38],[860,460,200,38]],
+   sp:[[150,960],[1770,960],[300,660],[1620,660]]},
+ // Shafts: two tall shafts you wall-jump up (or walk into from below), a block tower in the middle, pads to the high ledges (mobility)
+ {name:'Shafts',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[420,420,40,480,1],[580,420,40,480,1],[1300,420,40,480,1],[1460,420,40,480,1],[860,700,200,300],
+   [740,860,120,40],[1060,860,120,40],[640,560,140,38],[1140,560,140,38],[120,560,240,38],[1560,560,240,38],[820,420,280,38],[200,984,80,16,3],[1640,984,80,16,3]],
+   sp:[[100,960],[1820,960],[240,520],[1680,520]]},
+ // Catacombs: a broken stone floor over tunnels: fight above, ambush below, pop up through the gaps (lobs and close range)
+ {name:'Catacombs',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,820,520,60],[700,820,520,60],[1400,820,520,60],[300,950,60,50],[1560,950,60,50],
+   [200,660,240,38],[1480,660,240,38],[820,600,280,38],[480,480,200,38],[1240,480,200,38],[860,360,200,38],[570,984,80,16,3],[1270,984,80,16,3]],crates:[[880,760,60]],sp:[[120,780],[1800,780],[420,960],[1500,960]]},
+ // Bastions: two forts with crenellated decks and a crawl hole under each front wall; a mound and crates between (lobs and blocks)
+ {name:'Bastions',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[520,760,50,160,1],[1350,760,50,160,1],[100,760,420,40],[1400,760,420,40],[130,700,50,60],[330,700,50,60],
+   [1740,700,50,60],[1540,700,50,60],[100,520,200,40],[1620,520,200,40],[820,900,280,100],[880,720,160,38],[760,420,400,38]],crates:[[680,940,60],[1180,940,60]],
+   sp:[[260,960],[1660,960],[240,720],[1680,720]]},
+ // Switchback: a zig-zag of long planks stacked up the middle, side ledges and pads (vertical fights: arcs and homing)
+ {name:'Switchback',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[400,860,800,40],[720,720,800,40],[400,580,800,40],[720,440,800,40],[860,300,200,38],
+   [60,780,220,38],[1640,780,220,38],[80,560,200,38],[1640,560,200,38],[300,984,80,16,3],[1540,984,80,16,3]],crates:[[560,940,60],[1300,940,60]],
+   sp:[[160,960],[1760,960],[500,820],[1420,680]]},
+ // Hive: two rows of half-open cells, each walled on a different side, under a top bar (homing and blasts)
+ {name:'Hive',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[260,820,280,40],[820,820,280,40],[1380,820,280,40],[260,690,24,130,1],[1636,690,24,130,1],[820,690,24,130,1],[1076,690,24,130,1],
+   [260,560,280,40],[820,560,280,40],[1380,560,280,40],[516,430,24,130,1],[1380,430,24,130,1],[540,320,280,38],[1100,320,280,38]],sp:[[130,960],[1790,960],[400,780],[1520,780]]});
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -2302,7 +2335,7 @@ function newPoint(fresh){
   else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.party&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.party&&m.name===settings.bsMap);
   else if(game.party&&(players.length>2||game.screen))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
   else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].party&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&!MAPS[k].party&&k!==game.mapIdx));
-  else{const n=MAPS.filter(m=>!m.big).length;do{i=Math.floor(Math.random()*n)}while(i===game.mapIdx&&n>1)}   // big arenas sit at the end of MAPS
+  else{const pool=MAPS.map((m,k)=>k).filter(k=>(!MAPS[k].big||MAPS[k].duel)&&k!==game.mapIdx);i=pool.length?pick(pool):0}   // duels: the standard arenas and the room arenas
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -2928,12 +2961,12 @@ function coopState(v){game.round=v.r|0;game.rkind=v.rk||'';game.lives=v.l|0;game
   for(const a of v.h||[]){const p=players[a[0]];if(!p)continue;if(p!==players[net.me]||!p.shopDone)p.scrap=a[1];const lv=p.lvl;Object.assign(p,{lvl:a[2],xp:a[3],downT:a[5],reviveT:a[6],downX:a[7],downY:a[8]});if(p.lvl!==lv&&p.s)recompute(p)}
   for(const a of v.b||[]){const p=players[a[0]];if(!p)continue;p.bs=Object.assign(p.bs||{},{state:a[1],at:a[2],tx:a[3],ty:a[4],dir:a[5],lock:a[6]});p.stunT=a[7];p.mirror=!!a[8]}}
 const REVIVE_T=2,REVIVE_R=120,DOWN_T=[12,10,8];   // the revive window shrinks with each fall in a round
-function downTick(h){if(game.state!=='play')return;for(const p of heroes())if(p.outT>0)p.outT-=h;for(const p of heroes()){if(p.alive||!(p.downT>0)||p.left)continue;
+function downTick(h){if(game.state!=='play')return;for(const p of heroes()){if(p.outT>0)p.outT-=h;if(p.graceT>0)p.graceT-=h}for(const p of heroes()){if(p.alive||!(p.downT>0)||p.left)continue;
   const near=heroes().filter(q=>q!==p&&q.alive),mate=near.sort((a,b)=>Math.hypot(a.x-p.downX,a.y-p.downY)-Math.hypot(b.x-p.downX,b.y-p.downY))[0];p.downT-=h;
   if(mate&&Math.hypot(mate.x-p.downX,mate.y-p.downY)<REVIVE_R)p.reviveT=(p.reviveT||0)+h;else p.reviveT=Math.max(0,(p.reviveT||0)-h*.5);
   // a teammate stood in the circle long enough: back on their feet at half health. Nobody came in time: out until the round ends
   if(p.reviveT>=REVIVE_T){const spot=!solidBoxP(p.downX,p.downY-10,p.r,p.r)?[p.downX,p.downY-10]:spawnFor(p,p.id);
-    resetPlayer(p,spot);p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}
+    resetPlayer(p,spot);p.hp=p.s.maxHp*.5;p.downT=0;p.reviveT=0;p.graceT=1;ring(p.x,p.y,p.glow,90);burst(p.x,p.y,p.glow,20,500,5,.5,0,true);sfx('point')}
   else if(p.downT<=0){p.downT=0;p.reviveT=0;p.outT=1.6;burst(p.downX,p.downY,'#ff5a6a',16,300,4,.5,0,true);sfx('thud')}}}
 // a downed hero: a ghost where they fell, the time until they're back, and the revive ring filling while their partner is near
 function drawDowns(){if(!survOn())return;const now=performance.now()/1000;for(const p of heroes()){if(p.alive||p.left)continue;const x=p.downX,y=p.downY,r0=p.r||BASE_R;
@@ -3956,7 +3989,8 @@ const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
    already in the air, a shared explosion, a fall) while the point wraps up, so every point goes to Orange or Blue */
 const POINT_END=1.7;
 const pointDecided=()=>game.state==='pointEnd';
-function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided())return;amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;if(src&&src!==p)p.comboT=0;
+function damage(p,amt,src){if(!p.alive||amt<=0||pointDecided()||p.graceT>0)return;   // just revived: a second's grace
+  amt*=otMult();if(p.stunT>0)amt*=1.5;if(twistOn('glass'))amt*=1.5;const had=Math.max(0,p.hp);p.hp-=amt;p.hurtT=.12;if(src&&src!==p)p.comboT=0;
   if(game.mode==='survival'&&foes(src,p)&&p.team===1)survXp(src,Math.min(amt,had),p.hp<=0&&!(p.revives>0));   // overkill earns nothing
   if(src&&src!==p&&src.alive&&src.s.lifesteal)src.hp=Math.min(src.s.maxHp,src.hp+amt*src.s.lifesteal);
   if(p.hp<=0){if(p.revives>0){p.revives--;p.hp=p.s.maxHp*.35;ring(p.x,p.y,C.hot,120);burst(p.x,p.y,C.hot,24,500,6,.7,0,true);sfx('block')}else die(p)}}
@@ -3969,14 +4003,17 @@ function die(p){if(!p.alive||pointDecided()&&!survOn())return;p.alive=false;burs
     const sides=[...new Set(players.filter(q=>q.alive).map(q=>q.team))];
     if((game.state==='play'||game.state==='ready')&&sides.length<=1){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=sides.length?sides[0]:p.team}return}
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}}
-// your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
-const SELF_BLAST=.4;
+// your own blasts hurt you too: Limpet Mines in full, other explosive rounds 35% (at most a quarter of your health a blast;
+// Cluster Guard's bombs never do). It always shows: a red number and a flinch on you, so spamming point-blank has a price
+const SELF_BLAST=.35;
+function selfHitFx(p,n){if(!p||n<1)return;fxRec('O',[p.id,Math.round(n)]);const q=players.find(z=>z.id===p.id)||p;q.ouchAt=performance.now();
+  parts.push({text:'-'+Math.round(n),x:q.x,y:q.y-q.r-26,vx:0,vy:-90,grav:0,life:.75,max:.75,color:'#ff6b5a'});parts.push({ring:true,x:q.x,y:q.y,rad:q.r*1.8,life:.35,max:.35,color:'#ff6b5a'})}
 /* explosive rounds (Blast Cap, Lob Shell, Limpet Mines, Cluster bombs) are drawn to fit their blast, never past it, and
    always smaller than a Long Haul shockwave: only Long Haul gets the big boom */
 function explode(b,exclude){const R=b.explode,Rv=Math.min(88,R*.78);ring(b.x,b.y,b.glow,R);boomFx(b.x,b.y,Rv,b.glow,Math.min(1,R/100));flashFx(b.x,b.y,Rv,.22,b.glow);
   burst(b.x,b.y,b.glow,12,R*7,7,.45,300,true);burst(b.x,b.y,'#ffffff',6,R*4,5,.25,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive||(b.owner&&p!==b.owner&&p.team===b.owner.team))continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
-    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
+    p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){const own=p===b.owner,d=own&&!b.mines?Math.min(p.s.maxHp*.25,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f;if(own&&p.alive&&!pointDecided())selfHitFx(p,d*otMult());damage(p,d,b.owner)}}}
   for(const w of swings){const cx=w.x+w.w/2,cy=w.y+w.h/2,d=Math.hypot(cx-b.x,cy-b.y);if(d<R*1.6)pushSwing(w,Math.sign(cx-b.x||1)*700*(1-d/(R*1.6)))}
   blastRigs(b,R)}
 function splinter(b,base,fan){const o=b.owner;for(let i=0;i<b.split;i++){spawnBullet(o,b.x,b.y,base+(i-(b.split-1)/2)*fan+rand(-.08,.08),{plain:true,dmg:b.dmg*.45,r:3.5,life:.8,speed:950});bullets[bullets.length-1].shard=true}}
@@ -4519,6 +4556,9 @@ function drawFluff(){const now=performance.now(),dt=clamp((now-(fluffT||now))/10
 const fxRand=(()=>{const r=artRng(0x5eed);return(a,b)=>a+r()*(b-a)})();
 function goo(x,y,col,n,sp,up,size=4){if(RM)return;for(let i=0;i<n&&parts.length<800;i++){const a=-Math.PI/2+fxRand(-1.25,1.25)*(up?1:2.2),v=fxRand(.35,1)*sp;
   parts.push({goo:true,x:x+fxRand(-4,4),y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,grav:1500,life:fxRand(.35,.6),max:.6,size:fxRand(.55,1)*size,color:col})}}
+/* dust and grit kicked up by the fighter's feet (a skid, a wall slide): drawn-only, on the drawing's own dice */
+function dust(x,y,dir,n,up){if(RM)return;for(let i=0;i<n&&parts.length<800;i++){const l=fxRand(.25,.45);
+  parts.push({x:x+fxRand(-3,3),y:y+fxRand(-3,3),vx:dir*fxRand(60,200),vy:up?fxRand(-160,-60):fxRand(-140,-40),grav:up?300:500,life:l,max:l,size:fxRand(2,4),color:fxRand(0,1)<.5?'#e6dccb':'#cfd8e3'})}}
 function liveFx(){const now=performance.now();
   for(const p of players){const dt=clamp((now-(p.jt||now))/1000,0,.05);p.jt=now;
     if(p.ja==null){p.ja=0;p.jav=0;p.jl=0;p.jlv=0;p.jw=0;p.blinkAt=now+fxRand(1500,4000);p.wasG=p.grounded;p.wasHp=p.hp;p.lastVy=p.vy||0;p.lastVx=p.vx||0;p.gooT=0}
@@ -4528,18 +4568,23 @@ function liveFx(){const now=performance.now();
     // events: landing, jumping, a hard turn, a hit
     if(g&&!p.wasG&&p.lastVy>380){const k=Math.min(1,p.lastVy/1300);p.jav-=3+7*k;goo(p.x,p.y+R,p.color,3+Math.round(5*k),180+260*k,true,3+2*k)}
     if(!g&&p.wasG&&vy<-250){p.jav+=4;goo(p.x,p.y+R,p.color,3,160,true,3)}
-    if(g&&Math.sign(vx)!==Math.sign(p.lastVx)&&Math.abs(p.lastVx)>300)p.jlv+=-Math.sign(p.lastVx)*3;
-    if(p.hp<p.wasHp-1){const k=Math.min(1,(p.wasHp-p.hp)/60);p.jav+=fxRand(-1,1)*6*k-3*k;p.jlv+=fxRand(-1,1)*5*k;goo(p.x,p.y,p.color,4+Math.round(8*k),260+260*k,false,3+3*k)}
+    if(g&&Math.sign(vx)!==Math.sign(p.lastVx)&&Math.abs(p.lastVx)>300){p.jlv+=-Math.sign(p.lastVx)*3;dust(p.x+Math.sign(p.lastVx)*R*.4,p.y+R,-Math.sign(p.lastVx),5)}   // a skid: dust kicks up ahead
+    // a flip: a fresh upward kick in mid-air (double jump, wall jump, bounce pad) somersaults the body once
+    if(!g&&!p.wasG&&vy<-560&&p.lastVy>-200&&!RM){p.flipAt=now;p.flipDir=p.jw>.4?-(p.wallDir||1):(Math.sign(vx)||(Math.cos(p.aim)>=0?1:-1))}
+    // sliding down a wall: grit scrapes off where you grip it
+    if(!g&&p.jw>.5&&vy>15&&p.wallDir){p.scrT=(p.scrT||0)-dt;if(p.scrT<=0){p.scrT=fxRand(.04,.08);dust(p.x+p.wallDir*R,p.y+R*.4,-p.wallDir,1,true)}}
+    if(p.hp<p.wasHp-1){const k=Math.min(1,(p.wasHp-p.hp)/60);p.flinchAt=now;p.jav+=fxRand(-1,1)*6*k-3*k;p.jlv+=fxRand(-1,1)*5*k;goo(p.x,p.y,p.color,4+Math.round(8*k),260+260*k,false,3+3*k)}
     if(g&&Math.abs(vx)>260){p.gooT-=dt;if(p.gooT<=0){p.gooT=fxRand(.1,.2);goo(p.x-Math.sign(vx)*R*.5,p.y+R,p.color,1,90,true,2.5)}}
     // springs: under-damped, so they overshoot and settle like jelly
-    const breath=g&&Math.abs(vx)<30?.03*Math.sin(now/380+p.id):0,ta=g?breath:clamp(-vy/3600,-.1,.2),tl=clamp(vx/2200,-.22,.22)*(g?1:.5);
+    const breath=g&&Math.abs(vx)<30?.03*Math.sin(now/380+p.id):0,ta=g?breath-.07*clamp((Math.abs(vx)-300)/400,0,1):clamp(-vy/3600,-.1,.2),tl=clamp(vx/2200,-.22,.22)*(g?1:.5);
     p.jav+=(-260*(p.ja-ta)-11*p.jav)*dt;p.ja=clamp(p.ja+p.jav*dt,-.42,.42);
     p.jlv+=(-200*(p.jl-tl)-10*p.jlv)*dt;p.jl=clamp(p.jl+p.jlv*dt,-.45,.45);
     p.jw+=((p.wallDir&&!g?1:0)-p.jw)*Math.min(1,dt*14);
     if(now>p.blinkAt){p.blinkAt=now+fxRand(2200,5200);p.blinkT=now+120}
     p.wasG=g;p.wasHp=p.hp;p.lastVy=vy;p.lastVx=vx}}
 function noodle(x0,y0,x1,y1,sag,w,color){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+sag,x1,y1);ctx.stroke()}
-function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math.sin(p.aim),face=ax>=0?1:-1;ctx.save();ctx.translate(p.x,p.y);
+function drawPlayer(p){if(!p.alive)return;if(p.graceT>0&&Math.floor(performance.now()/90)%2)return;   // blinking while revive grace lasts
+  const R=p.r,ax=Math.cos(p.aim),ay=Math.sin(p.aim),face=ax>=0?1:-1;ctx.save();ctx.translate(p.x,p.y);
   const lw=Math.max(4,R*.36),sk=skinOf(p.color);
   if(p.grounded){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(0,R*1.2,R*.95,R*.17,0,0,TAU);ctx.fill()}
   // legs: stubby, a shade darker than the body
@@ -4572,8 +4617,9 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   // body
   // body: squash and stretch from the jelly springs, a lean from the feet, and flattened against a wall it clings to
   const ja=p.ja||0,jw=p.jw||0,sy=p.squash*(1+ja),sx=(1/Math.sqrt(p.squash))*(1-ja*.7)*(1-.2*jw);
-  ctx.save();ctx.translate(0,R);ctx.rotate(lean);ctx.translate((p.wallDir||0)*jw*R*.2,-R);ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
-  if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
+  const fl=p.flipAt?(performance.now()-p.flipAt)/340:1,flip=fl<1?(p.flipDir||1)*TAU*(1-Math.pow(1-fl,2.2)):0;   // the somersault, quick out of the kick, easing in
+  ctx.save();ctx.translate(0,R);ctx.rotate(lean);ctx.translate((p.wallDir||0)*jw*R*.2,-R);if(flip)ctx.rotate(flip);ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
+  const ouch=p.ouchAt&&performance.now()-p.ouchAt<220;if(ouch)ctx.fillStyle='#ff6b5a';else if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
   ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
   ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
   ctx.fillStyle='rgba(0,0,0,.08)';ctx.beginPath();ctx.moveTo(R,R*.1);ctx.lineTo(-R*.3,R);ctx.lineTo(R,R);ctx.fill();ctx.restore();
@@ -4582,7 +4628,9 @@ function drawPlayer(p){if(!p.alive)return;const R=p.r,ax=Math.cos(p.aim),ay=Math
   // face: two tall oval eyes looking along the aim, no mouth; they squeeze shut when hit, and the brows knit at low health
   const ex=ax*R*.34,ey=ay*R*.2-R*.12;ctx.fillStyle='#16121c';
   const hurt=p.hurtT>0,low=p.hp<p.s.maxHp*.35;
-  const shut=hurt||performance.now()<(p.blinkT||0);for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,shut?R*.04:R*.2,0,0,TAU);ctx.fill()}
+  const sq=p.flinchAt&&performance.now()-p.flinchAt<260,shut=!sq&&(hurt||performance.now()<(p.blinkT||0));
+  if(sq){ctx.strokeStyle='#16121c';ctx.lineWidth=Math.max(2.5,R*.09);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const s of[-1,1]){const cx=ex+s*R*.24;ctx.moveTo(cx-s*R*.1,ey-R*.13);ctx.lineTo(cx+s*R*.06,ey);ctx.lineTo(cx-s*R*.1,ey+R*.13)}ctx.stroke()}   // hit: eyes squeeze into > <
+  else for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(ex+s*R*.24,ey,R*.1,shut?R*.04:R*.2,0,0,TAU);ctx.fill()}
   if(low&&!hurt){ctx.strokeStyle='#16121c';ctx.lineWidth=Math.max(2,R*.08);ctx.lineCap='round';ctx.beginPath();for(const s of[-1,1]){ctx.moveTo(ex+s*R*.14,ey-R*.3);ctx.lineTo(ex+s*R*.36,ey-R*.38)}ctx.stroke()}
   if(p.cos&&p.cos.hat)drawHat(ctx,p.cos.hat,R,p.glow,ex,ey);
   ctx.restore();
@@ -4986,7 +5034,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-blastsize';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-rooms';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5011,7 +5059,7 @@ let bulletSeq=0;
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000,r4=v=>Math.round(v*10000)/10000;
 function fxRec(n,a){if(!net.noRec&&hostingNet()&&net.fx.length<300)net.fx.push([n,a.map(v=>typeof v==='number'?r1(v):v)])}
 function personal(p,k){if(p.ctrl==='cpu')return;if(p.ctrl==='net'){fxRec('a',[k,p.id]);return}sfx(k,false,true)}
-const FXR={X:boomFx,Q:(x,y,id)=>stealFx(x,y,players.find(p=>p.id===id)),J:(x,y,c)=>padHit(x,y,c),D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:(k,pid)=>{if(pid==null||pid===net.me)sfx(k,false,true)},F:()=>{if(!RM)game.flash=.14}};
+const FXR={X:boomFx,O:(id,n)=>selfHitFx(players.find(p=>p.id===id),n),Q:(x,y,id)=>stealFx(x,y,players.find(p=>p.id===id)),J:(x,y,c)=>padHit(x,y,c),D:(...a)=>dropFx(...a),T:(...a)=>blinkFx(...a),E:()=>{game.edgeFlash=.3},b:burst,z:sparks,P:(x,y)=>popText(x,y),r:ring,c:cloud,s:splat,k:addShake,f:flashFx,a:(k,pid)=>{if(pid==null||pid===net.me)sfx(k,false,true)},F:()=>{if(!RM)game.flash=.14}};
 /* the fast lane: snapshots, the visitor's inputs and pings ride a second WebRTC data channel that never retransmits and
    never waits for order. PeerJS's own channel is fully reliable, so ONE lost packet held every later snapshot until it was
    resent (a freeze, then a burst): on real Wi-Fi that was the visitor's lag and glitching. Every fast message is
