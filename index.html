@@ -3978,7 +3978,9 @@ function die(p){if(!p.alive||pointDecided()&&!survOn())return;p.alive=false;burs
   if(game.state==='play'||game.state==='ready'){game.state='pointEnd';game.endT=POINT_END;game.slowT=.7;game.lastWinner=other(p).id}}
 // your own blasts hurt you too: Limpet Mines in full, other explosive rounds a little (40%, at most 30 a blast; Cluster Guard's bombs never do)
 const SELF_BLAST=.4;
-function explode(b,exclude){const R=b.explode;ring(b.x,b.y,b.glow,R);boomFx(b.x,b.y,R,b.glow,R/80);flashFx(b.x,b.y,R*1.1,.25,b.glow);
+/* explosive rounds (Blast Cap, Lob Shell, Limpet Mines, Cluster bombs) are drawn to fit their blast, never past it, and
+   always smaller than a Long Haul shockwave: only Long Haul gets the big boom */
+function explode(b,exclude){const R=b.explode,Rv=Math.min(88,R*.78);ring(b.x,b.y,b.glow,R);boomFx(b.x,b.y,Rv,b.glow,Math.min(1,R/100));flashFx(b.x,b.y,Rv,.22,b.glow);
   burst(b.x,b.y,b.glow,12,R*7,7,.45,300,true);burst(b.x,b.y,'#ffffff',6,R*4,5,.25,0,true);splat(b.x,b.y,b.color,12,R*.5,10);addShake(8);sfx('boom');
   for(const p of players){if(!p.alive||(b.owner&&p!==b.owner&&p.team===b.owner.team))continue;const d=Math.hypot(p.x-b.x,p.y-b.y);if(d<R+p.r&&losClear(b.x,b.y,p.x,p.y)){const f=1-d/(R+p.r)*.5,a=Math.atan2(p.y-b.y,p.x-b.x);
     p.vx+=Math.cos(a)*800*f;p.vy+=Math.sin(a)*700*f-200*f;p.ground=null;p.kT=.35;if(p!==exclude&&!(p===b.owner&&b.bomb)){damage(p,p===b.owner&&!b.mines?Math.min(30,b.dmg*.55*f*SELF_BLAST):b.dmg*.55*f,b.owner)}}}
@@ -4991,7 +4993,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-painted';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-blastsize';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
