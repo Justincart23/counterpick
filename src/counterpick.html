@@ -1529,6 +1529,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <h2 class="pad-h" id="padLobbyT">Connecting…</h2>
     <p class="pad-p" id="padLobbyS">Watch the big screen. The host starts the game.</p>
     <p class="pad-plus" id="padPlus" hidden><b>+</b> Hosted with Flick Plus</p>
+    <button type="button" class="btn primary pad-again" data-act="padGo" id="padGo" hidden>Start</button>
     <div class="party-acts" id="padTeams" hidden><button type="button" class="btn" data-act="padTeam" data-pteam="0">Team Orange</button><button type="button" class="btn" data-act="padTeam" data-pteam="1">Team Blue</button></div>
     <div class="pad-hold" aria-hidden="true"><canvas id="padLook" width="240" height="160"></canvas><div class="tut-pad"><span class="tp-l"><i></i><em>Move<br>flick up: jump</em></span><span class="tp-r"><i></i><em>Tap: fire<br>drag: aim</em></span><span class="tp-b"><b>Jump</b><b class="blk">Block</b></span></div></div>
     <p class="pad-tip">Hold your phone sideways and watch your fighter on the big screen.</p>
@@ -4992,7 +4993,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-booms';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-solostart';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5200,6 +5201,7 @@ function hostNet(m,pr){
   if(m.t==='team'){if(net.screen)bsTeam(pr,m.k|0);else partyTeam(pr,m.k|0);return}
   if(m.t==='c'){if(!pr.pad)return;pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!Number.isFinite(m.a))m.a=0;if(!pr.padIn||!(m.s<=pr.padIn.s))pr.padIn=m;return}   // unordered: an older packet is ignored
   if(m.t==='ppick'){const p=players.find(q=>q.peer===pr);if(p&&game.bsSurv){if(p.rpick)coopChoose(m.i|0,p);return}if(p&&spick)screenChoose(p.id,m.i|0);return}
+  if(m.t==='pgo'){if(net.solo&&net.screen&&net.lobbyOpen&&pr.pad)bsStart();return}   // solo: the phone starts the match when you're ready (never on its own)
   if(m.t==='pagain'){if(net.solo&&net.screen&&game.state==='over')requestRematch();return}   // solo: the phone starts the rematch
   if(m.t==='psop'){const p=players.find(q=>q.peer===pr);if(p&&game.bsSurv&&p.team===0)coopShopOp(m,p);return}
   if(m.t==='tchoose'){const T=tpick,i=m.i|0,g=i>=3?1:0;if(T&&players[T.ids[g]]&&players[T.ids[g]].peer===pr)teamChoose(g,i);return}
@@ -5598,9 +5600,9 @@ function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)r
   {const l=$('#bsSeatsL');if(l)l.textContent=portal.plus?'Players · up to 4 · Flick Plus':`Players · up to ${bsCap()}`}
   const sv=bsSurvMode(),ok=hum>=1&&(sv||hum+bots>=2),st=$('[data-act=bsStart]');if(st)st.disabled=!ok;
   {const lb=$('#bigLobby');if(lb&&lb.classList)lb.classList.toggle('surv',sv);const sn=$('#bsSurvNote');if(sn)sn.hidden=!sv}
-  bsMsg(msg||(net.bsNoteT>performance.now()?net.bsNote:!net.bsOpen?'Opening a room…':net.soloT&&hum?'Controller connected. Get ready…':net.solo&&!hum?'Scan the code with your phone camera: your phone becomes the controller and the game starts.':!hum?`Scan the code with a phone camera to join. 1 to ${bsCap()} players.`:sv?`${hum} player${hum>1?'s':''} in. Start the run when you're ready${hum<bsCap()?'; friends can still join between rounds':''}.`:!ok?'Playing solo? Add a CPU player in the settings, or wait for a friend.':hum+bots<4?`${hum} player${hum>1?'s':''}${bots?` and ${bots} CPU${bots>1?'s':''}`:''} in. Start when you're ready${hum<bsCap()?'; friends can still join mid-match':''}.`:'Everyone is in. Press Start!'));
+  bsMsg(msg||(net.bsNoteT>performance.now()?net.bsNote:!net.bsOpen?'Opening a room…':net.solo&&hum?'Controller connected. Press Start on your phone when you\'re ready.':net.solo&&!hum?'Scan the code with your phone camera: your phone becomes the controller.':!hum?`Scan the code with a phone camera to join. 1 to ${bsCap()} players.`:sv?`${hum} player${hum>1?'s':''} in. Start the run when you're ready${hum<bsCap()?'; friends can still join between rounds':''}.`:!ok?'Playing solo? Add a CPU player in the settings, or wait for a friend.':hum+bots<4?`${hum} player${hum>1?'s':''}${bots?` and ${bots} CPU${bots>1?'s':''}`:''} in. Start when you're ready${hum<bsCap()?'; friends can still join mid-match':''}.`:'Everyone is in. Press Start!'));
   const key=JSON.stringify([list.map(e=>e&&[e.n,e.peer.joinN,e.team]),settings.bsMode,portal.plus]);
-  if(key!==net.bsKey){net.bsKey=key;list.forEach((e,k)=>{if(e)linkSend(e.peer,{t:'plobby',seat:k,col:bsSeatCol(k,teams)[0],team:teams?e.team:-1,teams:teams?1:0,n:hum,sv:sv?1:0,hp:portal.plus?1:0})})}}
+  if(key!==net.bsKey){net.bsKey=key;list.forEach((e,k)=>{if(e)linkSend(e.peer,{t:'plobby',seat:k,col:bsSeatCol(k,teams)[0],team:teams?e.team:-1,teams:teams?1:0,n:hum,sv:sv?1:0,so:net.solo?1:0,hp:portal.plus?1:0})})}}
 function bsTeam(pr,t){if(!net.lobbyOpen||!bsTeams()||(t!==0&&t!==1)||pr.team===t)return;if(net.peers.filter(p=>p.pad&&p.open&&p.name&&p.team===t).length>=2)return;pr.team=t;bsLobbyChanged()}
 function bsStart(){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;const list=bsSeats(true);if(!list.some(e=>e.peer)||list.length<(bsSurvMode()?1:2))return;
   for(const pr of net.peers.slice())if(!list.some(e=>e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1,started:1});dropPeer(pr)}
@@ -5617,7 +5619,6 @@ function bsToLobby(msg){if(net.role!=='host'||!net.screen)return;net.lobbyOpen=t
 // cards come along), or a new fighter of its own (in from the next point), or else a seat someone left
 function bsHello(pr,m){pr.pad=true;pr.joinN=++bsJoinN;pr.tok=String(m.tok||'').replace(/[^a-z0-9]/gi,'').slice(0,24);pr.padIn=null;pr.sb=Math.max(0,m.sb|0);
   if(net.lobbyOpen){if(bsHumans(pr)>=bsCap()){bsCapFull(pr);return}if(!bsSeats(false).some(e=>e&&e.peer===pr)){linkSend(pr,{t:'full',party:1,screen:1});dropPeer(pr);return}
-    if(net.solo&&!net.soloT)net.soloT=setTimeout(()=>{net.soloT=0;if(net.solo&&net.lobbyOpen)bsStart();bsLobbyChanged()},2600);   // solo: no walking back to the computer to press Start
     bsLobbyChanged();return}
   if(game.bsSurv){bsSurvHello(pr);return}
   if(!(pr.tok&&players.some(p=>p.left&&p.padTok===pr.tok))&&bsHumans(pr)>=bsCap()){bsCapFull(pr,1);return}   // a phone coming back to its own seat always gets it
@@ -5804,7 +5805,8 @@ function padWake(on){try{if(!on){if(ctl.wake&&ctl.wake.release)ctl.wake.release(
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctl.on)padWake(true)});
 function padNet(m){
   if(m.t==='plobby'){padTint(m.col);setText('#padName',myName||'You');setText('#padLobbyT',m.late?"You're in!":`You're in! Player ${(m.seat|0)+1}`);ctl.shop=null;
-    setText('#padLobbyS',m.late?'The run is on: you join at the start of the next round. Watch the big screen.':m.sv?'Co-op Survival: you and your friends against waves and bosses. Watch the big screen; the host starts the run.':m.teams?'Pick your team, then watch the big screen. The host starts the game.':'Watch the big screen. The host starts the game.');
+    setText('#padLobbyS',m.late?'The run is on: you join at the start of the next round. Watch the big screen.':m.sv?'Co-op Survival: you and your friends against waves and bosses. Watch the big screen; the host starts the run.':m.teams?'Pick your team, then watch the big screen. The host starts the game.':m.so?'Get comfy, then press Start. The match plays on the big screen.':'Watch the big screen. The host starts the game.');
+    {const g=$('#padGo');if(g){g.hidden=!(m.so&&!m.late);g.disabled=false;g.textContent='Start'}}
     {const hp=$('#padPlus');if(hp)hp.hidden=!m.hp}$('#padTeams').hidden=!m.teams;document.querySelectorAll('[data-pteam]').forEach(b=>b.classList.toggle('primary',+b.dataset.pteam===m.team));
     ctl.hand=null;padView('lobby');return true}
   if(m.t==='pstart'){ctl.solo=!!m.so;ctl.sv=!!m.sv;if(!m.sv)ctl.shop=null;ctl.me=m.me|0;ctl.team=m.team|0;ctl.sides=Array.isArray(m.sides)?m.sides.slice(0,4).map(s=>({n:cleanName(s&&s.n)||'?',c:String(s&&s.c||'#888').slice(0,9)})):[];ctl.tg=m.tg|0||5;
@@ -6091,6 +6093,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='bsCancel')closeBigScreen();
   else if(a==='bsLobby')bsToLobby();
   else if(a==='padTeam'){if(net.pad)netSend({t:'team',k:+b.dataset.pteam})}
+  else if(a==='padGo'){if(net.pad){netSend({t:'pgo'});b.disabled=true;b.textContent='Starting…'}}
   else if(a==='padAgain'){if(net.pad){netSend({t:'pagain'});b.disabled=true;setText('#padOverTip','Starting…')}}
   else if(a==='padLeave'){leaveOnline(true);padClose();toMenu()}
   else if(a==='versus'||a==='online'||a==='coop'||a==='partyOnline'){mpKind=a==='coop'?'coop':'versus';mpSub(ov)}
