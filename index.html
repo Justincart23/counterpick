@@ -3855,38 +3855,29 @@ function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push(
 const FX_IMG={};function fxImg(k){let im=FX_IMG[k];if(!im){if(typeof Image==='undefined')return null;im=FX_IMG[k]=new Image();im.decoding='async';im.src='fx/'+k+'.webp'}return im.complete&&im.naturalWidth?im:null}
 function warmFx(){for(const k of['explosion','smoke','scorch','booster'])fxImg(k)}
 let scorchAt=0;
-/* soft round sprites, one per colour, drawn once: every puff of fire and smoke is one of these, scaled */
-const BLOB={};function softBlob(c){let b=BLOB[c];if(b!==undefined)return b;b=null;try{const cv=document.createElement('canvas');cv.width=cv.height=64;const g=cv.getContext('2d');if(g&&g.createRadialGradient){const gr=g.createRadialGradient(32,32,0,32,32,32),
-  h=c.replace('#',''),n=parseInt(h.length===3?h.split('').map(z=>z+z).join(''):h,16),rgb=((n>>16)&255)+','+((n>>8)&255)+','+(n&255);gr.addColorStop(0,'rgba('+rgb+',1)');gr.addColorStop(.4,'rgba('+rgb+',.85)');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(0,0,64,64);b=cv}}catch(e){b=null}BLOB[c]=b;return b}
-/* a fire puff cools as it ages: white hot, yellow, orange, red, then it's gone (the smoke takes over) */
-const HEAT=['#ffffff','#fff3b8','#ffd25a','#ff9a32','#f0562a','#a8301e'];
 const easeOut3=t=>1-Math.pow(1-t,3);
-/* one fireball: a cluster of puffs flung out that slow, swell, rise and cool; a few in the shooter's colour */
-function firePuffs(x,y,R,n,tint,col,wait,sp=1){for(let i=0;i<n;i++){const a=Math.random()*TAU,v=rand(.5,1.3)*R*3.4*sp,l=rand(.42,.78);
-  parts.push({fire:true,x:x+Math.cos(a)*R*.08,y:y+Math.sin(a)*R*.08,vx:Math.cos(a)*v,vy:Math.sin(a)*v-R*.6,drag:7,grav:-90,life:l,max:l,s0:R*rand(.22,.34),s1:R*rand(.55,.9),wait})}
-  for(let i=0;i<tint;i++){const a=Math.random()*TAU,v=rand(.6,1.2)*R*3*sp,l=rand(.3,.5);parts.push({fire:true,tint:col,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,drag:7,grav:-60,life:l,max:l,s0:R*.3,s1:R*rand(.6,.8),wait})}}
-/* explosions you can feel, and that move: a shockwave rips out, a fireball of puffs swells and cools while it rises,
-   embers fly and flicker, spinning chunks and a dust skirt along the floor, then smoke billows up after it. A scorch is
-   left on the arena for the rest of the round, with a quick zoom punch and a warm flash. Everything is capped and thins out
-   on a slow device (fxLow), so a storm of blasts stays smooth */
-function boomFx(x,y,R,color,pow){fxRec('X',[x,y,R,color,pow]);pow=clamp(pow||1,.2,2.5);let imgs=0,fires=0;for(const q of parts){if(q.img)imgs++;else if(q.fire||q.smk)fires++}
-  const L=RM?0:fxLow,room=parts.length<fxCap()-60,col=color||'#ffb070';
-  if(room&&fires<(L>=2?36:L?80:160)){const k=L>=2?.35:L?.6:1;
-    parts.push({shock:true,x,y,rad:R*(1.5+.15*pow),life:.34,max:.34,color:col,vx:0,vy:0,grav:0});   // the shockwave
-    firePuffs(x,y,R,Math.round((RM?5:9+pow*2)*k),Math.max(1,Math.round(3*k)),col,0);
-    if(!L&&!RM&&pow>=1.15)for(let i=0;i<2;i++){const a=Math.random()*TAU,d=R*rand(.45,.75);firePuffs(x+Math.cos(a)*d,y+Math.sin(a)*d,R*.5,3,1,col,.06+.07*i,.7)}   // big blasts pop again a beat later
-    const ns=RM?2:L>=2?0:L?3:5+Math.round(pow);for(let i=0;i<ns;i++){const a=Math.random()*TAU,d=rand(0,R*.4),l=rand(1.1,1.9);   // smoke rolls up as the fire dies
-      parts.push({smk:true,x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:Math.cos(a)*rand(30,90),vy:rand(-110,-50),drag:1.6,grav:-30,life:l,max:l,s0:R*.35,s1:R*rand(.9,1.3),wait:rand(.1,.22),shade:Math.random()<.5?'#2c2633':'#4a4250'})}
-    const ne=RM?0:Math.round((8+4*pow)*k);for(let i=0;i<ne;i++){const a=Math.random()*TAU,v=rand(260,720)*Math.sqrt(pow),l=rand(.5,1.05);   // embers
-      parts.push({ember:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,drag:1.8,grav:650,life:l,max:l,seed:Math.random()*99,color:Math.random()<.35?col:'#ffc45a'})}}
-  if(imgs<(L>=2?4:L?10:24)&&room){const l=.3+.05*pow;parts.push({img:'explosion',x,y,vx:0,vy:0,grav:0,life:l,max:l,s0:R*.5,s1:R*1.7,rot:rand(0,TAU),spin:rand(-1.2,1.2),alpha:.75,pop:true})}   // the painted core, under the puffs
+/* the painted blast, alive: it punches out past full size, settles with a wobble and a squash, and spins down as it fades */
+function blastImg(x,y,R,s1,l,wait,hot){parts.push({img:'explosion',kick:true,x,y,vx:0,vy:0,grav:0,life:l,max:l,s0:R*.35,s1,rot:rand(0,TAU),spin:rand(1.6,2.6)*(Math.random()<.5?-1:1),alpha:1,pop:true,wait,hot,wf:rand(26,34)})}
+/* explosions you can feel, and that move: the painted fireball punches out with a white-hot flash and a crisp shockwave,
+   smaller blasts roll off it a beat later, embers streak and flicker, chunks tumble off the arena, dust skids along the
+   floor and the painted smoke drifts up. A scorch stays on the arena for the round, with a quick zoom punch and a warm
+   flash. Everything is capped and thins out on a slow device (fxLow), so a storm of blasts stays smooth */
+function boomFx(x,y,R,color,pow){fxRec('X',[x,y,R,color,pow]);pow=clamp(pow||1,.2,2.5);let imgs=0;for(const q of parts)if(q.img)imgs++;
+  const L=RM?0:fxLow,room=parts.length<fxCap()-50,col=color||'#ffb070';
+  if(room)parts.push({shock:true,x,y,rad:R*(1.45+.15*pow),life:.3,max:.3,color:col,vx:0,vy:0,grav:0});   // the shockwave
+  if(imgs<(L>=2?6:L?14:36)&&room){
+    blastImg(x,y,R,R*2.3,.45+.08*pow,0,true);   // the main blast, with its hot flash
+    const nsub=RM||L>=2?0:L?1:pow>=1.15?3:2;for(let i=0;i<nsub;i++){const a=Math.random()*TAU,d=R*rand(.4,.7);blastImg(x+Math.cos(a)*d,y+Math.sin(a)*d-R*.1,R*.5,R*rand(.9,1.25),rand(.28,.36),.05+.06*i,false)}   // aftershocks roll off it
+    const n=RM||L>=2?0:L?1:2+Math.round(pow);for(let i=0;i<n;i++){const a=Math.random()*TAU,d=rand(0,R*.35),l=rand(.9,1.5);parts.push({img:'smoke',x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:Math.cos(a)*rand(20,60),vy:rand(-70,-30),grav:-20,life:l,max:l,s0:R*.5,s1:R*1.4,rot:rand(0,TAU),spin:rand(-.6,.6),alpha:.5,wait:.08})}}
+  if(room&&!RM){const ne=Math.round((8+4*pow)*(L>=2?.3:L?.6:1));for(let i=0;i<ne;i++){const a=Math.random()*TAU,v=rand(260,720)*Math.sqrt(pow),l=rand(.45,.95);   // embers
+    parts.push({ember:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,drag:1.8,grav:650,life:l,max:l,seed:Math.random()*99,color:Math.random()<.35?col:'#ffc45a'})}}
   if(game.map){let chunks=0,skirt=false;const hit=[];for(const r of game.map.rects){if(r[4]===3)continue;const cx=clamp(x,r[0],r[0]+r[2]),cy=clamp(y,r[1],r[1]+r[3]),d=Math.hypot(cx-x,cy-y);
       if(d<R*.9){hit.push(r);for(let i=0;i<(RM||fxLow?2:5)&&chunks<(fxLow?6:14)&&parts.length<fxCap()-10;i++,chunks++){const a=Math.atan2(cy-y,cx-x)+Math.PI+rand(-1,1),v=rand(200,520)*Math.min(1.6,pow),z=rand(3,8);
         parts.push({chunk:true,x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-200,grav:1500,life:rand(.55,.95),max:.95,size:z,rot:rand(0,TAU),spin:rand(-14,14),color:Math.random()<.5?'#d9b27c':'#9c7448'})}}
       if(d<R*1.8&&!RM&&!fxLow){const x0=Math.max(r[0],x-R),x1=Math.min(r[0]+r[2],x+R);if(x1>x0)for(let i=0;i<4&&parts.length<790;i++)parts.push({x:rand(x0,x1),y:r[1]+r[3],vx:rand(-10,10),vy:rand(10,60),grav:260,life:rand(.8,1.4),max:1.4,size:rand(2,4),color:'#e8cfa4'})}
       // a blast just above a floor kicks a skirt of dust out along it, both ways
-      if(!skirt&&!L&&room&&x>r[0]&&x<r[0]+r[2]&&r[1]>=y-4&&r[1]-y<R*.9){skirt=true;const gy=r[1]-4;for(let i=0;i<6;i++){const sd=i%2?1:-1,l=rand(.55,.9);
-        parts.push({smk:true,dust:true,x:x+sd*rand(0,R*.2),y:gy,vx:sd*rand(180,420)*Math.min(1.5,pow),vy:rand(-40,-10),drag:3.2,grav:-20,life:l,max:l,s0:R*.18,s1:R*rand(.45,.7),wait:0,shade:'#d8c4a4'})}}}
+      if(!skirt&&!L&&room&&x>r[0]&&x<r[0]+r[2]&&r[1]>=y-4&&r[1]-y<R*.9){skirt=true;const gy=r[1]-2;for(let i=0;i<12;i++){const sd=i%2?1:-1,l=rand(.35,.7);
+        parts.push({x:x+sd*rand(0,R*.25),y:gy-rand(0,5),vx:sd*rand(220,560)*Math.min(1.5,pow),vy:rand(-90,-20),drag:3,grav:500,life:l,max:l,size:rand(2,4),color:Math.random()<.5?'#e8cfa4':'#cdb08a'})}}}
     const im=fxImg('scorch'),now=performance.now();if(im&&hit.length&&now-scorchAt>(fxLow?400:120)){scorchAt=now;const S=R*1.5;dec.save();dec.beginPath();for(const r of hit)dec.rect(r[0]+2,r[1]+2,r[2]-4,r[3]-4);dec.clip();
       dec.globalAlpha=.6;dec.translate(x,y);dec.rotate(rand(0,TAU));dec.drawImage(im,-S/2,-S/2,S,S);dec.restore()}}
   game.shake=Math.min(28,game.shake+(3+4*pow)*(RM?.3:1));if(!RM&&!fxLow){game.punch=Math.max(game.punch||0,.022*pow);game.punchX=x;game.punchY=y;game.boomFlash=Math.max(game.boomFlash||0,.06*pow)}}
@@ -4762,8 +4753,6 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
   drawPadGlow();drawRides();drawRigs();
   for(const q of parts)if(q.blob){ctx.globalAlpha=clamp(q.life/q.max,0,1)*.7;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(1.3-.3*q.life/q.max),0,TAU);ctx.fill()}
-  for(const q of parts)if(q.smk&&!(q.wait>0)){const a=clamp(q.life/q.max,0,1),t=1-a,im=softBlob(q.shade);if(!im)continue;const S=(q.s0+(q.s1-q.s0)*easeOut3(t))*2.2;   // smoke and dust: fade in, swell, thin out
-    ctx.globalAlpha=(q.dust?.55:.5)*Math.min(1,t/.15)*a;ctx.drawImage(im,q.x-S/2,q.y-S/2,S,S)}
   ctx.globalAlpha=1;
   for(const w of shields){const a=Math.min(1,w.t/.4),col=w.owner.glow;ctx.save();ctx.lineCap='round';
     ctx.globalAlpha=.25*a;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(w.x1,w.y1);ctx.lineTo(w.x2,w.y2);ctx.stroke();
@@ -4810,11 +4799,8 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
   // a shot above the top edge: a little arrow on the edge tracks it, so a lob is never out of mind
   for(const b of bullets){if(b.y>=-b.r||b.stuck)continue;const k=clamp(1+b.y/700,.25,1);ctx.globalAlpha=.85*k;ctx.fillStyle=b.color||'#ffffff';
     const x=clamp(b.x,FRAME+8,W-FRAME-8),y=Math.max(FRAME,cam.y)+5,s=5+4*k;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s,y+s*1.4);ctx.lineTo(x+s,y+s*1.4);ctx.closePath();ctx.fill()}
-  for(const q of parts){if(q.blob||q.smk||q.chunk||q.wait>0)continue;const a=clamp(q.life/q.max,0,1);
-    if(q.fire){const t=1-a,S=(q.s0+(q.s1-q.s0)*easeOut3(t))*2.1,im=softBlob(q.tint&&t<.6?q.tint:HEAT[Math.min(5,Math.floor(Math.pow(t,.6)*6))]);if(!im)continue;   // fire cools from white to deep red as it swells
-      ctx.globalAlpha=Math.min(1,a*1.8)*(t<.12?.75:.5)*(q.tint?.85:1);ctx.drawImage(im,q.x-S/2,q.y-S/2,S,S);continue}
+  for(const q of parts){if(q.blob||q.chunk||q.wait>0)continue;const a=clamp(q.life/q.max,0,1);
     if(q.shock){const t=1-a,e=1-Math.pow(1-t,4),r=q.rad*(.12+.88*e);   // the shockwave: a fast hot disc, then a ring that thins as it flies out
-      if(t<.35){ctx.globalAlpha=(1-t/.35)*.35;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,r,0,TAU);ctx.fill()}
       ctx.globalAlpha=a;ctx.strokeStyle='#ffffff';ctx.lineWidth=Math.max(1,q.rad*.11*a);ctx.beginPath();ctx.arc(q.x,q.y,r,0,TAU);ctx.stroke();
       ctx.globalAlpha=a*.6;ctx.strokeStyle=q.color;ctx.lineWidth=Math.max(1,q.rad*.05*a);ctx.beginPath();ctx.arc(q.x,q.y,r*.82,0,TAU);ctx.stroke();continue}
     if(q.ember){const f=.55+.45*Math.sin(q.seed+q.life*38);ctx.globalAlpha=a*f;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+2*a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.035,q.y-q.vy*.035);ctx.stroke();continue}   // embers flicker as they streak
@@ -4826,12 +4812,17 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
     if(q.spark){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.04,q.y-q.vy*.04);ctx.stroke();continue}
     if(q.flash){ctx.globalAlpha=a*.8;const gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,q.rad);gr.addColorStop(0,'#ffffff');gr.addColorStop(.4,q.color);gr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,q.rad,0,TAU);ctx.fill();continue}
     if(q.ring){ctx.globalAlpha=a;ctx.strokeStyle=q.color;ctx.lineWidth=6*a+1;ctx.beginPath();ctx.arc(q.x,q.y,q.rad*(1-a*.7),0,TAU);ctx.stroke();continue}
-    if(q.img){const im=fxImg(q.img);if(!im)continue;const t=1-a,S=q.s0+(q.s1-q.s0)*(1-Math.pow(1-t,3));ctx.save();ctx.globalAlpha=(q.pop?(t<.55?1:a/.45):a)*q.alpha;ctx.translate(q.x,q.y);ctx.rotate(q.rot+q.spin*t);ctx.drawImage(im,-S/2,-S/2,S,S);ctx.restore();continue}
+    if(q.img){const im=fxImg(q.img);if(!im)continue;const t=1-a;
+      if(q.kick){const u=t*q.max,pk=u<.09?easeOut3(u/.09)*1.18:1.18-.18*Math.min(1,(u-.09)/.14),gr=pk+.22*t,wob=RM?0:.07*Math.sin(u*q.wf)*Math.max(0,1-t*1.6),S=q.s1*gr/1.18;   // pop past full size, settle, wobble
+        ctx.save();ctx.globalAlpha=(t<.5?1:a/.5)*q.alpha;ctx.translate(q.x,q.y);ctx.rotate(q.rot+q.spin*(1-Math.pow(1-t,2))*.6);ctx.scale(1+wob,1-wob);ctx.drawImage(im,-S/2,-S/2,S,S);
+        if(q.hot&&u<.14){ctx.globalAlpha=1-u/.14;ctx.drawImage(im,-S*.4,-S*.4,S*.8,S*.8);ctx.drawImage(im,-S*.3,-S*.3,S*.6,S*.6)}   // white-hot for a blink: the art stacked on itself
+        ctx.restore();continue}
+      const S=q.s0+(q.s1-q.s0)*(1-Math.pow(1-t,3));ctx.save();ctx.globalAlpha=(q.pop?(t<.55?1:a/.45):a)*q.alpha;ctx.translate(q.x,q.y);ctx.rotate(q.rot+q.spin*t);ctx.drawImage(im,-S/2,-S/2,S,S);ctx.restore();continue}
     if(q.steal!=null){const o=players.find(z=>z.id===q.steal);if(!o)continue;const t=1-a,u=1-t,cx=(q.x+o.x)/2,cy=Math.min(q.y,o.y)-140,X=u*u*q.x+2*u*t*cx+t*t*o.x,Y=u*u*q.y+2*u*t*cy+t*t*o.y;
       ctx.save();ctx.globalAlpha=1;ctx.translate(X,Y);ctx.rotate(t*TAU*2);ctx.fillStyle='#ffd36b';ctx.strokeStyle='rgba(14,6,24,.9)';ctx.lineWidth=2;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-8,-4,16,8,4);else ctx.rect(-8,-4,16,8);ctx.fill();ctx.stroke();ctx.restore();continue}
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
-  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode||q.img||q.steal!=null||q.fire||q.smk||q.shock||q.ember||q.wait>0)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
+  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode||q.img||q.steal!=null||q.shock||q.ember||q.wait>0)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
     if(q.chunk){const z=q.size*(.5+.5*clamp(q.life/q.max,0,1));ctx.save();ctx.globalAlpha=1;ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillStyle=q.color;ctx.fillRect(-z/2,-z*.35,z,z*.7);ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(-z/2,z*.05,z,z*.3);ctx.restore();continue}   // stone chunks tumble
     ctx.fillStyle=q.color;if(q.goo){const k=q.size*(.45+.55*clamp(q.life/q.max,0,1));ctx.globalAlpha=1;ctx.beginPath();ctx.ellipse(q.x,q.y,k,k*(1+Math.min(.8,Math.abs(q.vy)/900)),0,0,TAU);ctx.fill();continue}
     ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
@@ -5000,7 +4991,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-10-solostart';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-10-painted';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
