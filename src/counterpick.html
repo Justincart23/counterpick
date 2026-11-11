@@ -648,6 +648,15 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .cp-open{display:inline-flex;align-items:center;justify-content:center;gap:8px}.cp-open[hidden]{display:none!important}
 .cp-ic{display:inline-block;width:11px;height:17px;border:2px solid currentColor;border-radius:3px;flex:none;position:relative}.cp-ic::after{content:'';position:absolute;left:50%;bottom:1px;width:3px;height:2px;margin-left:-1.5px;background:currentColor;border-radius:1px}
 .cp-chip{display:inline-flex;align-items:center;gap:6px;color:#9be37a}.cp-chip[hidden]{display:none}
+.name-acts{display:flex;justify-content:center;margin-top:6px}.name-go{min-width:220px;min-height:54px;font-size:22px}
+.bs-steps{margin:4px 0 0;padding:0;list-style:none;counter-reset:st;display:grid;gap:6px;max-width:300px;text-align:left}.bs-steps:empty{display:none}
+.bs-steps li{counter-increment:st;display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:center;font:600 14px/1.3 var(--body);color:var(--text)}
+.bs-steps li::before{content:counter(st);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--orange);color:#1a0e05;font:800 14px var(--body)}
+#bigLobby.solo .bs-opt[data-opt=bsCards],#bigLobby.solo .bs-opt[data-opt=bsHp],#bigLobby.solo .bs-opt[data-opt=bsTwist]{display:none}
+#bsSeats li.you{border-style:dashed;border-color:var(--orange);color:var(--text)}
+.ctl-tip{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:6;display:flex;gap:16px;align-items:center;padding:9px 16px;border-radius:14px;background:rgba(14,8,22,.82);border:1px solid rgba(255,255,255,.12);font:600 14px var(--body);color:var(--text);pointer-events:none;white-space:nowrap;transition:opacity .4s}
+.ctl-tip[hidden]{display:none}.ctl-tip kbd{display:inline-block;min-width:22px;padding:1px 6px;margin-right:3px;border-radius:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font:700 12px var(--mono);text-align:center}
+.mlist.hp-acts{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:10px}.mlist.hp-acts .btn{min-height:44px;padding:0 18px;font-size:16px;background:rgba(22,13,33,.94);border:2px solid rgba(255,255,255,.2);border-radius:12px;color:var(--text);text-transform:none;letter-spacing:.02em}.mlist.hp-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05}.mlist.hp-acts .btn:focus,.mlist.hp-acts .btn:hover{border-color:#fff;transform:translateY(-2px)}.mlist.hp-acts .btn::before,.mlist.hp-acts .btn::after{display:none}
 .phone-tip{margin:12px 0 0;font:600 14px/1.35 var(--body);color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px}
 .phone-tip i{width:12px;height:19px;border:2px solid #ffb547;border-radius:4px;flex:none}
 [data-sub]:has(>.mlist.tiles)>.menu-hint{display:none}
@@ -1136,6 +1145,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 </style>
 
 <canvas id="game" tabindex="0" aria-label="CUUED arena"></canvas>
+<div id="ctlTip" class="ctl-tip desk-only" hidden aria-hidden="true"><span><kbd>A</kbd><kbd>D</kbd> move</span><span><kbd>W</kbd> jump</span><span><b>Mouse</b> aim, click to shoot</span><span><kbd>Shift</kbd> block</span><span><kbd>Esc</kbd> pause</span></div>
 <div id="touchUI" class="touch-only" aria-hidden="true">
   <div class="tstick" id="tsMove"><div class="knob"></div></div>
   <div class="tstick aim" id="tsAim"><div class="knob"></div></div>
@@ -1246,9 +1256,10 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
             <li><b>Counter</b><span>The round's loser picks 1 of 5 cards. Cards stack.</span></li>
             <li><b>Win</b><span>First to the set number of rounds takes the match.</span></li>
           </ol>
-          <p class="hp-note"><b>Online</b> One player hosts and shares the 4-letter code. The other joins with it.</p>
+          <p class="hp-note"><b>Your phone</b> On a computer, scan the code with your phone camera and it's your controller. No app needed.</p>
+          <p class="hp-note"><b>Online</b> Share the 4-letter code; your friend joins from anywhere.</p>
           <p class="hp-note"><b>Party</b> Two against two. Pick Team Orange or Team Blue; CPUs fill empty seats. The losing pair draft together.</p>
-          <p class="hp-note"><b>Big Screen</b> Pick Duel, Party or Co-op Survival, then One big screen. This computer is the screen; 1 to 4 friends scan the code and play with their phones as controllers.</p>
+          
         </div>
         <div class="hp-page" data-hpage="controls" hidden>
           <dl class="hp-keys desk-only">
@@ -1259,6 +1270,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
             <dt>Shoot</dt><dd>Click</dd>
             <dt>Block</dt><dd>Right-click or <kbd>Shift</kbd></dd>
             <dt>Pause</dt><dd><kbd>Esc</kbd> <span class="hp-dim">·</span> mute <kbd>M</kbd></dd>
+            <dt>Phone</dt><dd>Pause menu, <b>Phone controller</b>: scan, and your phone steers</dd>
           </dl>
           <dl class="hp-keys touch-only">
             <dt>Move</dt><dd>Left thumb, anywhere</dd>
@@ -1291,7 +1303,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
           </ul>
         </div>
       </div>
-      <nav class="mlist"><button type="button" data-act="tutorial" style="--i:0">Quick guide</button><button type="button" data-act="watch" style="--i:0">Watch a CPU match</button><button type="button" data-act="back" style="--i:1">Back</button></nav>
+      <nav class="mlist hp-acts"><button type="button" class="btn go" data-act="back">Back</button><button type="button" class="btn" data-act="tutorial">Quick guide</button><button type="button" class="btn" data-act="watch">Watch a CPU match</button></nav>
     </div>
   </div>
   <p class="menu-foot"><span class="kh">↑ ↓ choose · Enter select · ← → change · Esc back</span><span class="touchnote"> · Play sideways: left thumb moves (flick up to jump, down to duck), right thumb taps to auto-fire or drags to aim and fires on release, buttons for Block and Jump.</span></p>
@@ -1304,7 +1316,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <label class="lbl" for="nameInput">Your name</label>
     <input id="nameInput" class="text-in" maxlength="16" placeholder="Your name" spellcheck="false" style="text-align:center">
     <p class="form-err" id="nameErr" hidden>Type at least one letter or number.</p>
-    <nav class="mlist centered"><button type="submit" style="--i:0">Let's go</button></nav>
+    <div class="name-acts"><button type="submit" class="btn go name-go">Let's go</button></div>
   </form>
 </div>
 
@@ -1318,16 +1330,16 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <p>That's you. Your name is your account on this device: the coins you win, your look and your best Survival run are all saved to it.</p>
       </section>
       <section class="tut-pg">
-        <div class="tut-tiles"><div class="tut-tile" style="--tc:#ff7a1a"><i class="tut-ic" data-ic="solo"></i><b>Single player</b><small>Practice vs a CPU, Party, Survival, Sandbox</small></div>
-          <div class="tut-tile" style="--tc:#3d8bff"><i class="tut-ic" data-ic="multi"></i><b>Multiplayer</b><small>Duel, 2v2, Co-op: with friends</small></div></div>
+        <div class="tut-tiles"><div class="tut-tile" style="--tc:#ff7a1a"><i class="tut-ic" data-ic="solo"></i><b>Single player</b><small>Against the CPU, Survival, Sandbox</small></div>
+          <div class="tut-tile" style="--tc:#3d8bff"><i class="tut-ic" data-ic="multi"></i><b>Multiplayer</b><small>Versus, teams or co-op with friends</small></div></div>
         <h3>Two ways in</h3>
         <p>On your own? <b>Single player</b>. With friends? <b>Multiplayer</b>. <b>Customize</b> is where coins buy hats, patterns and trails.</p>
       </section>
       <section class="tut-pg">
         <ol class="tut-steps">
-          <li style="--tc:#ff7a1a"><i class="tut-ic" data-ic="host"></i><span><b>Host</b> Multiplayer, pick a mode, then <b>Own screens</b>. Send your friend the code or the link.</span></li>
-          <li style="--tc:#3d8bff"><i class="tut-ic" data-ic="join"></i><span><b>Join</b> Multiplayer, <b>Join with a code</b>, type it in. Or just open their link.</span></li>
-          <li style="--tc:#ffb547"><i class="tut-ic" data-ic="bigscreenMenu"></i><span><b>Big Screen</b> Pick <b>Big Screen</b> on a laptop or TV. Friends scan the code; phones become controllers.</span></li>
+          <li style="--tc:#ffb547"><i class="tut-ic" data-ic="phonePad"></i><span><b>Same room</b> On a laptop or TV: Multiplayer, <b>Phones as controllers</b>. Everyone scans the code; the first phone in presses Start.</span></li>
+          <li style="--tc:#ff7a1a"><i class="tut-ic" data-ic="host"></i><span><b>Far apart</b> Multiplayer, <b>Online versus</b> or <b>Online co-op</b>. Send your friend the code or the link.</span></li>
+          <li style="--tc:#3d8bff"><i class="tut-ic" data-ic="join"></i><span><b>Got a code?</b> Scan its QR code with your phone camera, or Multiplayer, <b>Join a game</b>, and type it.</span></li>
         </ol>
         <h3>Play with friends</h3>
         <p>Every room has a 4-letter code, like <span class="tut-code">KX7Q</span></p>
@@ -1337,7 +1349,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <dl class="tut-keys desk-only"><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Move</dd><dt><kbd>W</kbd><kbd>Space</kbd></dt><dd>Jump (again in the air)</dd><dt>Mouse</dt><dd>Aim, click to shoot</dd><dt><kbd>Shift</kbd> / right-click</dt><dd>Block (a perfect one sends bullets back)</dd><dt><kbd>Esc</kbd></dt><dd>Pause</dd></dl>
         <h3>The controls</h3>
         <p class="touch-only">Hold your phone sideways to fight. Left thumb moves, right thumb shoots, and the big buttons jump and block.</p>
-        <p class="desk-only">Keyboard to move, mouse to aim. Block at just the right moment to bounce bullets back.</p>
+        <p class="desk-only">Keyboard to move, mouse to aim. Or use your <b>phone as the controller</b>: you'll see the option when you pick a game.</p>
       </section>
       <section class="tut-pg">
         <div class="tut-fan" aria-hidden="true"><span style="--r:-14deg;--c:#ff5a4f"></span><span style="--r:0deg;--c:#ffab1a"></span><span style="--r:14deg;--c:#3fd0b0"></span></div>
@@ -1503,6 +1515,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
         <div class="bs-qr"><canvas id="bsQr" width="240" height="240" aria-label="QR code that opens this game on a phone"></canvas><span class="bs-qr-wait">QR code loading…</span></div>
         <p class="bs-or">or go to <b id="bsHost">cuued.com</b> and type</p>
         <div class="code" id="bsCode" aria-live="polite">····</div>
+        <ol class="bs-steps" id="bsSteps"></ol>
         <button type="button" class="btn bs-link" data-act="roomlink" id="bsLinkBtn" hidden>Copy invite link</button>
         <button type="button" class="btn bs-link cp-open desk-only" data-act="cpad" id="bsCpad" hidden><i class="cp-ic" aria-hidden="true"></i><span>Use my phone as controller</span></button>
       </section>
@@ -2446,7 +2459,7 @@ function endDeck(el,list){el.innerHTML='';const m=new Map();for(const c of list)
   if(!m.size){const n=document.createElement('p');n.className='end-score';n.textContent='No cards this time.';el.appendChild(n)}}
 function endStats(list){const el=$('#endStats');if(!el)return;el.innerHTML='';for(const[k,v]of list){const sp=document.createElement('span');sp.innerHTML=`${k} <b>${v}</b>`;el.appendChild(sp)}}
 function endRibbon(text,sad){const r=$('#endRibbon');if(!r)return;r.textContent=text;r.classList.toggle('sad',!!sad);r.style.animation='none';void r.offsetWidth;r.style.animation=''}
-function showEnd(w){game.state='over';cpadEnd(w);awardMatch(w);{const me=endMe();portalSay('gameplayStop');portalSay('gameOver',{mode:game.mode,won:me?me.team===w:null,rounds:game.wins.slice()})}
+function showEnd(w){game.state='over';cpadEnd(w);ctlTipDone();try{localStorage.setItem('cuued.played','1')}catch(e){}awardMatch(w);{const me=endMe();portalSay('gameplayStop');portalSay('gameOver',{mode:game.mode,won:me?me.team===w:null,rounds:game.wins.slice()})}
   {const b=$('#endLobby');if(b)b.hidden=!game.screen}
   const L=game.party&&!game.ffa?{name:'Team '+TEAM_N[w],color:players[w].color,cards:[]}:players[w];$('#endTitle').textContent=L.name+' wins';$('#endTitle').style.color=L.color;
   $('#endScore').textContent=game.ffa?`${L.name} won ${game.wins[w]} rounds with ${L.cards.length} cards. Rounds ${game.wins.join('–')}.`:game.party?`Rounds ${game.wins.join('–')}. ${players.filter(p=>p.team===w).map(p=>p.name).join(' and ')} take it.`:`Rounds ${game.wins.join('–')}. ${L.name} finished with ${L.cards.length} cards.`;
@@ -5064,13 +5077,13 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   touchAim()}
-function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();cpadTick(dt);if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();cpadTick(dt);ctlTipTick(dt);if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
 const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);if(frameErrs.has(k))return;frameErrs.add(k);console.error('[CUUED] frame error',e)}
 
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-pairpad';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-easy';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5206,7 +5219,7 @@ function hostGame(){leaveOnline(true);
   const tk=net.seq;withIce(()=>{if(tk===net.seq&&net.role==='host')openRoom()})}
 function showRoom(){if(net.role!=='host')return;if(net.screen){bsShowRoom();return}if(net.room){roomShow();return}setText('#hostCode',net.code);$('#hostLink').value=inviteUrl(net.code);{const cb=document.querySelector('[data-act=copylink]');if(cb)cb.textContent=touch.on&&navigator.share?'Share link':'Copy link'}
   if(net.party){partyLobbyChanged();return}
-  hostMsg('Waiting for a challenger. Share the code, or send them the link.')}
+  hostMsg(net.wantCoop?'Waiting for your teammate. Share the code, or send them the link.':'Waiting for a challenger. Share the code, or send them the link.')}
 function openRoom(){openRelayInbox(net.code);const peer=new Peer(ROOM_PREFIX+net.code,peerOpts());net.peer=peer;
   peer.on('open',()=>{if(net.peer===peer)showRoom()});
   peer.on('error',err=>{if(net.peer!==peer)return;if(err.type==='unavailable-id'){hostGame();return}
@@ -5613,7 +5626,7 @@ function roomShow(){net.bsOpen=true;setText('#bsCode',net.code);setText('#bsHost
 function roomLobbyChanged(msg){if(!roomOn()||!net.lobbyOpen)return;const teams=bsTeams(),list=partyList(false),shown=partyList(true),hum=list.filter(e=>e).length,el=$('#bsSeats');
   {const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',true);lb.classList.toggle('surv',false);lb.classList.toggle('teams',teams)}}
   setText('#bigLobby .screen-title','Versus · Own screens');setText('#bsSeatsL','Players · up to 4');{const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan to join on a phone';}
-  {const b=$('#bsLinkBtn');if(b){b.hidden=false;b.textContent=touch.on&&navigator.share?'Share invite link':'Copy invite link'}}{const c=$('#bsCpad');if(c)c.hidden=false}
+  {const b=$('#bsLinkBtn');if(b){b.hidden=false;b.textContent=touch.on&&navigator.share?'Share invite link':'Copy invite link'}}{const c=$('#bsCpad');if(c)c.hidden=false}bsSteps(null);{const lb=$('#bigLobby');if(lb&&lb.classList)lb.classList.toggle('solo',false)}
   {const tp=$('#bsTeamPick');if(tp)tp.hidden=!teams;if(teams)teamButtons(net.hostTeam,list)}
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
@@ -5673,13 +5686,15 @@ function bsFill(list){list=list.slice();const teams=bsTeams();let n=bsSurvMode()
   return list}
 function bsTidyOpts(){const v=[...document.querySelectorAll('#bigLobby .bs-opt')].filter(e=>getComputedStyle(e).display!=='none');v.forEach((e,i)=>e.classList.toggle('wide',v.length%2===1&&i===v.length-1))}
 try{const lb=$('#bigLobby');if(lb&&typeof MutationObserver!=='undefined')new MutationObserver(bsTidyOpts).observe(lb,{attributes:true,attributeFilter:['class','hidden']})}catch(e){}
-function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',net.solo?(bsSurvMode()?'Solo Survival':'Phone controller'):bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;{const c=$('#bsCpad');if(c)c.hidden=true}const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(list),bots=shown.filter(e=>e&&e.cpu).length;
+function bsSteps(a){const el=$('#bsSteps');if(!el)return;const k=a?a.join('|'):'';if(el._k===k)return;el._k=k;el.innerHTML='';for(const t of a||[]){const li=document.createElement('li');li.textContent=t;el.appendChild(li)}}
+function bsLobbyChanged(msg){if(net.role!=='host'||!net.screen||!net.lobbyOpen)return;{const lb=$('#bigLobby');if(lb&&lb.classList){lb.classList.toggle('room',false);lb.classList.toggle('teams',false)}setText('#bigLobby .screen-title',net.solo?(bsSurvMode()?'Solo Survival':'Phone controller'):bsSurvMode()?'Co-op Survival · Big Screen':'Versus · Big Screen');const l=$('#bigLobby .bs-join .lbl');if(l)l.textContent='Scan with a phone camera';const b=$('#bsLinkBtn');if(b)b.hidden=true;{const c=$('#bsCpad');if(c)c.hidden=true}const tp=$('#bsTeamPick');if(tp)tp.hidden=true}const list=bsSeats(false),hum=list.filter(Boolean).length,teams=bsTeams(),el=$('#bsSeats'),shown=bsFill(net.solo&&!hum?[{you:1},null,null,null]:list),bots=shown.filter(e=>e&&e.cpu).length;bsSteps(net.solo?['Scan the code with your phone camera','Hold your phone sideways','Press Start on your phone']:['Everyone scans the code with their phone camera','Hold phones sideways','The first phone in presses Start']);{const lb=$('#bigLobby');if(lb&&lb.classList)lb.classList.toggle('solo',!!net.solo)}{const mo=$('#bigLobby [data-opt=bsMode]');if(mo)mo.dataset.hint=net.solo?'Versus CPU: you against the computer (add more CPUs if you like). Survival: waves of enemies and a boss every 5th round. How far can you get?':'Free-for-all: every fighter for themselves. Teams: Orange against Blue, two a side; players choose their team on their phone. Co-op Survival: everyone on one side against waves and bosses, shopping on their phones between rounds.'}
   if(el){el.innerHTML='';if(el.classList)el.classList.toggle('teams',teams);
     if(teams)for(const t of TEAM_N){const h=document.createElement('li');h.className='th';h.textContent='Team '+t;el.appendChild(h)}
     let free=bsCap()-hum,lk=0;
     for(let k=0;k<4;k++){const li=document.createElement('li'),e=list[k],c=bsSeatCol(k,teams);
       if(!e&&!shown[k]&&free<=0&&!net.solo){li.className='open locked';li.dataset.act='bsPlus';li.tabIndex=0;li.setAttribute('role','button');   // a free room's seats 3 and 4: calm, and a tap shows Plus
         li.textContent=lk++?(portal.flick?(portal.trial?'Free for 7 days':'Tap to see Plus'):'On flickarcade.com'):'3–4 players with Flick Plus'}
+      else if(!e&&shown[k]&&shown[k].you){li.className='open you';li.textContent='You: scan the code'}
       else if(!e&&shown[k]){li.className='cpu';li.style.setProperty('--pc',c[0]);li.textContent=`${BOTN[k]} · CPU`}
       else if(e){li.style.setProperty('--pc',c[0]);li.textContent=e.n;const r=e.peer.rtt||0,q=document.createElement('span');q.className='ping'+(!r?'':r<60?' good':r<130?' ok':' bad');q.textContent=r?Math.round(r)+' ms':'…';li.appendChild(q)}
       else{li.className='open';li.textContent='Open seat';free--}el.appendChild(li)}}
@@ -5810,6 +5825,12 @@ function cpadFeed(dt){const L=cpad.link,r=L&&L.padIn,on=cpadDrives()&&cpadLive()
   L.holdT=Math.max(0,(L.holdT||0)-dt);
   let a=r.ag?r.a:L.holdT>0?L.shotA:null;if(a==null&&me&&e&&e!==me)a=tapTarget(me,e);   // between shots the gun follows the nearest rival
   if(a!=null&&me&&Number.isFinite(me.x)){const g=game.mode==='online-guest';mouse.x=me.x+(g?net.offX:0)+Math.cos(a)*260;mouse.y=me.y+(g?net.offY:0)+Math.sin(a)*260}}
+// a new keyboard player's first few matches: the controls along the bottom for the first 20 s of play
+const ctlTip={t:0,n:(()=>{try{return+localStorage.getItem('cuued.ctltip')||0}catch(e){return 0}})()};
+function ctlTipTick(dt){const el=$('#ctlTip');if(!el)return;const me=game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse');
+  const on=ctlTip.n<3&&!touch.on&&!!me&&!game.bg&&!game.screen&&game.mode!=='demo'&&$('#menu').hidden&&$('#pause').hidden&&$('#pick').hidden&&['ready','play','pointEnd'].includes(game.state)&&!cpadDrives()&&ctlTip.t<20;
+  if(on&&game.state==='play')ctlTip.t+=dt;if(el.hidden===on)el.hidden=!on}
+function ctlTipDone(){if(ctlTip.t>0){ctlTip.n++;ctlTip.t=0;try{localStorage.setItem('cuued.ctltip',String(ctlTip.n))}catch(e){}}}
 function cpadEnd(w){const L=cpad.link;if(!L||!L.open||!L.name||!cpadLive())return;L.view='over';cpadSend({t:'end',w,r:matchIds()})}
 // a phone's controls on the host: the newest packet wins; presses, shots and taps are running counters, so none is lost
 function padInput(p,L=p.peer){const inp=p.input,r=L&&L.padIn;
@@ -6220,7 +6241,8 @@ const a2Can=()=>!portal.on&&touch.on&&!isStandalone()&&!!(a2.ev||isIOS());
 function a2State(){try{return JSON.parse(localStorage.getItem('cuued.a2')||'{}')||{}}catch(e){return{}}}
 function a2Save(st){try{localStorage.setItem('cuued.a2',JSON.stringify(st))}catch(e){}}
 function a2Sync(){const b=$('#mA2');if(b)b.hidden=!a2Can()}
-function a2Maybe(){if(a2.shown||!a2Can())return;const st=a2State();if(st.done||(st.n|0)>=4||Date.now()-(st.t||0)<3*864e5)return;
+function a2Maybe(){if(a2.shown||!a2Can())return;try{if(!localStorage.getItem('cuued.played'))return}catch(e){}   // never on the very first visit: play first
+  const st=a2State();if(st.done||(st.n|0)>=4||Date.now()-(st.t||0)<3*864e5)return;
   if($('#menu').hidden||!$('#nameScreen').hidden||!$('#tut').hidden||net.role)return;const m=$('#menu [data-sub=main]');if(!m||m.hidden)return;a2Open()}
 function a2Open(){a2.shown=true;const w=$('#a2hs'),ios=!a2.ev;w.classList.toggle('ios',ios);setText('#a2Go',ios?'Got it':'Add it');w.hidden=false;sfx('pick',true)}
 function a2Close(later){$('#a2hs').hidden=true;if(later){const st=a2State();a2Save({...st,t:Date.now(),n:(st.n|0)+1})}}
