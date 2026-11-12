@@ -34,7 +34,7 @@ const FILE = process.argv[2] ? path.resolve(process.argv[2]) : undefined, ONLY =
         if (presses.some((pt) => t > pt + .22 && t < pt + .22 + H)) A.keys.delete('KeyW');
         A.update(H);
         if (!P.grounded) left = true; else if (left && P.ground && P.ground.kind !== 3 && key(P.ground) !== k && standable(P.ground)) { const g = key(P.ground); A.keys.clear(); return g }
-        if (!P.alive || P.y > 880) break }
+        if (!P.alive || P.y > (A.game.map.h || 900) + 60) break }
       A.keys.clear(); return null };
     const edges = new Map();
     for (const s of surf) { const to = new Set(), r0 = A.solids.find((q) => key(q) === s.k); if (!r0) { edges.set(s.k, to); continue } const moving = !!(r0.swing || r0.rig), n = spots(r0).length;

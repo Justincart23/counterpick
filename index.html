@@ -1200,7 +1200,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <div class="lbl sublbl" id="soloLbl">Single player</div>
       <nav class="mlist tiles" aria-label="Single player">
         <button type="button" class="mt" data-act="cpu" data-ic="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Practice vs CPU</span><span class="mt-d">A one-on-one duel against the computer</span></button>
-        <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Two against two: you and a CPU teammate against a pair of CPUs, on the party arenas." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">2v2: you and a CPU teammate against two CPUs</span></button>
+        <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Two against two: you and a CPU teammate against a pair of CPUs." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">2v2: you and a CPU teammate against two CPUs</span></button>
         <button type="button" class="mt" data-act="survival" data-ic="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2;--tc:#ff5a4f"><span class="mt-t">Survival</span><span class="mt-d">Waves, bosses, a shop. How far can you get?</span></button>
         <button type="button" class="mt" data-act="sandbox" data-ic="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Sandbox</span><span class="mt-d">Try any card, no drafting</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" id="soloBack" data-hint="Back." style="--i:4"><span class="mt-t">Back</span></button>
@@ -1538,7 +1538,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
           <button type="button" class="bs-opt" data-opt="bsCards" data-hint="Who picks a card after each round. Everyone picks one at the start either way."><span class="bs-ol">Card picks</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Round losers</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsBots" data-hint="Computer fighters to add (up to four fighters in all). Playing alone? Add at least one. A friend who joins mid-match takes over a CPU's seat."><span class="bs-ol">CPU players</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">None</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsCpu" data-hint="How well the CPU players aim, dodge and block."><span class="bs-ol">CPU skill</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Normal</span><i data-dir="1" aria-hidden="true">›</i></span></button>
-          <button type="button" class="bs-opt" data-opt="bsMap" data-hint="Every party arena in turn, or one favourite."><span class="bs-ol">Arena</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">All arenas</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+          <button type="button" class="bs-opt" data-opt="bsMap" data-hint="Every arena in turn, or one favourite."><span class="bs-ol">Arena</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">All arenas</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsHp" data-hint="Everyone's health. More health makes longer, more tactical points."><span class="bs-ol">Health</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">100%</span><i data-dir="1" aria-hidden="true">›</i></span></button>
           <button type="button" class="bs-opt" data-opt="bsTwist" data-hint="Now and then a point plays with a twist: low gravity, fast bullets, frenzy or glass."><span class="bs-ol">Round twists</span><span class="bs-ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val">Off</span><i data-dir="1" aria-hidden="true">›</i></span></button>
         </div>
@@ -1933,8 +1933,8 @@ MAPS.push(
    [740,860,120,40],[1060,860,120,40],[640,560,140,38],[1140,560,140,38],[120,560,240,38],[1560,560,240,38],[820,420,280,38],[200,984,80,16,3],[1640,984,80,16,3]],
    sp:[[100,960],[1820,960],[240,520],[1680,520]]},
  // Catacombs: a broken stone floor over tunnels: fight above, ambush below, pop up through the gaps (lobs and close range)
- {name:'Catacombs',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,820,520,60],[700,820,520,60],[1400,820,520,60],[300,950,60,50],[1560,950,60,50],
-   [200,660,240,38],[1480,660,240,38],[820,600,280,38],[480,480,200,38],[1240,480,200,38],[860,360,200,38],[570,984,80,16,3],[1270,984,80,16,3]],crates:[[880,760,60]],sp:[[120,780],[1800,780],[420,960],[1500,960]]},
+ {name:'Catacombs',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,820,520,60],[700,820,200,60],[1020,820,200,60],[1400,820,520,60],[300,950,60,50],[1560,950,60,50],
+   [200,660,240,38],[1480,660,240,38],[820,600,280,38],[480,480,200,38],[1240,480,200,38],[860,360,200,38],[570,984,80,16,3],[1270,984,80,16,3]],crates:[[740,760,60]],sp:[[120,780],[1800,780],[420,960],[1500,960]]},
  // Bastions: two forts with crenellated decks and a crawl hole under each front wall; a mound and crates between (lobs and blocks)
  {name:'Bastions',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[520,760,50,160,1],[1350,760,50,160,1],[100,760,420,40],[1400,760,420,40],[130,700,50,60],[330,700,50,60],
    [1740,700,50,60],[1540,700,50,60],[100,520,200,40],[1620,520,200,40],[820,900,280,100],[880,720,160,38],[760,420,400,38]],crates:[[680,940,60],[1180,940,60]],
@@ -1946,6 +1946,57 @@ MAPS.push(
  // Hive: two rows of half-open cells, each walled on a different side, under a top bar (homing and blasts)
  {name:'Hive',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[260,820,280,40],[820,820,280,40],[1380,820,280,40],[260,690,24,130,1],[1636,690,24,130,1],[820,690,24,130,1],[1076,690,24,130,1],
    [260,560,280,40],[820,560,280,40],[1380,560,280,40],[516,430,24,130,1],[1380,430,24,130,1],[540,320,280,38],[1100,320,280,38]],sp:[[130,960],[1790,960],[400,780],[1520,780]]});
+/* More arenas with rooms, each built around something that moves or breaks: a lift shaft, a gondola, a vault, a wrecking
+   ball, drawbridges, pulley lifts, a clock tower between two pendulums, a hot greenhouse floor, rafters with drop platforms,
+   springboards, ferries, a hall of doors and toppling towers. Laid out as a left half and its mirror (`sym`), so both sides play alike */
+const RW=1920,sym=(L,C=[])=>[...C,...L,...L.map(([x,y,w,h,k])=>[RW-x-w,y,w,h,...(k!=null?[k]:[])])],
+  symH=L=>[...L,...L.map(d=>({...d,x:RW-d.x-d.w}))],symS=L=>[...L,...L.map(d=>({...d,ax:RW-d.ax}))],symC=L=>[...L,...L.map(([x,y,z])=>[RW-x-z,y,z])],
+  ROOM={party:1,big:1,duel:1,w:1920,h:1080},FLOOR=[0,1000,1920,80];
+MAPS.push(
+ // Mineshaft: a three-storey house each side, a walled shaft in the middle with a lift running its full height, a bridge over the top
+ {name:'Mineshaft',...ROOM,rects:sym([[80,820,380,40],[80,640,380,40],[460,640,40,180,1],[140,460,280,38],[740,500,40,360,1]],[FLOOR,[720,340,480,38]]),
+   movers:[{x:870,y:440,w:180,h:30,mx:0,my:480,period:5}],crates:symC([[600,940,60]]),sp:[[180,960],[1740,960],[260,600],[1660,600]]},
+ // Gondola: two cliff-top houses over a pit; a ferry shuttles across low, a gondola swings in the middle, an island to land on
+ {name:'Gondola',...ROOM,rects:sym([[0,1000,620,80],[160,780,300,40],[420,780,40,140,1],[60,600,240,38],[380,470,200,38]],[[860,720,200,40],[840,300,240,38]]),
+   swings:[{ax:960,len:480,w:200,h:30}],movers:[{x:640,y:880,w:160,h:30,mx:480,my:0,period:6}],sp:[[140,960],[1780,960],[300,740],[1620,740]]},
+ // Vault: a walled vault in the middle with a crawl gap under each wall and a grate roof (jump up through it) to fight over; platforms hang on ropes either side
+ {name:'Vault',...ROOM,rects:sym([[720,560,40,340,1],[60,840,280,40],[220,680,240,38],[60,500,200,38],[560,984,80,16,3]],[FLOOR,[760,640,400,40],[860,420,200,38]]),
+   hangs:symH([{x:400,y:540,w:200}]),crates:[[930,940,60]],sp:[[150,960],[1770,960],[200,800],[1720,800]]},
+ // Sawmill: a wrecking ball swings through the middle; sheds with a crawl gap and a loft each side
+ {name:'Sawmill',...ROOM,rects:sym([[60,780,360,40],[400,780,40,140,1],[120,580,280,38],[500,620,180,38],[640,460,180,38]],[FLOOR,[860,360,200,38]]),
+   rigs:[{t:'ball',ax:960,ay:0,len:700,z:84,amp:.5}],sp:[[150,960],[1770,960],[240,740],[1680,740]]},
+ // Keep: a castle each side (walk in under the front wall or through the window over it, jump up through its floors) and a courtyard between them. Drawbridges
+ // stand on the castle roofs: shoot a rope and it slams down over the courtyard (onto anyone on the steps), leaving a gap in the middle to jump through; a hinge and it drops away
+ {name:'Keep',...ROOM,rects:sym([[0,560,560,40],[520,700,40,200,1],[80,800,300,40],[200,400,200,38],[640,760,180,38]],[FLOOR,[860,860,200,40],[860,710,200,38]]),
+   rigs:[{t:'bridge',px:560,py:560,L:290,dir:1,rx:500,ry:0},{t:'bridge',px:1360,py:560,L:290,dir:-1,rx:1420,ry:0}],sp:[[180,960],[1740,960],[260,520],[1660,520]]},
+ // Counterweight: two lifts on one rope either side of a two-room house (stand on one and the other rises; shoot the rope and both fall)
+ {name:'Counterweight',...ROOM,rects:sym([[760,760,40,150,1],[60,840,240,40],[100,690,200,38],[60,540,240,38]],[FLOOR,[760,760,400,40],[800,560,320,38],[860,360,200,38]]),
+   rigs:[{t:'lift',a:{x:400,y:680,w:200,h:30},b:{x:1320,y:680,w:200,h:30},wy:160,range:200}],sp:[[150,960],[1770,960],[180,800],[1740,800]]},
+ // Clocktower: a tower of rooms in the middle (walk in under it, jump up through its floors), a pendulum swinging each side
+ {name:'Clocktower',...ROOM,rects:sym([[700,380,40,440,1],[60,820,240,40],[60,600,200,38]],[FLOOR,[740,820,440,40],[740,640,440,40],[740,460,440,40],[680,380,560,40]]),
+   swings:symS([{ax:420,len:540,w:160,h:30}]),sp:[[150,960],[1770,960],[160,780],[1760,780]]},
+ // Greenhouse: the middle floor is hot; planters, ledges and hanging walls carve it into beds you hop between
+ {name:'Greenhouse',...ROOM,rects:sym([[0,1000,600,80],[640,860,220,40],[580,640,30,180,1],[160,800,280,40],[280,620,240,38],[100,460,200,38],[600,520,240,38]],[[600,1000,720,80,2],[860,720,200,40],[840,360,240,38]]),
+   sp:[[150,960],[1770,960],[400,580],[1520,580]]},
+ // Rafters: heavy beams overhead; platforms hang from them and from the roof (shoot a rope and it drops on whoever is under it), crates below
+ {name:'Rafters',...ROOM,rects:sym([[0,340,560,50],[60,820,260,40],[560,800,200,40],[100,520,200,38],[580,570,160,38]],[FLOOR,[860,820,200,40]]),
+   hangs:[...symH([{x:280,y:640,w:220,ay:390}]),{x:850,y:560,w:220}],crates:symC([[480,940,60]]),sp:[[150,960],[1770,960],[160,780],[1760,780]]},
+ // Springboard: pads fire you up into rooms built on stilts each side and onto a column in the middle that has its own pad
+ {name:'Springboard',...ROOM,rects:sym([[300,984,80,16,3],[180,700,320,40],[460,560,40,350,1],[560,520,260,38],[120,420,220,38]],[FLOOR,[900,780,120,220],[920,764,80,16,3],[820,280,280,38]]),
+   sp:[[150,960],[1770,960],[260,660],[1660,660]]},
+ // Docks: two boathouses over the water, ferries crossing at two heights, a hut on stilts in the middle (duck under its walls on the high ferry)
+ {name:'Docks',...ROOM,rects:sym([[0,960,520,120],[80,780,320,40],[360,780,40,120,1],[120,600,240,38]],[[800,560,320,40],[800,560,30,80,1],[1090,560,30,80,1],[840,360,240,38]]),
+   movers:[{x:540,y:880,w:180,h:30,mx:660,my:0,period:7},{x:540,y:700,w:180,h:30,mx:660,my:0,period:7,phase:.5}],sp:[[160,920],[1760,920],[240,740],[1680,740]]},
+ // Hall of Doors: blocks of rooms each side and a split room in the middle, so fights go door to door
+ {name:'Hall of Doors',...ROOM,rects:sym([[180,820,480,40],[180,620,480,40],[630,620,30,200,1],[380,420,240,38]],[FLOOR,[820,720,280,40],[945,520,30,200,1],[760,520,400,38],[860,320,200,38]]),
+   sp:[[100,960],[1820,960],[300,780],[1620,780]]},
+ // Leaning Towers: a block tower each side on a hollow keystone (shoot it out and the top topples inward), a house in the middle
+ {name:'Leaning Towers',...ROOM,rects:sym([[60,840,240,40],[60,620,220,38],[480,540,200,38]],[FLOOR,[800,800,320,40],[800,800,30,120,1],[1090,800,30,120,1],[860,560,200,38],[840,360,240,38]]),
+   rigs:[{t:'stack',x:640,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]},{t:'stack',x:1280,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]}],
+   sp:[[150,960],[1770,960],[160,800],[1760,800]]});
+/* The arena library: every duel, party, Big Screen match, co-op and Survival round is played on these (the room arenas).
+   The older open arenas above stay defined only for the tests of their moving parts */
+const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel);
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -2301,7 +2352,17 @@ function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 // the rival: in a duel the other fighter; with more fighters, the nearest living enemy (any enemy if none is alive)
 // where fighter k starts: the arena's own spawn for the first two; extra enemies on a free platform far from the heroes
-function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return sp[k]||sp[k%2];const R=Math.max(BASE_R,p.r||0);   // a big fighter (Thick Skin, a boss) needs a bigger spot
+/* A free-for-all of 3 or 4 spreads everyone out: the two side spawns, then each next fighter starts at the open platform top
+   farthest from everyone already placed (the arena's own spots and every wide fixed surface with headroom). Only the arena's
+   fixed shape is used, so the host, the guests and the Big Screen all work out the same spots */
+function spreadSpawns(n){const m=game.map;if(m._spread&&m._spread.n===n)return m._spread.pts;
+  const fixed=m.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})),cand=[...m.sp.slice(2)];
+  for(const r of fixed){if(r.kind||r.w<120||r.y<200)continue;const c=[r.x+r.w/2,r.y-40];
+    if(!fixed.some(o=>o!==r&&!o.oneway&&boxHit(c[0],c[1]-10,BASE_R+8,BASE_R+16,o))&&!(m.crates||[]).some(([x,y,z])=>boxHit(c[0],c[1]-10,BASE_R+8,BASE_R+16,{x,y,w:z,h:z})))cand.push(c)}
+  const pts=[m.sp[0],m.sp[1]];
+  while(pts.length<n){let best=m.sp[pts.length%2],bd=-1;for(const c of cand){const d=Math.min(...pts.map(q=>Math.hypot(q[0]-c[0],q[1]-c[1])));if(d>bd){bd=d;best=c}}pts.push(best)}
+  m._spread={n,pts};return pts}
+function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return game.ffa&&players.length>2?spreadSpawns(players.length)[k]||sp[k%2]:sp[k]||sp[k%2];const R=Math.max(BASE_R,p.r||0);   // a big fighter (Thick Skin, a boss) needs a bigger spot
   // a good spot: the body fits, and there's fixed floor (nothing that swings, falls or breaks) close under the whole body
   const fixed=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&!r.rig&&r.kind!==3&&r.kind!==4),under=(x,y)=>fixed.some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
   // ...and out of a wrecking ball's swing (it would bowl the fighter over before they land)
@@ -2386,12 +2447,11 @@ function buildRides(){const old=rides,oldR=rigs;buildRigs();
   for(const c of rides){c.px=c.lx=c.x;c.py=c.ly=c.y}
   if(old!==rides&&solids.length){solids=solids.filter(r=>!old.includes(r)&&!oldR.includes(r)&&!r.bound).concat(rides,rigs,BOUNDS)}}
 function newPoint(fresh){
-  let i;const coopMap=game.mode==='survival'&&heroes().length>1;   // co-op fights on the wide and big arenas
-  if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===(coopMap?'Wide ':'')+survBossFor(game.round).map));
-  else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.party&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.party&&m.name===settings.bsMap);
-  else if(game.party&&(players.length>2||game.screen))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].party&&k!==game.mapIdx));
-  else if(coopMap)i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].party&&k!==game.mapIdx&&(MAPS[k].coop||survWave()>=3)));else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;else if(game.mode==='survival'&&(survWave()>=3||survWave()===2&&Math.random()<.7))i=pick(MAPS.map((m,k)=>k).filter(k=>MAPS[k].big&&!MAPS[k].coop&&!MAPS[k].party&&k!==game.mapIdx));
-  else{const pool=MAPS.map((m,k)=>k).filter(k=>(!MAPS[k].big||MAPS[k].duel)&&k!==game.mapIdx);i=pool.length?pick(pool):0}   // duels: the standard arenas and the room arenas
+  let i;
+  if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));
+  else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.duel&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.duel&&m.name===settings.bsMap);
+  else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;
+  else{const pool=arenaPool().filter(k=>k!==game.mapIdx);i=pool.length?pick(pool):arenaPool()[0]}   // every mode, own screens and Big Screen: the one arena library
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -2814,7 +2874,7 @@ function setSbArenaInfo(){const el=$('#sbInfo');if(el&&sandbox.mapsOpen)el.textC
 function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;const mo=!!sandbox.mapsOpen;box.hidden=!mo;grid.hidden=mo;$('#sbArena').classList.toggle('on',mo);$('#sandbox').classList.toggle('maps',mo);
   $('#sandbox').querySelectorAll('[data-sbtab]').forEach(b=>b.classList.toggle('on',!mo&&+b.dataset.sbtab===sandbox.tab));
   if(!sandbox.mapsOpen)return;box.innerHTML='';
-  for(const i of[-1,...MAPS.map((m,k)=>k).filter(k=>!MAPS[k].coop)]){const m=i<0?null:MAPS[i],b=document.createElement('button');b.type='button';b.className='sb-map'+(sandbox.arena===i?' on':'');b.dataset.sbmap=i;
+  for(const i of[-1,...arenaPool()]){const m=i<0?null:MAPS[i],b=document.createElement('button');b.type='button';b.className='sb-map'+(sandbox.arena===i?' on':'');b.dataset.sbmap=i;
     b.innerHTML=`<canvas width="192" height="108" aria-hidden="true"></canvas><span class="nm">${i<0?'Random':m.label||m.name}</span>`;drawMapThumb(b.querySelector('canvas'),m);box.appendChild(b)}
   const on=box.querySelector('.on');on&&on.scrollIntoView&&on.scrollIntoView({block:'nearest',inline:'center'})}
 {const root=$('#sandbox'),card=t=>{const b=t.closest&&t.closest('[data-sbcard]');return b?CARDS.find(x=>x.id==b.dataset.sbcard):null};
@@ -2895,19 +2955,19 @@ function drawDrops(){if(!drops.length)return;const now=performance.now()/1000;ct
    of four stat upgrades when the round ends. Clearing a round pays scrap for the shop. 3 lives for the whole run (enemies
    keep their damage when you lose one). Reaching new rounds unlocks new characters ---------- */
 const BOSSES=[
- {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Divider',
+ {id:'sniper',n:'The Sniper',sub:'Keeps its distance. When the red laser locks on, get out of the line.',color:'#e8455f',glow:'#ff9aa8',hat:'band',map:'Longshot',
   hp:4.5,size:1.2,deck:['Rail Slug','Quick Guard'],phases:[['Long Haul'],['Speed Loader']],special:'snipe',extra:['Overpressure','Deep Magazine']},
- {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Yard',
+ {id:'brute',n:'The Brute',sub:'Shakes, then charges. Jump it, or block it at the last moment and it staggers.',color:'#b8742e',glow:'#ffb871',hat:'horns',map:'Bastions',
   hp:5,size:1.45,deck:['Afterburner','Thick Skin'],phases:[['Sprinter'],['Spite']],special:'charge',extra:['Regrowth','Momentum']},
- {id:'bombardier',n:'The Bombardier',sub:'Calls down shells: red circles mark where they land. Keep moving.',color:'#d9822b',glow:'#ffc27a',hat:'tophat',map:'Bunkers',
+ {id:'bombardier',n:'The Bombardier',sub:'Calls down shells: red circles mark where they land. Keep moving.',color:'#d9822b',glow:'#ffc27a',hat:'tophat',map:'Catacombs',
   hp:4.5,size:1.3,deck:['Lob Shell','Cluster Guard'],phases:[['Blast Cap'],['Splinter Rounds']],special:'barrage',extra:['Limpet Mines','Fat Rounds']},
- {id:'phantom',n:'The Phantom',sub:'A shimmer shows where it will appear. Turn and fire as it lands.',color:'#8e7bff',glow:'#c9bdff',hat:'halo',map:'Archipelago',
+ {id:'phantom',n:'The Phantom',sub:'A shimmer shows where it will appear. Turn and fire as it lands.',color:'#8e7bff',glow:'#c9bdff',hat:'halo',map:'Hall of Doors',
   hp:4,size:1.1,deck:['Ghost Rounds','Pipsqueak'],phases:[['Triple Tap'],['Seeker']],special:'phase',extra:['Venom Tips','Reflex Guard']},
- {id:'warden',n:'The Warden',sub:'Raises a mirror shield that throws your shots back. Wait it out, then punish.',color:'#3fa9a0',glow:'#9ff0e6',hat:'crown',map:'Crossroads',
+ {id:'warden',n:'The Warden',sub:'Raises a mirror shield that throws your shots back. Wait it out, then punish.',color:'#3fa9a0',glow:'#9ff0e6',hat:'crown',map:'Echo Hall',
   hp:5,size:1.4,deck:['Bulwark','Quick Guard'],phases:[['Mirror Guard'],['Counterfire']],special:'fortress',extra:['Mending Guard','Static Guard']},
 ];
 // every 25th round: all their tricks, one per phase
-const CROWN={id:'crown',n:'The Crown',sub:'Every trick in the book: it changes its attack at each phase.',color:'#ffd36b',glow:'#fff1b8',hat:'crown',map:'Towers',
+const CROWN={id:'crown',n:'The Crown',sub:'Every trick in the book: it changes its attack at each phase.',color:'#ffd36b',glow:'#fff1b8',hat:'crown',map:'Clocktower',
   hp:6,size:1.5,deck:['Rail Slug','Thick Skin'],phases:[['Afterburner','Lob Shell'],['Blink Guard','Speed Loader']],special:'crown',specials:['snipe','charge','barrage'],extra:['Regrowth','Overpressure']};
 const SURV_LIVES=3,BOSS_EVERY=5,SNIPE_AIM=.85,SNIPE_LOCK=.2,CHARGE_WIND=.75,CHARGE_SPEED=1450,CHARGE_MAX=.9,STUN_T=1.6,STRIKE_WARN=1,PHASE_WARN=.7,FORT_RAISE=.6,FORT_T=2.4,FORT_TIRED=1.8;
 // ordinary enemies: a name, a look, and a growing random deck
@@ -4452,12 +4512,17 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     if(p.grounded&&dy<-150&&Math.random()<dt*1.6)jump=true;
     if(p.grounded&&Math.random()<dt*.18)jump=true}
   else if(ai.mode==='hunt'){dir=Math.sign(dx)||1;
+    // a solid roof right over us (a wide slab, a tunnel): the way up is round its end, however far that is
+    const roof=solids.find(r=>!r.bound&&!r.oneway&&!r.swing&&p.x>r.x&&p.x<r.x+r.w&&r.y+r.h<=p.y&&p.y-(r.y+r.h)<260);if(roof)ai.roofT=.8;else ai.roofT=(ai.roofT||0)-dt;
     // stacked vertically with something between us: commit to one side and go around
-    if((dy>110||dy<-110&&!onewayAbove(p)&&!(e.ground&&e.ground.oneway))&&(ai.side||Math.abs(dx)<140)&&Math.abs(dx)<320){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
+    if((dy>110||dy<-110&&!onewayAbove(p)&&!(e.ground&&e.ground.oneway))&&(ai.side||Math.abs(dx)<140)&&(Math.abs(dx)<320||ai.side&&dy<-110&&roof)){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
       if(!ai.side){const g=p.ground;ai.sideG=g;const safeAt=x=>solids.some(r=>!r.bound&&!r.swing&&!r.oneway&&x>r.x&&x<r.x+r.w&&r.y>p.y&&r.y-p.y<420);   /* when only one end of the ledge drops onto solid ground, that end */
-      const sl=g&&!g.bound&&safeAt(g.x-p.r-6),sr=g&&!g.bound&&safeAt(g.x+g.w+p.r+6);ai.side=sl!==sr?(sl?-1:1):Math.sign(dx)||(p.x<W/2?1:-1)}/* both ends safe: drop on the rival's side, not off the far end over a gap and back up */dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
+      const sl=g&&!g.bound&&safeAt(g.x-p.r-6),sr=g&&!g.bound&&safeAt(g.x+g.w+p.r+6);ai.side=sl!==sr?(sl?-1:1):Math.sign(dx)||(p.x<W/2?1:-1);
+      // under a roof with the rival above: out by the roof's nearer open end (not the end that runs into the arena's side)
+      if(roof&&dy<-110){const oL=roof.x>FRAME+2*p.r+8,oR=roof.x+roof.w<W-FRAME-2*p.r-8;if(oL!==oR)ai.side=oL?-1:1;else if(oL)ai.side=p.x-roof.x<roof.x+roof.w-p.x?-1:1}}/* both ends safe: drop on the rival's side, not off the far end over a gap and back up */dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,gunTip(p,inp.aim),5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
+    if(p.grounded&&dy<-100&&!roof&&ai.roofT>0&&Math.abs(dx)<700)jump=true;   // just out from under a roof: climb toward the rival straight away
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
     if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}   // a tall wall: the double jump goes at the top of the first, not on the way down
     if(!p.grounded&&dy<-30&&p.vy>-160&&p.vy<140&&p.airJumps>0)jump=true;   // target above: spend the double jump at the top of the first
@@ -5094,7 +5159,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-ghost';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-arenas';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -6191,7 +6256,7 @@ const OPT={diff:{vals:['easy','normal','hard'],label:v=>v[0].toUpperCase()+v.sli
   bsMode:{vals:['ffa','teams','surv'],label:v=>v==='teams'?'Teams 2v2':v==='surv'?(net.solo?'Survival':'Co-op Survival'):net.solo?'Versus CPU':'Free-for-all'},bsLen:{vals:[3,5,7],label:v=>String(v)},
   bsCards:{vals:['losers','all','none'],label:v=>({losers:'Round losers',all:'Everyone',none:'Off'})[v]||'Round losers'},
   bsBots:{vals:[0,1,2,3],label:v=>v?String(v):'None'},bsCpu:{vals:['normal','hard','easy'],label:v=>v[0].toUpperCase()+v.slice(1)},
-  bsMap:{vals:['all',...MAPS.filter(m=>m.party).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true,...TWISTS.map(t=>t.id)],label:v=>typeof v==='string'?'Always: '+TWISTS.find(t=>t.id===v).n.toLowerCase().replace(/^./,c=>c.toUpperCase())+(portal.plus?'':' (Plus)'):v?'Now and then':'Off'}};   // the 'Always' house rules come with Flick Plus
+  bsMap:{vals:['all',...MAPS.filter(m=>m.duel).map(m=>m.name)],label:v=>v==='all'?'All arenas':v},bsHp:{vals:[1,1.5,.75],label:v=>Math.round(v*100)+'%'},bsTwist:{vals:[false,true,...TWISTS.map(t=>t.id)],label:v=>typeof v==='string'?'Always: '+TWISTS.find(t=>t.id===v).n.toLowerCase().replace(/^./,c=>c.toUpperCase())+(portal.plus?'':' (Plus)'):v?'Now and then':'Off'}};   // the 'Always' house rules come with Flick Plus
 for(const k in OPT)if(k.startsWith('bs')&&!OPT[k].vals.includes(settings[k]))settings[k]=OPT[k].vals[0];   // a saved choice that no longer exists
 // each setting's value gets real ‹ › arrows: a tap on either steps it that way (a tap anywhere else on the row steps forward)
 for(const v of document.querySelectorAll('.mlist.opts button[data-opt]>.val')){const w=document.createElement('span');w.className='ov';v.replaceWith(w);

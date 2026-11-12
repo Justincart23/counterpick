@@ -18,12 +18,16 @@ const fail = [], DT = 1 / 120;
       else if (!p.grounded) fail.push(`${tag}: ${p.name} hasn't landed 2 s after spawning at ${x0 | 0},${y0 | 0} (now ${p.x | 0},${p.y | 0})`);
       else if (p.y - y0 > 260) fail.push(`${tag}: ${p.name} fell ${Math.round(p.y - y0)} px from its spawn at ${x0 | 0},${y0 | 0}`) });
     for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) if (Math.hypot(at[i][0] - at[j][0], at[i][1] - at[j][1]) < 2 * 26) fail.push(`${tag}: ${ps[i].name} and ${ps[j].name} spawn on top of each other (${at[i].map(Math.round)} / ${at[j].map(Math.round)})`) };
-  const versus = (mi, n) => { const G = A.game; G.mode = 'cpu'; G.party = n > 2; A.loadMap(mi);
+  const versus = (mi, n, ffa) => { const G = A.game; G.mode = 'cpu'; G.party = n > 2; G.ffa = !!ffa; A.loadMap(mi);
     const ps = Array.from({ length: n }, (_, k) => { const p = A.makePlayer(k, 'idle', 'F' + k, k); A.recompute(p); return p }); A.setPlayers(ps);
     ps.forEach((p, k) => A.resetPlayer(p, A.spawnFor(p, k))); return ps };
   for (let mi = 0; mi < A.MAPS.length; mi++) { const M = A.MAPS[mi], name = M.name;
     if (!M.big && !M.party) check(`${name} duel`, versus(mi, 2));
-    if (M.party) { check(`${name} 3-player`, versus(mi, 3)); check(`${name} 4-player`, versus(mi, 4)) } }
+    if (M.party) { check(`${name} 3-player`, versus(mi, 3)); check(`${name} 4-player`, versus(mi, 4));
+      // a free-for-all spreads everyone out: nobody starts within 350 px of another fighter
+      for (const n of [3, 4]) { const ps = versus(mi, n, true), at = ps.map((p) => [p.x, p.y]); check(`${name} ${n}-player free-for-all`, ps);
+        for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (Math.hypot(at[i][0] - at[j][0], at[i][1] - at[j][1]) < 350) fail.push(`${name} ${n}-player free-for-all: ${ps[i].name} and ${ps[j].name} start only ${Math.round(Math.hypot(at[i][0] - at[j][0], at[i][1] - at[j][1]))} px apart`) }
+      A.game.ffa = false } }
   // Survival: heroes (1 to 4) and every kind of round on its arenas
   A.startMatch('survival'); flushTimers();
   for (const nh of [1, 2, 4]) for (let r = 1; r <= 22; r++) {
