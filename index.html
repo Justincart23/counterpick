@@ -104,7 +104,7 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .pick-head h2{font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4vw,46px);margin:0;line-height:1}
 .pick-head p{margin:0;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 #face{position:absolute;left:50%;bottom:1.5vh;transform:translateX(-50%);width:min(44vh,460px);aspect-ratio:1;z-index:1;pointer-events:none}
-#fan{position:absolute;left:50%;top:44%;width:0;height:0;z-index:2}
+#fan{position:absolute;left:50%;top:46%;width:0;height:0;z-index:2}
 .card{--pc:var(--orange);--cat:#e85d3a;position:absolute;left:0;top:0;width:clamp(150px,15vw,206px);font:inherit;color:var(--text);text-align:center;cursor:pointer;
   background:none;border:0;padding:0;transform:translate(-50%,-50%) translate(var(--x),var(--y)) rotate(var(--r));
   transition:transform .22s cubic-bezier(.2,1.25,.4,1),opacity .35s;animation:deal .65s cubic-bezier(.2,1.3,.4,1) backwards;animation-delay:var(--d)}
@@ -1714,7 +1714,7 @@ const CARDS=[
  {n:'Detonator',k:'shot',r:2,d:'Hits stick a charge on your rival, up to 5. Block to blow them all at once.',st:[['5','Charges at most',1],['9','Damage per charge',1],['+0.2s','Block cooldown',0]],a:s=>{s.det+=1;s.blockCd+=.2}},
  {n:'Grudge',k:'body',r:1,d:'For every round your rival leads you by, you hit 20% harder, up to 60%. Never count yourself out.',st:[['+20%','Damage per round behind',1],['60%','At most',1]],a:s=>{s.grudge+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
-  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires a beam that burns through wooden planks and sets your rival on fire.',st:[['x2.6','Damage',1],['Burns','Rivals and wood',1],['2, +0.3s','Ammo, reload',0],['0.28s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.6;s.reload+=.3},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
+  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires a beam that burns through wood and sets your rival alight.',st:[['x2.6','Damage',1],['Burns','Rivals and wood',1],['2, +0.3s','Ammo, reload',0],['0.28s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.6;s.reload+=.3},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -5273,7 +5273,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-sunlance';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-sunlance2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
