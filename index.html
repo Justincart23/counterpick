@@ -1303,7 +1303,8 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
             <li><b>Parry</b><span>Block just as a bullet arrives to send it back.</span></li>
             <li><b>Edges</b><span>The glowing edge hurts. Block as you hit it to bounce off safely.</span></li>
             <li><b>Walls</b><span>Hold toward a wall to grip it, then jump off.</span></li>
-            <li><b>Planks</b><span>Bright-edged planks are one-way. Press down to drop through. Pink pads launch you.</span></li>
+            <li><b>Wood &amp; stone</b><span>Wooden planks: jump up through them, press down to drop. Stone is solid: press down on it to duck under shots. Pink pads launch you.</span></li>
+            <li><b>Embers</b><span>Glowing coals burn and throw you up. Stay on the platforms.</span></li>
             <li><b>Swings</b><span>Shoot hanging blocks to swing them into your rival.</span></li>
             <li><b>Crates</b><span>Push one for cover, or off a ledge onto someone. Three hits break it for a little health.</span></li>
             <li><b>Supports</b><span>Bright rock never moves; dark iron does. Shoot a glowing hollow support and what it holds swings, drops or topples.</span></li>
@@ -1891,112 +1892,115 @@ for(let i=0;i<MAPS.length;i++)if(MAPS[i].big)MAPS[i]=fitArena(MAPS[i],2240,1260)
 /* Co-op arenas: every standard arena at 1920 x 1080 (1.2 screens), for two heroes and their foes. (Springs, Piston and
    Chimes stay standard: their gaps, piston and columns are built for that width) */
 for(const m of MAPS.filter(q=>!q.big&&!['Springs','Piston','Chimes'].includes(q.name)))MAPS.push({...fitArena(m,1920,1080),name:'Wide '+m.name,label:m.name,big:1,coop:1});
-/* Party arenas (2v2 parties, and Big Screen's free-for-all): 1920 x 1080, shown whole on any screen (phones too), with four
-   spawns: two on the floor at the far sides, two up high. Every step between levels is a jump you can make */
-MAPS.push(
- // Plaza: wide open with long sightlines (long-range builds shine): two side towers, a low bridge, a crown perch
- {name:'Plaza',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[120,760,180,240],[1620,760,180,240],[300,880,70,120],[1550,880,70,120],[660,820,600,40],[400,680,220,40],[1300,680,220,40],[860,560,200,38],
-   [30,984,80,16,3],[1810,984,80,16,3]],crates:[[520,940,60],[1340,940,60]],sp:[[210,720],[1710,720],[445,960],[1475,960]]},   // floor spawns on open ground (they were inside the corner blocks)
- // Islands: two shores over pits, islands and a rock in the middle, pads up to the high ledges (mobility and lobs shine)
- {name:'Islands',party:1,big:1,w:1920,h:1080,rects:[[0,960,460,120],[1460,960,460,120],[580,840,220,40],[1120,840,220,40],[860,740,200,80],[160,620,220,38],[1540,620,220,38],
-   [820,520,280,38],[240,944,70,16,3],[1610,944,70,16,3]],sp:[[270,580],[1650,580],[390,920],[1530,920]]},
- // Gearworks: close quarters. Two walls make a pit room with one lift; decks step up to a top bar (bouncing and blasting shots shine)
- {name:'Gearworks',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[700,780,50,220,1],[1170,780,50,220,1],[100,800,320,40],[1500,800,320,40],[380,620,260,40],[1280,620,260,40],[760,460,400,38]],
-   movers:[{x:870,y:620,w:180,h:30,mx:0,my:300,period:4.5}],sp:[[260,760],[1660,760],[230,960],[1690,960]]},
- // Ropeyard: three rope drops (the middle one hangs under the top platform), a middle plank, crates for cover, and side ledges a jump up (nothing hangs over them)
- {name:'Ropeyard',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[60,780,240,38],[1620,780,240,38],[760,820,400,40],[860,420,200,38],[110,984,80,16,3],[1730,984,80,16,3]],
-   hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:458}],crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[330,960],[1590,960]]},
- // Spire: hold the tower in the middle; stepped approaches and pads up to the outer perches (arcing and homing shots shine)
- {name:'Spire',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[880,560,160,440],[520,860,180,40],[1220,860,180,40],[700,700,160,40],[1060,700,160,40],[300,900,40,100,1],[1580,900,40,100,1],
-   [120,660,220,38],[1580,660,220,38],[160,984,80,16,3],[1680,984,80,16,3]],sp:[[230,620],[1690,620],[430,960],[1490,960]]},
- // Foundry: a chandelier over the middle and a toppling tower each side (rigs, for four)
- {name:'Foundry',party:1,big:1,w:1920,h:1080,rects:[[0,1000,1920,80],[80,800,280,40],[1560,800,280,40],[120,600,220,38],[1580,600,220,38],[840,380,240,38]],
-   rigs:[{t:'beam',x:700,y:560,w:520,h:34,ropes:[{ox:-220},{ox:220}]},{t:'stack',x:520,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80]]},{t:'stack',x:1400,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80]]}],
-   sp:[[220,760],[1700,760],[200,960],[1720,960]]},   // the floor spawns sit beside the pads, not on them
- /* Arenas with rooms: one screen, but packed: storeys, half-open cells, tunnels, shafts and forts, so a fight moves
-   through places rather than across a few floating blocks. Each leans toward a different kind of build (never said:
-   players find out). They play in duels and in parties. Thin planks (40 or less) you jump up through; thicker slabs and
-   walls are solid, and walls are for gripping and wall-jumping */
- // Tenement: a two-storey house of rooms in the middle, low walls to hop, a gap up through the floor (close range: body and block)
- {name:'Tenement',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[560,640,40,260,1],[1320,640,40,260,1],[800,890,30,110,1],[1090,890,30,110,1],
-   [560,760,320,44],[980,760,380,44],[600,560,300,36],[1020,560,300,36],[945,620,30,140,1],[80,820,260,40],[1580,820,260,40],[200,640,200,38],[1520,640,200,38],[860,400,200,38]],
-   crates:[[680,940,60],[1180,940,60]],sp:[[180,960],[1740,960],[300,600],[1620,600]]},
- // Longshot: long decks over a pit with almost no cover (long range: speed, Long Haul, rails)
- {name:'Longshot',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,700,80],[1220,1000,700,80],[860,940,200,40],[120,820,620,40],[1180,820,620,40],[400,640,1120,40],[930,580,60,60],
-   [120,460,500,38],[1300,460,500,38],[760,300,400,38],[40,984,80,16,3],[1800,984,80,16,3]],sp:[[260,960],[1660,960],[220,780],[1700,780]]},
- // Echo Hall: a low hall under ceiling slabs, walls hanging from them and hump walls on the floor (bounces and blasts)
- {name:'Echo Hall',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,300,760,50],[1160,300,760,50],[700,350,40,160,1],[1180,350,40,160,1],[460,820,50,180,1],[1410,820,50,180,1],
-   [860,860,200,140],[180,700,240,38],[1500,700,240,38],[660,620,220,38],[1040,620,220,38],[300,500,220,38],[1400,500,220,38],[860,460,200,38]],
-   sp:[[150,960],[1770,960],[300,660],[1620,660]]},
- // Shafts: two tall shafts you wall-jump up (or walk into from below), a block tower in the middle, pads to the high ledges (mobility)
- {name:'Shafts',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[420,420,40,480,1],[580,420,40,480,1],[1300,420,40,480,1],[1460,420,40,480,1],[860,700,200,300],
-   [740,860,120,40],[1060,860,120,40],[640,560,140,38],[1140,560,140,38],[120,560,240,38],[1560,560,240,38],[820,420,280,38],[200,984,80,16,3],[1640,984,80,16,3]],
-   sp:[[100,960],[1820,960],[240,520],[1680,520]]},
- // Catacombs: a broken stone floor over tunnels: fight above, ambush below, pop up through the gaps (lobs and close range)
- {name:'Catacombs',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[0,820,520,60],[700,820,200,60],[1020,820,200,60],[1400,820,520,60],[300,950,60,50],[1560,950,60,50],
-   [200,660,240,38],[1480,660,240,38],[820,600,280,38],[480,480,200,38],[1240,480,200,38],[860,360,200,38],[570,984,80,16,3],[1270,984,80,16,3]],crates:[[740,760,60]],sp:[[120,780],[1800,780],[420,960],[1500,960]]},
- // Bastions: two forts with crenellated decks and a crawl hole under each front wall; a mound and crates between (lobs and blocks)
- {name:'Bastions',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[520,760,50,160,1],[1350,760,50,160,1],[100,760,420,40],[1400,760,420,40],[130,700,50,60],[330,700,50,60],
-   [1740,700,50,60],[1540,700,50,60],[100,520,200,40],[1620,520,200,40],[820,900,280,100],[880,720,160,38],[760,420,400,38]],crates:[[680,940,60],[1180,940,60]],
-   sp:[[260,960],[1660,960],[240,720],[1680,720]]},
- // Switchback: a zig-zag of long planks stacked up the middle, side ledges and pads (vertical fights: arcs and homing)
- {name:'Switchback',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[400,860,800,40],[720,720,800,40],[400,580,800,40],[720,440,800,40],[860,300,200,38],
-   [60,780,220,38],[1640,780,220,38],[80,560,200,38],[1640,560,200,38],[300,984,80,16,3],[1540,984,80,16,3]],crates:[[560,940,60],[1300,940,60]],
-   sp:[[160,960],[1760,960],[500,820],[1420,680]]},
- // Hive: two rows of half-open cells, each walled on a different side, under a top bar (homing and blasts)
- {name:'Hive',party:1,big:1,duel:1,w:1920,h:1080,rects:[[0,1000,1920,80],[260,820,280,40],[820,820,280,40],[1380,820,280,40],[260,690,24,130,1],[1636,690,24,130,1],[820,690,24,130,1],[1076,690,24,130,1],
-   [260,560,280,40],[820,560,280,40],[1380,560,280,40],[516,430,24,130,1],[1380,430,24,130,1],[540,320,280,38],[1100,320,280,38]],sp:[[130,960],[1790,960],[400,780],[1520,780]]});
-/* More arenas with rooms, each built around something that moves or breaks: a lift shaft, a gondola, a vault, a wrecking
-   ball, drawbridges, pulley lifts, a clock tower between two pendulums, a hot greenhouse floor, rafters with drop platforms,
-   springboards, ferries, a hall of doors and toppling towers. Laid out as a left half and its mirror (`sym`), so both sides play alike */
+/* ---------- the arena library: every duel, party, Big Screen match, co-op and Survival round is played on these ----------
+   1920 x 1080, shown whole on any screen, with four spawns (two on the floor at the far sides, two up high).
+   The materials are rules, and every arena mixes them on purpose:
+     wood plank (32 thick): jump up through it, press down to drop. It still stops bullets
+     stone (56+): solid both ways; press down on it to duck under shots. Floors that make real rooms, cover, ceilings to bank shots off
+     purple wall: grip it, wall-jump off it         pink pad: launches you         embers: burn and throw you up
+     iron (dark, with glowing supports): the live part of an arena. Shoot it and it swings, drops, topples or slams down
+   Each arena has one live feature and leans toward one way of playing (never said: players find out from the cards they win with).
+   Laid out as a left half and its mirror (`sym`) where both sides should play alike */
 const RW=1920,sym=(L,C=[])=>[...C,...L,...L.map(([x,y,w,h,k])=>[RW-x-w,y,w,h,...(k!=null?[k]:[])])],
   symH=L=>[...L,...L.map(d=>({...d,x:RW-d.x-d.w}))],symS=L=>[...L,...L.map(d=>({...d,ax:RW-d.ax}))],symC=L=>[...L,...L.map(([x,y,z])=>[RW-x-z,y,z])],
-  ROOM={party:1,big:1,duel:1,w:1920,h:1080},FLOOR=[0,1000,1920,80];
+  P=(x,y,w)=>[x,y,w,32],S=(x,y,w,h=56)=>[x,y,w,h],WL=(x,y,h,w=36)=>[x,y,w,h,1],PAD=(x,top)=>[x,top-16,80,16,3],EM=(x,y,w,h=70)=>[x,y,w,h,5],
+  ROOM={party:1,big:1,duel:1,w:1920,h:1080},FLOOR=S(0,1000,1920,80),
+  bellCols=Array.from({length:7},(_,i)=>({x:960+(i-3)*250,top:600+Math.abs(i-3)*95}));
 MAPS.push(
- // Mineshaft: a three-storey house each side, a walled shaft in the middle with a lift running its full height, a bridge over the top
- {name:'Mineshaft',...ROOM,rects:sym([[80,820,380,40],[80,640,380,40],[460,640,40,180,1],[140,460,280,38],[740,500,40,360,1]],[FLOOR,[720,340,480,38]]),
-   movers:[{x:870,y:440,w:180,h:30,mx:0,my:480,period:5}],crates:symC([[600,940,60]]),sp:[[180,960],[1740,960],[260,600],[1660,600]]},
- // Gondola: two cliff-top houses over a pit; a ferry shuttles across low, a gondola swings in the middle, an island to land on
- {name:'Gondola',...ROOM,rects:sym([[0,1000,620,80],[160,780,300,40],[420,780,40,140,1],[60,600,240,38],[380,470,200,38]],[[860,720,200,40],[840,300,240,38]]),
+ // Tenement (close range): a two-storey house. Stone floors make real rooms; wooden roofs and landings to pop up through, low walls to hop, crates to shove
+ {name:'Tenement',...ROOM,rects:[FLOOR,WL(560,640,260,40),WL(1320,640,260,40),WL(800,890,110,30),WL(1090,890,110,30),S(560,760,320),S(980,760,380),P(600,560,300),P(1020,560,300),WL(945,620,140,30),
+   P(80,820,260),P(1580,820,260),P(200,640,200),P(1520,640,200),P(860,400,200)],crates:[[680,940,60],[1180,940,60]],sp:[[180,960],[1740,960],[300,600],[1620,600]]},
+ // Longshot (long range): stone lanes to duel on and duck along, a wooden span over the pit, almost no cover until someone shoots down the block hung over the middle
+ {name:'Longshot',...ROOM,rects:[S(0,1000,700,80),S(1220,1000,700,80),P(860,940,200),S(120,820,620),S(1180,820,620),P(400,640,1120),P(120,460,500),P(1300,460,500),P(760,300,400),PAD(40,1000),PAD(1800,1000)],
+   hangs:[{x:860,y:500,w:200,ay:332}],sp:[[260,960],[1660,960],[220,780],[1700,780]]},
+ // Echo Hall (bouncing shots): a low hall under stone ceiling slabs with walls hanging from them, humps on the floor, a pendulum through the gap in the roof
+ {name:'Echo Hall',...ROOM,rects:[FLOOR,...sym([S(0,300,760,60),WL(700,360,150,40),WL(460,820,180,50),P(180,700,240),P(660,620,220),P(300,500,220)]),S(860,860,200,140),P(860,460,200)],
+   swings:[{ax:960,len:320,w:160,h:30}],sp:[[150,960],[1770,960],[300,660],[1620,660]]},
+ // Shafts (mobility): two tall shafts you wall-jump up or walk into from below, a stone block tower in the middle, pads to the high ledges
+ {name:'Shafts',...ROOM,rects:[FLOOR,...sym([WL(420,420,480,40),WL(580,420,480,40),P(740,860,120),P(640,560,140),P(120,560,240),PAD(200,1000)]),S(860,700,200,300),P(820,420,280)],
+   sp:[[100,960],[1820,960],[240,520],[1680,520]]},
+ // Catacombs (lobs and close range): a broken stone floor over tunnels (fight above, ambush below, pop up through the gaps), a hole in the middle
+ {name:'Catacombs',...ROOM,rects:[FLOOR,S(0,820,520,60),S(700,820,200,60),S(1020,820,200,60),S(1400,820,520,60),
+   P(200,660,240),P(1480,660,240),P(820,600,280),P(480,480,200),P(1240,480,200),P(860,360,200),PAD(570,1000),PAD(1270,1000)],crates:[[740,760,60]],sp:[[120,780],[1800,780],[420,960],[1500,960]]},
+ // Bastions (lobs and blocks): two stone forts (duck on the deck, shelter inside) with a crawl hole under each front wall and a way in at the back; a mound and crates between
+ {name:'Bastions',...ROOM,rects:[FLOOR,...sym([WL(520,760,160,50),S(180,760,340),P(100,520,200),P(560,580,160)]),S(820,900,280,100),P(880,720,160),P(760,420,400)],
+   crates:[[680,940,60],[1180,940,60]],sp:[[260,960],[1660,960],[335,720],[1585,720]]},
+ // Switchback (vertical chases): stone and wooden decks stacked in a zig-zag. Stone you walk round, wood you go straight through, so the
+ // quick way up and the safe way up are different
+ {name:'Switchback',...ROOM,rects:[FLOOR,S(400,860,800),P(720,720,800),S(400,580,800),P(720,440,800),P(860,300,200),...sym([P(60,780,220),P(80,560,200),PAD(300,1000)])],
+   crates:[[200,940,60],[1660,940,60]],sp:[[160,960],[1760,960],[500,820],[1420,680]]},
+ // Hive (homing): two rows of half-open cells. The bottom cells have stone floors you can duck in; the top row is wood to pop up through
+ {name:'Hive',...ROOM,rects:[FLOOR,S(260,820,280),S(820,820,280),S(1380,820,280),WL(260,690,130,24),WL(1636,690,130,24),WL(820,690,130,24),WL(1076,690,130,24),
+   P(260,560,280),P(820,560,280),P(1380,560,280),WL(516,430,130,24),WL(1380,430,130,24),P(540,320,280),P(1100,320,280)],sp:[[130,960],[1790,960],[400,780],[1520,780]]},
+ // Mineshaft (mobility): a house each side (wooden ground-floor roof, a stone upper room with a low gap in its inner wall), a walled shaft with a lift running its full height
+ {name:'Mineshaft',...ROOM,rects:sym([P(160,820,300),S(240,640,220),WL(460,640,120,40),P(220,460,240),WL(740,500,360,40)],[FLOOR,P(720,340,480)]),
+   movers:[{x:870,y:440,w:180,h:30,mx:0,my:480,period:5}],crates:symC([[600,940,60]]),sp:[[180,960],[1740,960],[340,600],[1580,600]]},
+ // Gondola (long range and mobility): stone cliffs with wooden-roofed houses and stone lookouts over a pit; a ferry shuttles across low, a gondola swings in the middle, a wooden island to land on
+ {name:'Gondola',...ROOM,rects:sym([S(0,1000,620,80),P(160,780,300),WL(420,780,140,40),S(60,600,240),P(380,470,200)],[P(860,720,200),P(840,300,240)]),
    swings:[{ax:960,len:480,w:200,h:30}],movers:[{x:640,y:880,w:160,h:30,mx:480,my:0,period:6}],sp:[[140,960],[1780,960],[300,740],[1620,740]]},
- // Vault: a walled vault in the middle with a crawl gap under each wall and a grate roof (jump up through it) to fight over; platforms hang on ropes either side
- {name:'Vault',...ROOM,rects:sym([[720,560,40,340,1],[60,840,280,40],[220,680,240,38],[60,500,200,38],[560,984,80,16,3]],[FLOOR,[760,640,400,40],[860,420,200,38]]),
+ // Vault (close range): a walled vault with a crawl gap under each wall and a wooden grate roof to drop in through (a crate inside to heal at);
+ // platforms hang on ropes either side, to drop on whoever is under them
+ {name:'Vault',...ROOM,rects:sym([WL(720,560,340,40),S(60,840,280),P(220,680,240),P(60,500,200),PAD(560,1000)],[FLOOR,P(760,640,400),P(860,420,200)]),
    hangs:symH([{x:400,y:540,w:200}]),crates:[[930,940,60]],sp:[[150,960],[1770,960],[200,800],[1720,800]]},
- // Sawmill: a wrecking ball swings through the middle; sheds with a crawl gap and a loft each side
- {name:'Sawmill',...ROOM,rects:sym([[60,780,360,40],[400,780,40,140,1],[120,580,280,38],[500,620,180,38],[640,460,180,38]],[FLOOR,[860,360,200,38]]),
+ // Sawmill: a wrecking ball swings through the middle (shoot it to send it); wooden sheds with a crawl gap and a stone loft each side to hide from it
+ {name:'Sawmill',...ROOM,rects:sym([P(60,780,360),WL(400,780,140,40),S(120,580,280),P(440,640,160),P(640,460,180)],[FLOOR,P(860,360,200)]),
    rigs:[{t:'ball',ax:960,ay:0,len:700,z:84,amp:.5}],sp:[[150,960],[1770,960],[240,740],[1680,740]]},
- // Keep: a castle each side (walk in under the front wall or through the window over it, jump up through its floors) and a courtyard between them. Drawbridges
- // stand on the castle roofs: shoot a rope and it slams down over the courtyard (onto anyone on the steps), leaving a gap in the middle to jump through; a hinge and it drops away
- {name:'Keep',...ROOM,rects:sym([[0,560,560,40],[520,700,40,200,1],[80,800,300,40],[200,400,200,38],[640,760,180,38]],[FLOOR,[860,860,200,40],[860,710,200,38]]),
+ // Keep: a stone castle hall each side (a solid roof to fight on, a wooden gallery inside) and a courtyard between. Drawbridges stand on
+ // the roofs: shoot a rope and one slams down over the courtyard (onto anyone on the steps), a hinge and it drops away
+ {name:'Keep',...ROOM,rects:sym([S(0,560,560),P(80,800,300),P(200,400,200),P(640,760,180)],[FLOOR,P(860,860,200),P(860,710,200)]),
    rigs:[{t:'bridge',px:560,py:560,L:290,dir:1,rx:500,ry:0},{t:'bridge',px:1360,py:560,L:290,dir:-1,rx:1420,ry:0}],sp:[[180,960],[1740,960],[260,520],[1660,520]]},
- // Counterweight: two lifts on one rope either side of a two-room house (stand on one and the other rises; shoot the rope and both fall)
- {name:'Counterweight',...ROOM,rects:sym([[760,760,40,150,1],[60,840,240,40],[100,690,200,38],[60,540,240,38]],[FLOOR,[760,760,400,40],[800,560,320,38],[860,360,200,38]]),
+ // Counterweight: two lifts on one rope either side of a house with a stone canopy over it (stand on one and the other rises; shoot the rope and both fall)
+ {name:'Counterweight',...ROOM,rects:sym([WL(760,760,150,40),P(60,840,240),P(100,690,200),P(60,540,240)],[FLOOR,P(760,760,400),S(800,560,320),P(860,360,200)]),
    rigs:[{t:'lift',a:{x:400,y:680,w:200,h:30},b:{x:1320,y:680,w:200,h:30},wy:160,range:200}],sp:[[150,960],[1770,960],[180,800],[1740,800]]},
- // Clocktower: a tower of rooms in the middle (walk in under it, jump up through its floors), a pendulum swinging each side
- {name:'Clocktower',...ROOM,rects:sym([[700,380,40,440,1],[60,820,240,40],[60,600,200,38]],[FLOOR,[740,820,440,40],[740,640,440,40],[740,460,440,40],[680,380,560,40]]),
-   swings:symS([{ax:420,len:540,w:160,h:30}]),sp:[[150,960],[1770,960],[160,780],[1760,780]]},
- // Greenhouse: the middle floor is hot; planters, ledges and hanging walls carve it into beds you hop between
- {name:'Greenhouse',...ROOM,rects:sym([[0,1000,600,80],[640,860,220,40],[580,640,30,180,1],[160,800,280,40],[280,620,240,38],[100,460,200,38],[600,520,240,38]],[[600,1000,720,80,2],[860,720,200,40],[840,360,240,38]]),
+ // Clocktower: a tower you climb on the inside, stone floors with the way up on alternate sides like a stairwell, a wooden belfry floor under a
+ // stone roof with open windows; outside, ledges and a pendulum each side to swing up to the belfry and the roof
+ {name:'Clocktower',...ROOM,rects:[FLOOR,WL(700,460,440),WL(1184,460,440),S(736,820,300),S(884,640,300),P(700,460,520),S(660,300,600),
+   ...sym([P(60,820,240),P(80,620,220),P(440,640,180),P(480,460,160)])],swings:symS([{ax:300,len:500,w:140,h:30}]),sp:[[150,960],[1770,960],[180,780],[1740,780]]},
+ // Greenhouse: the middle floor is embers. Stone planters to stand on above them, glass panes (walls) blocking the long looks across, wooden shelves up high
+ {name:'Greenhouse',...ROOM,rects:sym([S(0,1000,600,80),S(660,880,180),WL(580,620,200,30),P(160,800,280),P(280,620,240),P(100,460,200),P(600,520,240)],[EM(600,1010,720),S(870,760,180),P(840,360,240)]),
    sp:[[150,960],[1770,960],[400,580],[1520,580]]},
- // Rafters: heavy beams overhead; platforms hang from them and from the roof (shoot a rope and it drops on whoever is under it), crates below
- {name:'Rafters',...ROOM,rects:sym([[0,340,560,50],[60,820,260,40],[560,800,200,40],[100,520,200,38],[580,570,160,38]],[FLOOR,[860,820,200,40]]),
-   hangs:[...symH([{x:280,y:640,w:220,ay:390}]),{x:850,y:560,w:220}],crates:symC([[480,940,60]]),sp:[[150,960],[1770,960],[160,780],[1760,780]]},
- // Springboard: pads fire you up into rooms built on stilts each side and onto a column in the middle that has its own pad
- {name:'Springboard',...ROOM,rects:sym([[300,984,80,16,3],[180,700,320,40],[460,560,40,350,1],[560,520,260,38],[120,420,220,38]],[FLOOR,[900,780,120,220],[920,764,80,16,3],[820,280,280,38]]),
+ // Rafters: heavy stone beams overhead; platforms hang from them and from the roof (shoot a rope and it drops on whoever is under it), crates below
+ {name:'Rafters',...ROOM,rects:sym([S(0,340,560,60),P(60,820,260),P(560,800,200),P(100,520,200),P(580,570,160)],[FLOOR,P(860,820,200)]),
+   hangs:[...symH([{x:280,y:640,w:220,ay:400}]),{x:850,y:560,w:220}],crates:symC([[480,940,60]]),sp:[[150,960],[1770,960],[160,780],[1760,780]]},
+ // Springboard (mobility): a pad outside each room on stilts fires you up to the high stone shelves; a stone column in the middle has its own pad
+ {name:'Springboard',...ROOM,rects:sym([P(180,700,320),WL(500,560,350,40),PAD(580,1000),S(580,520,240),P(120,420,220)],[FLOOR,S(900,780,120,220),PAD(920,780),P(820,280,280)]),
    sp:[[150,960],[1770,960],[260,660],[1660,660]]},
- // Docks: two boathouses over the water, ferries crossing at two heights, a hut on stilts in the middle (duck under its walls on the high ferry)
- {name:'Docks',...ROOM,rects:sym([[0,960,520,120],[80,780,320,40],[360,780,40,120,1],[120,600,240,38]],[[800,560,320,40],[800,560,30,80,1],[1090,560,30,80,1],[840,360,240,38]]),
-   movers:[{x:540,y:880,w:180,h:30,mx:660,my:0,period:7},{x:540,y:700,w:180,h:30,mx:660,my:0,period:7,phase:.5}],sp:[[160,920],[1760,920],[240,740],[1680,740]]},
- // Hall of Doors: blocks of rooms each side and a split room in the middle, so fights go door to door
- {name:'Hall of Doors',...ROOM,rects:sym([[180,820,480,40],[180,620,480,40],[630,620,30,200,1],[380,420,240,38]],[FLOOR,[820,720,280,40],[945,520,30,200,1],[760,520,400,38],[860,320,200,38]]),
+ // Docks: stone docks with wooden boathouses over the water, ferries crossing at two heights, a stone hut on the water with windows to shoot through
+ {name:'Docks',...ROOM,rects:sym([S(0,960,520,120),P(80,780,320),WL(360,780,120,40),P(120,600,240),WL(800,520,80,30)],[S(800,600,320),P(820,440,280),P(840,300,240)]),
+   movers:[{x:540,y:880,w:180,h:30,mx:660,my:0,period:7},{x:540,y:720,w:180,h:30,mx:660,my:0,period:7,phase:.5}],sp:[[160,920],[1760,920],[240,740],[1680,740]]},
+ // Hall of Doors (close range): rooms with stone floors and wooden ceilings, a door low in each inner wall, a split room in the middle
+ {name:'Hall of Doors',...ROOM,rects:sym([S(180,820,480),P(180,620,480),WL(630,620,120,30),P(380,420,240)],[FLOOR,S(820,720,280),WL(945,520,200,30),P(760,520,400),P(860,320,200)]),
    sp:[[100,960],[1820,960],[300,780],[1620,780]]},
- // Leaning Towers: a block tower each side on a hollow keystone (shoot it out and the top topples inward), a house in the middle
- {name:'Leaning Towers',...ROOM,rects:sym([[60,840,240,40],[60,620,220,38],[480,540,200,38]],[FLOOR,[800,800,320,40],[800,800,30,120,1],[1090,800,30,120,1],[860,560,200,38],[840,360,240,38]]),
+ // Leaning Towers: a block tower each side on a hollow keystone (shoot it out and the top topples inward), a house in the middle under a stone lookout
+ {name:'Leaning Towers',...ROOM,rects:sym([P(60,840,240),P(60,620,220),P(480,540,200)],[FLOOR,P(800,800,320),WL(800,800,120,30),WL(1090,800,120,30),S(860,560,200),P(840,360,240)]),
    rigs:[{t:'stack',x:640,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]},{t:'stack',x:1280,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80],[100,80]]}],
-   sp:[[150,960],[1770,960],[160,800],[1760,800]]});
+   sp:[[150,960],[1770,960],[160,800],[1760,800]]},
+ // Plaza (long range): wide open with long sightlines: two stone towers, a low wooden bridge, a crown perch; crates for cover
+ {name:'Plaza',...ROOM,rects:[FLOOR,...sym([S(120,760,180,240),S(300,880,70,120),P(400,680,220),PAD(30,1000)]),P(660,820,600),P(860,560,200)],crates:[[520,940,60],[1340,940,60]],
+   sp:[[210,720],[1710,720],[445,960],[1475,960]]},
+ // Islands (mobility and lobs): two stone shores over pits, stone islands and a rock in the middle, pads up to the high wooden ledges
+ {name:'Islands',...ROOM,rects:[...sym([S(0,960,460,120),S(580,840,220),P(160,620,220),[240,944,70,16,3]]),S(860,740,200,80),P(820,520,280)],sp:[[270,580],[1650,580],[390,920],[1530,920]]},
+ // Gearworks (close range): two walls make a pit room under a stone lid, with one lift; wooden decks step up each side
+ {name:'Gearworks',...ROOM,rects:[FLOOR,...sym([WL(700,780,220,50),P(100,800,320),P(380,620,260)]),S(760,460,400)],movers:[{x:870,y:620,w:180,h:30,mx:0,my:300,period:4.5}],
+   sp:[[260,760],[1660,760],[230,960],[1690,960]]},
+ // Ropeyard: three rope drops (the middle one hangs under the top plank and lands on the stone table), wooden side ledges, crates for cover
+ {name:'Ropeyard',...ROOM,rects:[FLOOR,...sym([P(60,780,240),PAD(110,1000)]),S(760,820,400),P(860,420,200)],hangs:[{x:400,y:640,w:220},{x:1300,y:640,w:220},{x:850,y:600,w:220,ay:452}],
+   crates:[[680,940,60],[1180,940,60]],sp:[[180,740],[1740,740],[330,960],[1590,960]]},
+ // Spire (holding a spot): a stone tower in the middle with a wooden lookout on top to hold, stepped wooden approaches, pads to the outer perches, and a block hung over
+ // the top, so whoever camps up there can be crushed
+ {name:'Spire',...ROOM,rects:[FLOOR,S(880,592,160,408),P(860,560,200),...sym([P(520,860,180),P(700,700,160),WL(300,900,100,40),P(120,660,220),PAD(160,1000)])],hangs:[{x:860,y:300,w:200}],
+   sp:[[230,620],[1690,620],[430,960],[1490,960]]},
+ // Foundry: a chandelier over the middle and a toppling tower each side
+ {name:'Foundry',...ROOM,rects:[FLOOR,...sym([P(80,800,280),P(120,600,220)]),P(840,380,240)],
+   rigs:[{t:'beam',x:700,y:560,w:520,h:34,ropes:[{ox:-220},{ox:220}]},{t:'stack',x:520,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,80]]},{t:'stack',x:1400,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,80]]}],
+   sp:[[220,760],[1700,760],[200,960],[1720,960]]},
+ // Belfry: seven bells hung over a floor of embers, rising to a peak. Two shots break a bell's line and it drops (with whoever is on it) onto
+ // whoever is under it; a new one is lowered a few seconds later. No floor to stand on, so it isn't used for Survival
+ {name:'Belfry',...ROOM,noSurv:1,rects:[EM(0,1010,1920)],rigs:bellCols.map(c=>({t:'chime',x:c.x,top:c.top,w:150,h:40})),
+   sp:[[bellCols[0].x,bellCols[0].top-24],[bellCols[6].x,bellCols[6].top-24],[bellCols[2].x,bellCols[2].top-24],[bellCols[4].x,bellCols[4].top-24]]});
 /* The arena library: every duel, party, Big Screen match, co-op and Survival round is played on these (the room arenas).
    The older open arenas above stay defined only for the tests of their moving parts */
-const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel);
+const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel&&!(MAPS[k].noSurv&&game.mode==='survival'));
 const FRAME=10;
 /* the world is the arena's own size (big Survival arenas are larger than the screen: a camera follows the action);
    VW x VH is the view the HUD is laid out in */
@@ -2045,8 +2049,8 @@ function repaintLayers(){if(!game.map)return;layersLost=false;
   skyMark=skyAlpha()}
 function checkLayers(dt){if(layersLost){if(!(bgx.isContextLost&&bgx.isContextLost()))repaintLayers();return}
   if((layerProbeT-=dt)>0)return;layerProbeT=1;const a=skyAlpha();if(skyMark==null)skyMark=a;else if(skyMark>200&&a<8)repaintLayers()}
-const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f'],['#5d514b','#73665e','#463b36']];
-const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6','#a39282'];   // kind 4: dark iron-and-timber, anything physical (it swings, falls or gets shot down)
+const KIND=[['#c49a6c','#d9b688','#a17b52'],['#4b3a63','#5e4a7a','#3b2d4f'],['#38b096','#5fd0b6','#2a8c77'],['#d6457f','#ee6aa0','#b2305f'],['#5d514b','#73665e','#463b36'],['#5a1d14','#8a2a16','#3a110c']];
+const EDGE=['#f3d9ab','#9b86bd','#b9ffe9','#ffd1e6','#a39282','#ffb347'];   // kind 5: embers (they burn)   // kind 4: dark iron-and-timber, anything physical (it swings, falls or gets shot down)
 const isOneway=(h,k)=>!k&&h<=40;
 /* the look of the card art. Scenery uses its own seeded random stream, so dressing an arena never shifts the game's dice */
 function artRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
@@ -2068,6 +2072,20 @@ function slabPath(g,x,y,w,h){const c=Math.min(7,w/6,h/3);g.beginPath();g.moveTo(
 function rockBelly(g,x,y,w,h,kind){const [,,lo]=KIND[kind||0],R=artRng(strSeed('b'+x+','+y+','+w)),d=Math.min(20,6+w*.035),n=Math.max(4,Math.round(w/34));
   g.save();g.beginPath();g.moveTo(x+w*.08,y+h-2);for(let i=1;i<n;i++){const t=i/n;g.lineTo(x+w*(.08+.84*t),y+h-2+d*Math.sin(Math.PI*t)*(.55+.45*R()))}g.lineTo(x+w*.92,y+h-2);g.closePath();
   g.fillStyle=lo;g.fill();g.globalAlpha=.45;g.fillStyle='#2a1530';g.fill();g.restore()}
+/* a wooden plank (thin, one-way: jump up through it, hold down to drop): boards with seams and nails on two iron brackets,
+   so it never reads as stone. Stone is solid both ways; you can duck behind it */
+function woodPlank(g,x,y,w,h){const R=artRng(strSeed('w'+x+','+y+','+w));g.save();
+  g.fillStyle='#2b2233';for(const bx of[x+16,x+w-32]){g.beginPath();g.moveTo(bx,y+h-2);g.lineTo(bx+16,y+h-2);g.lineTo(bx+8,y+h+12);g.closePath();g.fill()}
+  slabPath(g,x,y,w,h);g.fillStyle='#8f5a32';g.fill();g.clip();
+  let bx=x;while(bx<x+w){const bw=60+R()*34;g.fillStyle=R()<.5?'#a06a3b':'#87522d';g.fillRect(bx,y,bw,h);g.strokeStyle='rgba(60,30,12,.35)';g.lineWidth=1.5;
+    for(let i=0;i<2;i++){const gy=y+h*(.36+i*.28)+R()*3;g.beginPath();g.moveTo(bx+5,gy);g.lineTo(bx+bw-5,gy+R()*2-1);g.stroke()}
+    g.fillStyle='rgba(40,18,6,.75)';g.fillRect(bx+bw-2,y,2,h);g.fillStyle='#e2bb85';g.fillRect(bx+5,y+h/2-1,3,3);g.fillRect(bx+bw-10,y+h/2-1,3,3);bx+=bw}
+  g.fillStyle='#f3c98e';g.fillRect(x,y,w,4);g.fillStyle='rgba(0,0,0,.28)';g.fillRect(x,y+h-5,w,5);g.restore()}
+/* embers: a floor of glowing coals. Standing on it burns and throws you up, like the arena's bottom edge */
+function emberArt(g,x,y,w,h){const R=artRng(strSeed('e'+x+','+y+','+w));g.save();slabPath(g,x,y,w,h);g.clip();
+  const gr=g.createLinearGradient(0,y,0,y+h);gr.addColorStop(0,'#ff9a2e');gr.addColorStop(.18,'#c4401a');gr.addColorStop(1,'#3a110c');g.fillStyle=gr;g.fillRect(x,y,w,h);
+  g.strokeStyle='rgba(255,200,90,.85)';g.lineWidth=2;for(let i=0;i<w/26;i++){const cx=x+R()*w,cy=y+8+R()*Math.min(40,h-10);g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+R()*24-12,cy+R()*14);g.lineTo(cx+R()*30-15,cy+R()*22);g.stroke()}
+  g.fillStyle='#ffe2a0';for(let i=0;i<w/14;i++)g.fillRect(x+R()*w,y+R()*5,3,3);g.restore()}
 /* a bounce pad: a pink plate on a little spring, set into the rock below it (no shadow of its own) */
 function padArt(g,x,y,w,h){g.save();const mx=x+6,mw=w-12;g.fillStyle='#3a2f45';g.fillRect(mx,y+7,mw,h-7);
   g.strokeStyle='#b9b2c6';g.lineWidth=2;g.beginPath();for(let i=0,n=Math.max(3,Math.round(mw/14));i<=n;i++){const px=mx+4+(mw-8)*i/n;g[i?'lineTo':'moveTo'](px,i%2?y+h-2:y+9)}g.stroke();
@@ -2159,10 +2177,10 @@ function buildBg(map){const g=bgx,dawn=matchProgress();paintSky(map,dawn);
   // every shadow first, so a shadow can never fall on top of another platform (or a pad's onto the ground it sits on)
   platx.fillStyle='rgba(10,4,18,.4)';for(const r of map.rects)if(r[4]!==3){slabPath(platx,r[0]+10,r[1]+12,r[2],r[3]);platx.fill()}
   const sitsOn=r=>map.rects.some(o=>o!==r&&Math.abs(o[1]-(r[1]+r[3]))<3&&o[0]<r[0]+r[2]&&o[0]+o[2]>r[0]);
-  for(const r of map.rects)if(!r[4]&&r[1]+r[3]<H-12&&!sitsOn(r))rockBelly(platx,r[0],r[1],r[2],r[3],0);
+  for(const r of map.rects)if(!r[4]&&r[1]+r[3]<H-12&&!sitsOn(r)&&!isOneway(r[3],r[4]))rockBelly(platx,r[0],r[1],r[2],r[3],0);
   // a bold dark outline round every platform (like ROUNDS' crisp shapes): the arena reads at a glance, even from across a room.
   // Each piece is outlined as it's drawn, so a piece in front (Crossroads' plank through its pillar) hides the outline behind it
-  for(const r of map.rects)if(r[4]!==3){facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],isOneway(r[3],r[4]));
+  for(const r of map.rects)if(r[4]!==3){if(isOneway(r[3],r[4]))woodPlank(platx,r[0],r[1],r[2],r[3]);else if(r[4]===5)emberArt(platx,r[0],r[1],r[2],r[3]);else{facets(platx,r[0],r[1],r[2],r[3],r[4]);edgeDecor(platx,r[0],r[1],r[2],r[3],r[4],false)}
     platx.save();platx.strokeStyle='rgba(14,6,24,.78)';platx.lineWidth=4;platx.lineJoin='round';slabPath(platx,r[0],r[1],r[2],r[3]);platx.stroke();platx.restore()}
   for(const r of map.rects)if(r[4]===3)padArt(platx,r[0],r[1],r[2],r[3]);   // pads on top of everything
   dec.clearRect(0,0,W,H);skyMark=null;layerProbeT=.5;
@@ -2364,7 +2382,7 @@ function spreadSpawns(n){const m=game.map;if(m._spread&&m._spread.n===n)return m
   m._spread={n,pts};return pts}
 function spawnFor(p,k){const sp=game.map.sp;if(game.mode!=='survival')return game.ffa&&players.length>2?spreadSpawns(players.length)[k]||sp[k%2]:sp[k]||sp[k%2];const R=Math.max(BASE_R,p.r||0);   // a big fighter (Thick Skin, a boss) needs a bigger spot
   // a good spot: the body fits, and there's fixed floor (nothing that swings, falls or breaks) close under the whole body
-  const fixed=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&!r.rig&&r.kind!==3&&r.kind!==4),under=(x,y)=>fixed.some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
+  const fixed=solids.filter(r=>!r.bound&&!r.swing&&!r.ride&&!r.rig&&r.kind!==3&&r.kind!==4&&r.kind!==5),under=(x,y)=>fixed.some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
   // ...and out of a wrecking ball's swing (it would bowl the fighter over before they land)
   const ok=(x,y)=>x>FRAME+R&&x<W-FRAME-R&&y>FRAME+R&&!solidBoxP(x,y,R,R)&&!rigs.some(c=>c.ball&&c.mode==='swing'&&Math.abs(Math.hypot(x-c.ax,y-c.ay)-c.len)<c.w+R+30)&&[-R*.7,0,R*.7].every(dx=>{for(let gy=y+R;gy<y+R+90;gy+=4)if(under(x+dx,gy))return true;return false});
   // every standing spot on every fixed surface, nearest to (tx,ty) first, that's free of the others
@@ -4266,6 +4284,10 @@ const GROUND_ACC=10,AIR_ACC=4.5;
 function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.coyote-=dt;
   if(p.grounded&&p.ground&&(p.ground.swing||p.ground.ride)){p.x+=p.ground.dx;p.y+=p.ground.dy}
   if(p.grounded)p.coyote=.12;
+  // embers: standing on them burns and throws you up (like the arena's bottom edge, a little gentler)
+  if(p.grounded&&p.ground&&p.ground.kind===5){const gx=p.x,gy=p.ground.y;p.vy=-EMBER_POP;p.grounded=false;p.ground=null;p.coyote=0;p.airJumps=p.s.airJumps;p.y-=2;
+    if((p.emberT||0)<=0){p.emberT=.3;burst(gx,gy,'#ffb347',14,380,4,.4,0,true);burst(gx,gy,'#ff5a1f',8,260,3,.3,0,true);addShake(5);sfx('zap');damage(p,EMBER_DMG,null)}}
+  p.emberT=(p.emberT||0)-dt;
   // drop through a one-way plank
   if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
@@ -4294,7 +4316,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
 // move by velocity and resolve against the arena
 /* the arena edges are an energy border, not walls: touching one knocks you back inside (sides and ceiling) or pops you up
    off the bottom with a small nudge, and the host deals the damage. You can't stand on, cling to or wall-jump off an edge. */
-const EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1750,EDGE_BLOCK_SIDE=1350,EDGE_BLOCK_TOP=1500;
+const EMBER_DMG=14,EMBER_POP=820,EDGE_DMG=18,EDGE_FLOOR_DMG=24,EDGE_FLOOR_POP=860,EDGE_BLOCK_POP=1750,EDGE_BLOCK_SIDE=1350,EDGE_BLOCK_TOP=1500;
 function edgeBounce(p){const R=p.r,lo=FRAME+R;let hit=null;
   // blocking into a border is the "sketchy jump": no damage, and it fires you back in (sides) or spikes you down (top)
   const bl=p.blockT>0||p.localBlockT>0;
@@ -4463,7 +4485,7 @@ function fallSim(p,dir,jt,jh,bounce){const s=p.s,spd=520*s.moveSpeed*(1-(p.slowA
     if(wall){if(dir&&!wall.swing&&!wall.ride&&Math.sign(wall.x+wall.w/2-x)===dir&&!land.some(o=>o!==wall&&!o.oneway&&x+R>o.x&&x-R<o.x+o.w&&o.y+o.h<=y-R+2&&o.y+o.h>wall.y-2*R))return{t:i*st,x,hot:false,jumped:jt!=='none',popped,wall:true};vx=0}else x=nx;   // steering into a wall it can climb (nothing over the climb): it grips, slides slowly and gets its air jump back
     if(x<FRAME+R||x>W-FRAME-R)return null;
     const pb=y+R;y+=vy*st;const b=y+R;
-    if(vy>0)for(const r of land)if(pb<=r.y+1&&b>=r.y&&x>r.x+6&&x<r.x+r.w-6)return{t:i*st,x,hot:r.kind===2,jumped:jt!=='none',popped};
+    if(vy>0)for(const r of land)if(pb<=r.y+1&&b>=r.y&&x>r.x+6&&x<r.x+r.w-6)return{t:i*st,x,hot:r.kind===2||r.kind===5,jumped:jt!=='none',popped};
     if(vy<0)for(const r of land)if(!r.oneway&&x+R>r.x&&x-R<r.x+r.w&&y-R<r.y+r.h&&y-R>r.y){y=r.y+r.h+R;vy=0}
     // the bottom border pops you back up with your air jump back (a block there is a full-height launch and costs nothing)
     if(y>H-R){if(!bounce||popped)return null;popped=blk?1:2;y=H-R;vy=-(blk?EDGE_BLOCK_POP:EDGE_FLOOR_POP);aj=p.s.airJumps;jumped=false;jt='apex'}}
@@ -4511,9 +4533,9 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   else if(ai.mode==='engage'){const sdx=Math.sign(dx)||ai.strafe;dir=dist>want+90?sdx:dist<want-90?-sdx:ai.strafe;
     if(p.grounded&&dy<-150&&Math.random()<dt*1.6)jump=true;
     if(p.grounded&&Math.random()<dt*.18)jump=true}
-  else if(ai.mode==='hunt'){dir=Math.sign(dx)||1;
+  else if(ai.mode==='hunt'){dir=Math.abs(dx)<60?ai.strafe:Math.sign(dx);   // right over or under the rival with no shot: each CPU picks its own way round (two never mirror each other)
     // a solid roof right over us (a wide slab, a tunnel): the way up is round its end, however far that is
-    const roof=solids.find(r=>!r.bound&&!r.oneway&&!r.swing&&p.x>r.x&&p.x<r.x+r.w&&r.y+r.h<=p.y&&p.y-(r.y+r.h)<260);if(roof)ai.roofT=.8;else ai.roofT=(ai.roofT||0)-dt;
+    const roof=solids.find(r=>!r.bound&&!r.oneway&&!r.swing&&p.x>r.x&&p.x<r.x+r.w&&r.y+r.h<=p.y&&p.y-(r.y+r.h)<320);if(roof)ai.roofT=.8;else ai.roofT=(ai.roofT||0)-dt;
     // stacked vertically with something between us: commit to one side and go around
     if((dy>110||dy<-110&&!onewayAbove(p)&&!(e.ground&&e.ground.oneway))&&(ai.side||Math.abs(dx)<140)&&(Math.abs(dx)<320||ai.side&&dy<-110&&roof)){if(p.grounded&&p.ground&&!p.ground.bound&&p.ground!==ai.sideG)ai.side=0;   // standing on another ledge than when it chose (or chose mid-air): choose again from here
       if(!ai.side){const g=p.ground;ai.sideG=g;const safeAt=x=>solids.some(r=>!r.bound&&!r.swing&&!r.oneway&&x>r.x&&x<r.x+r.w&&r.y>p.y&&r.y-p.y<420);   /* when only one end of the ledge drops onto solid ground, that end */
@@ -4524,7 +4546,8 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
     if(p.grounded&&dy<-100&&!roof&&ai.roofT>0&&Math.abs(dx)<700)jump=true;   // just out from under a roof: climb toward the rival straight away
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
-    if(wallAhead(p,dir)){if(p.grounded||p.wallDir)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}   // a tall wall: the double jump goes at the top of the first, not on the way down
+    if(wallAhead(p,dir)){if(roof&&dy>-60&&!p.grounded){if(p.wallDir)dir=0}   // in a low room under a roof: a wall here has its way through below (a crawl gap), so let go and walk under it rather than wall-jump into the ceiling
+      else if(p.grounded||p.wallDir)jump=true;else if(p.vy>-150&&p.airJumps>0)jump=true}   // a tall wall: the double jump goes at the top of the first, not on the way down
     if(!p.grounded&&dy<-30&&p.vy>-160&&p.vy<140&&p.airJumps>0)jump=true;   // target above: spend the double jump at the top of the first
     ai.stuckT=Math.abs(p.vx)<25&&p.grounded?ai.stuckT+dt:0;if(ai.stuckT>1.2){ai.flipT=.9;ai.stuckT=0}
     if(ai.flipT>0){dir=-dir;if(p.grounded&&Math.random()<dt*2)jump=true}}
@@ -5159,7 +5182,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-11-arenas';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-11-materials';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

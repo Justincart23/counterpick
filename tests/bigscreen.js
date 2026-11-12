@@ -138,7 +138,8 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(H.game.screen && !H.game.ffa && H.players.length === 4 && H.players.every((p) => p.ctrl === 'pad'), 'Teams 2v2 with four phones');
   check(JSON.stringify(H.players.map((p) => p.team)) === '[0,1,0,1]' && H.game.wins.length === 2, 'two teams, scored by team');
   check(phones().every((A) => H.players[A.ctl.me] && H.players[A.ctl.me].team === A.ctl.team), 'each phone should know its team');
-  for (let f = 0; f < 60 * 40; f++) { for (const A of phones()) { if (A.ctl.hand && A.ctl.picked < 0 && f % 40 === 7) A.padPick(1); drive(A, f) } frame(1) }
+  // 60 s: the scripted phones only run and fire, so on some arenas the last two need overtime (from 45 s, every shot homes) to finish a point
+  for (let f = 0; f < 60 * 60; f++) { for (const A of phones()) { if (A.ctl.hand && A.ctl.picked < 0 && f % 40 === 7) A.padPick(1); drive(A, f) } frame(1) }
   check(H.game.wins.reduce((a, b) => a + b, 0) + H.game.points.reduce((a, b) => a + b, 0) > 0, 'teams play scores points');
   // --- no CPUs unless the host adds them: three phones; a fourth joins mid-match and gets a fighter of their own
   Fp.leaveOnline(true); frame(30); Object.assign(H.settings, { bsMode: 'ffa', bsBots: 0 }); H.bsToLobby(); frame(30);
