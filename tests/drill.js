@@ -19,6 +19,16 @@ const { load } = require('./env');
   check(shot(['Ghost Rounds', 'Ghost Rounds'], 280, false), 'two copies should drill deeper');
   check(!shot([], 40, false), 'a plain shot should stop at a wall');
   check(!shot(['Ghost Rounds'], 0, true), 'a block should stop a Ghost Rounds shot');
+  // the price of a wall: slower, weaker and dipping on the far side
+  { A.startMatch('cpu'); A.game.state = 'play'; const [P, E] = A.players; P.cards = [A.CARDS.find((c) => c.n === 'Ghost Rounds')]; A.recompute(P);
+    const S = A.solids; S.length = 0; S.push(...A.BOUNDS); S.push({ x: 700, y: 300, w: 120, h: 400, kind: 0 }); Object.assign(E, { x: 1700, y: 200 });
+    A.bullets.length = 0; A.spawnBullet(P, 560, 500, 0); const b = A.bullets[0]; b.grav = 0; const sp0 = Math.hypot(b.vx, b.vy), d0 = b.dmg;
+    for (let i = 0; i < 120 && b.x < 900; i++) A.updateBullets(1 / 240);
+    const sp1 = Math.hypot(b.vx, b.vy);
+    check(b.x >= 900 && !b.dead, 'the ghost shot comes out the far side');
+    check(sp1 < sp0 * 0.85, `a wall slows the shot (${Math.round(sp0)} → ${Math.round(sp1)})`);
+    check(b.dmg < d0 * 0.8, `a wall weakens the shot (${d0.toFixed(1)} → ${b.dmg.toFixed(1)})`);
+    check(b.vy > 0.05 * sp1, `the shot dips after the wall (vy ${Math.round(b.vy)})`) }
   { const c = A.CARDS.find((c) => c.n === 'Ghost Rounds'), s = { ...A.BASE }; c.a(s); check(s.reload > A.BASE.reload + 0.2, 'Ghost Rounds should cost reload time') }
   // Survival: an opponent that walks over a power-up takes it
   A.startSurvival(); flushTimers(); A.game.state = 'play';
@@ -27,4 +37,4 @@ const { load } = require('./env');
   if (foe) { A.drops = [{ id: 99, kind: 'over', x: foe.x, y: foe.y, ty: foe.y, state: 'ready', t: 9, vy: 0 }]; A.dropTick(1 / 60);
     check(!A.drops.length && foe.buffOver > 0, 'a Survival opponent should pick up a power-up') }
   if (fail.length) { console.log('FAIL\n  - ' + fail.join('\n  - ')); process.exit(1) }
-  console.log(JSON.stringify({ checks: 9, failures: 0 })) })();
+  console.log(JSON.stringify({ checks: 13, failures: 0 })) })();
