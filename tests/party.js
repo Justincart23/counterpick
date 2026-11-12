@@ -139,7 +139,10 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     A.mouse.x = me.x + Math.cos(ang) * 220; A.mouse.y = me.y + Math.sin(ang) * 220; A.mouse.down = (f + me.id * 7) % 50 < 30;
     A.keys.add(Math.abs(o.x - me.x) > 260 ? (o.x > me.x ? 'KeyD' : 'KeyA') : Math.floor(f / 45) % 2 ? 'KeyD' : 'KeyA');
     if ((f + me.id * 11) % 55 === 0 || (f + me.id * 11) % 55 === 18) A.edges.add('KeyW'); if ((f + me.id * 11) % 55 < 30) A.keys.add('KeyW') };
-  const pickMine = (A) => { const T = A.tpick, me = myP(A); if (A.pickMode !== 'team' || !T || !me) return 0; const g = T.ids.indexOf(me.id); if (g < 0 || T.chosen[g] >= 0 || T.sent === g) return 0; A.pickNow(g * 3); return 1 };
+  // the draft: each screen sees only its own five cards, picks, and sees the others' picks only when they flip
+  let hands5 = 0, handsOther = 0, leaks = 0;
+  const pickMine = (A) => { const me = myP(A), S = A.spick; if (S && A !== H && Object.keys(S.hands).some((k) => +k !== A.net.me)) leaks++;
+    if (!me || !A.pickFor || A.pickFor.id !== me.id || A.pickLock || !A.hand.length || !S) return 0; if (A.hand.length === 5) hands5++; else handsOther++; A.pickNow(0); return 1 };
   let frames = 0, drafts = [0, 0, 0, 0], err = [0, 0, 0], errN = [0, 0, 0], moved = [0, 0, 0], last = [null, null, null], over = false, left = false;
   const hist = [[], [], [], []], jud = [[0, 0], [0, 0], [0, 0]], vel = new Map();   // the host's recent path of each fighter; judder per screen
   while (frames < 60 * 60 * 12) { frames++;
@@ -162,6 +165,8 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(G.slice(0, 2).every((A) => A.game.state === 'over'), 'the friends still in should see the end screen');
   check(left && H.players.some((p) => p.left) && H.net.peers.length === 2, 'the friend who left should sit out while the rest play on');
   check(drafts.slice(0, 3).every((d) => d > 0), `every screen should draft its own cards (${drafts})`);
+  check(hands5 > 0 && !handsOther, `every hand should hold five cards (${hands5} of five, ${handsOther} other)`);
+  check(!leaks, `no screen should ever be sent anyone else's hand (${leaks} frames)`);
   check(moved.slice(0, 2).every((m) => m > 2000), `each friend's fighter should move (${moved.map(Math.round)})`);
   const judder = jud.map(([n, d]) => +(100 * n / Math.max(1, d)).toFixed(2));
   check(sync.slice(0, 2).every((e) => e < 25), `every screen should draw the others on the host's path (mean off-path ${sync} px)`);

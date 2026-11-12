@@ -60,7 +60,8 @@ async function tab(port, url) {
   await A.ev(`document.querySelector('[data-act="cpu"]').click()`);
   ok(await A.until(`window.__G.game.mode==='cpu'&&window.__G.game.state==='pick'`) && await A.until(shown('#pick'), 3000), 'Practice vs CPU starts with the opening draft');
   await sleep(900); await A.ev(`document.querySelector('#pick .card').click()`);
-  ok(await A.until(`window.__G.players[0].cards.length===1`, 4000), 'clicking an opening card adds it to your deck');
+  ok(await A.until(shown('#bsPick'), 3000), 'after your pick, the draft board waits for the CPU (face-down cards)');
+  ok(await A.until(`window.__G.players[0].cards.length===1&&document.querySelectorAll('#bspRow .bsp-col.flip').length===2`, 12000), 'both picks flip face up, and your card is in your deck');
   ok(await A.until(`window.__G.game.state==='play'`), 'the countdown finishes and play begins');
   await A.key('Escape', 'Escape'); ok(await A.until(shown('#pause'), 2000), 'Esc pauses');
   await A.key('Escape', 'Escape'); ok(await A.until(`document.querySelector('#pause').hidden`, 2000), 'Esc again resumes');

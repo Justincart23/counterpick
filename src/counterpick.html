@@ -537,16 +537,6 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .roster li.locked{cursor:pointer;font-size:15px;color:#e9c46a;border-color:rgba(233,196,106,.45)}.roster li.locked::before{background:none;border:2px solid #e9c46a;box-sizing:border-box}.roster li.locked:hover,.roster li.locked:focus-visible{border-color:#e9c46a;outline:none}
 .pad-plus{margin:2px 0 0;font:800 13px var(--fb);color:#ffd36b;letter-spacing:.02em}.pad-plus b{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:#ffd36b;color:#1a1024;margin-right:4px}
 .card.theirs{filter:saturate(.75) brightness(.86)}
-/* a team draft: two sections, each headed by its picker's fighter and name; the fan sits a little lower so a lifted card never
-   reaches the title */
-.tsec{position:absolute;top:calc(104px + env(safe-area-inset-top,0px));left:calc(50% - 1.75 * min(clamp(150px,16vw,222px), 12vw));transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;
-  font-family:var(--display);font-size:24px;letter-spacing:.03em;color:var(--pc);padding:4px 16px 4px 8px;border-radius:999px;background:rgba(33,21,47,.85);border:2px solid var(--pc);pointer-events:none}
-.tsec.t2{left:calc(50% + 1.75 * min(clamp(150px,16vw,222px), 12vw))}
-@media (min-width:761px) and (max-width:1500px){#pick.team .card{width:clamp(130px,12.5vw,190px)}}.tsec canvas{width:34px;height:34px}
-#pick.team #fan{top:52%}
-#pick.team .card.g2{margin-left:0}
-@media (max-width:760px),(max-height:560px){.tsec{top:calc(52px + env(safe-area-inset-top,0px));left:27%;font-size:15px;padding:2px 10px 2px 4px}.tsec.t2{left:73%}.tsec canvas{width:22px;height:22px}#pick.team .card.g2{margin-left:18px}
-  #pick.team #fan{top:calc(84px + env(safe-area-inset-top,0px))}#pick.team .pick-head p{display:none}}
 .party-acts{display:flex;flex-wrap:wrap;gap:8px}.party-acts .btn[disabled]{opacity:.45;cursor:default}
 .party-acts [data-team='0'].primary{background:var(--orange);border-color:var(--orange);color:#1a0e05}.party-acts [data-team='1'].primary{background:var(--blue);border-color:var(--blue);color:#06142a}
 .party-acts .go{background:#7ed321;border-color:#7ed321;color:#0e1a05}
@@ -835,6 +825,10 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 @keyframes bspPop{40%{transform:translateY(-10px) scale(1.04)}}
 .bsp-deck{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;min-height:22px}.bsp-deck .chip{font-size:11px;padding:2px 6px;border-color:var(--pc)}
 .bsp-timer{margin:0;font:400 28px var(--display);color:var(--hot);min-height:1.2em}
+/* a phone held sideways: the draft board fits under the title without scrolling (decks are left to the cards' owners) */
+@media (max-height:560px){.bsp-wrap{gap:6px}#bsPick .screen-title{font-size:28px;margin:0}.bsp-sub{font-size:13px}.bsp-col{gap:3px;width:clamp(120px,21vw,190px)}.bsp-face{width:32px;height:32px}
+  .bsp-name{font-size:17px}.bsp-card{aspect-ratio:1}.bsp-deck{display:none}.bsp-front .nm{font-size:16px;padding:4px 6px 0}.bsp-front .ds{font-size:11px;padding:0 6px 6px}.bsp-timer{font-size:20px}}
+@media (max-width:440px){.bsp-wrap{gap:8px}#bsPick .screen-title{font-size:34px}.bsp-face{width:40px;height:40px}.bsp-col{gap:4px}.bsp-card{aspect-ratio:3/4.2}.bsp-front .ds{font-size:12px}}
 @media (prefers-reduced-motion:reduce){.bsp-back,.bsp-front{transition:none}.bsp-col.flip,.bsp-back::before{animation:none}}
 /* ---- Big Screen on a phone: the controller. No game is drawn; the screen is tinted the player's colour ---- */
 #pad{--pc:var(--orange);position:fixed;inset:0;z-index:30;color:var(--text);background:var(--night);background:radial-gradient(ellipse at 50% 130%,color-mix(in srgb,var(--pc) 38%,transparent),transparent 70%),var(--night);
@@ -994,7 +988,6 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   --safe:calc(max(12px,env(safe-area-inset-left,0px)) + max(12px,env(safe-area-inset-right,0px)) + 4px);--cw:min(184px,calc((100vw - var(--safe) - (var(--n,5) - 1) * 8px) / var(--n,5)));display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);justify-content:center;align-content:center;align-items:stretch;gap:8px;
   padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));flex-wrap:nowrap}
 #pick.flat.team #fan{top:calc(78px + env(safe-area-inset-top,0px));gap:5px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));--cw:min(170px,calc((100vw - var(--safe) - 5 * 5px - 10px) / 6))}
-#pick.flat.team .card.g2{margin-left:10px}
 #pick.flat.team .card .nm,#pick.flat.team .card .meta,#pick.flat.team .card .ds{padding-left:6px;padding-right:6px}#pick.flat.team .card ul{margin-left:6px;margin-right:6px}
 #pick.flat.shopmode #fan{top:calc(50px + env(safe-area-inset-top,0px));bottom:calc(56px + env(safe-area-inset-bottom,0px))}
 #pick.flat #face{display:none}
@@ -1390,7 +1383,6 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 
 <div id="pick" class="overlay" hidden>
   <div class="pick-head"><h2 id="pickTitle">Orange drafts</h2><p id="pickSub">Lost the round · choose one</p></div>
-  <div class="tsec" id="tsec0" hidden><canvas width="64" height="64" aria-hidden="true"></canvas><span></span></div><div class="tsec t2" id="tsec1" hidden><canvas width="64" height="64" aria-hidden="true"></canvas><span></span></div>
   <canvas id="face" width="560" height="560"></canvas>
   <div id="fan"></div>
   <div class="pick-shop" id="pickShop" hidden>
@@ -2457,7 +2449,7 @@ function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{c
     if(game.screen||game.room){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=net.role==='host'?settings.bsHp:net.roomHp||1;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
     return p})}
 function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
-  game.token++;tpick=null;game.awarded=false;game.endIds=null;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.legendAt=null;game.paused=false;game.lastWinner=-1;
+  game.token++;game.awarded=false;game.endIds=null;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.legendAt=null;game.paused=false;game.lastWinner=-1;
   game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.room=!game.screen&&!!net.room&&!!net.party&&(mode==='online-host'||mode==='online-guest');game.ffa=game.screen&&!bsTeams()&&!game.bsSurv||game.room&&!!net.ffa;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:game.room?(net.role==='host'?settings.bsLen:net.tg||5):settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
@@ -2489,9 +2481,7 @@ function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
       heroPick(p,CHARS.filter(c=>best>=c.unlock),next?`Survival · choose your character · reach round ${next.unlock} to unlock ${next.n}`:'Survival · choose your character','Choose your character',
         ()=>heroPick(p,starterHand(p),'Survival · one free pick to start: a card or a power-up · the rest you buy with scrap','Free pick',()=>{const c=p.cards[p.cards.length-1];p.starter=c&&!c.up?c:null;done()}))},()=>survRound(1));cv.focus();return}
   if(game.screen){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else screenPick(players.map(p=>p.id),'Opening draft · everyone picks a card',go)}
-  else if(game.room&&(game.ffa||settings.bsCards==='none')){const go=()=>{game.state='ready';game.stT=1.1};if(settings.bsCards==='none')go();else beginPick(players.map(p=>p.id),'Opening draft · everyone picks',go)}
-  else if(game.party){const ids=t=>players.filter(p=>p.team===t&&!p.left).map(p=>p.id);beginTeamPick(ids(0),'Opening draft · Team Orange',()=>beginTeamPick(ids(1),'Opening draft · Team Blue',()=>{game.state='ready';game.stT=1.1}))}
-  else beginPick(players.map(p=>p.id),'Opening draft · both players pick',()=>{game.state='ready';game.stT=1.1});
+  else{const go=()=>{game.state='ready';game.stT=1.1};if(game.room&&settings.bsCards==='none')go();else screenPick(players.filter(p=>!p.left).map(p=>p.id),`Opening draft · ${players.length>2?'everyone picks':'both players pick'}`,go)}
   if(!game.bg)cv.focus();
 }
 function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h||VH;BOUNDS=mkBounds();
@@ -2539,8 +2529,7 @@ function resolvePoint(){
     if(game.screen){const wn=game.ffa?players[w].name:'Team '+TEAM_N[w];screenPick(losers,`${wn} took the round · ${rule==='all'?'everyone picks':'everyone else picks'}`,()=>{game.state='ready';game.stT=1.1});return}
     const back=()=>{game.state='ready';game.stT=1.1},sub=game.ffa?`${players[w].name} took the round`:`Lost the round · ${game.wins.join('–')}`;
     if(!losers.length){back();return}
-    if(game.party&&!game.ffa){const T=[0,1].map(t=>losers.filter(id=>players[id].team===t)).filter(g=>g.length);beginTeamPick(T[0],sub,T[1]?()=>beginTeamPick(T[1],sub,back):back)}
-    else beginPick(losers,sub,back);
+    screenPick(losers,sub,back);
   }else newPoint();
 }
 function endMatch(w){
@@ -3396,36 +3385,11 @@ function drawSurvHud(){const es=enemies(),boss=es.find(e=>e.boss&&e.alive),me=my
 let pickQ=[],pickDone=null,pickSub='',hand=[],pickFor=null,hl=0,pickLock=false,faceAnim=0;
 /* ---------- a team draft (2v2): the losing pair pick at the same time from one fan of six, three cards each in their own
    colour, so everyone sees both picks. The host decides; a guest's click is sent to it ---------- */
-let tpick=null;
-function beginTeamPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id].left);if(!ids.length){done&&done();return}
-  game.state='pick';const hands=ids.map(id=>{const p=players[id],h=dealHand(p).slice(0,3);p.nextHand=null;return h});
-  tpick={ids,hands,chosen:ids.map(()=>-1),done,sub};showTeamHand();
-  netSend({t:'tpick',ids,hands:hands.map(h=>h.map(c=>c.id)),sub});
-  ids.forEach((id,g)=>{const p=players[id];if(p.ctrl==='cpu'||game.bg){const tk=game.token,i=cpuChoice(p,hands[g]);setTimeout(()=>{if(tk===game.token&&tpick&&tpick.chosen[g]<0)teamChoose(g,g*3+i)},game.bg?0:1300+g*600)}})}
 // a fighter's head and shoulders, for a card's owner badge: body in their colour, eyes, their hat
 function miniFighter(g,p){if(!g)return;const R=20,sk=skinOf(p.color);g.clearRect(0,0,64,64);g.save();g.translate(32,38);
   try{const gr=g.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);gr.addColorStop(0,sk.hi);gr.addColorStop(.5,p.color);gr.addColorStop(1,sk.lo);g.fillStyle=gr}catch(e){g.fillStyle=p.color}
   g.beginPath();g.arc(0,0,R,0,TAU);g.fill();g.fillStyle='#16121c';for(const s of[-1,1]){g.beginPath();g.ellipse(s*R*.26,-R*.12,R*.1,R*.2,0,0,TAU);g.fill()}
   if(p.cos&&p.cos.hat)drawHat(g,p.cos.hat,R,p.glow);g.restore()}
-function showTeamHand(){const T=tpick,own=[],flat=[];T.ids.forEach((id,g)=>{const p=players[id],mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';for(const c of T.hands[g]){flat.push(c);own.push({color:p.color,mine,p})}});
-  const me=T.ids.map(id=>players[id]).find(p=>net.role==='guest'?p.id===net.me:p.ctrl==='mouse')||players[T.ids[0]],tm=players[T.ids[0]].team;
-  
-  showHand(me,flat,T.sub,'team',own);$('#pickTitle').textContent=`Team ${TEAM_N[tm]} drafts`;$('#pickTitle').style.color=players[T.ids[0]].color;
-  cardFit();$('#pickSub').textContent=T.sub+(own.some(o=>o.mine)?(touch.on?' · tap one of yours':' · pick one of yours'):' · watching');
-  // two sections over the fan: each picker's fighter and name, so it's clear whose three cards are whose
-  $('#pick').classList.toggle('team',true);T.ids.forEach((id,g)=>{const p=players[id],sec=$('#tsec'+g),mine=net.role==='guest'?id===net.me:p.ctrl==='mouse';if(!sec)return;sec.hidden=false;sec.style.setProperty('--pc',p.color);
-    sec.querySelector('span').textContent=mine?'You':playerLabel(p);miniFighter(sec.querySelector('canvas').getContext('2d'),p)});$('#tsec1').hidden=T.ids.length<2
-  T.chosen.forEach((i,g)=>{if(i>=0)animTeam(i)})}
-function teamClick(i){const T=tpick;if(!T||!hand[i])return;const g=T.ids.length>1&&i>=3?1:0,p=players[T.ids[g]];if(!p||T.chosen[g]>=0||T.sent===g)return;
-  const mine=net.role==='guest'?p.id===net.me:p.ctrl==='mouse';if(!mine){sfx('empty',true);return}
-  if(net.role==='guest'){T.sent=g;netSend({t:'tchoose',i});animTeam(i);return}teamChoose(g,i)}
-function teamChoose(g,i){const T=tpick;if(!T||T.chosen[g]>=0||!T.hands[g][i-g*3])return;T.chosen[g]=i;animTeam(i);netSend({t:'tchosen',i});
-  if(T.chosen.every(x=>x>=0)){const tk=game.token;setTimeout(()=>{if(tk!==game.token||tpick!==T)return;
-    T.ids.forEach((id,g)=>{const p=players[id];takeChoice(p,T.hands[g][T.chosen[g]-g*3]);recompute(p);resetPlayer(p,spawnFor(p,id))});
-    tpick=null;$('#pick').hidden=true;pickFor=null;netSend({t:'pickEnd'});T.done&&T.done()},game.bg?0:700)}}
-// a pick in a team draft: that card lifts, the other two of that player's cards drop away
-function animTeam(i){const kids=[...$('#fan').children],b=kids[i];if(!b||b.classList.contains('chosen'))return;b.classList.add('chosen');const g=i<3?0:1;
-  kids.forEach((o,k)=>{if(k!==i&&(k<3?0:1)===g)o.classList.add('away')});sfx('pick',false,true)}
 function beginPick(q,sub,done){game.state='pick';pickQ=q.slice();pickSub=sub;pickDone=done;nextPick()}
 /* each card in a hand rolls 55% common, 32% uncommon, 13% rare (about half of hands show a rare); three drafts without one guarantees one */
 function dealHand(p){const owned=new Set(p.cards.filter(c=>c.u).map(c=>c.id)),out=[];let guard=0;
@@ -3440,13 +3404,13 @@ const LEGEND_P=.03;
 function legendRoll(p){if(survOn()||!game.wins||p.cards.some(c=>c.r===3))return false;const w=game.wins,played=w.reduce((a,b)=>a+(b||0),0);if(played<2)return false;
   game.legendKey=played;if(game.legendAt===played)return false;const i=w.length===players.length?p.id:p.team,me=w[i]||0,behind=Math.max(...w)>me;return Math.random()<LEGEND_P*(behind?2:1)}
 let pickMode='local';   // local: this screen picks · remote: this guest picks, host applies · watch: someone else is picking
-function showHand(p,h,sub,mode,own){pickFor=p;hand=h;if(!own){$('#pick').classList.toggle('team',false);$('#tsec0').hidden=$('#tsec1').hidden=true}hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
-  $('#pickTitle').textContent=p.name+' drafts';$('#pickTitle').style.color=p.color;
+function showHand(p,h,sub,mode){pickFor=p;hand=h;hl=Math.floor((h.length-1)/2);pickLock=false;pickMode=mode;
+  $('#pickTitle').textContent=p.name==='You'?'Your pick':p.name+' drafts';$('#pickTitle').style.color=p.color;
   $('#pickSub').textContent=sub+(mode==='watch'?(p.ctrl==='cpu'?' · CPU is choosing':` · waiting for ${p.name}`):touch.on?' · tap a card':` · click, or press 1–${h.length}`);
   const el=$('#fan');el.innerHTML='';el.style.setProperty('--n',h.length);
-  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=own&&hand.length===6?(i<3?i-2.75:i-2.25):i-(hand.length-1)/2;
-    b.style.setProperty('--pc',(own?own[i]:p).color);if(own&&!own[i].mine)b.classList.add('theirs');if(own&&hand.length===6&&i===3)b.classList.add('g2');b.style.setProperty('--cat',CAT[c.k]);
-    b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${own&&hand.length===6?12:Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
+  hand.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='card r'+c.r;const o=i-(hand.length-1)/2;
+    b.style.setProperty('--pc',p.color);b.style.setProperty('--cat',CAT[c.k]);
+    b.style.setProperty('--x',`calc(${o} * min(clamp(150px,16vw,222px), ${Math.round(86/Math.max(5,hand.length))}vw))`);b.style.setProperty('--y',`${Math.pow(Math.abs(o),1.6)*22}px`);b.style.setProperty('--r',`${o*7}deg`);
     b.style.setProperty('--d',`${i*85}ms`);b.style.setProperty('--sd',`${-i*.7}s`);
     b.innerHTML=`<span class="nm">${c.n}</span><span class="float"><span class="tilt"><span class="k">${i+1}</span><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><canvas class="medal" width="96" height="96" aria-hidden="true"></canvas><span class="meta"><span class="cat">${CATNAME[c.k]}</span><span class="rar">${c.char?'Character':c.up?'Power-up':RAR[c.r]}</span></span><span class="ds">${c.d}</span><ul>${c.st.map(([v,l,g])=>`<li class="${g?'up':'down'}"><b>${v}</b> ${l}</li>`).join('')}</ul><span class="shine"></span></span></span>`;
     b.querySelector('canvas')._card=c;const tl=b.querySelector('.tilt');
@@ -3467,7 +3431,7 @@ function nextPick(){
     setTimeout(()=>{if(tk!==game.token)return;hl=i;markHl()},700);
     setTimeout(()=>{if(tk!==game.token)return;choose(hand[i],i)},1500)}
 }
-function pickNow(i){if(!hand[i])return;if(pickMode==='team'){teamClick(i);return}if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
+function pickNow(i){if(!hand[i])return;if(pickMode==='local')choose(hand[i],i);else if(pickMode==='remote')netChoose(i);else if(pickMode==='shop')survBuy(i)}
 function animChosen(i){const b=$('#fan').children[i];b&&b.classList.add('chosen');[...$('#fan').children].forEach((o,k)=>{if(k!==i)o.classList.add('away')});sfx('pick',false,true);pickFor&&drawBigFace(pickFor,'happy')}
 /* CPU drafts by usefulness, not rarity, so it stops hoarding wall-phasing rares */
 const CPU_PREF={'Sun Lance':.7,'Ghost Rounds':.8,'Glass Cannon':.7,'Pipsqueak':.8,'Seeker':.85,'Overpressure':1.4,'Thick Skin':1.35,'Vampire Rounds':1.3,'Speed Loader':1.2,'Quick Guard':1.15,'Spring Heels':1.1,'Fat Rounds':1.1};
@@ -3499,7 +3463,7 @@ function cardFit(again){const pk=$('#pick');if(!pk||!pk.classList)return;const f
   if(!again&&flat){requestAnimationFrame(()=>cardFit(true));setTimeout(()=>cardFit(true),300)}}   // and again once the layout (a team's sections, the shop's bar, the fonts) has settled
 if(typeof addEventListener==='function'){let ft=0;addEventListener('resize',()=>{clearTimeout(ft);ft=setTimeout(()=>{cardFit();if(ctl.on){if(!$('#padPick').hidden)fitCards($('#padCards'),12.5);if(!$('#padShop').hidden)fitCards($('#pshCards'),12)}},150)})}
 function markHl(){[...$('#fan').children].forEach((b,i)=>b.classList.toggle('hl',i===hl))}
-function choose(c,i){if(tpick&&i!=null){if(net.role!=='guest')teamChoose(i<3?0:1,i);return}if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
+function choose(c,i){if(spick&&pickFor&&spick.local&&spick.local.includes(pickFor.id)){draftLocal(i??hand.indexOf(c));return}if(pickLock&&!game.bg)return;pickLock=true;const p=pickFor;
   if(!game.bg&&i!=null){animChosen(i);if(!game.coop)netSend({t:'chosen',i});const tk=game.token;
     setTimeout(()=>{if(tk!==game.token)return;takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()},480);return}
   takeChoice(p,c);recompute(p);resetPlayer(p,spawnFor(p,p.id));nextPick()}
@@ -5346,7 +5310,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-arenas36';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-draft5';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5538,7 +5502,7 @@ function peerGone(pr,msg){const wasOpen=pr.open;dropPeer(pr);
   if(net.screen){bsGone(pr);return}
   if(net.lobbyOpen){partyLobbyChanged();return}
   const p=players.find(q=>q.peer===pr);if(p){p.peer=null;p.left=true;p.ctrl='idle';if(p.alive&&(game.state==='play'||game.state==='ready'))die(p);else p.alive=false;
-    if(tpick){const g=tpick.ids.indexOf(p.id);if(g>=0&&tpick.chosen[g]<0)setTimeout(()=>{if(tpick&&tpick.chosen[g]<0)teamChoose(g,g*3)},300)}}
+    bsAutoPick(p.id)}
   chatAdd('',msg,'#ffd36b');if(!net.peers.length)netLost('Everyone else left the party.')}
 function hostNet(m,pr){
   if(m.t==='hello'){pr.name=cleanName(m.name)||'Player';pr.cos=cleanCos(m.cos);pr.sb=Math.max(0,m.sb|0);pr.id=cleanPid(m.id);
@@ -5559,10 +5523,9 @@ function hostNet(m,pr){
   if(m.t==='pagain'){if(net.screen&&game.state==='over'&&bsLead()===pr)requestRematch();return}   // ...and starts the rematch
   if(m.t==='plob'){if(net.screen&&game.state==='over'&&bsLead()===pr)bsToLobby();return}   // ...or goes back to the lobby to change the game
   if(m.t==='psop'){const p=players.find(q=>q.peer===pr);if(p&&game.bsSurv&&p.team===0)coopShopOp(m,p);return}
-  if(m.t==='tchoose'){const T=tpick,i=m.i|0,g=i>=3?1:0;if(T&&players[T.ids[g]]&&players[T.ids[g]].peer===pr)teamChoose(g,i);return}
   if(m.t==='i'){pr.lastInAt=performance.now();if(pr.away){pr.away=false;net.awayR=net.peers.some(q=>q.away)}if(!pr.remote||!(m.s<pr.remote.s))pr.remote=m;
     if(Array.isArray(m.st))for(const q of m.st)if(q[0]>pr.lastQ){pr.inQ.push(q);pr.lastQ=q[0]}}
-  else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(pickFor&&pickFor.peer===pr&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
+  else if(m.t==='choose'){if(game.coop)coopChoose(m.i|0);else if(spick){const p=players.find(q=>q.peer===pr);if(p)screenChoose(p.id,m.i|0)}else if(pickFor&&pickFor.peer===pr&&!pickLock&&hand[m.i|0])choose(hand[m.i|0],m.i|0)}
   else if(m.t==='sop'){if(game.coop)coopShopOp(m)}
   else if(m.t==='rematch'){if(game.state==='over'&&(game.mode==='online-host'||game.coop))restartHosted()}
   else if(m.t==='pong'&&Number.isFinite(m.at)){pr.rtt=performance.now()-m.at;net.rtt=Math.max(0,...net.peers.map(q=>q.rtt||0));if(net.screen&&net.lobbyOpen)bsLobbyChanged();else if(net.room&&net.lobbyOpen)roomLobbyChanged()}}
@@ -5628,12 +5591,14 @@ function onNet(m,pr){
   else if(m.t==='wait')game.waitMsg=String(m.msg||'').slice(0,80);
   else if(m.t==='cend'){game.cleared=m.n|0;survEnd()}
   else if(m.t==='chosen'){if(!pickLock){pickLock=true;animChosen(m.i|0)}}
-  else if(m.t==='tpick'){game.waitMsg='';const ids=(m.ids||[]).filter(id=>players[id]).slice(0,2);tpick={ids,hands:ids.map((id,g)=>((m.hands||[])[g]||[]).map(decodeCard).filter(Boolean).slice(0,3)),chosen:ids.map(()=>-1),sub:String(m.sub||'')};showTeamHand()}
-  else if(m.t==='tchosen'){if(tpick){const i=m.i|0,g=i>=3?1:0;tpick.chosen[g]=i;animTeam(i)}}
-  else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null;tpick=null}
+  else if(m.t==='dpick')guestDraft(m);
+  else if(m.t==='dhand')guestHand(m);
+  else if(m.t==='dlock'){const S=spick;if(S&&S.guest&&S.chosen[m.id]==null){S.chosen[m.id]=1;sfx('tick',true);bspMark(m.id);if(m.id===net.me&&!$('#pick').hidden)draftBoard()}}
+  else if(m.t==='dflip'){const S=spick,c=decodeCard(m.c);if(S&&S.guest&&c){S.revealed=true;bspTimer();if(!$('#pick').hidden)draftBoard();bspFlip(m.id,c);sfx('pick',false,true)}}
+  else if(m.t==='pickEnd'){$('#pick').hidden=true;pickFor=null;if(spick&&spick.guest){spick=null;$('#bsPick').hidden=true}}
   else if(m.t==='end'){game.endIds=cleanIds(m.r);showEnd(m.w|0)}
   else if(m.t==='restart'){startMatch('online-guest')}}
-function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i})}
+function netChoose(i){if(pickLock)return;pickLock=true;animChosen(i);netSend({t:'choose',i});const S=spick;if(S&&S.guest){const tk=game.token;setTimeout(()=>{if(tk===game.token&&spick===S)draftBoard()},480)}}
 function requestRematch(){if(net.role==='guest'){netSend({t:'rematch'});setText('#endScore',`Asked ${net.remoteName||'the host'} for a rematch…`)}
   else if(net.role==='host')restartHosted();else startMatch(game.mode)}
 function leaveOnline(silent){clearTimeout(net.joinTimer);padClose();net.seq++;const c=net.conn,pe=net.peer;
@@ -5730,7 +5695,9 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
     if(w&&!solidBoxP(p.x,w.y-R,R-1,R-1)){const ox=p.x,oy=p.y;initPhys(p,p.x,r2(w.y-R),p.vx,0);snapGlide(ox,oy,p);return}}
   // air jumps left: carry over the host's count (as of that step) so both sides agree whether the next press jumps
   if(a[22]!=null&&e.aj!=null)p.airJumps=clamp(p.airJumps+(a[22]-e.aj),0,p.s.airJumps);
-  if(Math.hypot(ex,ey)>220){const ox=p.x,oy=p.y;initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p);return}   // too far apart to blend: trust the host
+  // too far apart to blend (a teleport the two sides disagree on): trust the host, and move the steps since along with it, or
+  // the next snapshot measures against where it was before and snaps it a second time
+  if(Math.hypot(ex,ey)>220){const ox=p.x,oy=p.y;initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p);net.hist=net.hist.slice(i+1);for(const h of net.hist){h.x+=p.x-ox;h.y+=p.y-oy;h.vx=p.vx;h.vy=p.vy}return}
   // a correction must never carry the body into or through a wall. Apply what's clear: often only one axis is blocked (a
   // correction measured mid-jump would push a fighter that has since landed down into the floor), so keep the other.
   // Walls the body already touches (a platform riding into it) don't count as blocking.
@@ -6129,42 +6096,64 @@ function drawFinds(){if(!game.screen)return;const t=performance.now()/1000;
     const y=p.y-p.r-86-pu*8;ctx.globalAlpha=k;ctx.fillStyle=p.color;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=4;
     ctx.beginPath();ctx.moveTo(p.x,y+28);ctx.lineTo(p.x-17,y+5);ctx.lineTo(p.x+17,y+5);ctx.closePath();ctx.stroke();ctx.fill();
     ctx.font='30px "Lilita One", sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.lineWidth=7;ctx.lineJoin='round';ctx.strokeText(nm,p.x,y-8);ctx.fillStyle=p.glow;ctx.fillText(nm,p.x,y-8);ctx.restore()}}
-/* a Big Screen draft: everyone who picks gets three cards on their own phone and they all choose at once (CPUs too). The big
-   screen shows a face-down card per picker that ticks as each one locks in, then flips them face up one by one, so the room
-   sees every pick. Nobody can stall it: after 25 s a card is picked for anyone still choosing */
+/* the draft, in every versus mode: everyone who picks gets five cards of their own and they all choose at once (CPUs too),
+   each seeing only their own hand: on their phone (Big Screen), on their own screen (online), or one after another on a
+   shared screen. Then a face-down card per picker, ticking as each one locks in, flips them face up one by one, so everyone
+   sees what the others took but never what they passed on. With someone on another screen nobody can stall it: after 25 s
+   a card is picked for anyone still choosing */
 const BS_HAND=5;   // a Big Screen draft: five cards to choose from on each phone
 function screenPick(ids,sub,done){ids=ids.filter(id=>players[id]&&!players[id].left);if(!ids.length){done&&done();return}
-  game.state='pick';const S={ids,hands:{},chosen:{},done,sub,left:SPICK_T,revealed:false};spick=S;
-  for(const id of ids){const p=players[id],h=dealHand(p).slice(0,BS_HAND);p.nextHand=null;S.hands[id]=h;
+  game.state='pick';$('#pick').hidden=true;pickFor=null;
+  if(game.bg){for(const id of ids){const p=players[id],h=p.nextHand||dealHand(p);p.nextHand=null;takeChoice(p,h[cpuChoice(p,h)]);recompute(p);resetPlayer(p,spawnFor(p,id))}done&&done();return}
+  const timed=game.screen||ids.some(id=>players[id].ctrl==='net'),S={ids,hands:{},chosen:{},done,sub,left:SPICK_T,timed,local:[],revealed:false};spick=S;
+  if(!game.screen&&!game.coop)netSend({t:'dpick',ids,sub,secs:timed?SPICK_T:0});
+  for(const id of ids){const p=players[id],h=(p.nextHand||dealHand(p)).slice(0,BS_HAND);p.nextHand=null;S.hands[id]=h;
     if(p.ctrl==='pad'&&p.peer)linkSend(p.peer,{t:'phand',hand:h.map(cardCode),sub,secs:SPICK_T});
+    else if(p.ctrl==='net'&&p.peer)linkSend(p.peer,{t:'dhand',pid:id,hand:h.map(cardCode),sub});
+    else if(p.ctrl==='mouse'||p.ctrl==='p2')S.local.push(id);
     else{const i=cpuChoice(p,h);setTimeout(()=>{if(spick===S)screenChoose(id,i)},p.ctrl==='cpu'?1400+Math.random()*2400:500)}}
-  showScreenPick();
+  showScreenPick();draftNext(S);
   const tick=()=>{if(spick!==S||S.revealed)return;S.left--;bspTimer();if(S.left<=0){for(const id of S.ids)if(S.chosen[id]==null)screenChoose(id,Math.floor(Math.random()*S.hands[id].length));return}setTimeout(tick,1000)};
-  setTimeout(tick,1000)}
-function screenChoose(id,i){const S=spick;if(!S||S.revealed||S.chosen[id]!=null||!S.hands[id]||!S.hands[id][i])return;S.chosen[id]=i;const p=players[id];
-  if(p&&p.peer)linkSend(p.peer,{t:'ppicked',i});sfx('tick',true);bspMark(id);
+  if(timed)setTimeout(tick,1000)}
+// a shared screen: whoever on it still has to choose gets their hand in the fan (one at a time); once they're all done, the board
+function draftNext(S){if(spick!==S||S.revealed)return draftBoard();const id=S.local.find(q=>S.chosen[q]==null);if(id==null)return draftBoard();
+  if(pickFor&&pickFor.id===id&&!$('#pick').hidden)return;$('#bsPick').hidden=true;showHand(players[id],S.hands[id],S.sub,'local');draftSub()}
+function draftBoard(){$('#pick').hidden=true;pickFor=null;if(spick){$('#bsPick').hidden=false;bspTimer();bspArt()}}
+function draftSub(){const S=spick;if(!S||$('#pick').hidden)return;const n=S.ids.filter(q=>S.chosen[q]!=null).length;
+  $('#pickSub').textContent=S.sub+(S.ids.length>1?` · ${n} of ${S.ids.length} locked in`:'')+(S.timed&&!S.revealed?` · ${Math.max(0,S.left)}s`:'')+(touch.on?' · tap a card':` · click, or press 1–${hand.length}`)}
+function draftLocal(i){const S=spick,p=pickFor;if(pickLock||!S||!p||!hand[i])return;pickLock=true;animChosen(i);const tk=game.token;
+  setTimeout(()=>{if(tk!==game.token||spick!==S)return;screenChoose(p.id,i);if(spick===S)draftNext(S)},480)}
+// online, on a guest's screen: the host's draft, mirrored. The guest's own hand comes on its own, so nobody else's ever does
+function guestDraft(m){game.waitMsg='';const ids=(m.ids||[]).filter(id=>players[id]).slice(0,8),S={ids,hands:{},chosen:{},sub:String(m.sub||'').slice(0,90),left:Math.max(0,m.secs|0),timed:(m.secs|0)>0,local:[],revealed:false,guest:true};
+  spick=S;game.state='pick';showScreenPick();if(!(spick.hands[net.me]))draftBoard();
+  const tick=()=>{if(spick!==S||S.revealed)return;S.left=Math.max(0,S.left-1);bspTimer();draftSub();setTimeout(tick,1000)};if(S.timed)setTimeout(tick,1000)}
+function guestHand(m){if(m.pid!==net.me)return;if(!spick||!spick.guest)guestDraft({ids:[net.me],sub:m.sub,secs:0});const S=spick,h=(m.hand||[]).map(decodeCard).filter(Boolean);if(!h.length||S.chosen[net.me]!=null)return;
+  S.hands[net.me]=h;$('#bsPick').hidden=true;showHand(players[net.me],h,S.sub,'remote');draftSub()}
+function screenChoose(id,i){const S=spick;if(!S||S.guest||S.revealed||S.chosen[id]!=null||!S.hands[id]||!S.hands[id][i])return;S.chosen[id]=i;const p=players[id];
+  if(p&&p.peer&&game.screen)linkSend(p.peer,{t:'ppicked',i});if(!game.screen)netSend({t:'dlock',id});sfx('tick',true);bspMark(id);draftSub();
+  if(pickFor&&pickFor.id===id&&!pickLock)draftNext(S);
   if(S.ids.every(q=>S.chosen[q]!=null))screenReveal(S)}
-function bsAutoPick(id){const S=spick;if(S&&S.hands[id]&&S.chosen[id]==null)setTimeout(()=>{if(spick===S)screenChoose(id,cpuChoice(players[id],S.hands[id]))},300)}
-function screenReveal(S){S.revealed=true;bspTimer();const gap=650,tk=game.token;
-  S.ids.forEach((id,k)=>setTimeout(()=>{if(spick!==S||tk!==game.token)return;bspFlip(id,S.hands[id][S.chosen[id]]);sfx('pick',false,true)},400+k*gap));
+function bsAutoPick(id){const S=spick;if(S&&!S.guest&&S.hands[id]&&S.chosen[id]==null)setTimeout(()=>{if(spick===S)screenChoose(id,cpuChoice(players[id],S.hands[id]))},300)}
+function screenReveal(S){S.revealed=true;bspTimer();const gap=650,tk=game.token,lag=S.local.length?480:0;
+  S.ids.forEach((id,k)=>setTimeout(()=>{if(spick!==S||tk!==game.token)return;if(!$('#pick').hidden)draftBoard();const c=S.hands[id][S.chosen[id]];bspFlip(id,c);if(!game.screen)netSend({t:'dflip',id,c:cardCode(c)});sfx('pick',false,true)},lag+400+k*gap));
   setTimeout(()=>{if(spick!==S||tk!==game.token)return;
     for(const id of S.ids){const p=players[id];takeChoice(p,S.hands[id][S.chosen[id]]);recompute(p);resetPlayer(p,spawnFor(p,id));if(p.left){p.alive=false;p.x=-9999}}
-    spick=null;$('#bsPick').hidden=true;netSend({t:'pdone'});S.done&&S.done()},400+S.ids.length*gap+1900)}
+    spick=null;$('#bsPick').hidden=true;$('#pick').hidden=true;pickFor=null;netSend({t:game.screen?'pdone':'pickEnd'});S.done&&S.done()},lag+400+S.ids.length*gap+1900)}
 function showScreenPick(){const S=spick,row=$('#bspRow');if(!row)return;row.dataset.surv='';const all=S.ids.length===players.filter(p=>!p.left).length;
-  setText('#bspTitle',all?'Everyone picks':'Draft');setText('#bspSub',`${S.sub} · pick on your phone`);row.innerHTML='';
+  setText('#bspTitle',all?'Everyone picks':'Draft');setText('#bspSub',game.screen?`${S.sub} · pick on your phone`:S.sub);row.innerHTML='';
   for(const id of S.ids){const p=players[id],col=document.createElement('div');col.className='bsp-col';col.dataset.id=id;col.style.setProperty('--pc',p.color);
     col.innerHTML='<canvas class="bsp-face" width="64" height="64" aria-hidden="true"></canvas><b class="bsp-name"></b><div class="bsp-card"><div class="bsp-back"><span class="bsp-st"></span></div><div class="bsp-front"><canvas class="art" width="360" height="236" aria-hidden="true"></canvas><span class="nm"></span><span class="ds"></span></div></div><div class="bsp-deck"></div>';
-    const q=s=>col.querySelector(s);q('.bsp-name').textContent=playerLabel(p);q('.bsp-st').textContent=p.ctrl==='cpu'?'CPU is choosing':'Choosing on their phone';
+    const q=s=>col.querySelector(s);q('.bsp-name').textContent=playerLabel(p);q('.bsp-st').textContent=p.ctrl==='cpu'?'CPU is choosing':game.screen?'Choosing on their phone':'Choosing';
     try{miniFighter(q('canvas').getContext('2d'),p)}catch(e){}
     const dk=q('.bsp-deck');for(const c of p.cards.slice(-6)){const s=document.createElement('span');s.className='chip';s.textContent=c.n;dk.appendChild(s)}
     row.appendChild(col)}
   for(const id of S.ids)if(S.chosen[id]!=null)bspMark(id);
-  $('#bsPick').hidden=false;bspTimer();bspArt()}
+  if(game.screen){$('#bsPick').hidden=false;bspTimer();bspArt()}}
 const bspCol=id=>[...(($('#bspRow')||{}).children||[])].find(c=>c.dataset&&c.dataset.id===String(id));
 function bspMark(id){const c=bspCol(id);if(!c)return;c.classList.toggle('done',true);const st=c.querySelector('.bsp-st');if(st)st.textContent='Locked in'}
 function bspFlip(id,card){const c=bspCol(id);if(!c||!card)return;const f=c.querySelector('.bsp-front');f.style.setProperty('--cat',CAT[card.k]||'#888');
   f.querySelector('.nm').textContent=card.n;f.querySelector('.ds').textContent=card.d;f.querySelector('canvas')._card=card;c.classList.toggle('flip',true)}
-function bspTimer(){const S=spick;setText('#bspTimer',!S||S.revealed?'':`${Math.max(0,S.left)}s`)}
+function bspTimer(){const S=spick;setText('#bspTimer',!S||S.revealed||S.timed===false?'':`${Math.max(0,S.left)}s`)}
 function bspArt(){cancelAnimationFrame(bspRaf);const t0=performance.now();
   const loop=now=>{if($('#bsPick').hidden)return;for(const c of document.querySelectorAll('#bspRow .flip canvas.art'))if(c._card)drawCardArt(c,c._card,(now-t0)/1000,false);bspRaf=requestAnimationFrame(loop)};bspRaf=requestAnimationFrame(loop)}
 

@@ -112,8 +112,8 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     A.mouse.x = me.x + Math.cos(ang) * 220; A.mouse.y = me.y + Math.sin(ang) * 220; A.mouse.down = (f + me.id * 7) % 50 < 30;
     A.keys.add(Math.abs(o.x - me.x) > 260 ? (o.x > me.x ? 'KeyD' : 'KeyA') : Math.floor(f / 45) % 2 ? 'KeyD' : 'KeyA');
     if ((f + me.id * 11) % 55 === 0) A.edges.add('KeyW'); if ((f + me.id * 11) % 55 < 30) A.keys.add('KeyW') };
-  const picks = new Map(); let stalls = 0;
-  const pickMine = (A) => { const me = myP(A); if (!me || !A.pickFor || A.pickFor.id !== me.id) return; if (A.pickMode === 'team') { const T = A.tpick, g = T && T.ids.indexOf(me.id); if (T && g >= 0 && T.chosen[g] < 0 && T.sent !== g) { A.pickNow(g * 3); picks.set(A, (picks.get(A) || 0) + 1) } return }
+  const picks = new Map(); let stalls = 0, leaks = 0;
+  const pickMine = (A) => { const me = myP(A); if (!me || !A.pickFor || A.pickFor.id !== me.id) return; if (A !== H && A.spick && Object.keys(A.spick.hands).some((k) => +k !== A.net.me)) leaks++;
     if ((A.pickMode === 'local' || A.pickMode === 'remote') && A.hand.length && !A.__picked) { A.__picked = A.pickFor; A.pickNow(0); picks.set(A, (picks.get(A) || 0) + 1) } };
   const smooth = new Map(); const jerkOf = (A) => smooth.get(A) || smooth.set(A, { n: 0, j: 0, k: new Map() }).get(A);
   const watchSmooth = () => { for (const A of all) { if (A.game.state !== 'play') { jerkOf(A).k.clear(); continue } const me = myP(A), S = jerkOf(A), a = A.game.alpha || 0;
@@ -161,6 +161,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(H.game.mode === 'online-host' && H.players.length === 2 && H.players[1].ctrl === 'cpu', 'alone with a CPU player: the match starts');
   const f4 = play(6); check(H.game.state === 'over', 'and plays to the end');
   check(!errors, `no errors (${errors})`);
+  check(!leaks, `no screen should ever be sent anyone else's hand (${leaks} frames)`);
   console.log(JSON.stringify({ jerkPct: [H, ...G].map((A) => { const S = jerkOf(A); return +(100 * S.j / Math.max(1, S.n)).toFixed(2) }), ffaMin: +(f1 / 3600).toFixed(1), duelMin: +(f2 / 3600).toFixed(1), stalledPoints: stalls, teamsMin: +(f3 / 3600).toFixed(1), errors, failures: fail.length }));
   if (fail.length) console.error(fail.map((f) => '  - ' + f).join('\n'));
   process.exit(fail.length ? 1 : 0);
