@@ -98,11 +98,12 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     const foes = H.players.filter((q) => q.team !== me.team && q.alive && Number.isFinite(q.x)); if (!foes.length) return;
     const near = (a, b) => Math.hypot(a.x - me.x, a.y - me.y) < Math.hypot(b.x - me.x, b.y - me.y) ? a : b;
     const shots = foes.filter((q) => H.clearShot(me, H.aimSolution(me, q), q)), o = (shots.length ? shots : foes).reduce(near), clear = shots.length > 0, ang = H.aimSolution(me, o);
-    c.blind = clear ? 0 : (c.blind || 0) + 1;
+    { const fh = foes.reduce((t, q) => t + q.hp, 0); if (c.fh == null || fh < c.fh - 0.5 || foes.length !== c.fn) c.stale = 0; else c.stale = (c.stale || 0) + 1; c.fh = fh; c.fn = foes.length }
+    c.blind = clear && !(c.stale > 600) ? 0 : (c.blind || 0) + 1;   // a "clear" shot that hasn't landed in 10 s (a floor in the way of the arc): go looking, as a person would
     if (c.blind > 90) { if (c.blind % 150 === 91) c.dir = (f >> 4) % 2 ? 1 : -1; c.mx = c.dir; if (c.blind % 30 === 0) c.jc++; c.up = c.blind % 30 < 16; c.down = c.blind % 150 > 120 }   // no shot for a while: roam (as a person would) until someone's in sight
     else { c.mx = Math.hypot(o.x - me.x, o.y - me.y) < 90 ? -(Math.sign(o.x - me.x) || 1) : !clear ? Math.sign(o.x - me.x) || 1 : Math.abs(o.x - me.x) > 420 ? Math.sign(o.x - me.x) : Math.floor(f / 50) % 2 ? 1 : -1;   // on top of someone: step back first
       if ((f + c.me * 11) % 50 === 0) c.jc++; c.up = !clear && o.y < me.y - 60 && (f + c.me * 11) % 26 < 14 }
-    if (clear && (f + c.me * 7) % 21 === 0) { c.a = ang; c.sc++ }   // drag-aim and let go
+    if (clear && c.blind <= 90 && (f + c.me * 7) % 21 === 0) { c.a = ang; c.sc++ }   // drag-aim and let go
     if (clear && (f + c.me * 5) % 47 === 0) c.ac++;   // a quick tap: auto-fire
     if ((f + c.me * 3) % 140 === 0) c.bc++ };
   const seen = new Set(); let frames = 0, left = false, back = false, late = null, Fp = null, shotsFired = 0, over = false;

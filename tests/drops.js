@@ -12,7 +12,7 @@ const { load, flushTimers } = require('./env');
   fresh(); A.game.capT = 0; A.dropTick(1 / 120);
   check(A.drops.length === 1 && A.drops[0].state === 'warn', 'a capsule starts as a warning beam');
   const d = A.drops[0];
-  for (let i = 0; i < 240 && d.state !== 'ready'; i++) A.dropTick(1 / 120);
+  for (let i = 0; i < 400 && d.state !== 'ready'; i++) A.dropTick(1 / 120);   // warning beam, then a fall from the top (to the floor it takes a little over 2 s)
   check(d.state === 'ready', 'the capsule falls and lands');
   check(A.solids.some((r) => !r.bound && Math.abs(r.y - (d.y + 16 + 2)) < 1 && d.x > r.x && d.x < r.x + r.w), 'it lands on top of a platform');
   // each kind does what it says

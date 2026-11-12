@@ -1714,7 +1714,7 @@ const CARDS=[
  {n:'Detonator',k:'shot',r:2,d:'Hits stick a charge on your rival, up to 5. Block to blow them all at once.',st:[['5','Charges at most',1],['9','Damage per charge',1],['+0.2s','Block cooldown',0]],a:s=>{s.det+=1;s.blockCd+=.2}},
  {n:'Grudge',k:'body',r:1,d:'For every round your rival leads you by, you hit 20% harder, up to 60%. Never count yourself out.',st:[['+20%','Damage per round behind',1],['60%','At most',1]],a:s=>{s.grudge+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
-  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires one blazing beam that burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['1 beam','Faster reload',0],['0.2s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
+  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires one blazing beam that burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['Fat beam','1 per reload',0],['0.2s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -2009,7 +2009,40 @@ MAPS.push(
  // Belfry: seven bells hung over a floor of embers, rising to a peak. Two shots break a bell's line and it drops (with whoever is on it) onto
  // whoever is under it; a new one is lowered a few seconds later. No floor to stand on, so it isn't used for Survival
  {name:'Belfry',...ROOM,noSurv:1,rects:[EM(0,1010,1920)],rigs:bellCols.map(c=>({t:'chime',x:c.x,top:c.top,w:150,h:40})),
-   sp:[[bellCols[0].x,bellCols[0].top-24],[bellCols[6].x,bellCols[6].top-24],[bellCols[2].x,bellCols[2].top-24],[bellCols[4].x,bellCols[4].top-24]]});
+   sp:[[bellCols[0].x,bellCols[0].top-24],[bellCols[6].x,bellCols[6].top-24],[bellCols[2].x,bellCols[2].top-24],[bellCols[4].x,bellCols[4].top-24]]},
+ // Aqueduct (long lanes and bank shots): a stone channel overhead, broken in the middle, with arches hanging under it; a bucket swings
+ // through the break. Fight on the channel, under the arches on the walkway, or from the side ledges
+ {name:'Aqueduct',...ROOM,rects:sym([S(560,420,340,50),WL(740,470,190,36),P(80,820,260),P(160,640,240),P(400,540,160),P(80,440,200)],[FLOOR,P(760,800,400),S(890,930,140,70)]),
+   swings:[{ax:960,len:600,w:140,h:30}],sp:[[150,960],[1770,960],[280,600],[1640,600]]},
+ // Market (close range): stalls with stone counters to duck behind and wooden awnings to pop up through, crates to shove between them,
+ // a fountain with a pad in the middle and a sign hung over it on a rope
+ {name:'Market',...ROOM,rects:sym([S(240,930,160,70),P(220,720,200),S(560,930,160,70),P(540,720,200),P(80,560,240),P(400,480,200)],[FLOOR,S(900,860,120,140),PAD(920,860),P(810,560,300)]),
+   hangs:[{x:860,y:380,w:200}],crates:symC([[760,940,60]]),sp:[[110,960],[1810,960],[200,520],[1720,520]]},
+ // Beacon (holding a spot): a lighthouse in the middle, two stone halves with a lift running up the shaft between them to a wooden
+ // lamp room under a stone cap; ledges and a pad up the outside
+ {name:'Beacon',...ROOM,rects:sym([S(760,560,140,440),P(80,820,260),P(420,700,200),P(120,560,220),P(460,420,180),PAD(300,1000)],[FLOOR,P(760,400,400),S(800,220,320,56)]),
+   movers:[{x:900,y:520,w:120,h:30,mx:0,my:440,period:5}],sp:[[150,960],[1770,960],[230,520],[1690,520]]},
+ // Cinder Pit (lobs, and a floor that bites): stone shores step down to a bed of embers, stepping stones across it and two planks hung
+ // over it on ropes (shoot one down onto whoever is below); wooden ledges up the sides and a perch over the middle
+ {name:'Cinder Pit',...ROOM,rects:[...sym([S(0,1000,600,80),S(700,880,120,60),P(80,800,260),P(300,640,200),P(80,480,220)]),EM(600,1010,720),S(900,800,120,60),P(840,380,240)],
+   hangs:symH([{x:740,y:620,w:160}]),sp:[[150,960],[1770,960],[210,760],[1710,760]]},
+ // Undercroft (ambush): a stone ceiling over a low cellar, with trapdoor gaps to pop up through or drop into; up top, a chandelier
+ // beam hangs over the middle (shoot its ropes and it swings, then falls onto the ceiling)
+ {name:'Undercroft',...ROOM,rects:sym([S(200,760,460),P(80,560,240),P(420,520,180)],[FLOOR,S(860,760,200),P(860,280,200)]),
+   rigs:[{t:'beam',x:700,y:440,w:520,h:34,ropes:[{ox:-220},{ox:220}]}],crates:symC([[420,940,60]]),sp:[[100,960],[1820,960],[400,720],[1520,720]]},
+ // Barricade (lobs and blocks): a tall stone wall splits the arena, with a crawl gap under it; a block tower each side stands on a
+ // hollow keystone (shoot it out and the tower topples toward the wall); ledges climb to a plank over the wall
+ {name:'Barricade',...ROOM,rects:[FLOOR,S(920,560,80,360),...sym([P(80,820,240),P(300,660,220),P(80,500,220),P(560,480,180)]),P(820,380,280)],
+   rigs:[{t:'stack',x:640,y:1000,lean:260,blocks:[[120,90],[110,60,1],[130,70]]},{t:'stack',x:1280,y:1000,lean:-260,blocks:[[120,90],[110,60,1],[130,70]]}],
+   sp:[[140,960],[1780,960],[190,780],[1730,780]]},
+ // Escalators (mobility and long range): lifts ride diagonally up from the floor to a stone mesa in the middle, so the high ground keeps
+ // being delivered to whoever is quick; wooden ledges at the sides and a perch over the mesa
+ {name:'Escalators',...ROOM,rects:[FLOOR,...sym([P(60,820,260),P(100,600,220),P(60,400,200)]),S(800,520,320,56),P(860,320,200),S(900,880,120,120)],
+   movers:[{x:380,y:880,w:160,h:30,mx:260,my:-280,period:6},{x:1380,y:880,w:160,h:30,mx:-260,my:-280,period:6}],sp:[[150,960],[1770,960],[200,560],[1720,560]]},
+ // Gatehouse: a gate tower in the middle (walk through the gate under it) with a drawbridge raised on each side of its top. Shoot a rope and the
+ // bridge slams down outward, a walkway to the top (onto anyone under it); shoot a hinge and it drops away
+ {name:'Gatehouse',...ROOM,rects:[FLOOR,S(900,420,120,440),...sym([P(80,820,260),P(360,700,220),P(120,560,220),P(440,440,200),PAD(280,1000)])],
+   rigs:[{t:'bridge',px:900,py:420,L:280,dir:-1,rx:950,ry:0},{t:'bridge',px:1020,py:420,L:280,dir:1,rx:970,ry:0}],sp:[[150,960],[1770,960],[230,520],[1690,520]]});
 /* The arena library: every duel, party, Big Screen match, co-op and Survival round is played on these (the room arenas).
    The older open arenas above stay defined only for the tests of their moving parts */
 const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel&&!(MAPS[k].noSurv&&game.mode==='survival'));
@@ -2129,7 +2162,8 @@ const BACKDROP={Yard:'canyon',Pit:'canyon',Stairs:'canyon',Quarry:'canyon',Canyo
   Fortress:'spires',Drawbridge:'spires',Bunkers:'spires',Divider:'spires',Gallows:'spires',
   Foundry:'ember',Gearworks:'ember',Piston:'ember',Chimney:'ember',Pulley:'ember','Wrecking Yard':'ember',Scaffold:'ember',
   Skyline:'coast',Catwalk:'coast',Shelves:'coast',Topple:'coast',
-  Lanterns:'lake',Chimes:'lake',Chandelier:'lake',Swingset:'lake',Ropeyard:'lake'};
+  Lanterns:'lake',Chimes:'lake',Chandelier:'lake',Swingset:'lake',Ropeyard:'lake',
+  Aqueduct:'ruins',Market:'ruins',Beacon:'coast','Cinder Pit':'ember',Undercroft:'spires',Barricade:'spires',Escalators:'canyon',Gatehouse:'spires'};
 const bdImgs={};
 const backdropOf=map=>BACKDROP[map.label||map.name]||'canyon';
 function backdropImg(id){let im=bdImgs[id];if(im)return im;if(typeof Image==='undefined')return null;im=bdImgs[id]=new Image();im.decoding='async';
@@ -2372,7 +2406,7 @@ function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   /* Survival levels: +5% health, +4% damage each, up to level 15 */
-  if(s.lance){s.ammo=1;s.projectiles=1;s.spread=0;s.burst=1;s.split=0;s.bulletSpeed=4600;s.bulletGravity=0;s.bulletSize=Math.max(s.bulletSize,1.8);s.fireDelay=Math.max(s.fireDelay,.3)}   // Sun Lance: two beams a magazine, one at a time, whatever else you hold
+  if(s.lance){s.ammo=1;s.projectiles=1;s.spread=0;s.burst=1;s.split=0;s.bulletSpeed=4600;s.bulletGravity=0;s.bulletSize=Math.max(s.bulletSize,3.2);s.fireDelay=Math.max(s.fireDelay,.3)}   // Sun Lance: two beams a magazine, one at a time, whatever else you hold
   if(!survOn())s.maxHp*=VS_HP;if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   /* soft caps: every extra copy still pays off, with shrinking returns, and no build floods the screen (or the network) with
@@ -3885,7 +3919,7 @@ function rigReact(c){
   if(c.prop){c.mode='gone';c.y=H+5000;c.stack.broken=true;return}
   if(c.lift){const L=c.lift;if(L.broken)return;L.broken=true;for(const b of L.b){b.mode='fall';b.vy=0;b.vx=0;b.tv=(b===L.b[0]?1:-1)*.9}return}
   if(c.bridge){const rope=c.nodes[0],hinge=c.nodes[1];
-    if(!hinge.alive){if(c.mode!=='fall'&&c.mode!=='gone'){if(c.phi<1.2)bridgeLower(c);c.mode='fall';c.vx=0;c.vy=0;c.tv=c.dir*1.4}}
+    if(!hinge.alive){rope.alive=false;rope.hp=0;if(c.mode!=='fall'&&c.mode!=='gone'){if(c.phi<1.2)bridgeLower(c);c.mode='fall';c.vx=0;c.vy=0;c.tv=c.dir*1.4}}   // torn off its hinge, it rips its rope away too
     else if(!rope.alive&&c.mode==='hold'&&!c.down){c.mode='flip';c.pv=-1.1}return}
   const up=c.nodes.filter(n=>n.alive&&n.k==='rope');
   if(!up.length){if(c.mode!=='fall'&&c.mode!=='gone'){const sw=c.mode==='swing';c.mode='fall';c.vx=sw?clamp(c.dx/FIXED,-700,700):0;c.vy=sw?clamp(c.dy/FIXED,-600,600):0;c.tv=c.ball?0:(c.tilt>0?1:-1)*.6}return}
@@ -3964,7 +3998,8 @@ function drawRigs(){if(!rigs.length)return;const t=performance.now()/1000,a=clam
     for(const n of c.nodes){if(n.k!=='rope')continue;if(n.alive){const[x0,y0]=attachPt(c,n);if(c.lift){chain(n.ax,n.ay,x0,y0)}else{if(n.ay>0){ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(n.ax,n.ay,6,0,TAU);ctx.fill()}chain(n.ax,n.ay,x0,y0)}}
       else if(!c.lift)chain(n.ax,n.ay,n.ax,n.ay+34)}   // a snapped rope's stub
     if(c.prop){drawNode(c.x+c.w/2,c.y+c.h/2,c.nodes[0].hp,c.nodes[0].max,t,c.w/2,c.h/2);continue}
-    if(c.bridge&&c.mode!=='fall'){const ph=c.lphi!=null&&c.mode==='flip'?c.lphi+(c.phi-c.lphi)*a:c.phi,[ax,ay,bx,by]=bridgeAxes(c,ph);ctx.save();ctx.translate(c.hx,c.hy);ctx.transform(ax,ay,bx,by,0,0);ctx.drawImage(c.art,0,0);ctx.restore()}
+    // a bridge still on its hinge turns about it; once the hinge is shot it's a loose slab, drawn where its body really is
+    if(c.bridge&&c.nodes[1]&&c.nodes[1].alive&&(c.mode==='hold'||c.mode==='flip')){const ph=c.lphi!=null&&c.mode==='flip'?c.lphi+(c.phi-c.lphi)*a:c.phi,[ax,ay,bx,by]=bridgeAxes(c,ph);ctx.save();ctx.translate(c.hx,c.hy);ctx.transform(ax,ay,bx,by,0,0);ctx.drawImage(c.art,0,0);ctx.restore()}
     else{ctx.save();ctx.translate(c.x+c.w/2,c.y+c.h/2);ctx.rotate(c.tilt+(c.bridge&&!c.down?Math.PI/2:0));if(c.mode!=='rest'&&!c.ball&&!c.bridge){ctx.fillStyle='rgba(0,0,0,.28)';slabPath(ctx,-c.w/2+8,-c.h/2+10,c.w,c.h);ctx.fill()}
       ctx.drawImage(c.art,-c.art.width/2,-c.art.height/2);ctx.restore()}
     for(const n of c.nodes)if(n.alive&&n.k!=='self'){const[x,y]=nodePos(c,n);drawNode(x,y,n.hp,n.max,t)}ctx.globalAlpha=ga}}
@@ -4737,17 +4772,17 @@ function fireBeam(x0,y0,x1,y1,k,now,seed){const dx=x1-x0,dy=y1-y0,L=Math.hypot(d
   const edge=(d,side,amp)=>{const lick=Math.max(0,Math.sin(d*.05-tt*26+seed+side*1.7));return 1+amp*(.28*Math.sin(d*.083-tt*19+seed*3+side*2)+.18*Math.sin(d*.21+tt*31+side)+1.1*lick**5)};
   const taper=d=>Math.min(1,.35+d/60)*Math.min(1,.5+(L-d)/40);
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(const[hw,col,al,amp]of[[30,'255,84,24',.5,1],[17,'255,170,40',.78,.6]]){ctx.fillStyle=`rgba(${col},${al*Math.min(1,k*1.4)})`;ctx.beginPath();
+  for(const[hw,col,al,amp]of[[46,'255,84,24',.5,1],[27,'255,170,40',.78,.6]]){ctx.fillStyle=`rgba(${col},${al*Math.min(1,k*1.4)})`;ctx.beginPath();
     for(let i=0;i<=n;i++){const d=L*i/n,w=hw*k*taper(d)*edge(d,1,amp);const px=x0+ux*d+nx*w,py=y0+uy*d+ny*w;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}
     for(let i=n;i>=0;i--){const d=L*i/n,w=hw*k*taper(d)*edge(d,-1,amp);ctx.lineTo(x0+ux*d-nx*w,y0+uy*d-ny*w)}ctx.closePath();ctx.fill()}
-  ctx.globalCompositeOperation='source-over';ctx.lineCap='round';ctx.strokeStyle=`rgba(255,226,120,${Math.min(1,k*1.5)})`;ctx.lineWidth=15*k;ctx.beginPath();ctx.moveTo(x0+ux*6,y0+uy*6);ctx.lineTo(x1,y1);ctx.stroke();
-  ctx.strokeStyle=`rgba(255,253,240,${Math.min(1,k*1.6)})`;ctx.lineWidth=8*k;ctx.stroke();
-  const R=26*k*(RM?1:1+.15*Math.sin(tt*40+seed));ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,200,70,${.85*k})`;ctx.beginPath();   // the muzzle flare: a gold spiked star
+  ctx.globalCompositeOperation='source-over';ctx.lineCap='round';ctx.strokeStyle=`rgba(255,226,120,${Math.min(1,k*1.5)})`;ctx.lineWidth=24*k;ctx.beginPath();ctx.moveTo(x0+ux*6,y0+uy*6);ctx.lineTo(x1,y1);ctx.stroke();
+  ctx.strokeStyle=`rgba(255,253,240,${Math.min(1,k*1.6)})`;ctx.lineWidth=12*k;ctx.stroke();
+  const R=36*k*(RM?1:1+.15*Math.sin(tt*40+seed));ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,200,70,${.85*k})`;ctx.beginPath();   // the muzzle flare: a gold spiked star
   for(let i=0;i<16;i++){const a=Math.atan2(uy,ux)+i*Math.PI/8+tt*2,r=i%2?R*.38:R*(i%4?1:1.45);i?ctx.lineTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r):ctx.moveTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r)}ctx.closePath();ctx.fill();
   ctx.globalAlpha=Math.min(1,k);ctx.drawImage(glowSprite('#ffb347'),x0-R*1.6,y0-R*1.6,R*3.2,R*3.2);ctx.restore()}
 /* the beam in flight: the whole ray from where it left the muzzle (or its last bounce) to a blazing head */
 function drawBeam(b,now){const L=Math.hypot(b.x-(b.ox??b.x),b.y-(b.oy??b.y));fireBeam(b.ox??b.x,b.oy??b.y,b.x,b.y,1,now,(b.id||0)%7);
-  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.95;ctx.drawImage(glowSprite('#ffc04a'),b.x-40,b.y-40,80,80);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(b.x,b.y,7,0,TAU);ctx.fill();ctx.restore()}
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.95;ctx.drawImage(glowSprite('#ffc04a'),b.x-56,b.y-56,112,112);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(b.x,b.y,11,0,TAU);ctx.fill();ctx.restore()}
 /* how far along a fighter's Sun Lance wind-up is (0 to 1), or -1 when it isn't winding: the host knows its timer, a guest
    its own predicted one, and everyone else's comes in the snapshot */
 function lanceWind(p){if(!p.s||!p.s.lance||!p.alive)return -1;let t;if(game.mode==='online-guest')t=p===players[net.me]&&p.phys?(p.gBurst>0?p.gBurstT:-1):(p.windT>0?p.windT:-1);else t=p.burstLeft>0?p.burstT:-1;return t>0?clamp(1-t/LANCE_WIND,0,1):-1}
@@ -5318,7 +5353,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-sunlance3';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-arenas36';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
