@@ -26,7 +26,7 @@ const DT = 1 / 60;
     let score = 0;
     for (let i = 0; i < POINTS; i++) score += playPoint(i % 2, card);
     const rate = score / POINTS;
-    rows.push({ card: card ? card.n : '(no card: baseline)', rarity: card ? ['common', 'uncommon', 'rare'][card.r] : '', type: card ? card.k : '', winRate: Math.round(rate * 100) });
+    rows.push({ card: card ? card.n : '(no card: baseline)', rarity: card ? ['common', 'uncommon', 'rare', 'legendary'][card.r] : '', type: card ? card.k : '', winRate: Math.round(rate * 100) });
   }
   rows.sort((a, b) => a.winRate - b.winRate);
   console.table(rows);
