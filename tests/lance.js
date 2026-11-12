@@ -1,4 +1,4 @@
-// Sun Lance, the Legendary: the shot waits out its wind-up, there are two beams a magazine (one per pull), it cuts through wooden planks but
+// Sun Lance, the Legendary: the shot waits out its wind-up, one beam a magazine (then a reload), it cuts through wooden planks but
 // not stone, it sets the rival on fire, other gun cards can't turn it into a fan or a burst, and it is as rare as promised
 //   node tests/lance.js
 const { load, flushTimers } = require('./env');
@@ -24,10 +24,12 @@ const { load, flushTimers } = require('./env');
 
   const open = shoot([L]);
   out.windupFrames = open.firstAt; out.beams = open.made; out.hit = Math.round(open.hit); out.withBurn = Math.round(open.total);
-  if (open.firstAt < 16) fail.push(`the beam left after ${open.firstAt} frames, before the 0.28 s wind-up`);
+  if (open.firstAt < 12) fail.push(`the beam left after ${open.firstAt} frames, before the 0.2 s wind-up`);
   if (open.made !== 1) fail.push(`${open.made} beams from one pull`);
   const held = shoot([L], null, 120, true); out.beamsIn2s = held.made;
-  if (held.made !== 2) fail.push(`${held.made} beams in two seconds of holding the trigger (two a magazine)`);
+  if (held.made !== 2) fail.push(`${held.made} beams in two seconds of holding the trigger (one, a reload, one more)`);
+  const once = shoot([L], null, 70, true); out.beamsIn1s = once.made;
+  if (once.made !== 1) fail.push(`${once.made} beams in the first second: a magazine holds one`);
   if (open.total <= open.hit + 5) fail.push(`no burn after the hit (${open.hit | 0} then ${open.total | 0})`);
   if (open.total >= open.E.s.maxHp) fail.push('a lone Sun Lance hit killed a full-health duelist');
   const plain = shoot([]);
@@ -38,7 +40,7 @@ const { load, flushTimers } = require('./env');
   if (wood.hit < open.hit * .9) fail.push(`a wooden plank stopped the beam (${wood.hit | 0})`);
   if (stone.hit > 0) fail.push(`the beam went through stone (${stone.hit | 0})`);
   const mix = shoot([by('Scattergun'), by('Triple Tap'), L, by('Deep Magazine'), by('Splitter') || by('Scattergun')], null, 120, true);
-  if (mix.ammo !== 2 || mix.proj !== 1 || mix.burst !== 1 || mix.made !== 2) fail.push(`with fans and bursts: ammo ${mix.ammo}, pellets ${mix.proj}, burst ${mix.burst}, beams ${mix.made}`);
+  if (mix.ammo !== 1 || mix.proj !== 1 || mix.burst !== 1 || mix.made !== 2) fail.push(`with fans and bursts: ammo ${mix.ammo}, pellets ${mix.proj}, burst ${mix.burst}, beams ${mix.made}`);
   if (A.shotSound(A.players[0].s) !== 'shotLance') fail.push('no Sun Lance shot sound');
 
   // rarity: 1 hand in 33 from the third round on, 1 in 16 when behind, never early, never twice, never in survival

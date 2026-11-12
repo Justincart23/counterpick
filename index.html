@@ -1714,7 +1714,7 @@ const CARDS=[
  {n:'Detonator',k:'shot',r:2,d:'Hits stick a charge on your rival, up to 5. Block to blow them all at once.',st:[['5','Charges at most',1],['9','Damage per charge',1],['+0.2s','Block cooldown',0]],a:s=>{s.det+=1;s.blockCd+=.2}},
  {n:'Grudge',k:'body',r:1,d:'For every round your rival leads you by, you hit 20% harder, up to 60%. Never count yourself out.',st:[['+20%','Damage per round behind',1],['60%','At most',1]],a:s=>{s.grudge+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
-  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires a beam that burns through wood and sets your rival alight.',st:[['x2.6','Damage',1],['Burns','Rivals and wood',1],['2, +0.3s','Ammo, reload',0],['0.28s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.6;s.reload+=.3},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
+  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires one blazing beam that burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['1 beam','Faster reload',0],['0.2s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -2217,6 +2217,10 @@ function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.we
 function tone(type,f0,f1,t0,dur,peak,dest=master){const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);
   if(f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
   g.gain.exponentialRampToValueAtTime(.0001,t0+dur);o.connect(g).connect(dest);o.start(t0);o.stop(t0+dur+.03)}
+// a swelling burst of filtered noise (a breath, a roar): rises over att seconds instead of starting at once
+function roar(t0,dur,peak,f0,f1,att,q=1,dest=master){const sr=actx.createBufferSource(),f=actx.createBiquadFilter(),g=actx.createGain();sr.buffer=noiseBuf;sr.loop=true;f.type='bandpass';f.Q.value=q;
+  f.frequency.setValueAtTime(f0,t0);f.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+Math.max(.005,att));
+  g.gain.exponentialRampToValueAtTime(.0001,t0+dur);sr.connect(f).connect(g).connect(dest);sr.start(t0,Math.random()*.25);sr.stop(t0+dur+.03)}
 // a burst of filtered noise with a filter sweep
 function noise(t0,dur,peak,type,f0,f1=f0,q=1,dest=master){const sr=actx.createBufferSource(),f=actx.createBiquadFilter(),g=actx.createGain();sr.buffer=noiseBuf;f.type=type;f.Q.value=q;
   f.frequency.setValueAtTime(f0,t0);if(f1!==f0)f.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
@@ -2273,8 +2277,9 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'shoot':tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;          // pop + body + snap
   case'shotHeavy':tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
   case'shotLight':tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
-  case'lanceHum':tone('sawtooth',70,260,t,.34,.035,room);tone('sine',140,620,t,.34,.06);tone('triangle',280,1240,t+.05,.3,.025);break;   // the wind-up: a rising hum
-  case'shotLance':noise(t,.18,.2,'highpass',3000,800,1,room);tone('sawtooth',1900*v,160,t,.28,.07,room);tone('sine',80*v,30,t,.45,.34,room);noise(t,.3,.12,'lowpass',900,200,.8,crunch);break;
+  case'lanceHum':roar(t,.3,.09,260,2400,.26,6,room);tone('sine',90,330,t,.3,.07);tone('triangle',180,660,t+.08,.22,.02);break;   // the wind-up: fire drawn in, a breath rising to the shot
+  case'shotLance':tone('sine',72*v,26,t,.6,.5,room);roar(t,.62,.32,1600*v,240,.015,.7,crunch);roar(t,.5,.14,3800,900,.04,1.2,room);noise(t,.07,.22,'lowpass',2600,500,.7,crunch);
+    for(let i=0;i<7;i++)noise(t+.06+Math.random()*.5,.025,.05+Math.random()*.05,'highpass',2600+Math.random()*3000,2600,1.2);break;   // a deep whoomph, a roar of flame, crackles: nothing like the rail's crack
   case'ignite':noise(t,.22,.12,'bandpass',1400,500,.9);tone('sine',220,90,t,.2,.05);break;
   case'shotRail':noise(t,.06,.14,'highpass',5000,5000,1,room);tone('sawtooth',2600*v,600,t,.09,.06,room);tone('sine',90*v,40,t,.18,.28,room);break;
   case'shotScatter':noise(t,.14,.3,'lowpass',3500,600,.7,crunch);tone('sine',140*v,45,t,.14,.3,room);break;
@@ -2367,7 +2372,7 @@ function makePlayer(id,ctrl,name,team){const pc=PCOL()[id%4];return{id,team:team
   input:{move:0,jumpP:false,jumpH:false,fire:false,blockP:false,down:false,aim:null},
   ai:{side:0,t:0,strafe:1,los:false,losT:0,err:0,errT:0,hes:0,blockAt:-1,jumpHold:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,gapDir:0},aim:id?Math.PI:0,walk:0}}
 function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.cards)c.a(s);for(const u of p.ups||[])u.a(s);for(const c of p.tempCards||[])c.a(s);if(p.boss){s.maxHp*=p.boss.hp;s.size*=p.boss.size}if(p.team===0&&p.lvl>1){const L=Math.min(14,p.lvl-1);s.maxHp*=1+.05*L;s.dmg*=1+.04*L}   /* Survival levels: +5% health, +4% damage each, up to level 15 */
-  if(s.lance){s.ammo=2;s.projectiles=1;s.spread=0;s.burst=1;s.split=0;s.bulletSpeed=3400;s.bulletGravity=0;s.bulletSize=Math.max(s.bulletSize,1.8);s.fireDelay=Math.max(s.fireDelay,.3)}   // Sun Lance: two beams a magazine, one at a time, whatever else you hold
+  if(s.lance){s.ammo=1;s.projectiles=1;s.spread=0;s.burst=1;s.split=0;s.bulletSpeed=4600;s.bulletGravity=0;s.bulletSize=Math.max(s.bulletSize,1.8);s.fireDelay=Math.max(s.fireDelay,.3)}   // Sun Lance: two beams a magazine, one at a time, whatever else you hold
   if(!survOn())s.maxHp*=VS_HP;if(p.hpMul)s.maxHp*=p.hpMul;s.fireDelay=Math.max(.06,s.fireDelay);s.reload=Math.max(.3,s.reload);s.blockCd=Math.max(.6,s.blockCd);
   s.maxHp=Math.max(10,s.maxHp);
   /* soft caps: every extra copy still pays off, with shrinking returns, and no build floods the screen (or the network) with
@@ -2937,7 +2942,7 @@ const DROPS={heal:{n:'HEALTH',col:'#7ed321'},over:{n:'OVERCHARGE',col:'#ff6a3a'}
 const WILD_SKIP=new Set(['Thick Skin','Pipsqueak']);
 const DROP_KINDS=Object.keys(DROPS),DROP_WARN=1.2,DROP_R=16,DROP_LIFE=12,OVER_T=8,RAPID_T=6;
 let drops=[],dropSeq=0;
-const LANCE_WIND=.28,LANCE_BURN=.25;   // Sun Lance: wind-up before the beam leaves; burn = this share of the hit again, over 2 s
+const LANCE_WIND=.2,LANCE_BURN=.25;   // Sun Lance: wind-up before the beam leaves; burn = this share of the hit again, over 2 s
 const DRILL=160,GHOST_DRAG=380,GHOST_DMG=.7,GHOST_DIP=.12;   // Ghost Rounds: speed kept over a full drill ~65%, damage kept per wall 70%, and the exit bends ~7° downward   // Ghost Rounds: px of rock a shot drills through, per copy
 const dropsOn=()=>game.mode==='survival';   // power-ups drop only in Survival: duels stay pure
 // where a capsule can land: on top of a fixed platform, with room above, away from both fighters
@@ -4086,9 +4091,21 @@ function ailFx(x,y,r,kind,hit){fxRec('V',[x,y,r,kind,hit]);if(parts.length>780)r
     if(!hit&&Math.random()<.5){const l=rand(.4,.7);parts.push({ember:true,x:x+rand(-r,r),y:y+rand(-r*.5,r*.3),vx:rand(-60,60),vy:rand(-260,-140),drag:1.4,grav:220,life:l,max:l,seed:Math.random()*99,color:'#ffc45a'})}}}
 /* Sun Lance: wood it burns through flares and spits sparks; when the beam is spent it leaves a fading scorch line along
    its whole path, flames that linger on it for a moment, and a burst where it ended */
-function lanceCut(x,y){fxRec('W',[x,y]);if(parts.length>780)return;parts.push({flash:true,x,y,rad:46,life:.16,max:.16,color:'#ffb347'});
-  for(let i=0;i<10;i++){const a=rand(0,TAU),v=rand(120,360),l=rand(.25,.55);parts.push({ember:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-100,drag:1.5,grav:700,life:l,max:l,seed:Math.random()*99,color:i%2?'#ffd27a':'#c9772e'})}}
-function lanceFx(x0,y0,x1,y1){fxRec('L',[x0,y0,x1,y1]);const L=Math.hypot(x1-x0,y1-y0);if(L<4)return;parts.push({beam:true,x:x0,y:y0,x1,y1,vx:0,vy:0,grav:0,life:.42,max:.42});
+function lanceCut(x,y,ang=0){fxRec('W',[r1(x),r1(y),r2(ang)]);if(parts.length>780)return;parts.push({flash:true,x,y,rad:46,life:.16,max:.16,color:'#ffb347'});
+  for(let i=0;i<10;i++){const a=rand(0,TAU),v=rand(120,360),l=rand(.25,.55);parts.push({ember:true,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-100,drag:1.5,grav:700,life:l,max:l,seed:Math.random()*99,color:i%2?'#ffd27a':'#c9772e'})}
+  // a hole burnt right through the plank where the beam crossed it: charred black edged with ash for the rest of the round,
+  // glowing embers in it that cool off, a few last flames and a curl of smoke
+  const w=solids.find(r=>r.oneway&&!r.bound&&x>r.x-12&&x<r.x+r.w+12&&y>r.y-12&&y<r.y+r.h+12);if(!w)return;
+  const c=Math.cos(ang),sn=Math.sin(ang);let t0=-1e9,t1=1e9;for(const[o,d,lo,hi]of[[x,c,w.x,w.x+w.w],[y,sn,w.y,w.y+w.h]]){if(Math.abs(d)<1e-6){if(o<lo||o>hi)return;continue}let a=(lo-o)/d,b=(hi-o)/d;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b)}
+  if(t1<=t0)return;const ax=x+c*t0,ay=y+sn*t0,bx=x+c*t1,by=y+sn*t1;
+  if(!(w.swing||w.ride||w.rig||w.mover)){dec.save();dec.beginPath();dec.rect(w.x,w.y,w.w,w.h);dec.clip();dec.lineCap='round';
+  for(const[lw,col]of[[30,'rgba(70,40,20,.35)'],[19,'rgba(28,16,10,.85)'],[9,'rgba(8,5,4,.95)']]){dec.strokeStyle=col;dec.lineWidth=lw;dec.beginPath();dec.moveTo(ax,ay);dec.lineTo(bx,by);dec.stroke()}
+  dec.restore()}
+  parts.push({cinder:true,x:ax,y:ay,x1:bx,y1:by,vx:0,vy:0,grav:0,life:2.2,max:2.2,seed:Math.random()*9});
+  if(fxLow)return;const mx=(ax+bx)/2,my=(ay+by)/2;
+  for(let i=0;i<4;i++){const l=rand(.4,.7);parts.push({flame:true,x:mx+rand(-8,8),y:my+rand(-6,6),vx:rand(-15,15),vy:rand(-120,-70),grav:-50,life:l,max:l,size:rand(5,8),seed:Math.random()*9,wait:i*.12})}
+  for(let i=0;i<6;i++){const l=rand(.9,1.5);parts.push({x:mx+rand(-8,8),y:my-4,vx:rand(-14,14),vy:rand(-70,-40),grav:-20,drag:.6,life:l,max:l,size:rand(4,7),color:'#4a3e38',wait:.15+i*.18})}}
+function lanceFx(x0,y0,x1,y1){fxRec('L',[x0,y0,x1,y1]);const L=Math.hypot(x1-x0,y1-y0);if(L<4)return;parts.push({beam:true,x:x0,y:y0,x1,y1,vx:0,vy:0,grav:0,life:.55,max:.55,seed:Math.random()*7});
   const n=Math.min(fxLow?8:22,Math.ceil(L/70));for(let i=0;i<n&&parts.length<790;i++){const t=(i+Math.random())/n,l=rand(.35,.8);parts.push({flame:true,x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,vx:rand(-15,15),vy:rand(-110,-50),grav:-40,life:l,max:l,size:rand(4,8),seed:Math.random()*9})}
   parts.push({flash:true,x:x1,y:y1,rad:60,life:.2,max:.2,color:'#ffcf5a'});for(let i=0;i<10&&parts.length<795;i++){const a=rand(0,TAU),v=rand(150,380),l=rand(.25,.5);parts.push({ember:true,x:x1,y:y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,drag:1.6,grav:650,life:l,max:l,seed:Math.random()*99,color:i%2?'#fff1b8':'#ff9a2e'})}
   if(!RM)game.shake=Math.min(28,game.shake+3)}
@@ -4102,7 +4119,7 @@ function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
     spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1});const nb=bullets[bullets.length-1];nb.gunShot=true;if(p.ctrl==='net'&&p.netView)nb.rew=clamp(performance.now()-p.netView,0,LAG_COMP_MS);game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
-  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120;p.vy-=Math.sin(p.aim)*90;p.shotT=.16;addShake(9)}moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 /* Grudge: hit harder for every round your rival leads you by */
 function grudgeMult(p){const g=p.s&&p.s.grudge;if(!g||!game.wins||survOn())return 1;const me=game.wins[p.team]||0;let lead=0;game.wins.forEach((w,i)=>{if(i!==p.team)lead=Math.max(lead,(w||0)-me)});return 1+Math.min(.6,.2*g*lead)}
@@ -4188,6 +4205,15 @@ function die(p){if(!p.alive||pointDecided()&&!survOn())return;p.alive=false;burs
 const SELF_BLAST=.35;
 function selfHitFx(p,n){if(!p||n<1)return;fxRec('O',[p.id,Math.round(n)]);const q=players.find(z=>z.id===p.id)||p;q.ouchAt=performance.now();
   parts.push({text:'-'+Math.round(n),x:q.x,y:q.y-q.r-26,vx:0,vy:-90,grav:0,life:.75,max:.75,color:'#ff6b5a'});parts.push({ring:true,x:q.x,y:q.y,rad:q.r*1.8,life:.35,max:.35,color:'#ff6b5a'})}
+// your own shot hurts you a little if it comes back at you (off a wall, falling back down, or curling round): spraying
+// wildly has a price. Only after it has bounced or been out a moment, so it never catches you as it leaves the gun; only
+// real trigger pulls (not ring shots, bombs or mines); a quarter of the shot, at most 12% of your health, and never the
+// last of it (explosive rounds keep their own self-blast rule)
+const SELF_SHOT=.25;
+const selfShotCan=b=>game.mode!=='online-guest'&&b.gunShot&&!b.plainRing&&!b.bomb&&!b.mines&&!b.stuck&&(b.bounced||b.age>.3);
+function selfShot(p,b){b.dead=true;if(b.explode>0){explode(b,null);return}if(p.blockT>0){burst(b.x,b.y,p.glow,8,300,3,.3,0,true);sfx('tink');return}
+  const d=Math.min(p.s.maxHp*.12,b.dmg*SELF_SHOT,Math.max(0,p.hp-1)/otMult()),sp=Math.hypot(b.vx,b.vy)||1;p.vx+=b.vx/sp*140;p.vy+=b.vy/sp*90-60;
+  burst(b.x,b.y,p.color,8,320,4,.35);sfx('hit');if(d>0&&!pointDecided()){selfHitFx(p,d*otMult());damage(p,d,p)}}
 /* explosive rounds (Blast Cap, Lob Shell, Limpet Mines, Cluster bombs) are drawn to fit their blast, never past it, and
    always smaller than a Long Haul shockwave: only Long Haul gets the big boom */
 function explode(b,exclude){const R=b.explode,Rv=Math.min(88,R*.78);ring(b.x,b.y,b.glow,R);boomFx(b.x,b.y,Rv,b.glow,Math.min(1,R/100));flashFx(b.x,b.y,Rv,.22,b.glow);
@@ -4282,7 +4308,7 @@ function updateBullets(dt){
       for(const r of solids){if(r.bound)continue;   // the energy border stops fighters, not bullets: shots fly out over it (and lobs fall back in)
         // Ghost Rounds: drill on through rock until the depth runs out, then hit like any shot
         if(b.phase&&b.drill>0&&circleRect(b.x,b.y,wallR(b),r)){ghostIn=true;continue}
-        if(b.lance&&r.oneway){if(!b.cut||b.cut!==r){b.cut=r;if(circleRect(b.x,b.y,wallR(b),r))lanceCut(b.x,b.y)}continue}   // Sun Lance burns straight through wood
+        if(b.lance&&r.oneway){if(!b.cut||b.cut!==r){b.cut=r;if(circleRect(b.x,b.y,wallR(b),r))lanceCut(b.x,b.y,Math.atan2(b.vy,b.vx))}continue}   // Sun Lance burns straight through wood
         const n=bulletRect(b,r);if(!n)continue;
         if(r.rig){if(r.prop)hitNode(r,r.nodes[0],b.owner);else rigShove(r,b)}
         if(r.swing){pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));r.lastHit=b.owner}
@@ -4300,7 +4326,7 @@ function updateBullets(dt){
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
-      for(const p of players){if(!p.alive)continue;if(p===b.owner||(b.owner&&p.team===b.owner.team))continue;
+      for(const p of players){if(!p.alive)continue;if(p===b.owner){if(selfShotCan(b)&&bodyHit(p,b.x,b.y,b.r)){selfShot(p,b);break}continue}if(b.owner&&p.team===b.owner.team)continue;
         if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner){mirrorBack(p,b);break}if(p.blockT>0)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
   for(const b of bullets)if(b.dead&&b.lance&&!b.fxDone){b.fxDone=true;lanceFx(b.ox,b.oy,b.x,b.y)}
@@ -4705,11 +4731,23 @@ function gunTip(p,ang=p.aim){const G=GUNS[gunKind(p.s)],w=G.w*(1+Math.min(.3,Mat
   d=p.r+14+(p.shotT>0?-6:0)+(1-G.hx)*w,off=(G.gy-G.hy)*h*(c>=0?1:-1);return{x:p.x+c*d-sn*off,y:p.y+sn*d+c*off,d,off}}
 /* aim so the BARREL's line (not the body's centre line) runs through the point: the cursor sits right on the bullet's path */
 function aimThrough(p,tx,ty,ox=0,oy=0){const dx=tx-(p.x+ox),dy=ty-(p.y+oy),D=Math.hypot(dx,dy),a=Math.atan2(dy,dx);if(!p.s)return a;const off=gunTip(p,a).off;return D>Math.abs(off)*1.6?a-Math.asin(off/D):a}
-/* the Sun Lance beam in flight: a long ray from where it left the muzzle (or its last bounce) to its head, gold outside,
-   white-hot in the core, with a shimmer; drawn as light */
-function drawBeam(b,now){const sp=Math.hypot(b.vx,b.vy)||1,ux=b.vx/sp,uy=b.vy/sp,L=Math.min(1400,Math.hypot(b.x-(b.ox??b.x),b.y-(b.oy??b.y))),x0=b.x-ux*L,y0=b.y-uy*L,sh=RM?1:1+.12*Math.sin(now/25+(b.id||0));
-  ctx.save();ctx.lineCap='round';try{for(const[w,c,al]of[[26,'255,110,30',.22],[12,'255,190,70',.6],[4,'255,250,230',1]]){const g=ctx.createLinearGradient(x0,y0,b.x,b.y);g.addColorStop(0,`rgba(${c},0)`);g.addColorStop(.35,`rgba(${c},${al*.6})`);g.addColorStop(1,`rgba(${c},${al})`);ctx.strokeStyle=g;ctx.lineWidth=w*sh;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(b.x,b.y);ctx.stroke()}}catch(e){}
-  ctx.globalAlpha=.9;ctx.drawImage(glowSprite('#ffc04a'),b.x-34,b.y-34,68,68);ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(b.x,b.y,5,0,TAU);ctx.fill();ctx.restore()}
+/* the Sun Lance beam, drawn like its card art: a white-hot core inside a gold ray, wrapped in a ragged orange flame whose
+   edges lick back along it, with a spiked flare at the muzzle. k scales it (1 at full blaze, fading to 0 as it dies) */
+function fireBeam(x0,y0,x1,y1,k,now,seed){const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy);if(L<2||k<=0)return;const ux=dx/L,uy=dy/L,nx=-uy,ny=ux,tt=RM?0:now/1000,n=Math.min(90,Math.max(6,Math.ceil(L/16)));
+  const edge=(d,side,amp)=>{const lick=Math.max(0,Math.sin(d*.05-tt*26+seed+side*1.7));return 1+amp*(.28*Math.sin(d*.083-tt*19+seed*3+side*2)+.18*Math.sin(d*.21+tt*31+side)+1.1*lick**5)};
+  const taper=d=>Math.min(1,.35+d/60)*Math.min(1,.5+(L-d)/40);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const[hw,col,al,amp]of[[30,'255,84,24',.5,1],[17,'255,170,40',.78,.6]]){ctx.fillStyle=`rgba(${col},${al*Math.min(1,k*1.4)})`;ctx.beginPath();
+    for(let i=0;i<=n;i++){const d=L*i/n,w=hw*k*taper(d)*edge(d,1,amp);const px=x0+ux*d+nx*w,py=y0+uy*d+ny*w;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}
+    for(let i=n;i>=0;i--){const d=L*i/n,w=hw*k*taper(d)*edge(d,-1,amp);ctx.lineTo(x0+ux*d-nx*w,y0+uy*d-ny*w)}ctx.closePath();ctx.fill()}
+  ctx.globalCompositeOperation='source-over';ctx.lineCap='round';ctx.strokeStyle=`rgba(255,226,120,${Math.min(1,k*1.5)})`;ctx.lineWidth=15*k;ctx.beginPath();ctx.moveTo(x0+ux*6,y0+uy*6);ctx.lineTo(x1,y1);ctx.stroke();
+  ctx.strokeStyle=`rgba(255,253,240,${Math.min(1,k*1.6)})`;ctx.lineWidth=8*k;ctx.stroke();
+  const R=26*k*(RM?1:1+.15*Math.sin(tt*40+seed));ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,200,70,${.85*k})`;ctx.beginPath();   // the muzzle flare: a gold spiked star
+  for(let i=0;i<16;i++){const a=Math.atan2(uy,ux)+i*Math.PI/8+tt*2,r=i%2?R*.38:R*(i%4?1:1.45);i?ctx.lineTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r):ctx.moveTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r)}ctx.closePath();ctx.fill();
+  ctx.globalAlpha=Math.min(1,k);ctx.drawImage(glowSprite('#ffb347'),x0-R*1.6,y0-R*1.6,R*3.2,R*3.2);ctx.restore()}
+/* the beam in flight: the whole ray from where it left the muzzle (or its last bounce) to a blazing head */
+function drawBeam(b,now){const L=Math.hypot(b.x-(b.ox??b.x),b.y-(b.oy??b.y));fireBeam(b.ox??b.x,b.oy??b.y,b.x,b.y,1,now,(b.id||0)%7);
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.95;ctx.drawImage(glowSprite('#ffc04a'),b.x-40,b.y-40,80,80);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(b.x,b.y,7,0,TAU);ctx.fill();ctx.restore()}
 /* how far along a fighter's Sun Lance wind-up is (0 to 1), or -1 when it isn't winding: the host knows its timer, a guest
    its own predicted one, and everyone else's comes in the snapshot */
 function lanceWind(p){if(!p.s||!p.s.lance||!p.alive)return -1;let t;if(game.mode==='online-guest')t=p===players[net.me]&&p.phys?(p.gBurst>0?p.gBurstT:-1):(p.windT>0?p.windT:-1);else t=p.burstLeft>0?p.burstT:-1;return t>0?clamp(1-t/LANCE_WIND,0,1):-1}
@@ -4718,8 +4756,13 @@ function lanceReach(x,y,a){const c=Math.cos(a),sn=Math.sin(a);for(let d=0;d<2200
 function drawLanceWind(p){const k=lanceWind(p);if(k<0)return;const tp=gunTip(p),D=lanceReach(tp.x,tp.y,p.aim),now=performance.now(),fl=RM?1:.75+.25*Math.sin(now/18);
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';ctx.setLineDash([14,10]);ctx.lineDashOffset=-now/12;ctx.globalAlpha=(.25+.6*k)*fl;ctx.strokeStyle='#ffc04a';ctx.lineWidth=1.5+2.5*k;
   ctx.beginPath();ctx.moveTo(tp.x,tp.y);ctx.lineTo(tp.x+Math.cos(p.aim)*D,tp.y+Math.sin(p.aim)*D);ctx.stroke();ctx.setLineDash([]);
-  const R=8+26*k;ctx.globalAlpha=.5+.5*k;ctx.drawImage(glowSprite('#ffb347'),tp.x-R,tp.y-R,R*2,R*2);
-  if(!RM&&Math.random()<.5)parts.push({spark:true,x:tp.x+rand(-30,30)*(1-k),y:tp.y+rand(-30,30)*(1-k),vx:rand(-60,60),vy:rand(-60,60),grav:0,life:.12,max:.12,color:'#ffe08a'});ctx.restore()}
+  const R=10+30*k;ctx.globalAlpha=.55+.45*k;ctx.drawImage(glowSprite('#ffb347'),tp.x-R,tp.y-R,R*2,R*2);
+  // fire gathering at the muzzle: a spiked gold star that spins up and swells, a white-hot heart, embers drawn in to it
+  ctx.globalAlpha=1;ctx.fillStyle=`rgba(255,170,50,${.35+.5*k})`;ctx.beginPath();const S=(5+15*k)*fl,sp=now/(160-90*k);
+  for(let i=0;i<12;i++){const a=sp+i*Math.PI/6,r=i%2?S*.45:S;i?ctx.lineTo(tp.x+Math.cos(a)*r,tp.y+Math.sin(a)*r):ctx.moveTo(tp.x+Math.cos(a)*r,tp.y+Math.sin(a)*r)}ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fffbe8';ctx.beginPath();ctx.arc(tp.x,tp.y,2+5*k,0,TAU);ctx.fill();
+  if(!RM&&parts.length<760)for(let i=0;i<2;i++){const a=rand(0,TAU),d=rand(34,60)*(1.1-k*.5),l=rand(.1,.16);parts.push({ember:true,x:tp.x+Math.cos(a)*d,y:tp.y+Math.sin(a)*d,vx:-Math.cos(a)*d/l,vy:-Math.sin(a)*d/l,grav:0,life:l,max:l,seed:Math.random()*99,color:Math.random()<.5?'#ffe08a':'#ff9a2e'})}
+  ctx.restore()}
 const gunImgs={};
 function gunImg(k){let im=gunImgs[k];if(im)return im;if(typeof Image==='undefined')return null;im=gunImgs[k]=new Image();im.decoding='async';im.src='guns/'+k+'.webp';return im}
 function warmGuns(){for(const k in GUNS)gunImg(k)}
@@ -5084,7 +5127,9 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
       if(a<.12){ctx.globalAlpha=1;ctx.strokeStyle='#d9ff8a';ctx.lineWidth=1.5;ctx.beginPath();for(let i=0;i<4;i++){const g=i*Math.PI/2+q.seed;ctx.moveTo(x+Math.cos(g)*z,q.y+Math.sin(g)*z);ctx.lineTo(x+Math.cos(g)*z*1.8,q.y+Math.sin(g)*z*1.8)}ctx.stroke();continue}   // pop
       ctx.globalAlpha=.35*a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(x,q.y,z,0,TAU);ctx.fill();ctx.globalAlpha=.9*a;ctx.strokeStyle='#c8f56a';ctx.lineWidth=1.6;ctx.stroke();
       ctx.fillStyle='#f4ffd8';ctx.beginPath();ctx.arc(x-z*.35,q.y-z*.35,z*.28,0,TAU);ctx.fill();continue}
-    if(q.beam){const t=1-a;ctx.globalAlpha=a;ctx.lineCap='round';for(const[w,c,al]of[[22,'#ff7a1a',.22],[9,'#ffc04a',.6],[3,'#fff8e0',1]]){ctx.globalAlpha=a*al;ctx.strokeStyle=c;ctx.lineWidth=w*(1-.6*t);ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x1,q.y1);ctx.stroke()}continue}
+    if(q.cinder){const f=RM?1:.75+.25*Math.sin(performance.now()/90+q.seed),e=a*a;ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';   // the burnt hole's embers, cooling from yellow to a dull red
+      for(const[lw,col,al]of[[16,'255,90,20',.45],[7,'255,170,60',.8],[2.5,'255,240,190',1]]){ctx.strokeStyle=`rgba(${col},${al*e*f})`;ctx.lineWidth=lw*(.5+.5*a);ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x1,q.y1);ctx.stroke()}ctx.restore();continue}
+    if(q.beam){const e=a*a*(3-2*a);fireBeam(q.x,q.y,q.x1,q.y1,e,performance.now(),q.seed||0);ctx.globalAlpha=1;continue}   // the spent beam blazes on a moment, thinning out
     if(q.ember){const f=.55+.45*Math.sin(q.seed+q.life*38);ctx.globalAlpha=a*f;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+2*a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.035,q.y-q.vy*.035);ctx.stroke();continue}   // embers flicker as they streak
     if(q.ghost){ctx.globalAlpha=a*.45;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.r*(.7+.3*a),0,TAU);ctx.fill();continue}
     if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
@@ -5104,7 +5149,7 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
       ctx.save();ctx.globalAlpha=1;ctx.translate(X,Y);ctx.rotate(t*TAU*2);ctx.fillStyle='#ffd36b';ctx.strokeStyle='rgba(14,6,24,.9)';ctx.lineWidth=2;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-8,-4,16,8,4);else ctx.rect(-8,-4,16,8);ctx.fill();ctx.stroke();ctx.restore();continue}
     if(!q.glow)continue;ctx.globalAlpha=a;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.size*(.4+.6*a),0,TAU);ctx.fill()}
   ctx.restore();
-  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode||q.img||q.steal!=null||q.shock||q.ember||q.flame||q.bubble||q.beam||q.wait>0)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
+  for(const q of parts){if(q.glow||q.ring||q.flash||q.blob||q.spark||q.text||q.ghost||q.streak||q.implode||q.img||q.steal!=null||q.shock||q.ember||q.flame||q.bubble||q.beam||q.cinder||q.wait>0)continue;ctx.globalAlpha=clamp(q.life/q.max,0,1);
     if(q.chunk){const z=q.size*(.5+.5*clamp(q.life/q.max,0,1));ctx.save();ctx.globalAlpha=1;ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillStyle=q.color;ctx.fillRect(-z/2,-z*.35,z,z*.7);ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(-z/2,z*.05,z,z*.3);ctx.restore();continue}   // stone chunks tumble
     ctx.fillStyle=q.color;if(q.goo){const k=q.size*(.45+.55*clamp(q.life/q.max,0,1));ctx.globalAlpha=1;ctx.beginPath();ctx.ellipse(q.x,q.y,k,k*(1+Math.min(.8,Math.abs(q.vy)/900)),0,0,TAU);ctx.fill();continue}
     ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
@@ -5273,7 +5318,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-sunlance2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-sunlance3';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5648,6 +5693,13 @@ function reconcile(p,a,snapTo){p.tx=a[0];p.ty=a[1];
   // both sides say it's standing: the floor under it decides its height, so a small height error is noise (and nudging it
   // up off a moving platform would make it flicker between standing and falling)
   if(p.grounded&&a[15]&&Math.abs(ey)<14){ey=0;evy=0}
+  // standing here and only a few pixels off: never nudge the body DOWN into what it stands on (a half-pixel push into a
+  // wooden ledge drops it through, and from below the soft corrections never lift it back: it bobs under the ledge)
+  else if(p.grounded&&ey>0&&ey<14){ey=0;if(evy>0)evy=0}
+  // the host has this fighter on top of a wooden ledge while this screen let it slip under one: put it back on top now
+  // (a soft glide from below can't, gravity wins every step)
+  {const R=p.r,w=a[15]&&p.dropT<=0&&solids.find(r=>r.oneway&&!r.bound&&a[0]>r.x-R&&a[0]<r.x+r.w+R&&Math.abs(a[1]+R-r.y)<6&&e.y+R>r.y+1&&p.y+R>r.y+1&&p.y-R<r.y+r.h+R*2&&p.x>r.x-R*.5&&p.x<r.x+r.w+R*.5);
+    if(w&&!solidBoxP(p.x,w.y-R,R-1,R-1)){const ox=p.x,oy=p.y;initPhys(p,p.x,r2(w.y-R),p.vx,0);snapGlide(ox,oy,p);return}}
   // air jumps left: carry over the host's count (as of that step) so both sides agree whether the next press jumps
   if(a[22]!=null&&e.aj!=null)p.airJumps=clamp(p.airJumps+(a[22]-e.aj),0,p.s.airJumps);
   if(Math.hypot(ex,ey)>220){const ox=p.x,oy=p.y;initPhys(p,a[0],a[1],a[2],a[3]);snapGlide(ox,oy,p);return}   // too far apart to blend: trust the host
@@ -5718,7 +5770,10 @@ function guestTick(dt){game.edgeFlash=Math.max(0,(game.edgeFlash||0)-dt);if(net.
       if(Number.isFinite(me.x))net.blockAim=me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);me.localBlockT=.3;if(me.s.quickdraw)me.gAmmo=me.s.ammo;if(me.s.charge&&me.phys&&me.alive)chargeKick(me);if(me.s.blink&&me.phys&&me.alive){blinkMove(me);net.offX=net.offY=0}me.gEcho=me.s.echo?Array.from({length:me.s.echo},(_,i)=>.3*(i+1)):null}}}   // predict the Shield Charge dash and Echo Guard's repeat blocks
   game.acc=Math.min((game.acc||0)+dt,.25);while(game.acc>=FIXED){game.acc-=FIXED;{const me=players[net.me];if(me){me.lx=me.x;me.ly=me.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}guestStep(FIXED,busy)}
   game.alpha=game.acc/FIXED;
-  const fade=Math.exp(-dt/.13);net.offX*=fade;net.offY*=fade;   // a correction glides in over about a tenth of a second
+  // a correction glides in over about a tenth of a second; but the drawn body must never sink into a floor or a wall on the
+  // way (standing on ground and drawn below it, or drawn inside stone): then it catches up four times as fast
+  {const me=players[net.me],ok=me&&me.alive&&Number.isFinite(me.x),inWall=ok&&solidBoxP(me.x+net.offX,me.y+net.offY,me.r*.7,me.r*.7),sunk=inWall||ok&&me.grounded&&net.offY>2;
+    net.offX*=Math.exp(-dt/(inWall?.03:.13));net.offY*=Math.exp(-dt/(sunk?.03:.13))}
   if(net.snap){const age=Math.min(.12,(performance.now()-net.snapAt)/1000),k=Math.min(1,dt*18);
     // the other fighter is drawn a little in the past (INTERP_MS), exactly along its real path between two snapshots,
     // so it moves smoothly however unevenly snapshots arrive; past the newest snapshot it coasts on its last velocity briefly
@@ -5766,7 +5821,7 @@ function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,f
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
       color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,lance:s.lance>0,ox:m.x,oy:m.y,heat:1})}
-  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120;p.vy-=Math.sin(p.aim)*90;p.shotT=.16;game.shake=Math.min(28,game.shake+9)}burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
 // a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
 function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV*b.g;let best=-1,bs=1e9,bt=0;
   // exact: the host tagged this bullet with the guest's shot number, so take that ghost wherever it has got to
