@@ -665,6 +665,9 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .mlist.hp-acts{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:10px}.mlist.hp-acts .btn{min-height:44px;padding:0 18px;font-size:16px;background:rgba(22,13,33,.94);border:2px solid rgba(255,255,255,.2);border-radius:12px;color:var(--text);text-transform:none;letter-spacing:.02em}.mlist.hp-acts .btn.go{background:var(--orange);border-color:var(--orange);color:#1a0e05}.mlist.hp-acts .btn:focus,.mlist.hp-acts .btn:hover{border-color:#fff;transform:translateY(-2px)}.mlist.hp-acts .btn::before,.mlist.hp-acts .btn::after{display:none}
 .phone-tip{margin:12px 0 0;font:600 14px/1.35 var(--body);color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px}
 .phone-tip i{width:12px;height:19px;border:2px solid #ffb547;border-radius:4px;flex:none}
+.join-line{margin:6px 0 0;font:600 14px/1.35 var(--body);color:var(--muted);text-align:center}
+.linkbtn{all:unset;cursor:pointer;color:#ffb547;font-weight:800;text-decoration:underline;text-underline-offset:3px}.linkbtn:hover,.linkbtn:focus-visible{color:#ffd08a;outline:2px solid #ffb547;outline-offset:3px;border-radius:4px}
+.mlist.tiles .mgrp{grid-column:1 / -1;margin:6px 0 -2px 2px;font:800 12px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mlist.tiles .mgrp:first-child{margin-top:0}
 [data-sub]:has(>.mlist.tiles)>.menu-hint{display:none}
 @media (max-height:520px){
   .mlist.tiles{gap:7px}.mlist.tiles .mt{min-height:58px;padding:8px 10px;font-size:16px;column-gap:10px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -1180,14 +1183,15 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
     <div data-sub="main">
       <nav class="mlist tiles" aria-label="Main menu">
-        <button type="button" class="mt big" data-act="solo" data-ic="solo" data-hint="Play on your own. Your phone is the controller, or use the keyboard and mouse." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Single player</span><span class="mt-d desk-only-i">Play here, steer with your phone</span><span class="mt-d touch-only-i">Practice, party, Survival, Sandbox</span></button>
-        <button type="button" class="mt big" data-act="multi" data-ic="multi" data-hint="Play with friends. On a computer or TV, everyone's phone is a controller. Or play online, everyone on their own screen." style="--i:1;--tc:#3d8bff"><span class="mt-t">Multiplayer</span><span class="mt-d desk-only-i">Friends join with their phones</span><span class="mt-d touch-only-i">Duel, free-for-all, teams or co-op</span></button>
+        <button type="button" class="mt big" data-act="solo" data-ic="solo" data-hint="Play on your own. Your phone is the controller, or use the keyboard and mouse." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Single player</span><span class="mt-d desk-only-i">Just you against the computer. Use your phone or the keyboard</span><span class="mt-d touch-only-i">Just you against the computer</span></button>
+        <button type="button" class="mt big" data-act="multi" data-ic="multi" data-hint="Play with friends. In the same room, everyone watches this screen and uses their phone as a controller. Far apart, everyone plays online on their own screen." style="--i:1;--tc:#3d8bff"><span class="mt-t">Multiplayer</span><span class="mt-d desk-only-i">With friends, in this room or online</span><span class="mt-d touch-only-i">With friends online, each on their own phone</span></button>
         <button type="button" class="mt small" data-act="locker" data-ic="locker" data-hint="Your look and the shop in one: pick your shades, wear what you own, try on and buy hats, patterns and trails with the coins you win." style="--i:2;--tc:#ff6fa8"><span class="mt-t">Customize</span></button>
         <button type="button" class="mt small" data-act="help" data-ic="help" data-hint="Rules and controls, or watch a CPU match to see it in action." style="--i:3;--tc:#3fd0b0"><span class="mt-t">How to play</span></button>
         <button type="button" class="mt small" data-act="settings" data-ic="settings" data-hint="Your name, CPU skill, rounds to win, music and sound." style="--i:4;--tc:#b9a7e6"><span class="mt-t">Settings</span></button>
       </nav>
       <p class="menu-hint" id="menuHint" aria-live="polite">Play on your own. Your phone is the controller, or use the keyboard and mouse.</p>
       <p class="phone-tip desk-only"><i aria-hidden="true"></i>Best with your phone as the controller. Scan a code, no app needed.</p>
+      <p class="join-line desk-only">A friend sent you a code? <button type="button" class="linkbtn" data-act="join">Join their game</button></p>
       <div class="mobile-row touch-only"><button type="button" class="btn join-q" data-act="join"><b>Got a code?</b> Join a game</button><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
     </div>
     <div data-sub="soloHow" hidden>
@@ -1213,10 +1217,12 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
     <div data-sub="multi" hidden>
       <div class="lbl sublbl">Multiplayer</div>
       <nav class="mlist tiles" aria-label="Multiplayer">
-        <button type="button" class="mt big hero desk-only" data-act="bsQuick" data-ic="phonePad" data-hint="This screen is the one everyone watches, a laptop or a TV. Friends scan the code and their phones become controllers. Whoever joins first can start the game from their phone." style="--i:0;--tc:#ffb547"><span class="mt-t">Phones as controllers <em class="rec">Best</em></span><span class="mt-d">Everyone watches this screen and plays on their phone. Up to 4: versus, teams or co-op.</span></button>
-        <button type="button" class="mt" data-act="versus" data-ic="online" data-hint="Everyone on their own phone or computer, from anywhere: a duel, a free-for-all or teams. You get a code and a link to send." style="--i:1;--tc:#3d8bff"><span class="mt-t">Online versus</span><span class="mt-d">Everyone on their own screen</span></button>
-        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Co-op Survival online with a friend, each on your own screen: waves, bosses, revive each other." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Online co-op</span><span class="mt-d">Survival with a friend, own screens</span></button>
-        <button type="button" class="mt sub" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:3;--tc:#ffb547"><span class="mt-t">Got a code? Join a game</span></button>
+        <p class="mgrp desk-only" aria-hidden="true">Together in this room</p>
+        <button type="button" class="mt big hero desk-only" data-act="bsQuick" data-ic="phonePad" data-hint="This screen is the one everyone watches, a laptop or a TV. Friends scan the code and their phones become controllers. Whoever joins first can start the game from their phone." style="--i:0;--tc:#ffb547"><span class="mt-t">Phones as controllers <em class="rec">Best</em></span><span class="mt-d">Everyone watches this screen and steers with their own phone. Up to 4 players.</span></button>
+        <p class="mgrp" aria-hidden="true">Far apart · everyone on their own screen</p>
+        <button type="button" class="mt" data-act="versus" data-ic="online" data-hint="Everyone on their own phone or computer, from anywhere: a duel, a free-for-all or teams. You get a code and a link to send." style="--i:1;--tc:#3d8bff"><span class="mt-t">Online versus</span><span class="mt-d">Fight your friends. You get a code to send them</span></button>
+        <button type="button" class="mt" data-act="coop" data-ic="coop" data-hint="Co-op Survival online with a friend, each on your own screen: waves, bosses, revive each other." style="--i:2;--tc:#3fd0b0"><span class="mt-t">Online co-op</span><span class="mt-d">Team up against waves and bosses</span></button>
+        <button type="button" class="mt sub" data-act="join" data-ic="join" data-hint="Got a code? Type it in, whatever the game: a friend's room, or the code on a big screen." style="--i:3;--tc:#ffb547"><span class="mt-t">Got a code? Join a friend's game</span></button>
         <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:4"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">This screen is the one everyone watches. Friends scan the code and their phones become controllers.</p>
@@ -1706,7 +1712,7 @@ const CARDS=[
  {n:'Detonator',k:'shot',r:2,d:'Hits stick a charge on your rival, up to 5. Block to blow them all at once.',st:[['5','Charges at most',1],['9','Damage per charge',1],['+0.2s','Block cooldown',0]],a:s=>{s.det+=1;s.blockCd+=.2}},
  {n:'Grudge',k:'body',r:1,d:'For every round your rival leads you by, you hit 20% harder, up to 60%. Never count yourself out.',st:[['+20%','Damage per round behind',1],['60%','At most',1]],a:s=>{s.grudge+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
-  {n:'Sun Lance',k:'gun',r:3,d:'Winds up, then fires one blazing beam that burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['Fat beam','1 per reload',0],['0.2s','Wind-up',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
+  {n:'Sun Lance',k:'gun',r:3,d:'Tap for a quick beam, or hold to charge a blazing one. It burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['Fat beam','1 per reload',0],['Hold','To charge',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -2303,6 +2309,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'shoot':tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;          // pop + body + snap
   case'shotHeavy':tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
   case'shotLight':tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
+  case'lanceFull':tone('triangle',880,1320,t,.12,.05);tone('sine',1320,1760,t+.05,.14,.03);break;   // fully charged: a bright ping
   case'lanceHum':roar(t,.3,.09,260,2400,.26,6,room);tone('sine',90,330,t,.3,.07);tone('triangle',180,660,t+.08,.22,.02);break;   // the wind-up: fire drawn in, a breath rising to the shot
   case'shotLance':tone('sine',72*v,26,t,.6,.5,room);roar(t,.62,.32,1600*v,240,.015,.7,crunch);roar(t,.5,.14,3800,900,.04,1.2,room);noise(t,.07,.22,'lowpass',2600,500,.7,crunch);
     for(let i=0;i<7;i++)noise(t+.06+Math.random()*.5,.025,.05+Math.random()*.05,'highpass',2600+Math.random()*3000,2600,1.2);break;   // a deep whoomph, a roar of flame, crackles: nothing like the rail's crack
@@ -2370,8 +2377,8 @@ function toView(cx,cy){return[(cx-view.cox)/view.cs,(cy-view.coy)/view.cs]}
 function toWorld(cx,cy){const[x,y]=toView(cx,cy);return[x/cam.z+cam.x,y/cam.z+cam.y]}
 function pointerAt(e){[mouse.sx,mouse.sy]=toView(e.clientX,e.clientY);[mouse.x,mouse.y]=toWorld(e.clientX,e.clientY)}
 // mouse / pen only: on a touch screen the sticks drive the virtual mouse (touch pointers would otherwise hold the trigger)
-cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;pointerAt(e)});
-cv.addEventListener('pointerdown',e=>{initAudio();if(e.pointerType==='touch')return;cv.focus();pointerAt(e);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
+cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;pointerAt(e);if(Math.abs(e.movementX||0)+Math.abs(e.movementY||0)>3)mouse.realAt=performance.now()});
+cv.addEventListener('pointerdown',e=>{initAudio();if(e.pointerType==='touch')return;mouse.realAt=performance.now();cv.focus();pointerAt(e);if(e.button===0)mouse.down=true;if(e.button===2)mouse.rEdge=true});
 addEventListener('pointerup',e=>{if(e.pointerType==='touch')return;if(e.button===0)mouse.down=false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 let pads=[],padPrev={};
@@ -2413,7 +2420,7 @@ function recompute(p){const s={...BASE};if(p.char)p.char.a(s);for(const c of p.c
   s.moveSpeed=clamp(s.moveSpeed,.45,2);s.agility=clamp(s.agility,1,2);s.jumpPower=clamp(s.jumpPower,.7,1.5);s.airJumps=Math.min(s.airJumps,5);s.projectiles=Math.min(s.projectiles,14);
   s.dmg=Math.min(s.dmg,BASE.dmg*30);s.lifesteal=Math.min(s.lifesteal,.5);s.regen=Math.min(s.regen,.04);s.blockHeal=Math.min(s.blockHeal,60);s.homing=Math.min(s.homing,4);s.knock=Math.min(s.knock,4);s.explode=Math.min(s.explode,260);s.bounces=Math.min(s.bounces,12);s.split=Math.min(s.split,6);s.burst=Math.min(s.burst,4);p.s=s;p.r=BASE_R*s.size}
 function resetPlayer(p,sp){const s=p.s;Object.assign(p,{x:sp[0],y:sp[1],vx:0,vy:0,hp:s.maxHp,ammo:s.ammo,sinceShot:99,fireT:0,blockT:0,blockCd:0,revives:s.revive,
-  dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,burnT:0,jamT:0,charges:0,chargeBy:null,pickT:0,staticReady:false,burstLeft:0,burstT:0,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
+  dots:[],slowT:0,slowAmt:0,alive:true,echoQ:null,chargeT:0,buffOver:0,buffRapid:0,aegis:s.aegis,blockStock:s.blockStock,localBlockT:0,chill:0,chillT:0,frozenT:0,frozen:false,burnT:0,jamT:0,charges:0,chargeBy:null,pickT:0,staticReady:false,burstLeft:0,burstT:0,lch:0,lchFull:false,airJumps:s.airJumps,grounded:false,ground:null,wallDir:0,hurtT:0,squash:1,shotT:0,dropT:0,jumpBuf:0,coyote:0,emptyT:0,aim:p.id?Math.PI:0,lx:sp[0],ly:sp[1]});
   Object.assign(p.ai,{sx:null,side:0,noLos:0,mode:'engage',stuckT:0,flipT:0,gapT:0,blockAt:-1,los:false})}
 // the rival: in a duel the other fighter; with more fighters, the nearest living enemy (any enemy if none is alive)
 // where fighter k starts: the arena's own spawn for the first two; extra enemies on a free platform far from the heroes
@@ -2473,7 +2480,7 @@ function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
   else if(net.role==='host'&&net.peers[0])players[1].peer=net.peers[0];   // a duel or co-op guest's fighter reads that guest's inputs
   for(const p of players)if(p.peer){const L=p.peer;L.inQ=[];L.lastQ=-1;L.heldIn=null;L.lagSteps=0}
   game.wins=game.party&&!game.ffa?[0,0]:players.map(()=>0);game.points=game.wins.slice();   // a party scores by team (a free-for-all by fighter)
-  players.forEach(recompute);players.forEach(applyShade);bullets=[];parts=[];shields=[];net.bmap.clear();
+  players.forEach(recompute);players.forEach(applyShade);bullets=[];beams=[];parts=[];shields=[];net.bmap.clear();
   cv.style.cursor=!game.bg&&players.some(p=>p.ctrl==='mouse')?'none':'default';
   $('#menu').hidden=!game.bg;$('#end').hidden=true;$('#pause').hidden=true;$('#pick').hidden=true;$('#sandbox').hidden=true;$('#bCards').hidden=mode!=='sandbox';
   if(mode==='online-guest'){if(game.coop)players.forEach(p=>p.team=0);game.state='wait';game.mapIdx=-1;cv.focus();return}   // the guest draws the host's match; it never simulates
@@ -2501,7 +2508,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   buildRides();
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,rigs,BOUNDS);
-  buildBg(game.map);bullets=[];parts=[];shields=[];net.h0=[];camSnap()}
+  buildBg(game.map);bullets=[];beams=[];parts=[];shields=[];net.h0=[];camSnap()}
 // crates back in their spots and ropes back up (a new map, or a Survival life lost on the same one)
 function buildRides(){const old=rides,oldR=rigs;buildRigs();
   rides=[...(game.map.crates||[]).map(([x,y,z])=>({ride:true,crate:true,x,y,w:z,h:z,x0:x,y0:y,vx:0,vy:0,dx:0,dy:0,hits:0,broken:0,gone:0,art:crateArt(z)})),
@@ -2965,7 +2972,9 @@ const DROPS={heal:{n:'HEALTH',col:'#7ed321'},over:{n:'OVERCHARGE',col:'#ff6a3a'}
 const WILD_SKIP=new Set(['Thick Skin','Pipsqueak']);
 const DROP_KINDS=Object.keys(DROPS),DROP_WARN=1.2,DROP_R=16,DROP_LIFE=12,OVER_T=8,RAPID_T=6;
 let drops=[],dropSeq=0;
-const LANCE_WIND=.2,LANCE_BURN=.25;   // Sun Lance: wind-up before the beam leaves; burn = this share of the hit again, over 2 s
+const LANCE_TAP=.12,LANCE_FULL=.75,LANCE_KEEP=.5,LANCE_LO=.4,LANCE_HI=1,LANCE_LIVE=.45,LANCE_BURN=.25;   // Sun Lance: a tap winds up LANCE_TAP and fires a light beam (LANCE_LO of the card's damage); holding charges it, up to LANCE_HI (the card's full beam) at LANCE_FULL s, and a full charge can be held LANCE_KEEP s more before it lets go by itself. A beam keeps burning whoever touches it while it shows (LANCE_LIVE s after it lands). Burn = this share of the hit again, over 2 s
+const lanceK=t=>clamp((t-LANCE_TAP)/(LANCE_FULL-LANCE_TAP),0,1),lancePow=k=>LANCE_LO+(LANCE_HI-LANCE_LO)*k,lanceW=k=>.45+.6*k;   // charge 0-1 from time held; damage share; beam width
+const lanceVis=t=>t<LANCE_TAP?.3*t/LANCE_TAP:.3+.7*lanceK(t);   // the wind-up shown at the muzzle: a tap's short wind-up fills the first third, the charge the rest
 const DRILL=160,GHOST_DRAG=380,GHOST_DMG=.7,GHOST_DIP=.12;   // Ghost Rounds: speed kept over a full drill ~65%, damage kept per wall 70%, and the exit bends ~7° downward   // Ghost Rounds: px of rock a shot drills through, per copy
 const dropsOn=()=>game.mode==='survival';   // power-ups drop only in Survival: duels stay pure
 // where a capsule can land: on top of a fixed platform, with room above, away from both fighters
@@ -3180,7 +3189,7 @@ function survRound(n){game.round=n;const B=survBossFor(n),kind=survKind(n);game.
   game.diff=n<=3?'easy':n<=12?'normal':'hard';   /* the CPU's aim and dodging step up after round 12, not on top of round 10's bigger waves and rares */for(const h of hs){recompute(h);h.ammo=h.s.ammo}
   newPoint(true);game.state='ready';game.stT=2;
   game.banner=B?(bossTier(n)?`${B.n.toUpperCase()} · TIER ${bossTier(n)+1}`:B.n.toUpperCase()):game.twist?`ROUND ${n} · ${game.twist.n}`:KIND_N[kind]?`ROUND ${n} · ${KIND_N[kind]}`:`ROUND ${n}`;game.bannerT=2;
-  if(n<=1)game.newBest=false;{const best=game.bsSurv?Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0)):wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];shields=[];game.strikes=[]}
+  if(n<=1)game.newBest=false;{const best=game.bsSurv?Math.max(0,...hs.map(h=>(h.peer&&h.peer.sb)|0)):wallet.survBest||0;if(!B&&best>0&&n-1>best&&!game.newBest){game.newBest=true;game.banner=`ROUND ${n} · NEW BEST!`;game.bannerT=2.4;sfx('point')}}   /* passing your record is worth a cheer */bullets=[];beams=[];shields=[];game.strikes=[]}
 function survFoes(n,count,kind,B,nh,at,total){const foes=[];for(let i=0;i<count;i++){const e=makePlayer(at+i,'cpu','',1);e.cos={};foes.push(e)}
   foes.forEach((e,i)=>{if(B&&i===0){makeBoss(e,B,Math.floor((n/BOSS_EVERY-1)/6),n);if(n===5)e.hpMul*=.85}else{makeRaider(e,n,i,B?3:total);if(kind==='swarm'){e.hpMul*=.8;e.cards.splice(0,1)}if(kind==='elite'&&i===0)makeElite(e,n)
       if(!e.elite&&n>=10&&Math.random()<Math.min(.65,.15+(n-10)*.06)){const T=pick(TRAITS);e.trait=T;e.name=T.n+' '+e.name;e.cards.push(...cardsNamed(T.c));if(T.hp)e.hpMul*=T.hp;e.glow=T.col}}
@@ -3293,7 +3302,7 @@ function survResolve(){const hs=heroes();
   game.lives--;if(game.lives<=0){survEnd();return}
   buildRides();for(const h of hs){resetPlayer(h,spawnFor(h,h.id));h.downT=0;h.reviveT=0;if(h.left){h.alive=false;h.x=-9999}}
   for(const e of enemies())if(e.alive){const sp=spawnFor(e,e.id),hp=e.hp;e.x=sp[0];e.y=sp[1];e.vx=e.vy=0;e.lx=e.x;e.ly=e.y;e.hp=hp;if(e.bs){e.bs.state='idle';e.bs.t=2.5}e.stunT=0;e.mirror=false}
-  bullets=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
+  bullets=[];beams=[];shields=[];game.strikes=[];game.state='ready';game.stT=1.4;game.banner=`${game.lives} ${game.lives===1?'LIFE':'LIVES'} LEFT`;game.bannerT=1.4;sfx('point')}
 // XP from damage you deal; each level waits for the end of the round
 function survXp(src,amt,killed){if(!src||src.team!==0)return;src.xp=(src.xp||0)+amt*.2+(killed?10:0);if(killed)src.roundKills=(src.roundKills|0)+1;
   while(src.xp>=xpNeed(src.lvl||1)){src.xp-=xpNeed(src.lvl||1);src.lvl=(src.lvl||1)+1;const m0=src.s.maxHp;recompute(src);src.hp+=src.s.maxHp-m0;   // the new health arrives at once
@@ -4104,21 +4113,31 @@ function lanceCut(x,y,ang=0){fxRec('W',[r1(x),r1(y),r2(ang)]);if(parts.length>78
   if(fxLow)return;const mx=(ax+bx)/2,my=(ay+by)/2;
   for(let i=0;i<4;i++){const l=rand(.4,.7);parts.push({flame:true,x:mx+rand(-8,8),y:my+rand(-6,6),vx:rand(-15,15),vy:rand(-120,-70),grav:-50,life:l,max:l,size:rand(5,8),seed:Math.random()*9,wait:i*.12})}
   for(let i=0;i<6;i++){const l=rand(.9,1.5);parts.push({x:mx+rand(-8,8),y:my-4,vx:rand(-14,14),vy:rand(-70,-40),grav:-20,drag:.6,life:l,max:l,size:rand(4,7),color:'#4a3e38',wait:.15+i*.18})}}
-function lanceFx(x0,y0,x1,y1){fxRec('L',[x0,y0,x1,y1]);const L=Math.hypot(x1-x0,y1-y0);if(L<4)return;parts.push({beam:true,x:x0,y:y0,x1,y1,vx:0,vy:0,grav:0,life:.55,max:.55,seed:Math.random()*7});
+function lanceFx(x0,y0,x1,y1,w=1){fxRec('L',[x0,y0,x1,y1,r2(w)]);const L=Math.hypot(x1-x0,y1-y0);if(L<4)return;parts.push({beam:true,x:x0,y:y0,x1,y1,w,vx:0,vy:0,grav:0,life:.55,max:.55,seed:Math.random()*7});
   const n=Math.min(fxLow?8:22,Math.ceil(L/70));for(let i=0;i<n&&parts.length<790;i++){const t=(i+Math.random())/n,l=rand(.35,.8);parts.push({flame:true,x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,vx:rand(-15,15),vy:rand(-110,-50),grav:-40,life:l,max:l,size:rand(4,8),seed:Math.random()*9})}
   parts.push({flash:true,x:x1,y:y1,rad:60,life:.2,max:.2,color:'#ffcf5a'});for(let i=0;i<10&&parts.length<795;i++){const a=rand(0,TAU),v=rand(150,380),l=rand(.25,.5);parts.push({ember:true,x:x1,y:y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,drag:1.6,grav:650,life:l,max:l,seed:Math.random()*99,color:i%2?'#fff1b8':'#ff9a2e'})}
   if(!RM)game.shake=Math.min(28,game.shake+3)}
 function addShake(v){fxRec('k',[v]);game.shake=Math.min(28,game.shake+v*(RM?.3:1))}
 
 /* ---------- shooting & blocking ---------- */
-function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0)return;if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1)*(twistOn('frenzy')?.625:1);p.burstLeft=p.s.burst;p.burstT=0;if(p.s.lance){p.burstT=LANCE_WIND;moveFx(p,()=>sfx('lanceHum'))}}
-function spawnShot(p){const s=p.s,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1)*grudgeMult(p);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
+function fireGap(p){return p.s.fireDelay*(berserkOn(p)?.62:1)*(p.buffRapid>0?.4:1)*(twistOn('frenzy')?.625:1)}
+function tryFire(p){if(p.fireT>0||p.ammo<=0||p.burstLeft>0||p.lch>0)return;
+  if(p.s.lance){p.sinceShot=0;if(p.ctrl==='net'){lanceFire(p,p.netLk??1);return}p.lch=1e-4;p.lchFull=false;if(p.ctrl==='mouse')chargeMark();moveFx(p,()=>sfx('lanceHum'));return}   // Sun Lance: the press starts the wind-up; the beam leaves on release (lanceStep). An online guest's own screen ran its charge, so its beam leaves now, as strong as it charged
+  if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=fireGap(p);p.burstLeft=p.s.burst;p.burstT=0}
+function lanceFire(p,k){if(!(p.buffRapid>0))p.ammo--;p.sinceShot=0;p.fireT=fireGap(p);p.lch=0;p.lanceK=k;spawnShot(p)}
+// a Sun Lance winding up: held, it charges; let go (once the tap's short wind-up is done), or held too long at full, and the beam leaves
+function lanceStep(p,dt,held){if(!(p.lch>0))return;if(!p.s.lance){p.lch=0;return}p.lch+=dt;
+  if(!p.lchFull&&p.lch>=LANCE_FULL){p.lchFull=true;moveFx(p,()=>sfx('lanceFull'))}
+  if(!held&&p.lch>=LANCE_TAP||p.lch>=LANCE_FULL+LANCE_KEEP)lanceFire(p,lanceK(p.lch))}
+// the local player's charge began from a held touch or a paired phone's thumb: letting go of that is the trigger, not a new shot
+function chargeMark(){if(touch.aim)touch.aim.charged=true;if(mouse.cpHold&&cpad.link)cpad.link.charged=true}
+function spawnShot(p){const s=p.s,lk=s.lance?(p.lanceK??1):1,lp=s.lance?lancePow(lk):1,lw=s.lance?lanceW(lk):1,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1)*grudgeMult(p);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
   for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
-    spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult,big:mult>1});const nb=bullets[bullets.length-1];nb.gunShot=true;if(p.ctrl==='net'&&p.netView)nb.rew=clamp(performance.now()-p.netView,0,LAG_COMP_MS);game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
-  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120;p.vy-=Math.sin(p.aim)*90;p.shotT=.16;addShake(9)}moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
+    spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult*lp,big:mult>1,r:s.lance?5*s.bulletSize*(mult>1?1.3:1)*lw:0});const nb=bullets[bullets.length-1];nb.gunShot=true;if(s.lance){nb.bw=lw;nb.hz={segs:[],hit:new Set()};beams.push({b:nb,t:LANCE_LIVE})}if(p.ctrl==='net'&&p.netView)nb.rew=clamp(performance.now()-p.netView,0,LAG_COMP_MS);game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
+  p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120*lw;p.vy-=Math.sin(p.aim)*90*lw;p.shotT=.16;addShake(9*lw)}moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 /* Grudge: hit harder for every round your rival leads you by */
 function grudgeMult(p){const g=p.s&&p.s.grudge;if(!g||!game.wins||survOn())return 1;const me=game.wins[p.team]||0;let lead=0;game.wins.forEach((w,i)=>{if(i!==p.team)lead=Math.max(lead,(w||0)-me)});return 1+Math.min(.6,.2*g*lead)}
@@ -4289,6 +4308,22 @@ function blocked(p,b){burst(b.x,b.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');
 
 /* ---------- updates ---------- */
 const segDist=(x,y,w)=>{const dx=w.x2-w.x1,dy=w.y2-w.y1,u=clamp(((x-w.x1)*dx+(y-w.y1)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(x-w.x1-dx*u,y-w.y1-dy*u)};
+/* Sun Lance: the whole beam burns, not just its head. Each straight leg (muzzle to bounce, bounce to end) is kept with whoever
+   fired it; anyone who walks into one, or is crossed by it, while the beam still shows (in flight, then LANCE_LIVE s) takes the
+   hit once per beam. A block soaks it, and the shooter is never burnt by their own beam. The host decides; guests see the result */
+let beams=[];
+function lanceLeg(b){lanceFx(b.ox,b.oy,b.x,b.y,b.bw||1);if(b.hz)b.hz.segs.push([b.ox,b.oy,b.x,b.y,b.owner]);b.ox=b.x;b.oy=b.y}
+function beamStep(dt){if(!beams.length)return;if(game.mode==='online-guest'){beams=[];return}
+  for(const z of beams){const b=z.b,H=b.hz;if(b.dead)z.t-=dt;if(z.t<=0||!H)continue;
+    const segs=b.dead?H.segs:H.segs.concat([[b.ox,b.oy,b.x,b.y,b.owner]]);
+    for(const p of players){if(!p.alive||H.hit.has(p)||p.graceT>0)continue;
+      for(const sg of segs){const o=sg[4];if(!o||p===o||p.team===o.team)continue;
+        if(segDist(p.x,p.y,{x1:sg[0],y1:sg[1],x2:sg[2],y2:sg[3]})<p.r+b.r+HIT_PAD){H.hit.add(p);beamHit(p,b,sg);break}}}}
+  beams=beams.filter(z=>z.t>0)}
+function beamHit(p,b,sg){const dx=sg[2]-sg[0],dy=sg[3]-sg[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,t=clamp((p.x-sg[0])*ux+(p.y-sg[1])*uy,0,L);
+  const f=Object.assign({},b,{x:sg[0]+ux*t,y:sg[1]+uy*t,vx:ux*4600,vy:uy*4600,owner:sg[4],gunShot:false,dead:false,trail:[],hz:null,grow:false,bomb:false});
+  if(p.mirror||p.blockT>0){burst(f.x,f.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');return}
+  hitPlayer(p,f);flashFx(f.x,f.y,40,.08,'#ffcf5a')}
 function updateBullets(dt){
   for(const w of shields)w.t-=dt;shields=shields.filter(w=>w.t>0&&w.owner.alive);
   for(const b of bullets){if(b.dead)continue;
@@ -4312,7 +4347,7 @@ function updateBullets(dt){
         if(r.rig){if(r.prop)hitNode(r,r.nodes[0],b.owner);else rigShove(r,b)}
         if(r.swing){pushSwing(r,b.vx*.05*clamp(b.dmg/50,.3,3));r.lastHit=b.owner}
         if(r.crate&&game.mode!=='online-guest')hitCrate(r)
-        if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;if(b.lance){lanceFx(b.ox,b.oy,b.x,b.y);b.ox=b.x;b.oy=b.y}{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
+        if(b.bounces>0){const dot=b.vx*n.nx+b.vy*n.ny;if(dot<0){b.vx-=2*dot*n.nx;b.vy-=2*dot*n.ny}b.bounces--;b.bounced=true;if(b.lance)lanceLeg(b);{const bd=b.owner&&b.owner.s.bounceDmg;if(bd){b.dmg*=1+bd;if(b.base!=null)b.base*=1+bd}}burst(b.x,b.y,b.glow,3,150,3,.2,0,true);sfx('bounce')}
         else{killBullet(b,true,r,n);if(r.swing&&!b.stuck)sfx('thud')}break}
       // Ghost Rounds pay for every wall: rock drags the shot (slower the deeper it goes), and it comes out the far side weaker
       // and dipping off its line, so a shot through cover is a hopeful one, not a sure kill
@@ -4325,10 +4360,10 @@ function updateBullets(dt){
       if(b.dead)break;
       for(const w of shields)if(w.owner!==b.owner&&segDist(b.x,b.y,w)<b.r+5){burst(b.x,b.y,w.owner.glow,8,300,3,.3,0,true);sfx('tink');killBullet(b,b.explode>0);break}
       if(b.dead)break;if(b.y>H+120||b.x<-OUT_X||b.x>W+OUT_X){b.dead=true;break}
-      for(const p of players){if(!p.alive)continue;if(p===b.owner){if(selfShotCan(b)&&bodyHit(p,b.x,b.y,b.r)){selfShot(p,b);break}continue}if(b.owner&&p.team===b.owner.team)continue;
-        if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(p.mirror&&b.owner){mirrorBack(p,b);break}if(p.blockT>0)blocked(p,b);else hitPlayer(p,b);break}}}
+      for(const p of players){if(!p.alive||b.hz&&b.hz.hit.has(p))continue;if(p===b.owner){if(selfShotCan(b)&&bodyHit(p,b.x,b.y,b.r)){selfShot(p,b);break}continue}if(b.owner&&p.team===b.owner.team)continue;
+        if(b.rew>0&&p.id!==1&&hostingNet()?hitThen(p,b):bodyHit(p,b.x,b.y,b.r+HIT_PAD+(p.blockT>0?10:0))){if(b.hz){b.hz.hit.add(p);lanceLeg(b)}if(p.mirror&&b.owner){mirrorBack(p,b);break}if(p.blockT>0)blocked(p,b);else hitPlayer(p,b);break}}}
     if(!b.stuck){b.trail.push(b.x,b.y);if(b.trail.length>44)b.trail.splice(0,2)}}
-  for(const b of bullets)if(b.dead&&b.lance&&!b.fxDone){b.fxDone=true;lanceFx(b.ox,b.oy,b.x,b.y)}
+  for(const b of bullets)if(b.dead&&b.lance&&!b.fxDone){b.fxDone=true;lanceLeg(b)}
   bullets=bullets.filter(b=>!b.dead)}
 
 function land(p,r,wasG,vyIn){p.y=r.y-p.r;p.vy=0;p.grounded=true;p.ground=r;p.airJumps=p.s.airJumps;
@@ -4453,8 +4488,9 @@ function updatePlayer(p,dt){if(!p.alive)return;const s=p.s,inp=p.input;
   if(p.slowT>0)p.slowT-=dt;else p.slowAmt=0;
   moveIntent(p,dt);
   if(inp.aim!=null)p.aim=inp.aim;
-  if(inp.fire){if(p.ammo<=0&&p.burstLeft<=0&&p.ctrl!=='cpu'&&p.emptyT<=0){personal(p,'empty');p.emptyT=.25}tryFire(p)}
+  if(inp.fire||inp.hold&&p.s.lance){if(p.ammo<=0&&p.burstLeft<=0&&p.ctrl!=='cpu'&&p.emptyT<=0){personal(p,'empty');p.emptyT=.25}tryFire(p)}
   if(inp.shoot){p.curSc=p.netSc;p.si=0;inp.shoot=false;if(p.fireT>0&&p.fireT<.05)p.fireT=0;if(p.ammo<=0&&p.sinceShot>=p.s.reload-.1)p.ammo=p.s.ammo;tryFire(p)}   // the guest's own timers said ready: allow a hair of rounding
+  if(inp.cancel){inp.cancel=false;p.lch=0}lanceStep(p,dt,inp.fire||inp.hold);
   if(p.burstLeft>0){p.burstT-=dt;if(p.burstT<=0){spawnShot(p);p.burstLeft--;p.burstT=.07}}
   if(inp.blockP)doBlock(p);
   if(p.echoQ&&p.echoQ.length){for(let i=0;i<p.echoQ.length;i++)p.echoQ[i]-=dt;if(p.echoQ[0]<=0){p.echoQ.shift();ring(p.x,p.y,p.glow,50);blockFx(p)}}
@@ -4494,7 +4530,8 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
   if(p.ctrl==='mouse'){const ar=!players.some(q=>q.ctrl==='p2');   // arrow keys move you too, unless a second local player owns them
     inp.move=(keys.has('KeyD')||ar&&keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||ar&&keys.has('ArrowLeft')?1:0);inp.down=keys.has('KeyS')||ar&&keys.has('ArrowDown');inp.jumpH=keys.has('KeyW')||keys.has('Space')||ar&&keys.has('ArrowUp');
     inp.jumpP=edges.has('KeyW')||edges.has('Space')||ar&&edges.has('ArrowUp');inp.fire=mouse.down||mouse.tapN>0;inp.blockP=mouse.rEdge||edges.has('ShiftLeft')||edges.has('KeyE');
-    inp.aim=aimThrough(p,mouse.x,mouse.y)}
+    inp.hold=trigHold();if(mouse.lanceX){mouse.lanceX=false;inp.cancel=true}
+    inp.aim=cpadAim()??aimThrough(p,mouse.x,mouse.y)}
   else if(p.ctrl==='p2'){const pad=pads[0];let mv=(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0);
     inp.jumpH=keys.has('ArrowUp');inp.jumpP=edges.has('ArrowUp');inp.fire=keys.has('Period')||keys.has('Numpad0');inp.blockP=edges.has('Slash')||edges.has('Numpad1')||edges.has('ShiftRight');
     let aim=null;inp.down=keys.has('ArrowDown');
@@ -4504,7 +4541,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     inp.move=mv;const e=other(p);inp.aim=aim??(e.alive?aimSolution(p,e):p.aim)}
   else if(p.ctrl==='pad')padInput(p);
   else if(p.ctrl==='net'){const L=p.peer,r=L&&L.remote;if(!r){inp.move=0;inp.fire=false;inp.jumpH=false;inp.down=false;return}
-    inp.fire=false;if(Number.isFinite(r.a))inp.aim=r.a;   // shots come from the guest's step records (below), aligned to its physics steps
+    inp.fire=false;p.netLw=+r.lw||0;if(Number.isFinite(r.a))inp.aim=r.a;   // shots come from the guest's step records (below), aligned to its physics steps
     // movement replays the guest's own physics steps one for one, so the host moves the guest exactly as the guest's
     // screen predicted, however bunched up the packets arrive. A small buffer soaks up jitter; a backlog is skipped.
     // When the buffer runs dry the host stands in with the last input and counts it (lagSteps); those stand-in steps are
@@ -4528,7 +4565,7 @@ function humanInput(p){const inp=p.input;inp.blockP=false;inp.jumpP=false;
     // bullet leaves from the same spot as the guest's instant ghost bullet. Ammo and fire rate are still checked here.
     if(q&&real&&q[8])inp.jumpKind=q[8]|0;   // only a real recorded step forces a jump (never a stand-in repeat)
     if(q&&real&&q[9]>0)p.netView=q[9];   // the host time the visitor's screen showed this host's fighter at, this step
-    if(q&&q[6]!=null){if(Number.isFinite(q[7]))inp.aim=q[7];if(p.netSc==null)p.netSc=q[6];if(q[6]>p.netSc){inp.shoot=true;p.netSc=q[6]}}
+    if(q&&q[6]!=null){if(Number.isFinite(q[7]))inp.aim=q[7];if(p.netSc==null)p.netSc=q[6];if(q[6]>p.netSc){inp.shoot=true;p.netSc=q[6];p.netLk=Number.isFinite(q[10])?clamp(q[10],0,1):1}}
     else if(!q||q[6]==null)inp.fire=!!r.f}}
 
 /* ---------- control: CPU ---------- */
@@ -4591,6 +4628,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   ai.losT-=dt;if(ai.losT<=0){ai.losT=.1;const was=ai.los;ai.los=clearShot(p,inp.aim,e);if(ai.los&&!was)ai.hes=sk.hes*rand(.6,1.4)}
   if(ai.los){ai.hes-=dt;if(ai.hes<=0&&(!p.s.lance||Math.abs(wrapA(wantAim-ai.aim))<.05))inp.fire=true}   // a Sun Lance holder waits for a steady aim: one beam, make it count
   if(ai.rope&&!p.s.lance&&Math.abs(wrapA(wantAim-ai.aim))<.05)inp.fire=true;
+  if(p.s.lance){if(p.lch>0)inp.fire=p.lch<(ai.lchGoal||0);else if(inp.fire)ai.lchGoal=Math.hypot(e.x-p.x,e.y-p.y)<220?LANCE_TAP:rand(.3,.55)}   // a Sun Lance: a quick tap up close, a charged beam from range
   // intent: engage when there is a shot, hunt when there has not been one for a while, recover when falling into nothing
   ai.noLos=ai.los?0:ai.noLos+dt;ai.gapT-=dt;ai.flipT-=dt;
   const falling=!p.grounded&&!groundBelow(p);
@@ -4660,7 +4698,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
       else if(p.grounded&&Math.random()<sk.dodge)jump=true}}
   for(const o of players){if(o===p||!o.alive||o.team===p.team)continue;const k=lanceWind(o);if(k<0){if(o.lanceSeen)o.lanceSeen&=~bit;continue}if(o.lanceSeen&bit)continue;
     const tp=gunTip(o),ax=Math.cos(o.aim),ay=Math.sin(o.aim),rx=p.x-tp.x,ry=p.y-tp.y,along=rx*ax+ry*ay;if(along<0||along>lanceReach(tp.x,tp.y,o.aim)||Math.abs(rx*ay-ry*ax)>p.r+18)continue;o.lanceSeen=(o.lanceSeen||0)|bit;
-    const left=(1-k)*LANCE_WIND,rt=sk.react*rand(.8,1.4);if(rt>left)continue;if(p.blockCd<=0&&Math.random()<sk.block){if(ai.blockAt<0)ai.blockAt=Math.max(rt,left-.05)}else if(Math.random()<sk.dodge){if(p.grounded||p.airJumps>0)jump=true}}   // Sun Lance: read the wind-up, if there's time to react
+    const left=lanceLeft(o),rt=sk.react*rand(.8,1.4);if(rt>left)continue;if(p.blockCd<=0&&Math.random()<sk.block){if(ai.blockAt<0)ai.blockAt=Math.max(rt,left-.05)}else if(Math.random()<sk.dodge){if(p.grounded||p.airJumps>0)jump=true}}   // Sun Lance: read the wind-up, if there's time to react
   if(ai.blockAt>=0){ai.blockAt-=dt;if(ai.blockAt<0)inp.blockP=true}
   if((p.s.blockWave||p.s.blockBombs||p.s.blockFreeze)&&p.blockCd<=0&&dist<220&&Math.random()<dt*2)inp.blockP=true;
   if(p.vy>300&&p.y>H-p.r-60&&(p.blockCd<=0||p.blockStock>0)&&p.blockT<=0&&Math.random()<.6)inp.blockP=true;
@@ -4673,11 +4711,11 @@ const FIXED=1/120;
 function step(h){
   for(const p of players){if(p.ctrl==='cpu')cpuInput(p,h);else humanInput(p);if(p.boss)bossTick(p,h)}
   if(game.mode==='sandbox'&&sandbox.cpu==='dodge')players[1].input.fire=false;
-  if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
+  if(game.state==='ready'){for(const p of players){const i=p.input;i.move=0;i.fire=false;i.hold=false;i.shoot=false;i.blockP=false;i.jumpP=false}}
   updateSwings(h);updateRides(h);updateRigs(h);for(const p of players){updatePlayer(p,h);if(p.boss)bossPost(p)}separate();
   dropTick(h);strikeTick(h);if(game.mode==='survival'){downTick(h);waveTick(h)}
   if(hostingNet()){const e=[performance.now()];for(const q of players)e.push(q.x,q.y);(net.h0=net.h0||[]).push(e);if(net.h0.length>60)net.h0.shift()}   // every fighter's recent path, for lag compensation
-  updateBullets(h);
+  updateBullets(h);beamStep(h);
   for(const p of players){p.input.jumpP=false;p.input.blockP=false}
   edges.clear();mouse.rEdge=false;tapStep(players.find(p=>p.ctrl==='mouse'),h,!!players.find(p=>p.ctrl==='mouse'&&p.sinceShot===0))   // a press is consumed by the first step that sees it
   if(game.screen)for(const p of players)if(p.ctrl==='pad')padTapStep(p,h)
@@ -4732,24 +4770,29 @@ function gunTip(p,ang=p.aim){const G=GUNS[gunKind(p.s)],w=G.w*(1+Math.min(.3,Mat
 function aimThrough(p,tx,ty,ox=0,oy=0){const dx=tx-(p.x+ox),dy=ty-(p.y+oy),D=Math.hypot(dx,dy),a=Math.atan2(dy,dx);if(!p.s)return a;const off=gunTip(p,a).off;return D>Math.abs(off)*1.6?a-Math.asin(off/D):a}
 /* the Sun Lance beam, drawn like its card art: a white-hot core inside a gold ray, wrapped in a ragged orange flame whose
    edges lick back along it, with a spiked flare at the muzzle. k scales it (1 at full blaze, fading to 0 as it dies) */
-function fireBeam(x0,y0,x1,y1,k,now,seed){const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy);if(L<2||k<=0)return;const ux=dx/L,uy=dy/L,nx=-uy,ny=ux,tt=RM?0:now/1000,n=Math.min(90,Math.max(6,Math.ceil(L/16)));
+function fireBeam(x0,y0,x1,y1,k,now,seed,bw=1){const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy);if(L<2||k<=0)return;const ux=dx/L,uy=dy/L,nx=-uy,ny=ux,tt=RM?0:now/1000,n=Math.min(90,Math.max(6,Math.ceil(L/16)));
   const edge=(d,side,amp)=>{const lick=Math.max(0,Math.sin(d*.05-tt*26+seed+side*1.7));return 1+amp*(.28*Math.sin(d*.083-tt*19+seed*3+side*2)+.18*Math.sin(d*.21+tt*31+side)+1.1*lick**5)};
   const taper=d=>Math.min(1,.35+d/60)*Math.min(1,.5+(L-d)/40);
   ctx.save();ctx.globalCompositeOperation='lighter';
   for(const[hw,col,al,amp]of[[46,'255,84,24',.5,1],[27,'255,170,40',.78,.6]]){ctx.fillStyle=`rgba(${col},${al*Math.min(1,k*1.4)})`;ctx.beginPath();
-    for(let i=0;i<=n;i++){const d=L*i/n,w=hw*k*taper(d)*edge(d,1,amp);const px=x0+ux*d+nx*w,py=y0+uy*d+ny*w;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}
-    for(let i=n;i>=0;i--){const d=L*i/n,w=hw*k*taper(d)*edge(d,-1,amp);ctx.lineTo(x0+ux*d-nx*w,y0+uy*d-ny*w)}ctx.closePath();ctx.fill()}
-  ctx.globalCompositeOperation='source-over';ctx.lineCap='round';ctx.strokeStyle=`rgba(255,226,120,${Math.min(1,k*1.5)})`;ctx.lineWidth=24*k;ctx.beginPath();ctx.moveTo(x0+ux*6,y0+uy*6);ctx.lineTo(x1,y1);ctx.stroke();
-  ctx.strokeStyle=`rgba(255,253,240,${Math.min(1,k*1.6)})`;ctx.lineWidth=12*k;ctx.stroke();
-  const R=36*k*(RM?1:1+.15*Math.sin(tt*40+seed));ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,200,70,${.85*k})`;ctx.beginPath();   // the muzzle flare: a gold spiked star
+    for(let i=0;i<=n;i++){const d=L*i/n,w=hw*k*bw*taper(d)*edge(d,1,amp);const px=x0+ux*d+nx*w,py=y0+uy*d+ny*w;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}
+    for(let i=n;i>=0;i--){const d=L*i/n,w=hw*k*bw*taper(d)*edge(d,-1,amp);ctx.lineTo(x0+ux*d-nx*w,y0+uy*d-ny*w)}ctx.closePath();ctx.fill()}
+  ctx.globalCompositeOperation='source-over';ctx.lineCap='round';ctx.strokeStyle=`rgba(255,226,120,${Math.min(1,k*1.5)})`;ctx.lineWidth=24*k*bw;ctx.beginPath();ctx.moveTo(x0+ux*6,y0+uy*6);ctx.lineTo(x1,y1);ctx.stroke();
+  ctx.strokeStyle=`rgba(255,253,240,${Math.min(1,k*1.6)})`;ctx.lineWidth=12*k*bw;ctx.stroke();
+  const R=36*k*bw*(RM?1:1+.15*Math.sin(tt*40+seed));ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,200,70,${.85*k})`;ctx.beginPath();   // the muzzle flare: a gold spiked star
   for(let i=0;i<16;i++){const a=Math.atan2(uy,ux)+i*Math.PI/8+tt*2,r=i%2?R*.38:R*(i%4?1:1.45);i?ctx.lineTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r):ctx.moveTo(x0+Math.cos(a)*r,y0+Math.sin(a)*r)}ctx.closePath();ctx.fill();
   ctx.globalAlpha=Math.min(1,k);ctx.drawImage(glowSprite('#ffb347'),x0-R*1.6,y0-R*1.6,R*3.2,R*3.2);ctx.restore()}
 /* the beam in flight: the whole ray from where it left the muzzle (or its last bounce) to a blazing head */
-function drawBeam(b,now){const L=Math.hypot(b.x-(b.ox??b.x),b.y-(b.oy??b.y));fireBeam(b.ox??b.x,b.oy??b.y,b.x,b.y,1,now,(b.id||0)%7);
-  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.95;ctx.drawImage(glowSprite('#ffc04a'),b.x-56,b.y-56,112,112);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(b.x,b.y,11,0,TAU);ctx.fill();ctx.restore()}
+function drawBeam(b,now){const w=b.bw||1;fireBeam(b.ox??b.x,b.oy??b.y,b.x,b.y,1,now,(b.id||0)%7,w);
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.95;ctx.drawImage(glowSprite('#ffc04a'),b.x-56*w,b.y-56*w,112*w,112*w);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(b.x,b.y,11*w,0,TAU);ctx.fill();ctx.restore()}
 /* how far along a fighter's Sun Lance wind-up is (0 to 1), or -1 when it isn't winding: the host knows its timer, a guest
    its own predicted one, and everyone else's comes in the snapshot */
-function lanceWind(p){if(!p.s||!p.s.lance||!p.alive)return -1;let t;if(game.mode==='online-guest')t=p===players[net.me]&&p.phys?(p.gBurst>0?p.gBurstT:-1):(p.windT>0?p.windT:-1);else t=p.burstLeft>0?p.burstT:-1;return t>0?clamp(1-t/LANCE_WIND,0,1):-1}
+function lanceWind(p){if(!p.s||!p.s.lance||!p.alive)return -1;
+  if(game.mode==='online-guest'){if(p===players[net.me]&&p.phys)return p.gLch>0?lanceVis(p.gLch):-1;return p.windT>0?p.windT:-1}
+  if(p.ctrl==='net')return p.netLw>0?p.netLw:-1;return p.lch>0?lanceVis(p.lch):-1}
+const lanceSnap=p=>{const k=lanceWind(p);return k>=0?Math.max(.01,r2(k)):0};
+// how long until a winding Sun Lance lets go, as a rival would guess it: a CPU knows its own plan, anyone else is guessed at about half a charge
+function lanceLeft(o){const t=o.lch>0?o.lch:0,goal=o.ctrl==='cpu'&&o.ai&&o.ai.lchGoal?o.ai.lchGoal:.45;return Math.max(.06,goal-t)}
 // where the beam would stop: wood doesn't count, stone and walls do
 function lanceReach(x,y,a){const c=Math.cos(a),sn=Math.sin(a);for(let d=0;d<2200;d+=10){const px=x+c*d,py=y+sn*d;if(px<-40||px>W+40||py<-200||py>H+40)return d;if(solids.some(r=>!r.bound&&!r.oneway&&px>r.x&&px<r.x+r.w&&py>r.y&&py<r.y+r.h))return d}return 2200}
 function drawLanceWind(p){const k=lanceWind(p);if(k<0)return;const tp=gunTip(p),D=lanceReach(tp.x,tp.y,p.aim),now=performance.now(),fl=RM?1:.75+.25*Math.sin(now/18);
@@ -4760,6 +4803,7 @@ function drawLanceWind(p){const k=lanceWind(p);if(k<0)return;const tp=gunTip(p),
   ctx.globalAlpha=1;ctx.fillStyle=`rgba(255,170,50,${.35+.5*k})`;ctx.beginPath();const S=(5+15*k)*fl,sp=now/(160-90*k);
   for(let i=0;i<12;i++){const a=sp+i*Math.PI/6,r=i%2?S*.45:S;i?ctx.lineTo(tp.x+Math.cos(a)*r,tp.y+Math.sin(a)*r):ctx.moveTo(tp.x+Math.cos(a)*r,tp.y+Math.sin(a)*r)}ctx.closePath();ctx.fill();
   ctx.fillStyle='#fffbe8';ctx.beginPath();ctx.arc(tp.x,tp.y,2+5*k,0,TAU);ctx.fill();
+  if(k>=1){ctx.globalAlpha=.55+.45*Math.sin(now/55);ctx.strokeStyle='#fffbe8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(tp.x,tp.y,S*1.6,0,TAU);ctx.stroke();ctx.globalAlpha=1}   // fully charged: a white ring pulses round the muzzle
   if(!RM&&parts.length<760)for(let i=0;i<2;i++){const a=rand(0,TAU),d=rand(34,60)*(1.1-k*.5),l=rand(.1,.16);parts.push({ember:true,x:tp.x+Math.cos(a)*d,y:tp.y+Math.sin(a)*d,vx:-Math.cos(a)*d/l,vy:-Math.sin(a)*d/l,grav:0,life:l,max:l,seed:Math.random()*99,color:Math.random()<.5?'#ffe08a':'#ff9a2e'})}
   ctx.restore()}
 const gunImgs={};
@@ -5128,7 +5172,7 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
       ctx.fillStyle='#f4ffd8';ctx.beginPath();ctx.arc(x-z*.35,q.y-z*.35,z*.28,0,TAU);ctx.fill();continue}
     if(q.cinder){const f=RM?1:.75+.25*Math.sin(performance.now()/90+q.seed),e=a*a;ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';   // the burnt hole's embers, cooling from yellow to a dull red
       for(const[lw,col,al]of[[16,'255,90,20',.45],[7,'255,170,60',.8],[2.5,'255,240,190',1]]){ctx.strokeStyle=`rgba(${col},${al*e*f})`;ctx.lineWidth=lw*(.5+.5*a);ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x1,q.y1);ctx.stroke()}ctx.restore();continue}
-    if(q.beam){const e=a*a*(3-2*a);fireBeam(q.x,q.y,q.x1,q.y1,e,performance.now(),q.seed||0);ctx.globalAlpha=1;continue}   // the spent beam blazes on a moment, thinning out
+    if(q.beam){const e=a*a*(3-2*a);fireBeam(q.x,q.y,q.x1,q.y1,e,performance.now(),q.seed||0,q.w||1);ctx.globalAlpha=1;continue}   // the spent beam blazes on a moment, thinning out
     if(q.ember){const f=.55+.45*Math.sin(q.seed+q.life*38);ctx.globalAlpha=a*f;ctx.strokeStyle=q.color;ctx.lineWidth=1.5+2*a;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.035,q.y-q.vy*.035);ctx.stroke();continue}   // embers flicker as they streak
     if(q.ghost){ctx.globalAlpha=a*.45;ctx.fillStyle=q.color;ctx.beginPath();ctx.arc(q.x,q.y,q.r*(.7+.3*a),0,TAU);ctx.fill();continue}
     if(q.streak){const dx=q.x1-q.x,dy=q.y1-q.y,L=Math.hypot(dx,dy)||1,gr=ctx.createLinearGradient(q.x,q.y,q.x1,q.y1);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,q.color);
@@ -5195,7 +5239,7 @@ function scrExtra(){return{ex:thumbRoom&&!game.bg?0:Math.max(0,view.ox/view.s),e
 function camSnap(){const g=camGoal();cam.x=g.x;cam.y=g.y;cam.z=g.z;cam.t=performance.now()}
 function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1);cam.t=now;const g=camGoal(),k=1-Math.exp(-dt*(RM?12:6));
   cam.z+=(g.z-cam.z)*k;cam.x+=(g.x-cam.x)*k;cam.y+=(g.y-cam.y)*k;
-  if(!touch.on&&mouse.sx!=null){mouse.x=mouse.sx/cam.z+cam.x;mouse.y=mouse.sy/cam.z+cam.y}}
+  if(!touch.on&&mouse.sx!=null&&cpadAim()==null){mouse.x=mouse.sx/cam.z+cam.x;mouse.y=mouse.sy/cam.z+cam.y}}   // (a paired phone that has the aim places the pointer itself)
 // someone off the edge of a followed view: an arrow on that edge, in their colour, so no enemy is ever out of mind
 function drawOffscreen(){if(W<=VW&&H<=VH&&cam.z<=1.001||game.bg)return;const{ex,ey}=scrExtra();
   for(const p of players){if(!p.alive||!Number.isFinite(p.x))continue;const px=(p.x-cam.x)*cam.z,py=(p.y-cam.y)*cam.z,m=p.r*cam.z;
@@ -5269,8 +5313,11 @@ function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=au
 function tapStep(me,h,fired){if(!(mouse.tapN>0))return;
   if(fired){mouse.tapN--;mouse.tapT=TAP_BUF;return}
   if(!me||!me.alive||me.ammo<=0&&!(me.burstLeft>0)&&touch.tapAuto||(mouse.tapT-=h)<=0)mouse.tapN=0}
+// the trigger held without a click: a thumb on the touch aim stick (not back in its cancel zone), or on a paired phone's aim side
+const trigHold=()=>!!(touch.on&&touch.aim&&!((touch.aim.maxD||0)>=AIM_DEAD&&Math.hypot(touch.aim.dx,touch.aim.dy)<AIM_DEAD))||!!mouse.cpHold;
 function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
-  if(quick){autoAim();touchShoot(true)}   // tap: auto-aim at the rival (lob, drop and lead included)
+  if(a.charged){if((a.maxD||0)>=AIM_DEAD&&d<AIM_DEAD)mouse.lanceX=true;else if((a.maxD||0)<TAP_MOVE){touch.lanceAuto=true;autoAim()}return}   // a Sun Lance charged by this touch: letting go fired it (back in the middle calls it off); a tap or an undragged hold fires at the rival
+  if(quick){autoAim();touchShoot(true);touch.lanceAuto=true}   // tap: auto-aim at the rival (lob, drop and lead included)
   else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
 function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
   if(!me||!Number.isFinite(me.x))return;const a=tapTarget(me,e);if(a!=null){touch.aimA=a;touchAim()}}
@@ -5289,7 +5336,11 @@ function touchMe(){return game.mode==='online-guest'?players[net.me]:players.fin
 // keep the virtual mouse out along the aim, wherever the fighter goes
 function touchAim(){if(!touch.on||touch.aimA==null)return;const me=touchMe();if(!me||!Number.isFinite(me.x))return;
   mouse.x=me.x+(game.mode==='online-guest'?net.offX:0)+Math.cos(touch.aimA)*260;mouse.y=me.y+(game.mode==='online-guest'?net.offY:0)+Math.sin(touch.aimA)*260}
+// a stick whose finger is gone (its touchend never came: a system gesture, a notification, the app switcher) is let go, or it would
+// hold its side forever and every new touch there would be ignored
+const liveIds=e=>new Set([...(e.touches||[])].map(t=>t.identifier));
 cv.addEventListener('touchstart',e=>{if(!touchLive())return;e.preventDefault();initAudio();autoFull();
+  {const ids=liveIds(e);if(touch.move&&!ids.has(touch.move.id)){touch.move=null;stickHome($('#tsMove'))}if(touch.aim&&!ids.has(touch.aim.id)){touch.aim=null;stickHome($('#tsAim'))}}
   for(const t of e.changedTouches){const left=t.clientX<innerWidth*.45;
     if(left&&!touch.move){touch.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#tsMove'),t.clientX,t.clientY)}
     else if(!left&&!touch.aim){touch.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0,t0:performance.now(),maxD:0};stickAt($('#tsAim'),t.clientX,t.clientY)}}
@@ -5310,6 +5361,8 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
     if(me&&b&&b.style){const cd=me.blockCd>0&&me.s?clamp(me.blockCd/me.s.blockCd,0,1):0;if(b._cd!==cd){b._cd=cd;b.style.setProperty('--cd',cd.toFixed(3))}if(b._pc!==me.glow){b._pc=me.glow;b.style.setProperty('--pc',me.glow)}}}
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
+  if(live&&touch.aim&&touch.aim.charged&&(touch.aim.maxD||0)<TAP_MOVE)autoAim();   // a Sun Lance held without dragging charges at the rival
+  if(touch.lanceAuto){const me=touchMe();if(live&&!touch.aim&&me&&(lanceWind(me)>=0||mouse.tapN>0))autoAim();else touch.lanceAuto=false}   // a tapped Sun Lance keeps tracking the rival through its wind-up, until the beam leaves
   touchAim()}
 function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(ctl.on){padFrame(now);requestAnimationFrame(frame);return}   /* a Big Screen controller draws no game */touchFrame();chatSync();cpadTick(dt);ctlTipTick(dt);if(updReady)maybeUpdate();else if(now-updAt>(updAt?6e5:8e3)){updAt=now;checkUpdate()}   /* look for a new version shortly after load, then every 10 minutes */try{perfWatch(dt);update(dt);checkLayers(dt);render()}catch(e){frameErr(e)}requestAnimationFrame(frame)}
 const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);if(frameErrs.has(k))return;frameErrs.add(k);console.error('[CUUED] frame error',e)}
@@ -5317,7 +5370,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-draft5';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-12-lance2';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5355,6 +5408,7 @@ function netSend(m){if(net.role==='host'){for(const pr of net.peers)if(pr.open)l
 function linkSend(L,m){const f=L.fast;
   if(FAST_T[m.t]&&f&&f.readyState==='open'){if(f.bufferedAmount>65536)return;   // backed up: drop this one (the next is newer anyway) rather than queue lag
     try{f.send(JSON.stringify(m));return}catch(e){}}
+  if(FAST_T[m.t]){const dc=L.conn&&L.conn.dataChannel;if(dc&&dc.bufferedAmount>32768)return}   // no fast lane: a backed-up reliable lane drops a fresh-state packet too, rather than queue seconds of stale controls behind it
   try{L.conn.send(m)}catch(e){}}
 // both sides open the same pre-agreed channel (negotiated, id 42) on the link PeerJS already made: no extra signalling
 function openFast(conn,L=net){const pc=conn&&conn.peerConnection;if(!pc||typeof pc.createDataChannel!=='function')return;
@@ -5623,8 +5677,8 @@ function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.m
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
   sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
-    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(','),p.burnT>0?r2(p.burnT):0,r2(p.burnA||0),p.jamT>0?r2(p.jamT):0,p.charges|0,p.ail|0,p.s.lance&&p.burstLeft>0?r2(p.burstT):0]),
-  b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0)|(b.lance?512:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0)]),
+    r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(','),p.burnT>0?r2(p.burnT):0,r2(p.burnA||0),p.jamT>0?r2(p.jamT):0,p.charges|0,p.ail|0,lanceSnap(p)]),
+  b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0)|(b.lance?512:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0),b.lance?r2(b.bw||1):1]),
   sw:swings.map(w=>[r4(w.ang),r3(w.av)]),...(rides.length?{rd:rides.map(c=>c.crate?[r1(c.x),r1(c.y),c.broken?c.broken+1:c.gone>0?1:0,c.hits|0,r1(c.ox||0),r1(c.oy||0)]:[r1(c.x),r1(c.y),c.st])}:{}),...(rigs.length?{rg:rigSnap(),lf:lifts.map(L=>[r1(L.s),r1(L.v)])}:{}),fx:[],...(game.coop?coopSnap():{})}}
 function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap.ht){net.staleN=(net.staleN||0)+1;for(const[n,a]of s.fx||[])if(FXR[n])try{FXR[n](...a)}catch(e){}return}
   net.snap=s;net.snapAt=performance.now();
@@ -5655,7 +5709,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   const seen=new Set();
   for(const a of s.b){seen.add(a[0]);let b=net.bmap.get(a[0]);const o=players[a[6]]||players[0];
     let fresh=false;if(!b){b={id:a[0],trail:[],x:a[1],y:a[2],seen:performance.now()};net.bmap.set(a[0],b);fresh=true}
-    Object.assign(b,{own:a[6],gun:!!(a[7]&256),ag:a[11]||0,sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),lance:!!(a[7]&512),heat:a[9]||1});if(fresh){b.ox=a[1];b.oy=a[2]}b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===net.me&&(a[7]&256))adoptGhost(b,a[10]??-1)}
+    Object.assign(b,{own:a[6],gun:!!(a[7]&256),ag:a[11]||0,sx:a[1],sy:a[2],vx:a[3],vy:a[4],r:a[5],g:a[8]||0,color:o.color,glow:o.glow,phase:!!(a[7]&1),poison:!!(a[7]&2),phasing:!!(a[7]&4),stuck:!!(a[7]&8),slow:(a[7]&16)?1:0,explode:(a[7]&32)?1:0,homing:(a[7]&64)?1:0,grow:!!(a[7]&128),lance:!!(a[7]&512),bw:a[12]||1,heat:a[9]||1});if(fresh){b.ox=a[1];b.oy=a[2]}b.cosT=o.cos&&o.cos.trail;if(fresh&&a[6]===net.me&&(a[7]&256))adoptGhost(b,a[10]??-1)}
   for(const id of[...net.bmap.keys()])if(!seen.has(id))net.bmap.delete(id);
   bullets=net.ghosts.length?[...net.bmap.values(),...net.ghosts]:[...net.bmap.values()];   // keep this screen's own instant shots in the list
   // hanging blocks and moving platforms: the guest runs their motion itself every step (guestSwings) and steers toward
@@ -5733,15 +5787,21 @@ function guestStep(h,busy){guestSwings(h);guestRides(h);guestRigs(h);const me=pl
   // the step that carries a block press records the aim the block used: a teleport can carry the fighter past the cursor,
   // and an aim taken after it would point back the other way, so the host would teleport the other way
   if(net.blockAim!=null){me&&(me.aim=net.blockAim);net.blockAim=null}
-  else if(me&&me.alive&&Number.isFinite(me.x))me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
+  else if(me&&me.alive&&Number.isFinite(me.x))me.aim=cpadAim()??aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);   // aim first, so a shot this step goes where the player aims now (a phone tap re-aims just before it)
   const mv=on?(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0):0,jh=on&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp')),dn=on&&(keys.has('KeyS')||keys.has('ArrowDown'));
   // firing is decided per physics step, with the same timers the host runs for this fighter, and the shot counter goes in
   // this step's record: the host fires on exactly this step
   if(me&&me.phys&&me.alive&&game.state==='play'){const s=me.s;me.gFireT=(me.gFireT||0)-h;me.gSince=(me.gSince??99)+h;if(me.gAmmo==null)me.gAmmo=s.ammo;
     if(me.gAmmo<s.ammo&&me.gSince>=s.reload)me.gAmmo=s.ammo;
-    if(on&&(mouse.down||mouse.tapN>0)&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)){fired=true;if(!(me.buffRapid>0))me.gAmmo--;me.gSince=0;me.gFireT=s.fireDelay*(berserkOn(me)?.62:1)*(me.buffRapid>0?.4:1);me.gBurst=s.burst;me.gBurstT=0;if(s.lance){me.gBurstT=LANCE_WIND;sfx('lanceHum',false,true)}net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
-  else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0}
-  const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0),0,net.clk!=null?Math.round(performance.now()-(net.clkS??net.clk)-(net.interpMs||INTERP_MS)):0]);if(net.steps.length>40)net.steps.shift();
+    const gap=()=>s.fireDelay*(berserkOn(me)?.62:1)*(me.buffRapid>0?.4:1);
+    if(on&&(mouse.down||mouse.tapN>0||s.lance&&trigHold())&&me.gFireT<=0&&me.gAmmo>0&&!(me.gBurst>0)&&!(me.gLch>0)){fired=true;me.gSince=0;
+      if(s.lance){me.gLch=1e-4;me.gFull=false;chargeMark();sfx('lanceHum',false,true)}   // Sun Lance: the press starts the charge; the beam (and the shot the host sees) leaves on release
+      else{if(!(me.buffRapid>0))me.gAmmo--;me.gFireT=gap();me.gBurst=s.burst;me.gBurstT=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}
+    if(me.gLch>0){if(!s.lance||mouse.lanceX)me.gLch=0;else{const held=on&&(mouse.down||trigHold());me.gLch+=h;if(!me.gFull&&me.gLch>=LANCE_FULL){me.gFull=true;sfx('lanceFull',false,true)}
+      if(!held&&me.gLch>=LANCE_TAP||me.gLch>=LANCE_FULL+LANCE_KEEP){fired=true;if(!(me.buffRapid>0))me.gAmmo--;me.gSince=0;me.gFireT=gap();me.gBurst=1;me.gBurstT=0;me.gLk=lanceK(me.gLch);me.gLch=0;net.out.sc++;me.gSc=net.out.sc;me.gSi=0}}}
+    mouse.lanceX=false}
+  else if(me){me.gAmmo=null;me.gBurst=0;me.gFireT=0;me.gLch=0}
+  const seq=++net.inSeq;net.steps.push([seq,mv,jh?1:0,dn?1:0,net.out.jc,net.out.bc,net.out.sc,r2(me&&Number.isFinite(me.aim)?me.aim:0),0,net.clk!=null?Math.round(performance.now()-(net.clkS??net.clk)-(net.interpMs||INTERP_MS)):0,me&&me.s&&me.s.lance?r2(me.gLk??1):1]);if(net.steps.length>40)net.steps.shift();
   if(me&&me.phys&&me.alive&&(live||game.state==='ready')){const inp=me.input;
     inp.move=mv;inp.jumpH=jh;inp.jumpP=on&&net.pendJump;inp.down=dn;
     me.localBlockT=(me.localBlockT||0)-h;me.gCd=Math.max(0,(me.gCd||0)-h);
@@ -5820,8 +5880,9 @@ function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
     b.trail.push(b.x,b.y);if(b.trail.length>24)b.trail.splice(0,2)}
   for(let i=G.length-1;i>=0;i--)if(G[i].dead)G.splice(i,1)}
 function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
+  const lw=s.lance?lanceW(p.gLk??1):1;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
-    net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br,bounces:s.bounces,trail:[],
+    net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br*lw,bw:lw,bounces:s.bounces,trail:[],
       color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,lance:s.lance>0,ox:m.x,oy:m.y,heat:1})}
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120;p.vy-=Math.sin(p.aim)*90;p.shotT=.16;game.shake=Math.min(28,game.shake+9)}burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
 // a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
@@ -5842,7 +5903,7 @@ function guestSend(){const me=players[net.me];if(!me||!net.connected)return;
   if(me.alive&&Number.isFinite(me.x))me.aim=aimThrough(me,mouse.x,mouse.y,net.offX,net.offY);
   if(net.relayed&&(net.sendParity^=1))return;   // relayed: 30 input packets a second instead of 60 (press counters keep every press)
   netSend({t:'i',s:net.inSeq,st:net.steps.slice(-24),m:busy?0:(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),jh:!busy&&(keys.has('KeyW')||keys.has('Space')||keys.has('ArrowUp'))?1:0,jc:net.out.jc,
-    f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0)})}
+    f:!busy&&mouse.down?1:0,bc:net.out.bc,d:!busy&&keys.has('KeyS')?1:0,a:r2(me.aim||0),lw:lanceWind(me)>=0?Math.max(.01,r2(lanceWind(me))):0})}
 
 /* ---------- Big Screen: this computer is the screen and has no fighter of its own. Up to four phones join with the code
    (or by scanning the QR code) and become controllers: a phone never draws the game, it sends its sticks and buttons and
@@ -6037,7 +6098,7 @@ function cpadStart(){if(cpad.peer)return;if(!peerReady()){cpad.err=inPreview()?'
       conn.on('open',()=>{if(cpad.link!==L)return;L.open=true;openFast(conn,L);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),party:1,screen:1,cp:1,id:wallet.pid})});
       conn.on('data',m=>{if(cpad.link===L&&m&&typeof m==='object'){L.lastRecv=performance.now();cpadNet(m,L)}});
       conn.on('close',()=>{if(cpad.link===L)cpadGone()});conn.on('error',()=>{if(cpad.link===L)cpadGone()})})});cpadUI()}
-function cpadGone(msg){const L=cpad.link;cpad.link=null;if(L){try{L.fast&&L.fast.close()}catch(e){}setTimeout(()=>{try{L.conn.close()}catch(e){}},150)}cpad.err='';cpadUI();if(msg)showMenuMsg(msg)}
+function cpadGone(msg){const L=cpad.link;cpad.link=null;cpad.aimA=null;mouse.cpHold=false;if(L){try{L.fast&&L.fast.close()}catch(e){}setTimeout(()=>{try{L.conn.close()}catch(e){}},150)}cpad.err='';cpadUI();if(msg)showMenuMsg(msg)}
 function cpadOff(){cpadSend({t:'bye'});cpadGone();const pe=cpad.peer;cpad.peer=null;cpad.open=false;cpad.code='';cpad.qr='';setTimeout(()=>{try{pe&&pe.destroy()}catch(e){}},300);cpadSheet(false)}
 function cpadNet(m,L){
   if(m.t==='hello'){L.name=cleanName(m.name)||'your phone';if(m.v!==BUILD){L.conn.send({t:'oldver'});cpadGone();cpad.err='Your phone has a different version of CUUED. Refresh the page on both, then scan again.';cpadUI();return}
@@ -6050,7 +6111,7 @@ function cpadNet(m,L){
 const cpadPicking=()=>game.state==='pick'&&!pickLock&&(pickMode==='local'||pickMode==='remote')&&Array.isArray(hand)&&hand.length>0&&(!pickFor||pickFor.ctrl==='mouse'||pickMode==='remote');   // your own hand on this computer
 const cpadLive=()=>{const p=cpadLocal();return!!p&&!game.bg&&game.mode!=='demo'&&$('#menu').hidden&&!ctl.on}
 function cpadSides(){if(game.bsSurv||game.ffa||players.length>2)return bsSides();return[0,1].map(t=>{const p=players.find(q=>q.team===t);return{n:p?p.name:'?',c:p?p.color:'#888'}})}
-function cpadTick(dt){const L=cpad.link;if(!L||!L.open||!L.name)return;const now=performance.now();
+function cpadTick(dt){const L=cpad.link;cpad.aimA=null;if(!L||!L.open||!L.name)return;const now=performance.now();
   if(now-L.lastRecv>15000){cpadGone('Lost the link to your phone. Open Phone controller to pair it again.');return}
   const p=cpadLocal(),live=cpadLive();
   if(!live){cpadFeed(dt);if(L.view!=='lobby'){L.view='lobby';L.handKey='';cpadSend({t:'plobby',seat:0,col:(p&&p.color)||PCOL()[0][0],team:-1,teams:0,n:1,sv:0,so:0,hp:0,cp:1,ln:''})}
@@ -6062,16 +6123,24 @@ function cpadTick(dt){const L=cpad.link;if(!L||!L.open||!L.name)return;const now
   cpadFeed(dt);if((L.psT-=dt)<=0){L.psT=1/15;bsStatus(L,p)}}
 // the phone plays the keyboard and mouse, the way this game's own touch controls do: so it works the same in every mode, as
 // host, as an online guest (whose screen predicts its fighter from the keys) or offline. Presses are running counters, none lost
-function cpadFeed(dt){const L=cpad.link,r=L&&L.padIn,on=cpadDrives()&&cpadLive();
-  if(!on){if(L&&L.held){L.held=false;for(const k of['KeyA','KeyD','KeyS','KeyW'])keys.delete(k)}if(r&&L)L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0};return}
-  const sn=L.seen||(L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0}),nw=k=>{const v=r[k]|0,n=Math.max(0,v-sn[k]);sn[k]=Math.max(sn[k],v);return n};
+function cpadFeed(dt){const L=cpad.link,r=L&&L.padIn,on=cpadDrives()&&cpadLive();cpad.aimA=null;
+  if(!on){if(L&&L.held){L.held=false;for(const k of['KeyA','KeyD','KeyS','KeyW'])keys.delete(k)}mouse.cpHold=false;if(r&&L){L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0,xc:r.xc|0};L.charged=false;if(cpadAims())cpadAimAt(L,r,dt)}return}
+  const sn=L.seen||(L.seen={jc:r.jc|0,bc:r.bc|0,sc:r.sc|0,ac:r.ac|0,xc:r.xc|0}),nw=k=>{const v=r[k]|0,n=Math.max(0,v-(sn[k]|0));sn[k]=Math.max(sn[k]|0,v);return n};
   L.held=true;const mv=clamp(r.m|0,-1,1);tKey('KeyD',mv>0);tKey('KeyA',mv<0);tKey('KeyS',!!r.d);tKey('KeyW',!!r.jh);
   if(nw('jc'))edges.add('KeyW');if(nw('bc'))mouse.rEdge=true;
-  const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me)),shots=nw('sc'),autos=nw('ac');
+  mouse.cpHold=!!r.fh;if(nw('xc')&&L.charged)mouse.lanceX=true;
+  let shots=nw('sc'),autos=nw('ac');if(L.charged&&!r.fh){if(shots){L.shotA=r.a;L.holdT=.8}shots=autos=0;L.charged=false}   // a Sun Lance charged by the thumb: letting go fired it
   if(shots){L.shotA=r.a;L.holdT=.8;touchShoot(false)}else if(autos)touchShoot(true);
-  L.holdT=Math.max(0,(L.holdT||0)-dt);
-  let a=r.ag?r.a:L.holdT>0?L.shotA:null;if(a==null&&me&&e&&e!==me)a=tapTarget(me,e);   // between shots the gun follows the nearest rival
-  if(a!=null&&me&&Number.isFinite(me.x)){const g=game.mode==='online-guest';mouse.x=me.x+(g?net.offX:0)+Math.cos(a)*260;mouse.y=me.y+(g?net.offY:0)+Math.sin(a)*260}}
+  cpadAimAt(L,r,dt)}
+/* the phone owns the aim while it's paired and talking, until the real mouse is moved: the gun takes the phone's angle
+   directly (a pointer position would drift as the fighter moves, and swing round or flip when the fighter passes it) */
+function cpadAims(){const L=cpad.link;if(!L||!L.open||!L.padIn||!cpadLive())return false;return performance.now()-(L.lastInAt||0)<1500&&!(mouse.realAt>(L.activeAt||0))}
+const cpadAim=()=>cpad.link&&cpad.aimA!=null&&Number.isFinite(cpad.aimA)?cpad.aimA:null;
+function cpadAimAt(L,r,dt){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));L.holdT=Math.max(0,(L.holdT||0)-dt);
+  let a=r.ag?r.a:L.holdT>0?L.shotA:L.fhA!=null&&r.fh?L.fhA:null;if(r.ag)L.fhA=r.a;else if(!r.fh)L.fhA=null;   // a thumb resting in the stick's middle keeps the last aim
+  if(a==null&&me&&e&&e!==me&&e.alive)a=tapTarget(me,e);   // between shots the gun follows the nearest rival
+  if(a==null)a=L.lastA??(me&&Number.isFinite(me.aim)?me.aim:null);   // no rival to follow: the gun stays where it was
+  if(a==null||!me||!Number.isFinite(me.x))return;L.lastA=a;cpad.aimA=a;const g=game.mode==='online-guest';mouse.x=me.x+(g?net.offX:0)+Math.cos(a)*260;mouse.y=me.y+(g?net.offY:0)+Math.sin(a)*260}
 // a new keyboard player's first few matches: the controls along the bottom for the first 20 s of play
 const ctlTip={t:0,n:(()=>{try{return+localStorage.getItem('cuued.ctltip')||0}catch(e){return 0}})()};
 function ctlTipTick(dt){const el=$('#ctlTip');if(!el)return;const me=game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse');
@@ -6086,12 +6155,17 @@ function padInput(p,L=p.peer){const inp=p.input,r=L&&L.padIn;
   inp.move=stale?0:clamp(r.m|0,-1,1);inp.jumpH=!stale&&!!r.jh;inp.down=!stale&&!!r.d;
   const up=(k,c)=>{const v=r[c]|0;if(p[k]==null){p[k]=v;return 0}const n=Math.max(0,v-p[k]);p[k]=Math.max(p[k],v);return n};
   if(up('padJc','jc'))inp.jumpP=true;if(up('padBc','bc'))inp.blockP=true;if(up('padFc','fc'))p.findT=2.2;
-  const shots=up('padSc','sc'),autos=up('padAc','ac');
+  let shots=up('padSc','sc'),autos=up('padAc','ac');const thumb=!stale&&!!r.fh,lance=!!(p.s&&p.s.lance);
+  inp.hold=thumb;if(up('padXc','xc')&&p.padCharged)inp.cancel=true;
+  if(lance&&p.lch>0&&thumb)p.padCharged=true;if(p.padCharged&&!thumb&&!stale){if(shots){p.padAimA=r.a;p.padHoldT=.8}shots=autos=0;p.padCharged=false}   // a Sun Lance charged by the thumb: letting go fired it
   if(shots||autos){p.padTap=Math.min(3,(p.padTap||0)+shots+autos);p.padTapT=shots?Math.max(TAP_BUF,1.2):TAP_BUF;p.padAuto=!shots;if(shots){p.padAimA=r.a;p.padHoldT=.8}}
-  p.padAiming=!!r.ag&&!stale;
-  const e=other(p),auto=e!==p?tapTarget(p,e):null;
+  p.padAiming=!!r.ag&&!stale;if(p.padAiming){p.padThumbA=r.a}else if(!thumb&&!stale)p.padThumbA=null;
+  const e=other(p),auto=e&&e!==p&&e.alive?tapTarget(p,e):null;
+  // the gun turns toward the nearest rival rather than snapping there, so the arc on the big screen never jumps about
+  const follow=()=>auto==null?p.aim:p.aim+clamp(wrapA(auto-p.aim),-9*FIXED,9*FIXED);
   if(p.padTap>0){inp.fire=true;inp.aim=p.padAuto?auto??p.aim:p.padAimA??r.a}
-  else{inp.fire=false;inp.aim=p.padAiming?r.a:p.padHoldT>0?p.padAimA:auto??p.aim}}   // after a shot you aimed, the gun stays on your aim a moment   // between shots the gun follows the nearest rival
+  else{inp.fire=false;inp.aim=stale?p.aim:p.padAiming?r.a:p.padThumbA!=null?p.padThumbA:p.padHoldT>0?p.padAimA:thumb&&lance?auto??p.aim:follow()}
+  if(lance&&p.lch>0&&!stale){if(p.padAiming)p.padLD=1;inp.aim=p.padLD?(p.padAiming?r.a:p.padThumbA??p.padAimA??p.aim):auto??p.aim}else if(!(p.lch>0))p.padLD=0}   // a charging Sun Lance: on the dragged aim if this press dragged, otherwise straight on the rival (a tap's beam leaves too soon to wait for the gun to turn)   // a thumb resting on the stick (or back in its middle) keeps its aim; after a shot you aimed, the gun stays on it a moment; a Sun Lance held without dragging charges at the rival
 // a queued shot is used up by the step that fires it; one the gun can't fire soon (empty, or out) is dropped
 function padTapStep(p,h){if(p.padHoldT>0&&!(p.padTap>0))p.padHoldT-=h;if(!(p.padTap>0))return;if(p.sinceShot===0){p.padTap--;p.padTapT=TAP_BUF;p.padHoldT=.8;return}
   if(!p.alive||p.ammo<=0&&!(p.burstLeft>0)&&p.padAuto||(p.padTapT-=h)<=0)p.padTap=0}   // an aimed shot waits through a short reload; a tap doesn't
@@ -6236,7 +6310,7 @@ function bsSurvEnd(){const n=game.cleared||0,hs=heroes();game.state='over';porta
 /* ---------- the phone in a Big Screen game: a controller. Left half: a move stick wherever your thumb lands; right half:
    the Brawl Stars aim stick (drag to aim, let go to fire, a quick tap auto-fires at the nearest rival); Jump and Block. It sends
    on every touch and at least every frame; the host's status comes back 15 times a second ---------- */
-const ctl={on:false,view:'',me:-1,team:-1,seq:0,jc:0,bc:0,sc:0,ac:0,fc:0,a:0,mx:0,up:false,down:false,jump:false,move:null,aim:null,sent:0,st:null,hand:null,picked:-1,pickEnd:0,sides:[],tg:5,wake:null,awarded:false,tok:''};
+const ctl={on:false,view:'',me:-1,team:-1,seq:0,jc:0,bc:0,sc:0,ac:0,fc:0,xc:0,a:0,mx:0,up:false,down:false,jump:false,move:null,aim:null,sent:0,st:null,hand:null,picked:-1,pickEnd:0,sides:[],tg:5,wake:null,awarded:false,tok:''};
 function padTok(){if(ctl.tok)return ctl.tok;let t='';try{t=localStorage.getItem('cuued.pad')||''}catch(e){}
   if(!/^[a-z0-9]{6,24}$/.test(t)){t=ctl.tok||Math.random().toString(36).slice(2,12);try{localStorage.setItem('cuued.pad',t)}catch(e){}}return ctl.tok=t}
 function padOpen(){ctl.on=true;bodyCls('padmode',true);for(const id of['#menu','#end','#pause','#pick'])$(id).hidden=true;$('#pad').hidden=false;ctl.hand=null;ctl.st=null;
@@ -6363,15 +6437,18 @@ function padSurvOver(m){ctl.hand=null;ctl.shop=null;$('#padShop').hidden=true;pa
     const coins=coins0?earn(coins0):0;saveWallet();refreshWallet();el.className='end-coins'+(coins?'':' none');
     el.innerHTML=(coins?`<i class="coin" aria-hidden="true"></i> +${coins} CUUED coin${coins>1?'s':''} · you have ${wallet.coins}`:`Reach round 2 to earn CUUED coins (you have ${wallet.coins}).`)+(opened.length?` · Unlocked: ${opened.map(c=>c.n).join(', ')}!`:'');
     el.hidden=false;buzz(coins?[40,60,40]:[70])}}
+// let go of a stick without firing: its finger left without a touchend, or the phone went to the background
+function padLetGo(k){if(k==='move'){ctl.move=null;stickHome($('#pMove'))}else{ctl.aim=null;stickHome($('#pAim'));{const el=$('#pAim');if(el&&el.classList)el.classList.remove('cancel')}}}
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.hidden&&ctl.on&&(ctl.move||ctl.aim)){padLetGo('move');padLetGo('aim');ctl.jump=false;padSticks();padSend(true)}});
 // the sticks: the same feel as phone play (a flick up jumps, pulling down drops through ledges)
 function padSticks(){const R=56,m=ctl.move,a=ctl.aim;let mx=0,up=false,down=false;
   const knob=(id,x,y)=>{const k=$(id+' .knob');if(k)k.style.transform=`translate(${x}px,${y}px)`};
   if(m){if(m.dx>16)mx=1;else if(m.dx<-16)mx=-1;up=m.dy<-R*.55&&-m.dy>Math.abs(m.dx)*.6;down=m.dy>R*.55&&m.dy>Math.abs(m.dx)*.8;const d=Math.hypot(m.dx,m.dy)||1,c=Math.min(1,R/d);knob('#pMove',m.dx*c,m.dy*c)}
   if(up&&!ctl.up)ctl.jc++;ctl.up=up;ctl.mx=mx;ctl.down=down;
   if(a){const d=Math.hypot(a.dx,a.dy);a.maxD=Math.max(a.maxD||0,d);if(d>12)ctl.a=Math.atan2(a.dy,a.dx);const c=Math.min(1,R/(d||1));knob('#pAim',a.dx*c,a.dy*c);$('#pAim').classList.toggle('cancel',d<AIM_DEAD&&a.maxD>=AIM_DEAD)}}
-function padSend(force){if(!ctl.on||!net.connected)return;const now=performance.now();if(!force&&now-pad.sent<(net.relayed?30:7))return;ctl.sent=now;
+function padSend(force){if(!ctl.on||!net.connected)return;const now=performance.now();if(!force&&now-ctl.sent<(net.relayed?30:14))return;ctl.sent=now;
   const a=ctl.aim,live=ctl.view==='live'&&!ctl.hand&&!ctl.shop,ag=live&&!!a&&(a.maxD||0)>=TAP_MOVE&&Math.hypot(a.dx,a.dy)>=AIM_DEAD;
-  netSend({t:'c',s:++ctl.seq,m:live?ctl.mx:0,jh:live&&(ctl.up||ctl.jump)?1:0,d:live&&ctl.down?1:0,jc:ctl.jc,bc:ctl.bc,sc:ctl.sc,ac:ctl.ac,fc:ctl.fc,a:r3(ctl.a||0),ag:ag?1:0})}
+  netSend({t:'c',s:++ctl.seq,m:live?ctl.mx:0,jh:live&&(ctl.up||ctl.jump)?1:0,d:live&&ctl.down?1:0,jc:ctl.jc,bc:ctl.bc,sc:ctl.sc,ac:ctl.ac,fc:ctl.fc,xc:ctl.xc,a:r3(ctl.a||0),ag:ag?1:0,fh:live&&a?1:0})}
 function padFrame(now){if(net.connected&&now-net.lastRecv>15000){netLost('Lost the connection to the big screen.');return}
   if(ctl.hand&&ctl.picked<0)setText('#padTimer',ctl.pickEnd?`${Math.max(0,Math.ceil((ctl.pickEnd-now)/1000))}s`:'');padThumbs(now);padSend()}
 // Thumb check: if no thumb has been on the move side for a few seconds of play, that side glows and pulses (and buzzes once on Android) to call it back
@@ -6380,6 +6457,7 @@ function padThumbs(now){const live=$('#padLive');if(!live||!live.classList)retur
 {const live=$('#padLive');
   if(live&&live.addEventListener){
     live.addEventListener('touchstart',e=>{if(ctl.view!=='live'||ctl.hand)return;e.preventDefault();autoFull();
+      {const ids=liveIds(e);if(ctl.move&&!ids.has(ctl.move.id))padLetGo('move');if(ctl.aim&&!ids.has(ctl.aim.id))padLetGo('aim')}   // a stick whose finger is already gone (a lost touchend) lets go first
       for(const t of e.changedTouches){const left=t.clientX<innerWidth*.5;
         if(left&&!ctl.move){ctl.move={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0};stickAt($('#pMove'),t.clientX,t.clientY);buzz(5)}
         else if(!left&&!ctl.aim){ctl.aim={id:t.identifier,ox:t.clientX,oy:t.clientY,dx:0,dy:0,t0:performance.now(),maxD:0};stickAt($('#pAim'),t.clientX,t.clientY)}}
@@ -6388,7 +6466,7 @@ function padThumbs(now){const live=$('#padLive');if(!live||!live.classList)retur
       for(const t of e.changedTouches)for(const s of[ctl.move,ctl.aim])if(s&&s.id===t.identifier){s.dx=t.clientX-s.ox;s.dy=t.clientY-s.oy}padSticks();padSend()},{passive:false});
     const end=e=>{for(const t of e.changedTouches){if(ctl.move&&ctl.move.id===t.identifier){ctl.move=null;stickHome($('#pMove'))}
         if(ctl.aim&&ctl.aim.id===t.identifier){const a=ctl.aim;ctl.aim=null;stickHome($('#pAim'));$('#pAim').classList.toggle('cancel',false);
-          if(e.type==='touchend'){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;if(quick)ctl.ac++;else if(d>=AIM_DEAD){ctl.a=Math.atan2(a.dy,a.dx);ctl.sc++}}}}   // a tap auto-fires; a drag fires where it points; let go in the middle to cancel
+          if(e.type==='touchend'){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;if(quick)ctl.ac++;else if(d>=AIM_DEAD){ctl.a=Math.atan2(a.dy,a.dx);ctl.sc++}else if((a.maxD||0)>=AIM_DEAD)ctl.xc++}}}   // a tap auto-fires; a drag fires where it points; let go in the middle to cancel
       padSticks();padSend(true)};
     live.addEventListener('touchend',end);live.addEventListener('touchcancel',end)}
   const hold=(id,down,upFn)=>{const b=$(id);if(!b||!b.addEventListener)return;

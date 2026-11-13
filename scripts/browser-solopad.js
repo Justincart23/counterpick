@@ -45,11 +45,11 @@ async function browser(port, name, phone) {
   const S = await browser(9371, 'Laptop', false); ALL.push(S);
   await S.cdp('Page.navigate', { url: URL0 }); await sleep(2500);
   await S.ev(`document.querySelector('[data-act="solo"]').click()`); await sleep(1500);
-  ok(await S.ev(`!!document.querySelector('[data-sub="solo"] [data-act="soloPad"]')`), 'Single player lists Phone as controller');
+  ok(await S.ev(`!!document.querySelector('[data-sub="soloHow"] [data-act="soloPad"]')`), 'Single player lists Phone as controller');
   await S.shot('0-solo-menu.png');
   { const M = await browser(9373, 'Ana', true); ALL.push(M); await M.cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true, screenOrientation: { type: 'portraitPrimary', angle: 0 } });
     await M.cdp('Page.navigate', { url: URL0 }); await sleep(2500); await M.ev(`document.querySelector('[data-act="solo"]').click()`); await sleep(1500); await M.shot('0b-solo-menu-phone.png'); M.proc.kill('SIGKILL') }
-  await S.ev(`document.querySelector('[data-sub="solo"] [data-act="soloPad"]').click()`);
+  await S.ev(`document.querySelector('[data-sub="soloHow"] [data-act="soloPad"]').click()`);
   if (!ok(await S.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'it opens a room with a code')) return finish();
   const code = await S.ev(`document.querySelector('#bsCode').textContent`);
   ok(await S.ev(`document.querySelector('#bigLobby .screen-title').textContent==='Phone controller'`), 'the lobby is titled for one player with a phone controller');

@@ -63,6 +63,18 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(P.ctl.view === 'live', `the phone shows the live controls (${P.ctl.view})`);
   const x0 = me().x; P.ctl.mx = 1; frame(40); P.ctl.mx = 0;
   check(me().x > x0 + 40, `the phone moves the fighter on the computer (${Math.round(x0)} → ${Math.round(me().x)})`);
+  // aim: the phone's angle is the gun's angle, steady while the fighter runs, whatever a resting mouse pointer is doing; with
+  // the phone put down the gun follows the rival (never swinging to the pointer); moving the real mouse takes the aim back
+  { const ang = (x) => Math.atan2(Math.sin(x), Math.cos(x)), near = (a, b, t) => Math.abs(ang(a - b)) < t;
+    G.mouse.x = me().x + 2; G.mouse.y = me().y; G.mouse.realAt = 0;   // a pointer left lying on the fighter
+    P.ctl.aim = { id: 9, ox: 0, oy: 0, dx: 0, dy: -90, maxD: 90, t0: 0 }; P.ctl.a = -Math.PI / 2; P.ctl.mx = 1;
+    let worst = 0; for (let i = 0; i < 40; i++) { frame(1); if (i > 8 && me().alive) worst = Math.max(worst, Math.abs(ang(me().aim + Math.PI / 2))) }
+    P.ctl.mx = 0; check(worst < 1e-3, `aiming with the phone while running, the gun wandered ${worst.toFixed(3)} rad off the phone's angle`);
+    P.ctl.aim = null; frame(30); G.mouse.x = me().x + 2; G.mouse.y = me().y; frame(400);   // put down for over 5 s
+    const e = G.players.find((p) => p !== me()), toE = Math.atan2(e.y - me().y, e.x - me().x), toPtr = Math.atan2(G.mouse.y - me().y, G.mouse.x - me().x);
+    check(near(me().aim, toE, .7), `phone put down: the gun should follow the rival (${me().aim.toFixed(2)} vs ${toE.toFixed(2)}, pointer ${toPtr.toFixed(2)})`);
+    G.mouse.realAt = performance.now() + 1; G.mouse.sx = null; G.mouse.x = me().x - 300; G.mouse.y = me().y; frame(3);
+    check(near(me().aim, Math.PI, .2), `after moving the real mouse, it aims the gun again (${me().aim.toFixed(2)})`) }
   // online: a duel against a friend on their own computer; the phone still drives Justin's fighter
   G.startMatch('demo'); frame(10);
   H.hostGame(); frame(20);
