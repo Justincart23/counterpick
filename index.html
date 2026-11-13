@@ -2129,6 +2129,26 @@ function emberArt(g,x,y,w,h){const R=artRng(strSeed('e'+x+','+y+','+w));g.save()
   const gr=g.createLinearGradient(0,y,0,y+h);gr.addColorStop(0,'#ff9a2e');gr.addColorStop(.18,'#c4401a');gr.addColorStop(1,'#3a110c');g.fillStyle=gr;g.fillRect(x,y,w,h);
   g.strokeStyle='rgba(255,200,90,.85)';g.lineWidth=2;for(let i=0;i<w/26;i++){const cx=x+R()*w,cy=y+8+R()*Math.min(40,h-10);g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+R()*24-12,cy+R()*14);g.lineTo(cx+R()*30-15,cy+R()*22);g.stroke()}
   g.fillStyle='#ffe2a0';for(let i=0;i<w/14;i++)g.fillRect(x+R()*w,y+R()*5,3,3);g.restore()}
+/* lava: the ember floors (kind 5) are drawn live over their baked art, so they read as molten (and dangerous) at a glance: a
+   glowing melt, dark crust plates drifting across it with hot seams, bubbles that swell and pop, a rippling bright skin, heat
+   haze above and sparks rising off it. Reduced motion keeps the look and stills it */
+function drawLava(){const t=RM?0:performance.now()/1000;
+  for(const r of solids){if(r.kind!==5||r.bound)continue;const{x,y,w,h}=r,sd=r.lseed??(r.lseed=strSeed('l'+x+','+y)%997);ctx.save();
+    const hz=ctx.createLinearGradient(0,y-70,0,y);hz.addColorStop(0,'rgba(255,90,20,0)');hz.addColorStop(1,'rgba(255,120,30,.22)');ctx.fillStyle=hz;
+    for(let i=0;i<w;i+=20){const e=Math.min(1,(i+10)/90,(w-i-10)/90);ctx.globalAlpha=e*(.8+.2*Math.sin(t*2.3+i*.02+sd));ctx.fillRect(x+i,y-70,Math.min(20,w-i),70)}ctx.globalAlpha=1;   // heat haze, fading out at the ends
+    slabPath(ctx,x,y,w,h);ctx.clip();
+    const g=ctx.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#ffd84d');g.addColorStop(.22,'#ff7d1a');g.addColorStop(.65,'#cc3410');g.addColorStop(1,'#5a1208');ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+    ctx.globalAlpha=.25+.12*Math.sin(t*1.7+sd);ctx.fillStyle='#ffe28a';for(let i=0;i<3;i++){const cx=x+((sd*53+i*w/3+t*14*(i%2?1:-1))%w+w)%w;ctx.beginPath();ctx.ellipse(cx,y+h*.35,90,16,0,0,TAU);ctx.fill()}ctx.globalAlpha=1;   // brighter currents sliding under the crust
+    const n=Math.max(2,Math.round(w/95)),span=w+140;
+    for(let i=0;i<n;i++){const Q=artRng(sd*31+i),dir=Q()<.5?-1:1,sp=dir*(6+Q()*8),px=x-70+((Q()*span+t*sp)%span+span)%span,py=y+20+Q()*Math.max(4,h-30),rw=22+Q()*30,rh=6+Q()*7,k=6+(Q()*3|0);   // crust: cooled rock rafts drifting on the melt, hot seams round them
+      ctx.beginPath();for(let j=0;j<k;j++){const a=j/k*TAU,f=.7+Q()*.45;ctx[j?'lineTo':'moveTo'](px+Math.cos(a)*rw*f,py+Math.sin(a)*rh*f)}ctx.closePath();
+      ctx.fillStyle='rgba(74,24,12,.88)';ctx.fill();ctx.strokeStyle=`rgba(255,210,100,${.45+.3*Math.sin(t*3+i*1.7)})`;ctx.lineWidth=2;ctx.stroke()}
+    for(let i=0,nb=Math.max(2,Math.round(w/150));i<nb;i++){const Q=artRng(sd*17+i*7),per=1.4+Q()*1.8,ph=((t+Q()*per)%per)/per,bx=x+8+Q()*(w-16),by=y+7+Q()*8;   // bubbles: swell, then pop
+      if(ph<.8){const rr=2+ph/.8*7;ctx.fillStyle='#ffeaa6';ctx.beginPath();ctx.arc(bx,by,rr,0,TAU);ctx.fill();ctx.strokeStyle='rgba(170,50,15,.75)';ctx.lineWidth=1.5;ctx.stroke()}
+      else{const k=(ph-.8)/.2;ctx.strokeStyle=`rgba(255,240,180,${1-k})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,9+k*9,Math.PI,TAU);ctx.stroke()}}
+    ctx.strokeStyle='#fff3b8';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<=w;i+=10){const yy=y+2.5+1.8*Math.sin(i*.05+t*2.4+sd)+1.2*Math.sin(i*.13-t*3.1);i?ctx.lineTo(x+i,yy):ctx.moveTo(x+i,yy)}ctx.stroke();   // the rippling skin
+    ctx.restore();
+    {const k=Math.floor(t*w/260);if(!RM&&!fxLow&&k!==r.lspk&&parts.length<700){r.lspk=k;const Q=artRng(k*13+sd),l=.6+Q()*.6;parts.push({ember:true,x:x+Q()*w,y:y+2,vx:Q()*50-25,vy:-90-Q()*110,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}}   // sparks rising off it (timed, not drawn from Math.random, so seeded tests stay put)
 /* a bounce pad: a pink plate on a little spring, set into the rock below it (no shadow of its own) */
 function padArt(g,x,y,w,h){g.save();const mx=x+6,mw=w-12;g.fillStyle='#3a2f45';g.fillRect(mx,y+7,mw,h-7);
   g.strokeStyle='#b9b2c6';g.lineWidth=2;g.beginPath();for(let i=0,n=Math.max(3,Math.round(mw/14));i<=n;i++){const px=mx+4+(mw-8)*i/n;g[i?'lineTo':'moveTo'](px,i%2?y+h-2:y+9)}g.stroke();
@@ -5104,7 +5124,7 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
   ctx.drawImage(bgC,0,0,W,H);drawAmbient();
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
-  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);
+  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);drawLava();
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
   drawPadGlow();drawRides();drawRigs();
@@ -5370,7 +5390,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-12-lance2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-13-lava';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
