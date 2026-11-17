@@ -183,3 +183,6 @@ Game design inspired by ROUNDS (Landfall, 2021). ROUNDS is a trademark of Landfa
 ## License
 
 CUUED is free software under the [GNU General Public License v3.0](LICENSE). You can use, study, share and modify it. Anything you distribute that's based on it must also be released under GPL-3.0, with its source code.
+
+## Sound
+Guns, hits, blasts, shields and the pop of a shield use recorded sci-fi sounds from [Kenney's Sci-Fi Sounds](https://kenney.nl/assets/sci-fi-sounds) (CC0) in `sfx/`, trimmed, levelled to one loudness and encoded as mp3 (plays on every phone). `sfx()` layers them over the synthesized sounds (`smp`, `SMP_N`, `SMP_GAIN`); until a sample has loaded the synth plays alone. Levels were matched to the old synth by measuring peak and RMS in headless Chrome.

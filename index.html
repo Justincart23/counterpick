@@ -2267,7 +2267,13 @@ let motes=[];
 function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec.save();dec.fillStyle=color;
   for(let i=0;i<n;i++){const a=Math.random()*TAU,d=Math.random()*spread,r=rand(.4,1)*size;dec.globalAlpha=rand(.35,.75);dec.beginPath();dec.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,r,0,TAU);dec.fill()}dec.restore()}
 
-/* ---------- audio: original synthesized effects, no samples. Short, punchy, cartoon-physical ---------- */
+/* ---------- audio: synthesized effects, with a layer of recorded sci-fi shots, blasts and impacts on the gun and hit sounds
+   (Kenney's Sci-Fi Sounds, CC0, in sfx/, levelled to one loudness and trimmed). Until a sample has loaded, the synth plays alone ---------- */
+const SMP_GAIN=1,SMP_N={laser_small:5,laser_retro:5,laser_large:5,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,force_field:5,slime:2},SAMPLES={};
+function loadSamples(){if(typeof fetch!=='function')return;for(const[g,n]of Object.entries(SMP_N))for(let i=0;i<n;i++){const k=g+'_'+String(i).padStart(3,'0');
+  try{fetch('sfx/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>{const q=actx.decodeAudioData(b,ok,no);if(q&&q.catch)q.catch(no)})).then(buf=>{(SAMPLES[g]=SAMPLES[g]||[]).push(buf)}).catch(()=>{})}catch(e){}}}
+function smp(g,vol,rate,t,dest=master){const L=SAMPLES[g];if(!L||!L.length)return false;const b=L[Math.floor(Math.random()*L.length)],sr=actx.createBufferSource(),gn=actx.createGain();
+  sr.buffer=b;sr.playbackRate.value=rate*rand(.94,1.06);gn.gain.value=vol*SMP_GAIN;sr.connect(gn).connect(dest);sr.start(t);return true}
 let actx=null,muted=false,noiseBuf=null,master=null,crunch=null,room=null,musicGain=null;
 function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();
   const comp=actx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.attack.value=.002;comp.release.value=.12;
@@ -2278,7 +2284,7 @@ function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.we
   const ir=actx.createBuffer(1,Math.floor(actx.sampleRate*1.4),actx.sampleRate),irD=ir.getChannelData(0);for(let i=0;i<irD.length;i++)irD[i]=(Math.random()*2-1)*Math.pow(1-i/irD.length,3);
   const rev=actx.createConvolver();rev.buffer=ir;const revOut=actx.createGain();revOut.gain.value=.32;rev.connect(revOut).connect(master);
   room=actx.createGain();room.connect(master);room.connect(rev);crunch.connect(room);
-  musicGain=actx.createGain();musicGain.gain.value=0;musicGain.connect(master);startMusic()}catch(e){actx=null}}
+  musicGain=actx.createGain();musicGain.gain.value=0;musicGain.connect(master);loadSamples();startMusic()}catch(e){actx=null}}
 // one oscillator with a pitch sweep and a fast-attack exponential decay
 function tone(type,f0,f1,t0,dur,peak,dest=master){const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);
   if(f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(peak,t0+.003);
@@ -2339,7 +2345,21 @@ function pad(f,t,dur){for(const d of[-6,6]){const o=actx.createOscillator(),lp=a
 let sfxWin=0,sfxN=0;
 function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg&&!ui))return;const now=actx.currentTime;if(now-sfxWin>.05){sfxWin=now;sfxN=0}if(++sfxN>7&&k!=='die')return;
   const t=now+.005,v=rand(.92,1.08);   // ±8% pitch so rapid fire never sounds identical
-  try{switch(k){
+  let done=false;try{switch(k){
+  case'shoot':if(smp('laser_small',.9,1.05,t)){tone('sine',150*v,48,t,.12,.2,room);done=true;break}tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;
+  case'shotLight':if(smp('laser_retro',.55,1.3,t)){tone('sine',260*v,90,t,.05,.1);done=true;break}tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
+  case'shotHeavy':if(smp('laser_large',1,.8,t)){tone('sine',110*v,36,t,.22,.3,room);done=true;break}tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
+  case'shotRail':if(smp('laser_large',.9,1.45,t)){tone('sine',90*v,40,t,.18,.24,room);done=true;break}noise(t,.06,.14,'highpass',5000,5000,1,room);tone('sawtooth',2600*v,600,t,.09,.06,room);tone('sine',90*v,40,t,.18,.28,room);break;
+  case'shotScatter':if(smp('explosion_crunch',.7,1.7,t)){tone('sine',140*v,45,t,.14,.24,room);done=true;break}noise(t,.14,.3,'lowpass',3500,600,.7,crunch);tone('sine',140*v,45,t,.14,.3,room);break;
+  case'hit':smp('impact_metal',.7,.8,t);break;   // a recorded clang under the synth's meaty thud
+  case'crush':smp('impact_metal',.7,.6,t);break;
+  case'die':smp('low_frequency_explosion',.9,1,t);break;
+  case'boom':smp('explosion_crunch',1.1,.9,t);break;
+  case'block':smp('force_field',.4,1.3,t);break;
+  case'zap':smp('laser_retro',.35,.8,t);break;
+  case'pop':if(smp('slime',.3,1.1,t)){noise(t,.1,.08,'highpass',3000);done=true}break;
+  }
+  if(!done)switch(k){
   case'shoot':tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;          // pop + body + snap
   case'shotHeavy':tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
   case'shotLight':tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
@@ -5422,7 +5442,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-tide';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-sfx';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
