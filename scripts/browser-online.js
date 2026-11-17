@@ -45,7 +45,7 @@ const BOT = (me) => `(()=>{const G=window.__G;if(window.__bot)return;const st=wi
 
 (async () => {
   const H = await browser(9341, 'Host'), V = await browser(9342, 'Visitor');
-  await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+  await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]')?.click()`);
   const gotCode = await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000);
   if (!ok(gotCode, 'host opens a room')) { finish(); return }
   const code = await H.ev(`document.querySelector('#bsCode').textContent`);

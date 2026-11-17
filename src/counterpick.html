@@ -1187,23 +1187,17 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <p class="join-line desk-only">A friend sent you a code? <button type="button" class="linkbtn" data-act="join">Join their game</button></p>
       <div class="mobile-row touch-only"><button type="button" class="btn join-q" data-act="join"><b>Got a code?</b> Join a game</button><button type="button" class="btn" data-act="fullscreen" id="mFull">Full screen</button><button type="button" class="btn a2-btn" data-act="a2hs" id="mA2" hidden><i aria-hidden="true">+</i> Add to Home Screen</button></div>
     </div>
-    <div data-sub="soloHow" hidden>
-      <div class="lbl sublbl">Single player · how do you want to play?</div>
-      <nav class="mlist tiles" aria-label="How to play">
-        <button type="button" class="mt big hero" data-act="soloPad" data-ic="phonePad" data-hint="The game plays on this screen and your phone is the controller. Scan the code, get comfy, press Start on your phone." style="--i:0;--tc:#ffb547"><span class="mt-t">Play with my phone <em class="rec">Best</em></span><span class="mt-d">Scan the code, then press Start on your phone. Duel the CPU or take on Survival.</span></button>
-        <button type="button" class="mt sub" data-act="soloKb" data-ic="cpu" data-hint="Play with this computer's keyboard and mouse: practice, party, Survival or the Sandbox." style="--i:1;--tc:#b9a7e6"><span class="mt-t">Keyboard &amp; mouse instead</span></button>
-        <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:2"><span class="mt-t">Back</span></button>
-      </nav>
-      <p class="menu-hint" aria-live="polite">The game plays on this screen and your phone is the controller.</p>
-    </div>
     <div data-sub="solo" hidden>
-      <div class="lbl sublbl" id="soloLbl">Single player</div>
+      <div class="lbl sublbl">Single player</div>
       <nav class="mlist tiles" aria-label="Single player">
+        <p class="mgrp desk-only" aria-hidden="true">Use your phone</p>
+        <button type="button" class="mt big hero desk-only" data-act="soloPad" data-ic="phonePad" data-hint="The game plays on this screen and your phone is the controller. Scan the code, get comfy, press Start on your phone." style="--i:0;--tc:#ffb547"><span class="mt-t">Phone as controller <em class="rec">Best</em></span><span class="mt-d">Scan a code, then press Start on your phone. Duel the CPU or take on Survival.</span></button>
+        <p class="mgrp desk-only" aria-hidden="true">Or this computer's keyboard &amp; mouse</p>
         <button type="button" class="mt" data-act="cpu" data-ic="cpu" data-hint="A duel against the computer. Pick its skill in Settings." style="--i:0;--tc:#ff7a1a"><span class="mt-t">Practice vs CPU</span><span class="mt-d">A one-on-one duel against the computer</span></button>
         <button type="button" class="mt" data-act="party" data-ic="party" data-hint="Two against two: you and a CPU teammate against a pair of CPUs." style="--i:1;--tc:#ffb547"><span class="mt-t">Party vs CPUs</span><span class="mt-d">2v2: you and a CPU teammate against two CPUs</span></button>
         <button type="button" class="mt" data-act="survival" data-ic="survival" data-hint="Round after round of tougher enemies, a boss every 5th round, power-ups that drop, a shop between rounds. How far can you get?" style="--i:2;--tc:#ff5a4f"><span class="mt-t">Survival</span><span class="mt-d">Waves, bosses, a shop. How far can you get?</span></button>
         <button type="button" class="mt" data-act="sandbox" data-ic="sandbox" data-hint="Try any card. Give yourself or the CPU any power-ups you like, no drafting." style="--i:3;--tc:#3fd0b0"><span class="mt-t">Sandbox</span><span class="mt-d">Try any card, no drafting</span></button>
-        <button type="button" class="mt back" data-act="back" data-ic="back" id="soloBack" data-hint="Back." style="--i:4"><span class="mt-t">Back</span></button>
+        <button type="button" class="mt back" data-act="back" data-ic="back" data-hint="Back to the main menu." style="--i:5"><span class="mt-t">Back</span></button>
       </nav>
       <p class="menu-hint" aria-live="polite">A duel against the computer. Pick its skill in Settings.</p>
     </div>
@@ -5383,7 +5377,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-13-lava';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-menu';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -6496,7 +6490,6 @@ let myName='';try{myName=cleanName(localStorage.getItem('cuued.name'))}catch(e){
 try{const n=cleanName(new URLSearchParams(location.search).get('name'));if(n){myName=n;localStorage.setItem('cuued.name',n)}}catch(e){}
 let pendingJoin='',joinBack='multi',menuBack='main',mpKind='versus';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
 // Single player's list of matches: on a computer it's the keyboard-and-mouse way (Back goes to the phone-or-keyboard choice)
-function soloList(ov,kb){setText('#soloLbl',kb?'Single player · keyboard & mouse':'Single player');const b=$('#soloBack');if(b){b.dataset.back=kb?'soloHow':'main';b.dataset.hint=kb?'Back to choosing phone or keyboard.':'Back to the main menu.'}showSub(ov,'solo')}
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
 function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 // an invite link's room code: ?join=ABCD (or #ABCD from older links and some apps), read once and then cleared from the address
@@ -6632,8 +6625,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='stats')openStats();
   else if(a==='fullscreen')toggleFull();
   else if(a==='bsQuick'){menuBack='multi';if(settings.bsMode==='surv'&&mpKind!=='coop')settings.bsMode='ffa';openBigScreen()}   // phones as controllers: straight to the room code (the mode is picked in the lobby, or on the first phone)
-  else if(a==='soloPad'){menuBack='soloHow';openBigScreen(true)}
-  else if(a==='soloKb')soloList(ov,true);
+  else if(a==='soloPad'){menuBack='solo';openBigScreen(true)}
   else if(a==='bigscreen'){settings.bsMode=mpKind==='coop'?'surv':settings.bsMode==='teams'?'teams':'ffa';saveSettings();openBigScreen()}   // Big Screen is a way to play Duel or Party: it starts on that mode
   else if(a==='bsStart'){if(net.room)partyStart();else bsStart()}
   else if(a==='bsPlus')bsPlusAsk();
@@ -6653,7 +6645,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data
   else if(a==='coop'){mpKind='coop';net.wantScreen=false;net.wantRoom=false;net.wantCoop=true;net.wantParty=false;showSub(ov,'hosting');hostGame()}
   else if(a==='team'){const t=+b.dataset.team;if(net.role==='host')partyTeam(null,t);else if(net.role==='guest'&&net.party)netSend({t:'team',k:t})}
   else if(a==='partyStart')partyStart();
-  else if(a==='solo'){if(touch.on)soloList(ov,false);else showSub(ov,'soloHow')}   // a computer: phone first, keyboard second. A phone plays right here
+  else if(a==='solo')showSub(ov,'solo')   // one flat list on every device; a computer also gets the phone-as-controller tile on top
   else if(a==='multi')showSub(ov,'multi');
   else if(a==='survival')startSurvival();
   else if(a==='host'){if(mpKind==='versus'){openVersus();return}net.wantScreen=false;net.wantRoom=false;net.wantCoop=mpKind==='coop';net.wantParty=false;showSub(ov,'hosting');hostGame()}

@@ -45,11 +45,11 @@ async function browser(port, name, phone) {
   const S = await browser(9371, 'Laptop', false); ALL.push(S);
   await S.cdp('Page.navigate', { url: URL0 }); await sleep(2500);
   await S.ev(`document.querySelector('[data-act="solo"]').click()`); await sleep(1500);
-  ok(await S.ev(`!!document.querySelector('[data-sub="soloHow"] [data-act="soloPad"]')`), 'Single player lists Phone as controller');
+  ok(await S.ev(`!!document.querySelector('[data-sub="solo"] [data-act="soloPad"]')`), 'Single player lists Phone as controller');
   await S.shot('0-solo-menu.png');
   { const M = await browser(9373, 'Ana', true); ALL.push(M); await M.cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true, screenOrientation: { type: 'portraitPrimary', angle: 0 } });
     await M.cdp('Page.navigate', { url: URL0 }); await sleep(2500); await M.ev(`document.querySelector('[data-act="solo"]').click()`); await sleep(1500); await M.shot('0b-solo-menu-phone.png'); M.proc.kill('SIGKILL') }
-  await S.ev(`document.querySelector('[data-sub="soloHow"] [data-act="soloPad"]').click()`);
+  await S.ev(`document.querySelector('[data-sub="solo"] [data-act="soloPad"]').click()`);
   if (!ok(await S.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'it opens a room with a code')) return finish();
   const code = await S.ev(`document.querySelector('#bsCode').textContent`);
   ok(await S.ev(`document.querySelector('#bigLobby .screen-title').textContent==='Phone controller'`), 'the lobby is titled for one player with a phone controller');
@@ -61,7 +61,9 @@ async function browser(port, name, phone) {
   ok(await P.until(`window.__G.ctl.on&&window.__G.ctl.view==='lobby'`, 30000), 'the phone becomes the controller');
   ok(await S.until(`/Controller connected/.test(document.querySelector('#bsMsg').textContent)`, 5000), 'the screen says the controller is connected');
   await S.shot('2-solo-connected.png');
-  ok(await S.until(`window.__G.game.screen&&window.__G.players.length===2`, 8000), 'the match starts by itself: the phone against one CPU');
+  ok(await P.until(`!document.querySelector('#padGo').hidden`, 8000), 'the phone shows a Start button');
+  { const g = await P.box('#padGo'); if (g) { await P.touch('touchStart', [g]); await sleep(40); await P.touch('touchEnd', []) } }
+  ok(await S.until(`window.__G.game.screen&&window.__G.players.length===2`, 8000), 'pressing Start on the phone begins the match: the phone against one CPU');
   ok(await P.until(`window.__G.ctl.solo===true`, 5000), 'the phone knows it is a solo game');
   if (await P.until(`window.__G.ctl.hand&&!document.querySelector('#padPick').hidden`, 10000)) { await sleep(500); const b = await P.box('#padCards .pcard'); if (b) { await P.touch('touchStart', [b]); await sleep(40); await P.touch('touchEnd', []) } }
   ok(await S.until(`window.__G.game.state==='play'`, 15000), 'after the card pick the match plays');
