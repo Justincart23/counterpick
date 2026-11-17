@@ -2040,15 +2040,27 @@ MAPS.push(
    every jump still reaches), then up to two pairs of new wooden perches in the biggest empty spaces, each one a single jump above a ledge,
    so there is more room to flank, bank shots and play your own way */
 const GROW=1.15,GROWS={Docks:1,Gondola:1.07};   // these two have pits that are already as wide as a block-bounce can cross
-function addPerches(m){const R=m.rects,PW=Math.round(220*GROW),hg=m.hangs||[],sw=m.swings||[],mv=m.movers||[],cr=m.crates||[];
-  const clear=(x,y)=>!R.some(r=>r[0]<x+PW+60&&r[0]+r[2]>x-60&&r[1]<y+32+100&&r[1]+r[3]>y-100)&&!hg.some(d=>x<d.x+d.w+80&&x+PW>d.x-80&&y<d.y+(d.ay?220:140)&&y+32>d.y-140)
-    &&!sw.some(d=>Math.abs(d.ax-(x+PW/2))<(d.len||300)+(d.w||100))&&!mv.some(d=>x<d.x+d.w+(d.mx?d.mx:0)+80&&x+PW>d.x-(d.mx?d.mx:0)-80)&&!cr.some(([cx,,z])=>x<cx+z+40&&x+PW>cx-40&&y>400);
-  const reach=(x,y)=>R.some(r=>r[4]!==1&&r[4]!==3&&r[4]!==5&&r[1]>y+60&&r[1]-y<=140&&r[0]<x+PW+150&&r[0]+r[2]>x-150);
-  const far=(x,y)=>Math.min(...R.map(r=>Math.hypot(r[0]+r[2]/2-x-PW/2,r[1]+r[3]/2-y-16)-r[2]/2));
-  for(let n=0;n<2;n++){let best=null,bs=0;
-    for(let y=300;y<=m.h-220;y+=40)for(let x=Math.round(m.w*.1);x+PW<m.w/2-70;x+=60){if(!clear(x,y)||!clear(m.w-x-PW,y)||!reach(x,y)||!reach(m.w-x-PW,y))continue;const d=far(x,y)+far(m.w-x-PW,y);if(d>bs){bs=d;best=[x,y]}}
-    if(!best||bs<2*170)break;R.push([best[0],best[1],PW,32],[m.w-best[0]-PW,best[1],PW,32])}}
-for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(!m.duel||m.w!==1920||m.grown)continue;const gk=GROWS[m.name]||GROW,f=fitArena(m,Math.round(m.w*gk),Math.round(m.h*gk));f.grown=1;if(!m.rigs&&!m.climb)addPerches(f);MAPS[i]=f}
+/* Dressing: the extra 15% of every arena is filled with architecture, not loose planks. Four set pieces (a ceiling lintel with a hanging wall, a stone
+   pylon with a wide cap, a truss over the middle, a balcony off the side wall), each dropped only into a patch of the arena that is empty
+   (nothing of the map's own within a margin, no spawn, no rope or swing, a floor under a pylon) and mirrored where it sits to one side. Every
+   arena takes the pieces in its own order, so no two end up dressed alike, and a busy arena takes none. They are for cover and banked shots */
+const DRESS=[
+ {sym:1,at:[[0,170],[0,280],[0,380]],r:()=>[S(0,0,380),WL(330,56,110)]},                       // lintel: a stone ceiling from the side wall, a wall hanging off its end
+ {sym:1,floor:1,at:[[250,770],[400,770],[560,770]],r:()=>[S(70,0,100,230),P(0,-30,240)]},       // pylon: a stone post with a wide wooden cap
+ {at:[[700,400],[700,300],[700,520]],r:()=>[P(0,0,520),WL(16,32,110),WL(468,32,110)]},         // truss: a plank over the middle on two posts
+ {sym:1,at:[[0,430],[0,330],[0,560]],r:()=>[P(0,0,300),WL(262,32,130)]},                        // balcony: a plank off the side wall with a post at the end
+ {at:[[760,150],[760,240]],r:()=>[S(0,0,400),WL(40,56,100),WL(324,56,100)]}];                  // roof beam: a stone block high in the middle with two walls hanging off it
+function dress(m,gk){const R=m.rects,k=v=>Math.round(v*gk),hash=[...m.name].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);let n=0;const cap=R.length>=12?1:2;
+  const hit=(z,x0,y0,x1,y1)=>x0<z[2]&&x1>z[0]&&y0<z[3]&&y1>z[1],pad=k(70);
+  for(let t=0;t<DRESS.length&&n<cap;t++){const q=(t+hash)%(DRESS.length-1),d=DRESS[t<DRESS.length-1?q+1:0];   /* the lintel is the fallback: tried last, so most arenas take something else first */
+    for(const[ox,oy]of d.at){const L=d.r().map(([x,y,w,h,kd])=>[k(x+ox),k(y+oy),k(w),k(h),...(kd!=null?[kd]:[])]),M=d.sym?L.map(([x,y,w,h,kd])=>[m.w-x-w,y,w,h,...(kd!=null?[kd]:[])]):[],
+        zs=[L,M].filter(q=>q.length).map(q=>[Math.min(...q.map(r=>r[0]))-pad,Math.min(...q.map(r=>r[1]))-pad,Math.max(...q.map(r=>r[0]+r[2]))+pad,Math.max(...q.map(r=>r[1]+r[3]))+pad]);
+      const free=zs.every(Z=>!R.some(r=>(!d.floor||r[1]<m.h*.88)&&hit(Z,r[0],r[1],r[0]+r[2],r[1]+r[3]))&&!(m.crates||[]).some(([x,y,w])=>hit(Z,x,y,x+w,y+w))&&!(m.hangs||[]).some(h=>hit(Z,h.x-40,0,h.x+h.w+40,h.y+60))
+        &&!(m.swings||[]).some(w=>hit(Z,w.ax-w.len*.6,0,w.ax+w.len*.6,w.len+60))&&!(m.movers||[]).some(v=>hit(Z,v.x-(v.mx||0),v.y-(v.my||0),v.x+v.w+(v.mx||0),v.y+v.h+(v.my||0)))
+        &&!(m.rigs||[]).some(g=>[g.x,g.px,g.rx,g.ax,g.a&&g.a.x,g.b&&g.b.x].some(v=>v!=null&&hit(Z,v-60,0,v+60,m.h)))&&!m.sp.some(([x,y])=>hit(Z,x-90,y-90,x+90,y+90)))
+        &&(!d.floor||R.some(r=>r[1]>m.h*.88&&r[1]<m.h*.95&&r[0]<=L[0][0]+k(60)&&r[0]+r[2]>=L[0][0]+L[0][2]-k(60)&&(!d.sym||r[0]<=M[0][0]+k(60)&&r[0]+r[2]>=M[0][0]+M[0][2]-k(60))));
+      if(free){R.push(...L,...M);(m.dressed=m.dressed||[]).push(DRESS.indexOf(d));n++;break}}}}
+for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(!m.duel||m.w!==1920||m.grown)continue;const gk=GROWS[m.name]||GROW,f=fitArena(m,Math.round(m.w*gk),Math.round(m.h*gk));f.grown=1;if(!m.climb)dress(f,gk);MAPS[i]=f}
 /* Climb arenas: ordinary arenas (everything above applies, same camera, same materials) with lava rising from the bottom once the point
    has started. The floor goes first, then each tier in turn, so the fight keeps moving up and the high ground is a clock, not a prize.
    Each has its own way up: a lift, a wall-jump chimney, stone steps, swinging blocks, a stair of bells. The lava is the clock, so
@@ -5519,7 +5531,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-climb2';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-dress';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
