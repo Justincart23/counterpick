@@ -5003,8 +5003,12 @@ function drawPlayer(p){if(!p.alive)return;if(p.graceT>0&&Math.floor(performance.
   ctx.save();ctx.translate(0,R);ctx.rotate(lean);ctx.translate((p.wallDir||0)*jw*R*.2,-R);if(flip)ctx.rotate(flip);ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
   const ouch=p.ouchAt&&performance.now()-p.ouchAt<220;if(ouch)ctx.fillStyle='#ff6b5a';else if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
   ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
+  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.strokeStyle='rgba(14,6,24,.28)';ctx.lineWidth=R*.2;ctx.stroke();   // a dark rim inside the edge, like the painted guns' shading
+  ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
   ctx.fillStyle='rgba(0,0,0,.08)';ctx.beginPath();ctx.moveTo(R,R*.1);ctx.lineTo(-R*.3,R);ctx.lineTo(R,R);ctx.fill();ctx.restore();
+  ctx.strokeStyle='rgba(14,6,24,.85)';ctx.lineWidth=2.6;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.stroke();   // the same bold dark outline the platforms and guns carry
+  ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(-R*.42,-R*.5,R*.2,R*.11,-.7,0,TAU);ctx.fill();   // a painted highlight
+
   if(p.cos&&p.cos.pattern&&!(p.hurtT>0))drawPattern(ctx,p.cos.pattern,R);
   if(p.ail&&!(p.hurtT>0)){const now=performance.now();ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();
     if(p.ail&1){ctx.fillStyle=`rgba(120,200,40,${.38+.1*Math.sin(now/140)})`;ctx.fillRect(-R,-R,R*2,R*2);ctx.fillStyle='rgba(200,255,120,.35)';for(let i=0;i<4;i++){const a=now/600+i*1.7;ctx.beginPath();ctx.arc(Math.cos(a)*R*.5,Math.sin(a*1.3)*R*.45,R*.12,0,TAU);ctx.fill()}}
@@ -5449,7 +5453,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-sfx';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-arenas';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

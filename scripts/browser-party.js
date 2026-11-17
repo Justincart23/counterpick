@@ -47,7 +47,7 @@ const autopick = `(()=>{const mine=[...document.querySelectorAll('#pick:not([hid
 (async () => {
   const H = await browser(9351, 'Hosty'), G = [await browser(9352, 'Ana'), await browser(9353, 'Ben'), await browser(9354, 'Cy')], all = [H, ...G]; ALL.push(...all);
   await H.ev(`document.querySelector('[data-act="multi"]').click()`); await sleep(150);
-  await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]').click()`);
+  await H.ev(`document.querySelector('[data-act="versus"]').click()`); await sleep(200); await H.ev(`document.querySelector('[data-sub="online"] [data-act="host"]')?.click()`);
   if (!ok(await H.until(`/^[A-Z0-9]{4}$/.test(document.querySelector('#bsCode').textContent)`, 25000), 'host opens a Versus room')) return finish();
   await H.ev(`document.querySelector('#bigLobby [data-opt="bsMode"]').click()`); await sleep(200);
   ok(await H.ev(`/Teams/.test(document.querySelector('#bigLobby [data-opt="bsMode"] .val').textContent)`), 'the host sets the mode to Teams');
