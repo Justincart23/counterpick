@@ -11,14 +11,15 @@ const { load, flushTimers } = require('./env');
   A.startMatch('cpu'); idle(); point();
   run(40, () => A.game.overtime); out.duelAt = +A.game.pointT.toFixed(1);
   if (!(out.duelAt > 31.9 && out.duelAt < 33)) fail.push('duel overtime at ' + out.duelAt);
-  const kinds = {}; A.MAPS.forEach((m, i) => { A.loadMap(i); A.game.overtime = true; const k = A.otKind(); (kinds[k] = kinds[k] || []).push(i) }); out.kinds = Object.fromEntries(Object.entries(kinds).map(([k, v]) => [k, v.length]));
-  for (const k of ['tide', 'meteor', 'squeeze']) { if (!kinds[k] || kinds[k].length < 3) fail.push('too few ' + k + ' arenas');
-    A.startMatch('cpu'); A.loadMap(kinds[k][0]); idle(); point(); run(40, () => A.game.overtime); const lo = A.players[0]; lo.hp = 5000;
+  for (const k of ['tide', 'meteor', 'squeeze', 'bolt']) {
+    A.startMatch('cpu'); A.loadMap(3); idle(); point(); A.game.otMode = k; run(40, () => A.game.overtime); const lo = A.players[0]; lo.hp = 5000;
+    if (A.otKind() !== k) fail.push('mode ' + k + ' became ' + A.otKind());
     run(12); out[k + 'Hurt'] = Math.round(5000 - lo.hp) + Math.round(1e6 - A.players[1].hp);
-    if (k !== 'meteor' && !(A.game.otRise > 100 || A.game.state === 'pointEnd')) fail.push(k + ' did not advance (' + A.game.otRise + ')');
-    if (k === 'meteor' && !(A.game.metT !== 0)) fail.push('no meteors fell');
+    if ((k === 'tide' || k === 'squeeze') && !(A.game.otRise > 100 || A.game.state === 'pointEnd')) fail.push(k + ' did not advance (' + A.game.otRise + ')');
     if (!(lo.hp < 5000 || A.players[1].hp < 1e6)) fail.push(k + ' hurt nobody in 12 s of idling');
     point(); if (A.game.otRise !== 0 || A.game.mets.length) fail.push(k + ' did not reset') }
+  const seen = new Set(); for (let i = 0; i < 40; i++) { A.startMatch('cpu'); idle(); point(); A.game.otMode = null; run(40, () => A.game.overtime); seen.add(A.game.otMode) } out.modesSeen = [...seen].sort().join();
+  if (seen.size < 3) fail.push('overtime did not vary between rounds: ' + [...seen]);
   A.startMatch('party'); idle(); point(); run(60, () => A.game.overtime); out.partyAt = +A.game.pointT.toFixed(1);
   if (!(out.partyAt > 49.9 && out.partyAt < 51)) fail.push('4-fighter overtime at ' + out.partyAt);
   A.startMatch('sandbox'); idle(); point(); run(45); if (A.game.otRise !== 0) fail.push('sandbox got a tide');

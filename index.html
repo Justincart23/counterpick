@@ -2158,17 +2158,22 @@ function drawLava(){const t=RM?0:performance.now()/1000;
     ctx.restore();
     {const k=Math.floor(t*w/260);if(!RM&&!fxLow&&k!==r.lspk&&parts.length<700){r.lspk=k;const Q=artRng(k*13+sd),l=.6+Q()*.6;parts.push({ember:true,x:x+Q()*w,y:y+2,vx:Q()*50-25,vy:-90-Q()*110,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}}   // sparks rising off it (timed, not drawn from Math.random, so seeded tests stay put)
 /* overtime's rising lava: a molten tide with a rippling bright skin, a hot glow above it and sparks that lift off it */
-function drawTide(){const kd=game.overtime&&otKind();if(kd==='meteor')return drawMeteors();if(kd==='squeeze')return drawWalls();const R=game.otRise||0;if(R<=0||kd!=='tide')return;const t=RM?0:performance.now()/1000,y=H-R;ctx.save();
+function drawTide(){const kd=game.overtime&&otKind();if(kd==='meteor'||kd==='bolt')return drawMeteors();if(kd==='squeeze')return drawWalls();const R=game.otRise||0;if(R<=0||kd!=='tide')return;const t=RM?0:performance.now()/1000,y=H-R;ctx.save();
   const hz=ctx.createLinearGradient(0,y-120,0,y);hz.addColorStop(0,'rgba(255,90,20,0)');hz.addColorStop(1,'rgba(255,120,30,.3)');ctx.fillStyle=hz;ctx.fillRect(0,y-120,W,120);
   const g=ctx.createLinearGradient(0,y,0,y+260);g.addColorStop(0,'#ffd84d');g.addColorStop(.2,'#ff7d1a');g.addColorStop(.7,'#cc3410');g.addColorStop(1,'#5a1208');ctx.fillStyle=g;
   ctx.beginPath();ctx.moveTo(0,H+400);for(let i=0;i<=W;i+=10)ctx.lineTo(i,y+2.5+2.2*Math.sin(i*.04+t*2.2)+1.4*Math.sin(i*.11-t*3));ctx.lineTo(W,H+400);ctx.closePath();ctx.fill();
   ctx.strokeStyle='#fff3b8';ctx.lineWidth=3.5;ctx.beginPath();for(let i=0;i<=W;i+=10){const yy=y+2.5+2.2*Math.sin(i*.04+t*2.2)+1.4*Math.sin(i*.11-t*3);i?ctx.lineTo(i,yy):ctx.moveTo(i,yy)}ctx.stroke();ctx.restore();
   if(!RM&&!fxLow&&parts.length<700){const k=Math.floor(t*14);if(k!==game.tideK){game.tideK=k;const Q=artRng(k*7+3),l=.6+Q()*.6;parts.push({ember:true,x:Q()*W,y:y+2,vx:Q()*50-25,vy:-110-Q()*120,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}
 /* meteor storm: a ring on the ground that closes in on its centre, then the strike */
-function drawMeteors(){const t=RM?0:performance.now()/1000;ctx.save();for(const m of game.mets||[]){const k=1-clamp(m.t/(m.max||1),0,1);
+function drawMeteors(){const t=RM?0:performance.now()/1000,im=fxImg('asteroid');ctx.save();for(const m of game.mets||[]){const k=1-clamp(m.t/(m.max||1),0,1);
+  if(m.bolt){ctx.strokeStyle=`rgba(190,225,255,${.25+.5*k})`;ctx.lineWidth=2+4*k;ctx.setLineDash([14,10]);ctx.beginPath();ctx.moveTo(m.x,-20);ctx.lineTo(m.x,m.y);ctx.stroke();ctx.setLineDash([]);
+    const g=ctx.createRadialGradient(m.x,m.y,4,m.x,m.y,m.R);g.addColorStop(0,`rgba(190,225,255,${.2+.4*k})`);g.addColorStop(1,'rgba(190,225,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(230,245,255,${.5+.4*k})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(m.x,m.y,m.R*(1-.4*k),0,TAU);ctx.stroke();continue}
   const g=ctx.createRadialGradient(m.x,m.y,4,m.x,m.y,m.R);g.addColorStop(0,`rgba(255,90,30,${.15+.35*k})`);g.addColorStop(1,'rgba(255,90,30,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.fill();
-  ctx.strokeStyle=`rgba(255,${Math.round(210-120*k)},60,${.55+.4*Math.sin(t*20)*.3+.3*k})`;ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R*(1-.35*k),0,TAU);ctx.stroke();ctx.setLineDash([]);
-  const fy=m.y-(1-k)*(1-k)*900;ctx.strokeStyle='rgba(255,190,90,.9)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(m.x-(1-k)*60,fy-90);ctx.lineTo(m.x,fy);ctx.stroke();ctx.fillStyle='#fff3b8';ctx.beginPath();ctx.arc(m.x,fy,9,0,TAU);ctx.fill()}ctx.restore()}
+  ctx.strokeStyle=`rgba(255,${Math.round(210-120*k)},60,${.55+.3*k})`;ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R*(1-.35*k),0,TAU);ctx.stroke();ctx.setLineDash([]);
+  const D=m.y+160,e=Math.pow(k,1.7),ax=m.x-D*(1-e),ay=m.y-D*(1-e),S=190+60*e;   // it comes in on a diagonal from above, speeding up, the rock at the head and its fire trailing up and back
+  if(im){ctx.drawImage(im,ax-S*.68,ay-S*.7,S,S)}else{ctx.fillStyle='#fff3b8';ctx.beginPath();ctx.arc(ax,ay,12,0,TAU);ctx.fill()}}
+  ctx.restore()}
 /* closing walls: curtains of fire sweeping in from both sides, sparks lifting off their edge */
 function drawWalls(){const R=game.otRise||0;if(R<=0)return;const t=RM?0:performance.now()/1000;ctx.save();
   for(const side of[0,1]){const x0=side?W-R:0,edge=side?W-R:R,g=ctx.createLinearGradient(side?W:0,0,edge,0);g.addColorStop(0,'#5a1208');g.addColorStop(.6,'#cc3410');g.addColorStop(.9,'#ff7d1a');g.addColorStop(1,'#ffd84d');ctx.fillStyle=g;
@@ -2282,8 +2287,8 @@ function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec
   for(let i=0;i<n;i++){const a=Math.random()*TAU,d=Math.random()*spread,r=rand(.4,1)*size;dec.globalAlpha=rand(.35,.75);dec.beginPath();dec.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,r,0,TAU);dec.fill()}dec.restore()}
 
 /* ---------- audio: synthesized effects, with a layer of recorded sci-fi shots, blasts and impacts on the gun and hit sounds
-   (Kenney's Sci-Fi Sounds, CC0, in sfx/, levelled to one loudness and trimmed). Until a sample has loaded, the synth plays alone ---------- */
-const SMP_GAIN=1,SMP_N={laser_small:5,laser_retro:5,laser_large:5,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,force_field:5,slime:2},SAMPLES={};
+   (real .22 / .380 / .45 pistol, rifle and shotgun shots from the Free Firearm Sound Library on OpenGameArt, plus Kenney's Sci-Fi Sounds blasts and impacts, in sfx/, each levelled and trimmed). Until a sample has loaded, the synth plays alone ---------- */
+const SMP_GAIN=1,SMP_N={gun22:4,gun380:4,gun45:4,rifle:4,shotgun:4,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,slime:2},SAMPLES={};
 function loadSamples(){if(typeof fetch!=='function')return;for(const[g,n]of Object.entries(SMP_N))for(let i=0;i<n;i++){const k=g+'_'+String(i).padStart(3,'0');
   try{fetch('sfx/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>{const q=actx.decodeAudioData(b,ok,no);if(q&&q.catch)q.catch(no)})).then(buf=>{(SAMPLES[g]=SAMPLES[g]||[]).push(buf)}).catch(()=>{})}catch(e){}}}
 function smp(g,vol,rate,t,dest=master){const L=SAMPLES[g];if(!L||!L.length)return false;const b=L[Math.floor(Math.random()*L.length)],sr=actx.createBufferSource(),gn=actx.createGain();
@@ -2360,17 +2365,15 @@ let sfxWin=0,sfxN=0;
 function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg&&!ui))return;const now=actx.currentTime;if(now-sfxWin>.05){sfxWin=now;sfxN=0}if(++sfxN>7&&k!=='die')return;
   const t=now+.005,v=rand(.92,1.08);   // ±8% pitch so rapid fire never sounds identical
   let done=false;try{switch(k){
-  case'shoot':if(smp('laser_small',.9,1.05,t)){tone('sine',150*v,48,t,.12,.2,room);done=true;break}tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;
-  case'shotLight':if(smp('laser_retro',.55,1.3,t)){tone('sine',260*v,90,t,.05,.1);done=true;break}tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
-  case'shotHeavy':if(smp('laser_large',1,.8,t)){tone('sine',110*v,36,t,.22,.3,room);done=true;break}tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
-  case'shotRail':if(smp('laser_large',.9,1.45,t)){tone('sine',90*v,40,t,.18,.24,room);done=true;break}noise(t,.06,.14,'highpass',5000,5000,1,room);tone('sawtooth',2600*v,600,t,.09,.06,room);tone('sine',90*v,40,t,.18,.28,room);break;
-  case'shotScatter':if(smp('explosion_crunch',.7,1.7,t)){tone('sine',140*v,45,t,.14,.24,room);done=true;break}noise(t,.14,.3,'lowpass',3500,600,.7,crunch);tone('sine',140*v,45,t,.14,.3,room);break;
+  case'shoot':if(smp('gun22',.75,1,t)){done=true;break}tone('square',820*v,140,t,.07,.08);tone('sine',150*v,48,t,.12,.26,room);noise(t,.04,.1,'bandpass',2200,1100,1.2);break;
+  case'shotLight':if(smp('gun380',.45,1.12,t)){done=true;break}tone('square',1300*v,420,t,.045,.06);tone('sine',260*v,90,t,.05,.12);noise(t,.025,.07,'bandpass',4200,3400,1.5);break;
+  case'shotHeavy':if(smp('gun45',1,.95,t)){tone('sine',110*v,36,t,.2,.12,room);done=true;break}tone('square',560*v,90,t,.1,.09);tone('sine',110*v,36,t,.22,.34,room);noise(t,.08,.16,'lowpass',1400,300,.8,crunch);break;
+  case'shotRail':if(smp('rifle',.8,1,t)){done=true;break}noise(t,.06,.14,'highpass',5000,5000,1,room);tone('sawtooth',2600*v,600,t,.09,.06,room);tone('sine',90*v,40,t,.18,.28,room);break;
+  case'shotScatter':if(smp('shotgun',1,1,t)){done=true;break}noise(t,.14,.3,'lowpass',3500,600,.7,crunch);tone('sine',140*v,45,t,.14,.3,room);break;
   case'hit':smp('impact_metal',.7,.8,t);break;   // a recorded clang under the synth's meaty thud
   case'crush':smp('impact_metal',.7,.6,t);break;
   case'die':smp('low_frequency_explosion',.9,1,t);break;
   case'boom':smp('explosion_crunch',1.1,.9,t);break;
-  case'block':smp('force_field',.4,1.3,t);break;
-  case'zap':smp('laser_retro',.35,.8,t);break;
   case'pop':if(smp('slime',.3,1.1,t)){noise(t,.1,.08,'highpass',3000);done=true}break;
   }
   if(!done)switch(k){
@@ -2594,7 +2597,7 @@ function newPoint(fresh){
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
   if(game.screen){if(!game.bsSurv)game.twist=typeof settings.bsTwist==='string'&&portal.plus?TWISTS.find(t=>t.id===settings.bsTwist)||null:settings.bsTwist===true&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
-  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.otRise=0;game.mets=[];game.metT=0;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.otRise=0;game.otMode=null;game.mets=[];game.metT=0;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -4122,7 +4125,7 @@ function flashFx(x,y,rad,life,color){fxRec('f',[x,y,rad,life,color]);parts.push(
 /* explosions you can feel: a painted fireball and smoke, stone chunks and dust shaken off the arena, a scorch mark left
    on it for the rest of the round, a quick zoom punch and a warm flash. Capped, so a storm of blasts stays smooth */
 const FX_IMG={};function fxImg(k){let im=FX_IMG[k];if(!im){if(typeof Image==='undefined')return null;im=FX_IMG[k]=new Image();im.decoding='async';im.src='fx/'+k+'.webp'}return im.complete&&im.naturalWidth?im:null}
-function warmFx(){for(const k of['explosion','smoke','scorch','booster'])fxImg(k)}
+function warmFx(){for(const k of['explosion','smoke','scorch','booster','asteroid'])fxImg(k)}
 let scorchAt=0;
 const easeOut3=t=>1-Math.pow(1-t,3);
 /* the painted blast, alive: it punches out past full size, settles with a wobble and a squash, and spins down as it fades */
@@ -4270,14 +4273,17 @@ function blinkFx(x0,y0,x1,y1,r,color,glow){fxRec('T',[x0,y0,x1,y1,r,color,glow])
 const OT_SQUEEZE=30,OT_T=32,OT_MORE=9,OT_RISE=26,OT_DMG=12,OT_POP=560;   // overtime starts at 32 s for a duel (the median point is 14 s, the 90th percentile 28 s), 9 s later for each extra fighter in the arena; the lava climbs 26 px/s
 const otAt=()=>OT_T+OT_MORE*Math.max(0,players.filter(p=>!p.left&&!(game.coop&&p.team===1)).length-2);
 const otOn=()=>game.mode!=='survival'&&game.mode!=='sandbox'&&!game.bsSurv;
-/* what overtime does to an arena depends on its world: embers, islands and lakes get the rising lava tide; canyons and ruins a
-   meteor storm (each shown as a ring on the ground first); fortresses and coasts walls of fire that close in from both sides */
-const OT_KIND={ember:'tide',islands:'tide',lake:'tide',canyon:'meteor',ruins:'meteor',spires:'squeeze',coast:'squeeze'};
-const otKind=()=>!otOn()||!game.map?null:game.map.rects.some(r=>r[4]===5)?'tide':OT_KIND[backdropOf(game.map)]||'tide';
-const OT_BANNER={tide:'OVERTIME · LAVA RISING',meteor:'OVERTIME · METEOR STORM',squeeze:'OVERTIME · THE WALLS CLOSE IN'};
-function meteorStep(h){const a=players.filter(p=>p.alive);game.metT=(game.metT||0)-h;
-  if(game.metT<=0&&a.length){const over=game.pointT-otAt();game.metT=Math.max(.35,1.2-over*.04);const p=pick(a);game.mets.push({x:clamp(p.x+rand(-1,1)*Math.max(0,150-over*6),60,W-60),y:p.y+p.r,t:1,max:1,R:100})}   // wild at first, dead on after about 25 s of it
-  for(const m of game.mets){m.t-=h;if(m.t<=0){m.dead=true;boomFx(m.x,m.y,m.R,'#ff8a2a',1.1);addShake(7);sfx('boom');
+/* every overtime is a different apocalypse, whatever the arena: the host picks one when the horn blows (and it is sent with every snapshot):
+   a rising lava tide, a meteor storm (asteroids that fall and burst), walls of fire closing in, or a lightning storm */
+const OT_MODES=['tide','meteor','squeeze','bolt'];
+const otKind=()=>!otOn()?null:game.otMode||null;
+const OT_BANNER={tide:'OVERTIME · LAVA RISING',meteor:'OVERTIME · ASTEROID STORM',squeeze:'OVERTIME · THE WALLS CLOSE IN',bolt:'OVERTIME · LIGHTNING STORM'};
+function meteorStep(h,kind){const a=players.filter(p=>p.alive),bolt=kind==='bolt';game.metT=(game.metT||0)-h;
+  if(game.metT<=0&&a.length){const over=game.pointT-otAt();game.metT=Math.max(.3,(bolt?1:1.2)-over*.04);const p=pick(a);const T=bolt?.8:1.1;
+    game.mets.push({x:clamp(p.x+rand(-1,1)*Math.max(0,150-over*6),60,W-60),y:p.y+p.r,t:T,max:T,R:bolt?85:105,bolt})}
+  for(const m of game.mets){m.t-=h;if(m.t<=0){m.dead=true;
+    if(m.bolt){boomFx(m.x,m.y,m.R,'#bfe3ff',.9);for(let y=m.y;y>-40;y-=70)flashFx(m.x+rand(-14,14),y,46,.22,'#e8f4ff');addShake(6);sfx('zap')}
+    else{boomFx(m.x,m.y,m.R,'#ff8a2a',1.2);burst(m.x,m.y,'#ffb347',18,520,5,.5,500,true);addShake(8);sfx('boom')}
     for(const p of players)if(p.alive){const d=Math.hypot(p.x-m.x,p.y-m.y);if(d<m.R+p.r){const an=Math.atan2(p.y-m.y,p.x-m.x);p.vx+=Math.cos(an)*620;p.vy=Math.min(p.vy,-420);p.grounded=false;p.ground=null;p.kT=.35;damage(p,30,null)}}}}
   game.mets=game.mets.filter(m=>!m.dead)}
 const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-otAt())/10)*.5:1;
@@ -4808,10 +4814,10 @@ function simTick(h){const st=game.state;
   if(st==='ready'){game.stT-=h;step(h);if(game.stT<=0){game.state='play';sfx('go')}return true}
   if(st==='play'){step(h);game.pointT+=h;if(game.mode==='survival'){bossPhaseCheck();game.pointT=0}
     // overtime: a point that drags past OT_T makes every bullet seek, and a tide of lava starts rising from the floor, so nobody can camp forever
-    if(!game.overtime&&game.pointT>otAt()){game.overtime=true;game.banner=OT_BANNER[otKind()]||'OVERTIME';game.bannerT=1.8;sfx('horn')}
+    if(!game.overtime&&game.pointT>otAt()){game.overtime=true;if(!game.otMode)game.otMode=pick(OT_MODES);game.banner=OT_BANNER[otKind()]||'OVERTIME';game.bannerT=1.8;sfx('horn')}
     if(game.overtime){const k=otKind();if(k==='tide'||k==='squeeze'){game.otRise=Math.min(k==='tide'?H:W/2-120,game.otRise+(k==='tide'?OT_RISE:OT_SQUEEZE)*h);const sy=H-game.otRise,lx=game.otRise,rx=W-game.otRise;
       for(const p of players)if(p.alive){const hit=k==='tide'?p.y+p.r>sy:p.x-p.r<lx||p.x+p.r>rx;if(hit){p.otT=(p.otT||0)-h;if(p.otT<=0){p.otT=.3;if(k==='tide')p.vy=Math.min(p.vy,-OT_POP);else{p.vx=(p.x<W/2?1:-1)*620;p.vy=Math.min(p.vy,-260)}p.grounded=false;p.ground=null;burst(p.x,k==='tide'?sy:p.x<W/2?lx:rx,'#ffb347',10,320,4,.4,0,true);addShake(4);sfx('zap');damage(p,OT_DMG,null)}}}}
-      else if(k==='meteor')meteorStep(h)}
+      else if(k==='meteor'||k==='bolt')meteorStep(h,k)}
     return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
   return false}
@@ -5010,11 +5016,9 @@ function drawPlayer(p){if(!p.alive)return;if(p.graceT>0&&Math.floor(performance.
   ctx.save();ctx.translate(0,R);ctx.rotate(lean);ctx.translate((p.wallDir||0)*jw*R*.2,-R);if(flip)ctx.rotate(flip);ctx.translate(0,R*(1-sy));ctx.scale(sx,sy);
   const ouch=p.ouchAt&&performance.now()-p.ouchAt<220;if(ouch)ctx.fillStyle='#ff6b5a';else if(p.hurtT>0)ctx.fillStyle='#ffffff';else{const g=ctx.createRadialGradient(-R*.38,-R*.45,R*.1,0,0,R*1.25);g.addColorStop(0,sk.hi);g.addColorStop(.5,p.color);g.addColorStop(1,sk.lo);ctx.fillStyle=g}
   ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.strokeStyle='rgba(14,6,24,.28)';ctx.lineWidth=R*.2;ctx.stroke();   // a dark rim inside the edge, like the painted guns' shading
-  ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
+  ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(-R,-R*.1);ctx.lineTo(R*.2,-R);ctx.lineTo(R,-R);ctx.lineTo(-R,R*.4);ctx.fill();   // soft low-poly facets
   ctx.fillStyle='rgba(0,0,0,.08)';ctx.beginPath();ctx.moveTo(R,R*.1);ctx.lineTo(-R*.3,R);ctx.lineTo(R,R);ctx.fill();ctx.restore();
-  ctx.strokeStyle='rgba(14,6,24,.85)';ctx.lineWidth=2.6;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.stroke();   // the same bold dark outline the platforms and guns carry
-  ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(-R*.42,-R*.5,R*.2,R*.11,-.7,0,TAU);ctx.fill();   // a painted highlight
+  ctx.strokeStyle='rgba(14,6,24,.85)';ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.stroke();   // the same bold dark outline the platforms and guns carry; the blob itself stays as it was
 
   if(p.cos&&p.cos.pattern&&!(p.hurtT>0))drawPattern(ctx,p.cos.pattern,R);
   if(p.ail&&!(p.hurtT>0)){const now=performance.now();ctx.save();ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.clip();
@@ -5460,7 +5464,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-arenas';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-apoc';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5765,7 +5769,7 @@ function netLost(msg){if(!net.role)return;if(ctl.on){leaveOnline(true);padClose(
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);hostMsg(msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
-  sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,oR:Math.round(game.otRise||0),mt:(game.mets||[]).map(m=>[r1(m.x),r1(m.y),r2(m.t),r2(m.max),m.R]),ok:otKind()||0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
+  sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,oR:Math.round(game.otRise||0),mt:(game.mets||[]).map(m=>[r1(m.x),r1(m.y),r2(m.t),r2(m.max),m.R]),ok:game.otMode||0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(','),p.burnT>0?r2(p.burnT):0,r2(p.burnA||0),p.jamT>0?r2(p.jamT):0,p.charges|0,p.ail|0,lanceSnap(p)]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0)|(b.lance?512:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0),b.lance?r2(b.bw||1):1]),
@@ -5776,7 +5780,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   if(s.ht!=null){const o=net.snapAt-s.ht;net.clk=net.clk==null||o<net.clk?o:net.clk+(o-net.clk)*.002;
     // how late snapshots run beyond the fastest path: the other fighter is drawn far enough behind to always have one to glide to
     net.lateMax=Math.max(o-net.clk,(net.lateMax||0)*.985)}
-  Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,otRise:s.oR||0,otK:s.ok||null,mets:(s.mt||[]).map(a=>({x:a[0],y:a[1],t:a[2],max:a[3],R:a[4]})),dropOff:s.dO});
+  Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,otRise:s.oR||0,otMode:s.ok||null,mets:(s.mt||[]).map(a=>({x:a[0],y:a[1],t:a[2],max:a[3],R:a[4]})),dropOff:s.dO});
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}
@@ -6168,7 +6172,7 @@ function bsStatus(pr,p=players.find(q=>q.peer===pr)){const s=p&&p.s;
    just comes from the phone instead of the keyboard and mouse, while the phone is being used ---------- */
 const cpad={peer:null,link:null,code:'',open:false,err:''};
 const cpadLocal=()=>game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse');
-function cpadDrives(){const L=cpad.link;if(!L||!L.open||!L.padIn)return false;const now=performance.now();return now-(L.lastInAt||0)<400&&now-(L.activeAt||0)<5000}   // the phone, unless it's been put down for a few seconds
+function cpadDrives(){const L=cpad.link;if(!L||!L.open||!L.padIn)return false;const now=performance.now();return now-(L.lastInAt||0)<900&&now-(L.activeAt||0)<5000}   // the phone, unless it's been put down for a few seconds
 function cpadSend(m){const L=cpad.link;if(L&&L.open)linkSend(L,m)}
 function cpadSheet(on){const el=$('#cpad');if(!el)return;el.hidden=!on;if(on){cpadStart();cpadUI();const b=el.querySelector('[data-act=cpDone]');b&&b.focus({preventScroll:true})}}
 function cpadUI(){const L=cpad.link,on=!!(L&&L.open);setText('#cpCode',cpad.code||'····');setText('#cpHost',siteHost()==='flickarcade.com'?'flickarcade.com/join':siteHost());
@@ -6183,6 +6187,7 @@ function cpadStart(){if(cpad.peer)return;if(!peerReady()){cpad.err=inPreview()?'
     peer.on('disconnected',()=>{if(cpad.peer===peer)try{peer.reconnect()}catch(e){}});
     peer.on('connection',conn=>{if(cpad.peer!==peer)return;
       if(conn.metadata&&conn.metadata.probe){conn.on('open',()=>{try{conn.close()}catch(e){}});return}
+      if(cpad.link&&cpad.link.open&&performance.now()-cpad.link.lastRecv>2500)cpadGone();   // the old link went quiet (a phone that dropped and is coming back): the same phone takes its place at once instead of being turned away until the old one times out
       if(cpad.link&&cpad.link.open){conn.on('open',()=>{conn.send({t:'full',party:1,screen:1});setTimeout(()=>{try{conn.close()}catch(e){}},1500)});return}   // one phone per computer
       const L={conn,fast:null,open:false,name:'',lastRecv:performance.now(),lastInAt:0,activeAt:0,padIn:null,view:'',handKey:'',pingT:0,psT:0};L.onMsg=m=>cpadNet(m,L);cpad.link=L;
       conn.on('open',()=>{if(cpad.link!==L)return;L.open=true;openFast(conn,L);conn.send({t:'hello',name:myName||'Player',v:BUILD,cos:myCos(),party:1,screen:1,cp:1,id:wallet.pid})});
