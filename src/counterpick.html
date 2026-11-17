@@ -2042,6 +2042,22 @@ function addPerches(m){const R=m.rects,PW=Math.round(220*GROW),hg=m.hangs||[],sw
     for(let y=300;y<=m.h-220;y+=40)for(let x=Math.round(m.w*.1);x+PW<m.w/2-70;x+=60){if(!clear(x,y)||!clear(m.w-x-PW,y)||!reach(x,y)||!reach(m.w-x-PW,y))continue;const d=far(x,y)+far(m.w-x-PW,y);if(d>bs){bs=d;best=[x,y]}}
     if(!best||bs<2*170)break;R.push([best[0],best[1],PW,32],[m.w-best[0]-PW,best[1],PW,32])}}
 for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(!m.duel||m.w!==1920||m.grown)continue;const gk=GROWS[m.name]||GROW,f=fitArena(m,Math.round(m.w*gk),Math.round(m.h*gk));f.grown=1;if(!m.rigs)addPerches(f);MAPS[i]=f}
+/* Climb arenas: a tall shaft (3 screens high) with a floor of lava that rises from below once the point has started. Stay on the ground
+   and you burn, so the fight moves upward: two mirrored tracks of wooden planks zig-zag up (every one a single jump above the last, so
+   climbing never needs a double jump), with purple walls to kick off, pink pads that throw you up several rows and a few bridging planks
+   in the middle to cross over on. The layout is a seeded recipe, the same on every screen. The lava is the clock (no overtime here) */
+function climbArena(name,seed,o){let a=seed>>>0;const R=()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296},
+  Wd=1600,Hd=o.h,L=[],Cn=[];let y=Hd-80-o.gap,xc=o.start,first=null,i=0;
+  while(y>300){const w=Math.round(o.wmin+R()*(o.wmax-o.wmin));xc=clamp(xc+(R()-.5)*2*o.drift,70,740-w);L.push([Math.round(xc),y,w,32]);if(!first)first=[Math.round(xc+w/2),y];
+    if(i>=2&&R()<o.pad)L.push([Math.round(xc+w/2-40),y-16,80,16,3]);
+    if(i%3===2)Cn.push([Wd/2-130,y-Math.round(o.gap/2),260,32]);
+    y-=o.gap+Math.round((R()-.5)*16);i++}
+  for(let wy=Hd-520;wy>460;wy-=o.wallEvery)L.push([20,wy-130,36,260,1]);
+  const rects=[[0,Hd-80,Wd,80],...L,...L.map(([x,yy,w,h,k])=>[Wd-x-w,yy,w,h,...(k!=null?[k]:[])]),...Cn,[Wd/2-300,Math.max(120,y),600,56]];   // the summit: a stone slab one jump above the last row
+  return{name,party:1,big:1,duel:1,climb:1,noSurv:1,grown:1,w:Wd,h:Hd,rects,sp:[[180,Hd-120],[Wd-180,Hd-120],[first[0],first[1]-40],[Wd-first[0],first[1]-40]]}}
+MAPS.push(climbArena('Ascent',7101,{h:2700,gap:130,wmin:260,wmax:420,drift:220,pad:.1,start:200,wallEvery:560}),
+  climbArena('Skywell',8123,{h:2700,gap:124,wmin:200,wmax:320,drift:300,pad:.2,start:300,wallEvery:420}),
+  climbArena('Spire Climb',9137,{h:2700,gap:136,wmin:340,wmax:520,drift:170,pad:.05,start:120,wallEvery:700}));
 /* The arena library: every duel, party, Big Screen match, co-op and Survival round is played on these (the room arenas).
    The older open arenas above stay defined only for the tests of their moving parts */
 const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel&&!(MAPS[k].noSurv&&game.mode==='survival'));
@@ -2151,7 +2167,7 @@ function drawLava(){const t=RM?0:performance.now()/1000;
     ctx.restore();
     {const k=Math.floor(t*w/260);if(!RM&&!fxLow&&k!==r.lspk&&parts.length<700){r.lspk=k;const Q=artRng(k*13+sd),l=.6+Q()*.6;parts.push({ember:true,x:x+Q()*w,y:y+2,vx:Q()*50-25,vy:-90-Q()*110,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}}   // sparks rising off it (timed, not drawn from Math.random, so seeded tests stay put)
 /* overtime's rising lava: a molten tide with a rippling bright skin, a hot glow above it and sparks that lift off it */
-function drawTide(){const kd=game.overtime&&otKind();if(kd==='meteor'||kd==='bolt')return drawMeteors();if(kd==='squeeze')return drawWalls();const R=game.otRise||0;if(R<=0||kd!=='tide')return;const t=RM?0:performance.now()/1000,y=H-R;ctx.save();
+function drawTide(){const kd=game.map&&game.map.climb?'tide':game.overtime&&otKind();if(kd==='meteor'||kd==='bolt')return drawMeteors();if(kd==='squeeze')return drawWalls();const R=game.otRise||0;if(R<=0||kd!=='tide')return;const t=RM?0:performance.now()/1000,y=H-R;ctx.save();
   const hz=ctx.createLinearGradient(0,y-120,0,y);hz.addColorStop(0,'rgba(255,90,20,0)');hz.addColorStop(1,'rgba(255,120,30,.3)');ctx.fillStyle=hz;ctx.fillRect(0,y-120,W,120);
   const g=ctx.createLinearGradient(0,y,0,y+260);g.addColorStop(0,'#ffd84d');g.addColorStop(.2,'#ff7d1a');g.addColorStop(.7,'#cc3410');g.addColorStop(1,'#5a1208');ctx.fillStyle=g;
   ctx.beginPath();ctx.moveTo(0,H+400);for(let i=0;i<=W;i+=10)ctx.lineTo(i,y+2.5+2.2*Math.sin(i*.04+t*2.2)+1.4*Math.sin(i*.11-t*3));ctx.lineTo(W,H+400);ctx.closePath();ctx.fill();
@@ -2207,7 +2223,7 @@ const BACKDROP={Yard:'canyon',Pit:'canyon',Stairs:'canyon',Quarry:'canyon',Canyo
   Foundry:'ember',Gearworks:'ember',Piston:'ember',Chimney:'ember',Pulley:'ember','Wrecking Yard':'ember',Scaffold:'ember',
   Skyline:'coast',Catwalk:'coast',Shelves:'coast',Topple:'coast',
   Lanterns:'lake',Chimes:'lake',Chandelier:'lake',Swingset:'lake',Ropeyard:'lake',
-  Aqueduct:'ruins',Market:'ruins',Beacon:'coast','Cinder Pit':'ember',Undercroft:'spires',Barricade:'spires',Escalators:'canyon',Gatehouse:'spires'};
+  Ascent:'islands',Skywell:'spires','Spire Climb':'canyon',Aqueduct:'ruins',Market:'ruins',Beacon:'coast','Cinder Pit':'ember',Undercroft:'spires',Barricade:'spires',Escalators:'canyon',Gatehouse:'spires'};
 const bdImgs={};
 const backdropOf=map=>BACKDROP[map.label||map.name]||'canyon';
 function backdropImg(id){let im=bdImgs[id];if(im)return im;if(typeof Image==='undefined')return null;im=bdImgs[id]=new Image();im.decoding='async';
@@ -2282,8 +2298,10 @@ function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec
 /* ---------- audio: synthesized effects, with a layer of recorded sci-fi shots, blasts and impacts on the gun and hit sounds
    (real .22 / .380 / .45 pistol, rifle and shotgun shots from the Free Firearm Sound Library on OpenGameArt, plus Kenney's Sci-Fi Sounds blasts and impacts, in sfx/, each levelled and trimmed). Until a sample has loaded, the synth plays alone ---------- */
 const SMP_GAIN=1,SMP_N={gun22:4,gun380:4,gun45:4,rifle:4,shotgun:4,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,slime:2},SAMPLES={};
-function loadSamples(){if(typeof fetch!=='function')return;for(const[g,n]of Object.entries(SMP_N))for(let i=0;i<n;i++){const k=g+'_'+String(i).padStart(3,'0');
-  try{fetch('sfx/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>{const q=actx.decodeAudioData(b,ok,no);if(q&&q.catch)q.catch(no)})).then(buf=>{(SAMPLES[g]=SAMPLES[g]||[]).push(buf)}).catch(()=>{})}catch(e){}}}
+function loadSamples(){if(typeof fetch!=='function')return;const q=[];for(const[g,n]of Object.entries(SMP_N))for(let i=0;i<n;i++)q.push([g,g+'_'+String(i).padStart(3,'0')]);
+  const next=()=>{const it=q.shift();if(!it)return;const[g,k]=it;   // one at a time, a beat apart: decoding all of them at once froze the page for a few hundred ms
+    try{fetch('sfx/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>{const p=actx.decodeAudioData(b,ok,no);if(p&&p.catch)p.catch(no)})).then(buf=>{(SAMPLES[g]=SAMPLES[g]||[]).push(buf)}).catch(()=>{}).then(()=>setTimeout(next,70))}catch(e){setTimeout(next,70)}};
+  setTimeout(next,400)}
 function smp(g,vol,rate,t,dest=master){const L=SAMPLES[g];if(!L||!L.length)return false;const b=L[Math.floor(Math.random()*L.length)],sr=actx.createBufferSource(),gn=actx.createGain();
   sr.buffer=b;sr.playbackRate.value=rate*rand(.94,1.06);gn.gain.value=vol*SMP_GAIN;sr.connect(gn).connect(dest);sr.start(t);return true}
 let actx=null,muted=false,noiseBuf=null,master=null,crunch=null,room=null,musicGain=null;
@@ -2572,7 +2590,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   buildRides();
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,rigs,BOUNDS);
-  buildBg(game.map);bullets=[];beams=[];parts=[];shields=[];net.h0=[];camSnap()}
+  buildBg(game.map);bullets=[];beams=[];parts=[];shields=[];net.h0=[];camSnap();cam.snapT=.6}
 // crates back in their spots and ropes back up (a new map, or a Survival life lost on the same one)
 function buildRides(){const old=rides,oldR=rigs;buildRigs();
   rides=[...(game.map.crates||[]).map(([x,y,z])=>({ride:true,crate:true,x,y,w:z,h:z,x0:x,y0:y,vx:0,vy:0,dx:0,dy:0,hits:0,broken:0,gone:0,art:crateArt(z)})),
@@ -2585,7 +2603,7 @@ function newPoint(fresh){
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));
   else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.duel&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.duel&&m.name===settings.bsMap);
   else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;
-  else{const pool=arenaPool().filter(k=>k!==game.mapIdx);i=pool.length?pick(pool):arenaPool()[0]}   // every mode, own screens and Big Screen: the one arena library
+  else{const all=arenaPool().filter(k=>k!==game.mapIdx),cl=all.filter(k=>MAPS[k].climb),pool=cl.length&&Math.random()<.17?cl:all.filter(k=>!MAPS[k].climb);i=pool.length?pick(pool):arenaPool()[0]}   // every mode, own screens and Big Screen: the one arena library
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -4271,6 +4289,9 @@ const otOn=()=>game.mode!=='survival'&&game.mode!=='sandbox'&&!game.bsSurv;
 const OT_MODES=['tide','meteor','squeeze','bolt'];
 const otKind=()=>!otOn()?null:game.otMode||null;
 const OT_BANNER={tide:'OVERTIME · LAVA RISING',meteor:'OVERTIME · ASTEROID STORM',squeeze:'OVERTIME · THE WALLS CLOSE IN',bolt:'OVERTIME · LIGHTNING STORM'};
+const CLIMB_DELAY=5,CLIMB_RATE=34,CLIMB_MAX=78,CLIMB_DMG=16;
+function tideStep(h,rate,dmg,cap,k='tide'){game.otRise=Math.min(cap,game.otRise+rate*h);const sy=H-game.otRise,lx=game.otRise,rx=W-game.otRise;
+  for(const p of players)if(p.alive){const hit=k==='tide'?p.y+p.r>sy:p.x-p.r<lx||p.x+p.r>rx;if(hit){p.otT=(p.otT||0)-h;if(p.otT<=0){p.otT=.3;if(k==='tide')p.vy=Math.min(p.vy,-OT_POP);else{p.vx=(p.x<W/2?1:-1)*620;p.vy=Math.min(p.vy,-260)}p.grounded=false;p.ground=null;p.kT=.35;burst(p.x,k==='tide'?sy:p.x<W/2?lx:rx,'#ffb347',10,320,4,.4,0,true);addShake(4);sfx('zap');damage(p,dmg,null)}}}}
 function meteorStep(h,kind){const a=players.filter(p=>p.alive),bolt=kind==='bolt';game.metT=(game.metT||0)-h;
   if(game.metT<=0&&a.length){const over=game.pointT-otAt();game.metT=Math.max(.3,(bolt?1:1.2)-over*.04);const p=pick(a);const T=bolt?.8:1.1;
     game.mets.push({x:clamp(p.x+rand(-1,1)*Math.max(0,150-over*6),60,W-60),y:p.y+p.r,t:T,max:T,R:bolt?85:105,bolt})}
@@ -4783,8 +4804,17 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
   if(ai.blockAt>=0){ai.blockAt-=dt;if(ai.blockAt<0)inp.blockP=true}
   if((p.s.blockWave||p.s.blockBombs||p.s.blockFreeze)&&p.blockCd<=0&&dist<220&&Math.random()<dt*2)inp.blockP=true;
   if(p.vy>300&&p.y>H-p.r-60&&(p.blockCd<=0||p.blockStock>0)&&p.blockT<=0&&Math.random()<.6)inp.blockP=true;
+  if(game.map&&game.map.climb&&ai.mode!=='recover'){const g=climbGoal(p);if(g){dir=g.dir;if(g.jump)jump=true}}   // a climb arena: the lava is coming, so head for the next plank up whatever else is going on (the gun still fires)
   if(jump){inp.jumpP=true;ai.jumpHold=.5}
   ai.jumpHold-=dt;inp.jumpH=ai.jumpHold>0;inp.move=dir}
+/* the plank to climb to: the highest ledge within one jump above the fighter's feet (and a sideways leap), nearest first; null when nothing is above */
+function climbGoal(p){const feet=p.y+p.r;let best=null,bs=-1e9;
+  for(const r of solids){if(r.bound||r.kind===1||r.kind===5||r.kind===3||r.w<60)continue;const up=feet-r.y;if(up<30||up>230)continue;
+    const cx=Math.max(r.x+24,Math.min(r.x+r.w-24,p.x)),dx=Math.abs(cx-p.x);if(dx>420)continue;const sc=-dx*.6+up*1.2;if(sc>bs){bs=sc;best=[r,cx]}}
+  if(!best){const sx=p.x<W/2?1:-1;return p.grounded?{dir:sx,jump:Math.random()<.08}:null}   // nothing in reach: drift toward the middle where the bridging planks are
+  const[r,cx]=best,dx=cx-p.x,under=Math.abs(dx)<18;
+  if(under)return{dir:0,jump:p.grounded||(!p.grounded&&p.vy>-120&&p.airJumps>0&&feet-r.y>90)};
+  return{dir:Math.sign(dx),jump:p.grounded&&Math.abs(dx)<(feet-r.y>140?60:200)}}
 
 /* ---------- main loop ---------- */
 /* physics advances in fixed 1/120 s steps on every device, so jumps, speed and timing match on 60, 120 or 144 Hz screens */
@@ -4807,9 +4837,10 @@ function simTick(h){const st=game.state;
   if(st==='ready'){game.stT-=h;step(h);if(game.stT<=0){game.state='play';sfx('go')}return true}
   if(st==='play'){step(h);game.pointT+=h;if(game.mode==='survival'){bossPhaseCheck();game.pointT=0}
     // overtime: a point that drags past OT_T makes every bullet seek, and a tide of lava starts rising from the floor, so nobody can camp forever
-    if(!game.overtime&&game.pointT>otAt()){game.overtime=true;if(!game.otMode)game.otMode=pick(OT_MODES);game.banner=OT_BANNER[otKind()]||'OVERTIME';game.bannerT=1.8;sfx('horn')}
-    if(game.overtime){const k=otKind();if(k==='tide'||k==='squeeze'){game.otRise=Math.min(k==='tide'?H:W/2-120,game.otRise+(k==='tide'?OT_RISE:OT_SQUEEZE)*h);const sy=H-game.otRise,lx=game.otRise,rx=W-game.otRise;
-      for(const p of players)if(p.alive){const hit=k==='tide'?p.y+p.r>sy:p.x-p.r<lx||p.x+p.r>rx;if(hit){p.otT=(p.otT||0)-h;if(p.otT<=0){p.otT=.3;if(k==='tide')p.vy=Math.min(p.vy,-OT_POP);else{p.vx=(p.x<W/2?1:-1)*620;p.vy=Math.min(p.vy,-260)}p.grounded=false;p.ground=null;burst(p.x,k==='tide'?sy:p.x<W/2?lx:rx,'#ffb347',10,320,4,.4,0,true);addShake(4);sfx('zap');damage(p,OT_DMG,null)}}}}
+    if(!game.overtime&&game.pointT>otAt()&&!(game.map&&game.map.climb)){game.overtime=true;if(!game.otMode)game.otMode=pick(OT_MODES);game.banner=OT_BANNER[otKind()]||'OVERTIME';game.bannerT=1.8;sfx('horn')}
+    const CL=!!(game.map&&game.map.climb&&otOn());   // a climb arena: the lava is the clock, rising from a few seconds in and faster the longer the point goes on
+    if(CL&&game.pointT>CLIMB_DELAY)tideStep(h,Math.min(CLIMB_MAX,CLIMB_RATE+(game.pointT-CLIMB_DELAY)*.9),CLIMB_DMG,H-150);
+    else if(game.overtime&&!CL){const k=otKind();if(k==='tide'||k==='squeeze')tideStep(h,k==='tide'?OT_RISE:OT_SQUEEZE,OT_DMG,k==='tide'?H:W/2-120,k);
       else if(k==='meteor'||k==='bolt')meteorStep(h,k)}
     return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
@@ -5324,7 +5355,7 @@ function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
 // how far the screen reaches past the 16:9 view box on each side, in view units
 function scrExtra(){return{ex:thumbRoom&&!game.bg?0:Math.max(0,view.ox/view.s),ey:Math.max(0,view.oy/view.s)}}
 function camSnap(){const g=camGoal();cam.x=g.x;cam.y=g.y;cam.z=g.z;cam.t=performance.now()}
-function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1);cam.t=now;const g=camGoal(),k=1-Math.exp(-dt*(RM?12:6));
+function camUpdate(){const now=performance.now(),dt=clamp((now-cam.t)/1000,0,.1);cam.t=now;const g=camGoal(),k=1-Math.exp(-dt*(RM?12:6));if(cam.snapT>0){cam.snapT-=dt;cam.x=g.x;cam.y=g.y;cam.z=g.z;return}   /* a new arena: the camera holds the fighters from the start (they are placed a moment after it loads) instead of panning over from where the last one ended */
   cam.z+=(g.z-cam.z)*k;cam.x+=(g.x-cam.x)*k;cam.y+=(g.y-cam.y)*k;
   if(!touch.on&&mouse.sx!=null&&cpadAim()==null){mouse.x=mouse.sx/cam.z+cam.x;mouse.y=mouse.sy/cam.z+cam.y}}   // (a paired phone that has the aim places the pointer itself)
 // someone off the edge of a followed view: an arrow on that edge, in their colour, so no enemy is ever out of mind
@@ -5457,7 +5488,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-apoc';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-climb';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

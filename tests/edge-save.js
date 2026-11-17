@@ -10,6 +10,7 @@ const path = require('path');
   const H = 1 / 120, fail = [], rows = [];
   const progs = [[], [.15], [.25], [.35], [.45], [.55], [.7]];   // when to spend the double jump after the launch
   for (let mi = 0; mi < A.MAPS.length; mi++) {
+    if (A.MAPS[mi].climb) continue;   // a climb shaft has no bottom edge to bounce off: the lava is its floor
     A.startMatch('cpu'); A.loadMap(mi); A.game.state = 'play'; A.game.pointT = 0; A.game.overtime = false; A.game.otRise = 0; A.game.dropT = 0;
     const [P, E] = A.players; E.alive = false; E.x = -999; P.cards = []; A.recompute(P);
     // open gaps: columns with nothing solid between mid-height and the bottom edge
