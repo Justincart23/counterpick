@@ -2050,37 +2050,40 @@ const DRESS=[
  {at:[[700,400],[700,300],[700,520]],r:()=>[P(0,0,520),WL(16,32,110),WL(468,32,110)]},         // truss: a plank over the middle on two posts
  {sym:1,at:[[0,430],[0,330],[0,560]],r:()=>[P(0,0,300),WL(262,32,130)]},                        // balcony: a plank off the side wall with a post at the end
  {at:[[760,150],[760,240]],r:()=>[S(0,0,400),WL(40,56,100),WL(324,56,100)]}];                  // roof beam: a stone block high in the middle with two walls hanging off it
+const NODRESS={Switchback:1};   // its zig-zag of ledges is the whole arena: any piece added in the gaps breaks the CPU's way across
 function dress(m,gk){const R=m.rects,k=v=>Math.round(v*gk),hash=[...m.name].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);let n=0;const cap=R.length>=12?1:2;
   const hit=(z,x0,y0,x1,y1)=>x0<z[2]&&x1>z[0]&&y0<z[3]&&y1>z[1],pad=k(70);
   for(let t=0;t<DRESS.length&&n<cap;t++){const q=(t+hash)%(DRESS.length-1),d=DRESS[t<DRESS.length-1?q+1:0];   /* the lintel is the fallback: tried last, so most arenas take something else first */
     for(const[ox,oy]of d.at){const L=d.r().map(([x,y,w,h,kd])=>[k(x+ox),k(y+oy),k(w),k(h),...(kd!=null?[kd]:[])]),M=d.sym?L.map(([x,y,w,h,kd])=>[m.w-x-w,y,w,h,...(kd!=null?[kd]:[])]):[],
         zs=[L,M].filter(q=>q.length).map(q=>[Math.min(...q.map(r=>r[0]))-pad,Math.min(...q.map(r=>r[1]))-pad,Math.max(...q.map(r=>r[0]+r[2]))+pad,Math.max(...q.map(r=>r[1]+r[3]))+pad]);
       const free=zs.every(Z=>!R.some(r=>(!d.floor||r[1]<m.h*.88)&&hit(Z,r[0],r[1],r[0]+r[2],r[1]+r[3]))&&!(m.crates||[]).some(([x,y,w])=>hit(Z,x,y,x+w,y+w))&&!(m.hangs||[]).some(h=>hit(Z,h.x-40,0,h.x+h.w+40,h.y+60))
-        &&!(m.swings||[]).some(w=>hit(Z,w.ax-w.len*.6,0,w.ax+w.len*.6,w.len+60))&&!(m.movers||[]).some(v=>hit(Z,v.x-(v.mx||0),v.y-(v.my||0),v.x+v.w+(v.mx||0),v.y+v.h+(v.my||0)))
+        &&!(m.swings||[]).some(w=>hit(Z,w.ax-w.len*.6,0,w.ax+w.len*.6,w.len+60))&&!(m.movers||[]).some(v=>hit(Z,Math.min(v.x,v.x+(v.mx||0))-40,Math.min(v.y,v.y+(v.my||0))-40,Math.max(v.x,v.x+(v.mx||0))+v.w+40,Math.max(v.y,v.y+(v.my||0))+v.h+40))   /* a mover's whole sweep, whichever way it runs */
         &&!(m.rigs||[]).some(g=>[g.x,g.px,g.rx,g.ax,g.a&&g.a.x,g.b&&g.b.x].some(v=>v!=null&&hit(Z,v-60,0,v+60,m.h)))&&!m.sp.some(([x,y])=>hit(Z,x-90,y-90,x+90,y+90)))
         &&(!d.floor||R.some(r=>r[1]>m.h*.88&&r[1]<m.h*.95&&r[0]<=L[0][0]+k(60)&&r[0]+r[2]>=L[0][0]+L[0][2]-k(60)&&(!d.sym||r[0]<=M[0][0]+k(60)&&r[0]+r[2]>=M[0][0]+M[0][2]-k(60))));
       if(free){R.push(...L,...M);(m.dressed=m.dressed||[]).push(DRESS.indexOf(d));n++;break}}}}
-for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(!m.duel||m.w!==1920||m.grown)continue;const gk=GROWS[m.name]||GROW,f=fitArena(m,Math.round(m.w*gk),Math.round(m.h*gk));f.grown=1;if(!m.climb)dress(f,gk);MAPS[i]=f}
-/* Climb arenas: ordinary arenas (everything above applies, same camera, same materials) with lava rising from the bottom once the point
-   has started. The floor goes first, then each tier in turn, so the fight keeps moving up and the high ground is a clock, not a prize.
-   Each has its own way up: a lift, a wall-jump chimney, stone steps, swinging blocks, a stair of bells. The lava is the clock, so
-   overtime does not start here. `lava` tunes one map's pace (see LAVA); the layout of each arena is mirrored where both sides should play alike */
+for(let i=0;i<MAPS.length;i++){const m=MAPS[i];if(!m.duel||m.w!==1920||m.grown)continue;const gk=GROWS[m.name]||GROW,f=fitArena(m,Math.round(m.w*gk),Math.round(m.h*gk));f.grown=1;if(!m.climb&&!NODRESS[m.name])dress(f,gk);MAPS[i]=f}
+/* Climb arenas: tall arenas that are climbed as much as fought on. Three screens of stacked chunks (each its own way up: a lift, a wall-jump
+   chimney, pads, stone tiers, a zig-zag, a crate yard) over a floor, with lava rising from the bottom once the point has started. The camera
+   climbs with the fighters, so each new stretch of platforms scrolls into view as they reach it; the floor goes first, then each tier,
+   so the fight keeps moving up and the high ground is a clock, not a prize. Rows are 192 apart (one air jump) and every plank overlaps
+   or sits within a hop of the one below it, so there is always a way up. Mirrored, and the same recipe on every screen. The lava is
+   the clock, so overtime does not start here; `lava` tunes one map's pace (see LAVA) */
+const CHUNK={
+ zig:y=>({r:[...sym([P(220,y-192,320),P(380,y-576,300)]),P(700,y-384,520),WL(716,y-352,110),WL(1168,y-352,110),P(780,y-768,360)]}),
+ pads:y=>({r:[...sym([P(180,y-192,380),PAD(260,y-192),P(300,y-576,360)]),P(760,y-384,400),S(700,y-768,520),WL(716,y-712,120),WL(1168,y-712,120)]}),
+ shaft:y=>({r:[...sym([P(200,y-192,320),P(100,y-384,320),P(220,y-576,320),P(380,y-768,360)]),WL(830,y-780,600,36),WL(986,y-780,600,36)]}),
+ stone:y=>({r:[...sym([P(220,y-192,320),P(380,y-576,300),WL(740,y-328,130,36)]),S(700,y-384,520),P(780,y-768,360)],c:[[260,y-252,60],[1600,y-252,60]]}),
+ lift:y=>({r:[...sym([P(100,y-192,340),P(360,y-384,320),P(560,y-576,300),S(0,y-520,70,520)]),S(780,y-768,360)],m:[{x:900,y:y-30,w:160,h:30,mx:0,my:-576,period:6}]}),
+ yard:y=>({r:[...sym([P(80,y-192,420),P(220,y-576,340)]),S(660,y-384,600),WL(700,y-328,140,36),WL(1184,y-328,140,36),P(760,y-768,400)],c:[[200,y-252,60],[1660,y-252,60],[900,y-444,60]]})};
+function climbMap(name,seq,lava,sky){const N=seq.length,H=N*960+420,F=H-80,rects=[[0,F,1920,80]],movers=[],crates=[];
+  seq.forEach((k,c)=>{const y0=F-c*960,o=CHUNK[k](y0);rects.push(...o.r,...sym([P(260,y0-960,440)],[P(840,y0-960,240)]));movers.push(...(o.m||[]));crates.push(...(o.c||[]))});
+  const f=fitArena({name,party:1,big:1,duel:1,climb:1,noSurv:1,w:1920,h:H,rects,movers,crates,lava,sp:[[160,F-40],[1760,F-40],[560,F-40],[1360,F-40]]},2208,H);f.grown=1;return f}
 MAPS.push(
- // Smelter (lifts): the counterweight lifts are the express way up. Stand on one and the other rises, so the one who rides gets there first but leaves a perch to the rival
- {name:'Smelter',...ROOM,climb:1,noSurv:1,rects:sym([P(60,800,240),P(200,620,240),P(60,440,220)],[FLOOR,S(800,780,320),P(780,580,360),P(860,380,200)]),
-   rigs:[{t:'lift',a:{x:480,y:700,w:200,h:30},b:{x:1240,y:700,w:200,h:30},wy:160,range:200}],sp:[[150,960],[1770,960],[180,760],[1740,760]]},
- // Blowhole (wall-jumps): a stone chimney in the middle: kick up between its walls, or take the ledges and pads round the side
- {name:'Blowhole',...ROOM,climb:1,noSurv:1,lava:{base:30,top:56},rects:sym([P(80,820,240),P(260,660,200),P(100,500,220),P(420,540,200),PAD(600,1000)],[FLOOR,WL(840,420,580,40),WL(1040,420,580,40),P(860,290,200)]),
-   sp:[[300,960],[1620,960],[200,780],[1720,780]]},
- // Ziggurat (steps): a stone stepped mound with planks round it. The lava ebbs and flows here, so there are lulls to fight in and surges to run from
- {name:'Ziggurat',...ROOM,climb:1,noSurv:1,lava:{pulse:.7,period:10},rects:sym([P(60,800,260),P(260,640,240),P(80,470,220),P(500,420,220),PAD(100,1000)],[FLOOR,S(660,880,600,120),S(780,760,360,120),S(880,640,160,120),P(840,420,240)]),
-   sp:[[300,960],[1620,960],[190,760],[1730,760]]},
- // Rope Works (swings): swinging blocks carry you from the side tiers to the middle. Time the swing, or shoot a hanging plank down onto whoever rides one
- {name:'Rope Works',...ROOM,climb:1,noSurv:1,lava:{base:22,acc:.5},rects:sym([P(60,800,300),P(100,600,240),P(60,400,200)],[FLOOR,S(840,820,240,180),P(840,300,240)]),
-   swings:[{ax:700,len:560,w:180,h:30},{ax:1220,len:560,w:180,h:30}],hangs:symH([{x:400,y:430,w:200}]),sp:[[150,960],[1770,960],[190,760],[1730,760]]},
- // Carillon (bells): a stair of bells, lowest at the edges and highest in the middle, with a loft over the top. Each rings when you land on it
- {name:'Carillon',...ROOM,climb:1,noSurv:1,rects:[FLOOR,...sym([P(60,700,240)],[P(820,380,280)])],rigs:bellCols.map(c=>({t:'chime',x:c.x,top:c.top,w:150,h:40})),
-   sp:[[bellCols[0].x,bellCols[0].top-24],[bellCols[6].x,bellCols[6].top-24],[bellCols[2].x,bellCols[2].top-24],[bellCols[4].x,bellCols[4].top-24]]});
+ climbMap('Smelter',['lift','zig','stone'],{}),
+ climbMap('Blowhole',['shaft','pads','zig'],{base:34,top:64}),
+ climbMap('Ziggurat',['stone','shaft','yard'],{pulse:.6,period:11}),
+ climbMap('Gantry',['yard','lift','pads'],{base:28,acc:.45}),
+ climbMap('Skylift',['pads','stone','lift'],{}));
 /* The arena library: every duel, party, Big Screen match, co-op and Survival round is played on these (the room arenas).
    The older open arenas above stay defined only for the tests of their moving parts */
 const arenaPool=()=>MAPS.map((m,k)=>k).filter(k=>MAPS[k].duel&&!(MAPS[k].noSurv&&game.mode==='survival'));
@@ -2252,7 +2255,7 @@ const BACKDROP={Yard:'canyon',Pit:'canyon',Stairs:'canyon',Quarry:'canyon',Canyo
   Foundry:'ember',Gearworks:'ember',Piston:'ember',Chimney:'ember',Pulley:'ember','Wrecking Yard':'ember',Scaffold:'ember',
   Skyline:'coast',Catwalk:'coast',Shelves:'coast',Topple:'coast',
   Lanterns:'lake',Chimes:'lake',Chandelier:'lake',Swingset:'lake',Ropeyard:'lake',
-  Smelter:'canyon',Blowhole:'spires',Ziggurat:'ruins','Rope Works':'islands',Carillon:'spires',Aqueduct:'ruins',Market:'ruins',Beacon:'coast','Cinder Pit':'ember',Undercroft:'spires',Barricade:'spires',Escalators:'canyon',Gatehouse:'spires'};
+  Smelter:'canyon',Blowhole:'spires',Ziggurat:'ruins',Gantry:'islands',Skylift:'spires',Aqueduct:'ruins',Market:'ruins',Beacon:'coast','Cinder Pit':'ember',Undercroft:'spires',Barricade:'spires',Escalators:'canyon',Gatehouse:'spires'};
 const bdImgs={};
 const backdropOf=map=>BACKDROP[map.label||map.name]||'canyon';
 function backdropImg(id){let im=bdImgs[id];if(im)return im;if(typeof Image==='undefined')return null;im=bdImgs[id]=new Image();im.decoding='async';
@@ -2632,7 +2635,9 @@ function newPoint(fresh){
   if(game.mode==='survival'&&survBossFor(game.round||0))i=Math.max(0,MAPS.findIndex(m=>m.name===survBossFor(game.round).map));
   else if(game.screen&&!game.bsSurv&&settings.bsMap!=='all'&&MAPS.some(m=>m.duel&&m.name===settings.bsMap))i=MAPS.findIndex(m=>m.duel&&m.name===settings.bsMap);
   else if(game.mode==='sandbox'&&sandbox.arena>=0)i=sandbox.arena;
-  else{const all=arenaPool().filter(k=>k!==game.mapIdx),cl=all.filter(k=>MAPS[k].climb),pool=cl.length&&Math.random()<.17?cl:all.filter(k=>!MAPS[k].climb);i=pool.length?pick(pool):arenaPool()[0]}   // every mode, own screens and Big Screen: the one arena library
+  else{const hist=game.mapHist||(game.mapHist=[]),all=arenaPool(),fresh=all.filter(k=>k!==game.mapIdx&&!hist.includes(k)),pool0=fresh.length?fresh:all.filter(k=>k!==game.mapIdx),cl=pool0.filter(k=>MAPS[k].climb),
+    wantClimb=cl.length&&!hist.slice(-4).some(k=>MAPS[k].climb)&&Math.random()<.2,pool=wantClimb?cl:pool0.filter(k=>!MAPS[k].climb);   /* no arena twice within the last dozen rounds, and a climb arena at most once in five */
+    i=pool.length?pick(pool):all[0];hist.push(i);if(hist.length>12)hist.shift()}   // every mode, own screens and Big Screen: the one arena library
   loadMap(i);drops=[];
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
@@ -5387,11 +5392,12 @@ function camGoal(){const big=W>VW||H>VH,{ex:ex0}=scrExtra();
     const fit=(f,v,e,M)=>v+2*e/z>=M?(M-v)/2:clamp(f,e/z,M-v-e/z);return{x:fit(fx-vw/2,vw,ex,W),y:fit(fy-vh*.55,vh,ey,H),z}}
   if(!big&&fillZ<=1.001)return{x:0,y:0,z:1};
   // a big arena is shown whole, like a ROUNDS map (zoomed out only as far as the fighters stay readable: less on a phone)
-  const z=big?Math.max(Math.min(VW/W,VH/H),touch.on?(thumbRoom?.74:.8):.66):fillZ,   /* the widest arenas pan a little, so a fighter never shrinks to a speck */vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
+  const CLM=!!(game.map&&game.map.climb&&!game.bg),z=CLM?clamp(VW/W,.5,1):big?Math.max(Math.min(VW/W,VH/H),touch.on?(thumbRoom?.74:.8):.66):fillZ,   /* the widest arenas pan a little, so a fighter never shrinks to a speck */vw=VW/z,vh=VH/z,{ex,ey}=scrExtra();
   const me=survOn()?myHero():game.mode==='online-guest'?players[net.me]:players.find(p=>p.ctrl==='mouse'),mate=survOn()?heroes().find(p=>p!==me&&p.alive):null;
   let fx,fy;if(me&&me.alive){fx=me.x;fy=me.y;if(mate){fx+=clamp((mate.x-me.x)*.35,-vw*.25,vw*.25);fy+=clamp((mate.y-me.y)*.35,-vh*.2,vh*.2)}}
   else{const fs=survOn()?heroes().filter(p=>p.alive):[];const L=fs.length?fs:players.filter(p=>p.alive);if(!L.length)return{x:cam.x,y:cam.y,z};fx=0;fy=0;for(const p of L){fx+=p.x;fy+=p.y}fx/=L.length;fy/=L.length}
-  if(!touch.on&&mouse.sx!=null){fx+=clamp((mouse.sx-VW/2)*.18,-160,160)/z;fy+=clamp((mouse.sy-VH/2)*.14,-90,90)/z}
+  if(CLM){const L=players.filter(p=>p.alive&&Number.isFinite(p.y));if(L.length){const top=Math.min(...L.map(p=>p.y)),bot=Math.max(...L.map(p=>p.y));fx=W/2;fy=Math.max(top-vh*.42,bot+110-vh)+vh*.55}}   /* a climb arena: the view holds the highest fighter 40% down the screen and never lets the lowest slip off the bottom */
+  else if(!touch.on&&mouse.sx!=null){fx+=clamp((mouse.sx-VW/2)*.18,-160,160)/z;fy+=clamp((mouse.sy-VH/2)*.14,-90,90)/z}
   // the whole screen shows arena (not just the 16:9 box the HUD sits in), so clamp the screen's edges to the arena's
   const fit=(f,v,e,L)=>v+2*e/z>=L?(L-v)/2:clamp(f,e/z,L-v-e/z);
   return{x:fit(fx-vw/2,vw,ex,W),y:fit(fy-vh*.55,vh,ey,H),z}}
@@ -5531,7 +5537,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-dress';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-climb3';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
