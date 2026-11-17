@@ -7,7 +7,7 @@ const fail = [], DT = 1 / 120;
 (async () => {
   const A = (await load({ seed: +(process.env.SEED || 77) })).api;
   A.startMatch('cpu'); flushTimers();
-  const settle = (ps) => { for (const p of ps) { p.ctrl = 'idle'; p.input = { move: 0, aim: 0 } } const G = A.game; G.state = 'play'; G.dropT = 0; G.dropOff = 0; G.paused = false; G.bg = false; for (let i = 0; i < 240 && G.state === 'play'; i++) A.update(DT) };
+  const settle = (ps) => { for (const p of ps) { p.ctrl = 'idle'; p.input = { move: 0, aim: 0 } } const G = A.game; G.state = 'play'; G.pointT = 0; G.overtime = false; G.otRise = 0; G.dropT = 0; G.dropOff = 0; G.paused = false; G.bg = false; for (let i = 0; i < 240 && G.state === 'play'; i++) A.update(DT) };
   let checked = 0;
   const check = (tag, ps) => {
     for (const p of ps) { checked++;

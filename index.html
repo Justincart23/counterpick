@@ -2143,6 +2143,26 @@ function drawLava(){const t=RM?0:performance.now()/1000;
     ctx.strokeStyle='#fff3b8';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<=w;i+=10){const yy=y+2.5+1.8*Math.sin(i*.05+t*2.4+sd)+1.2*Math.sin(i*.13-t*3.1);i?ctx.lineTo(x+i,yy):ctx.moveTo(x+i,yy)}ctx.stroke();   // the rippling skin
     ctx.restore();
     {const k=Math.floor(t*w/260);if(!RM&&!fxLow&&k!==r.lspk&&parts.length<700){r.lspk=k;const Q=artRng(k*13+sd),l=.6+Q()*.6;parts.push({ember:true,x:x+Q()*w,y:y+2,vx:Q()*50-25,vy:-90-Q()*110,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}}   // sparks rising off it (timed, not drawn from Math.random, so seeded tests stay put)
+/* overtime's rising lava: a molten tide with a rippling bright skin, a hot glow above it and sparks that lift off it */
+function drawTide(){const kd=game.overtime&&otKind();if(kd==='meteor')return drawMeteors();if(kd==='squeeze')return drawWalls();const R=game.otRise||0;if(R<=0||kd!=='tide')return;const t=RM?0:performance.now()/1000,y=H-R;ctx.save();
+  const hz=ctx.createLinearGradient(0,y-120,0,y);hz.addColorStop(0,'rgba(255,90,20,0)');hz.addColorStop(1,'rgba(255,120,30,.3)');ctx.fillStyle=hz;ctx.fillRect(0,y-120,W,120);
+  const g=ctx.createLinearGradient(0,y,0,y+260);g.addColorStop(0,'#ffd84d');g.addColorStop(.2,'#ff7d1a');g.addColorStop(.7,'#cc3410');g.addColorStop(1,'#5a1208');ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(0,H+400);for(let i=0;i<=W;i+=10)ctx.lineTo(i,y+2.5+2.2*Math.sin(i*.04+t*2.2)+1.4*Math.sin(i*.11-t*3));ctx.lineTo(W,H+400);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#fff3b8';ctx.lineWidth=3.5;ctx.beginPath();for(let i=0;i<=W;i+=10){const yy=y+2.5+2.2*Math.sin(i*.04+t*2.2)+1.4*Math.sin(i*.11-t*3);i?ctx.lineTo(i,yy):ctx.moveTo(i,yy)}ctx.stroke();ctx.restore();
+  if(!RM&&!fxLow&&parts.length<700){const k=Math.floor(t*14);if(k!==game.tideK){game.tideK=k;const Q=artRng(k*7+3),l=.6+Q()*.6;parts.push({ember:true,x:Q()*W,y:y+2,vx:Q()*50-25,vy:-110-Q()*120,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}
+/* meteor storm: a ring on the ground that closes in on its centre, then the strike */
+function drawMeteors(){const t=RM?0:performance.now()/1000;ctx.save();for(const m of game.mets||[]){const k=1-clamp(m.t/(m.max||1),0,1);
+  const g=ctx.createRadialGradient(m.x,m.y,4,m.x,m.y,m.R);g.addColorStop(0,`rgba(255,90,30,${.15+.35*k})`);g.addColorStop(1,'rgba(255,90,30,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.fill();
+  ctx.strokeStyle=`rgba(255,${Math.round(210-120*k)},60,${.55+.4*Math.sin(t*20)*.3+.3*k})`;ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R*(1-.35*k),0,TAU);ctx.stroke();ctx.setLineDash([]);
+  const fy=m.y-(1-k)*(1-k)*900;ctx.strokeStyle='rgba(255,190,90,.9)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(m.x-(1-k)*60,fy-90);ctx.lineTo(m.x,fy);ctx.stroke();ctx.fillStyle='#fff3b8';ctx.beginPath();ctx.arc(m.x,fy,9,0,TAU);ctx.fill()}ctx.restore()}
+/* closing walls: curtains of fire sweeping in from both sides, sparks lifting off their edge */
+function drawWalls(){const R=game.otRise||0;if(R<=0)return;const t=RM?0:performance.now()/1000;ctx.save();
+  for(const side of[0,1]){const x0=side?W-R:0,edge=side?W-R:R,g=ctx.createLinearGradient(side?W:0,0,edge,0);g.addColorStop(0,'#5a1208');g.addColorStop(.6,'#cc3410');g.addColorStop(.9,'#ff7d1a');g.addColorStop(1,'#ffd84d');ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(side?W:0,-10);for(let y=-10;y<=H+10;y+=12){const e=edge+(side?-1:1)*(3+3*Math.sin(y*.045+t*2.3)+2*Math.sin(y*.12-t*3.4));ctx.lineTo(e,y)}ctx.lineTo(side?W:0,H+10);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#fff3b8';ctx.lineWidth=3;ctx.beginPath();for(let y=-10;y<=H+10;y+=12){const e=edge+(side?-1:1)*(3+3*Math.sin(y*.045+t*2.3)+2*Math.sin(y*.12-t*3.4));y>-10?ctx.lineTo(e,y):ctx.moveTo(e,y)}ctx.stroke();
+    const hz=ctx.createLinearGradient(edge,0,edge+(side?-1:1)*110,0);hz.addColorStop(0,'rgba(255,120,30,.3)');hz.addColorStop(1,'rgba(255,90,20,0)');ctx.fillStyle=hz;ctx.fillRect(Math.min(edge,edge+(side?-110:110)),0,110,H)}
+  ctx.restore();
+  if(!RM&&!fxLow&&parts.length<700){const k=Math.floor(t*14);if(k!==game.tideK){game.tideK=k;const Q=artRng(k*7+3),l=.6+Q()*.6,sd=Q()<.5?1:0;parts.push({ember:true,x:sd?W-R:R,y:Q()*H,vx:(sd?-1:1)*(20+Q()*50),vy:-60-Q()*80,drag:.6,grav:-40,life:l,max:l,seed:Q()*99,color:Q()<.5?'#ffd27a':'#ff7a2e'})}}}
 /* a bounce pad: a pink plate on a little spring, set into the rock below it (no shadow of its own) */
 function padArt(g,x,y,w,h){g.save();const mx=x+6,mw=w-12;g.fillStyle='#3a2f45';g.fillRect(mx,y+7,mw,h-7);
   g.strokeStyle='#b9b2c6';g.lineWidth=2;g.beginPath();for(let i=0,n=Math.max(3,Math.round(mw/14));i<=n;i++){const px=mx+4+(mw-8)*i/n;g[i?'lineTo':'moveTo'](px,i%2?y+h-2:y+9)}g.stroke();
@@ -2408,7 +2428,7 @@ const DIFF={easy:{block:.06,dodge:.12,err:.2,react:.28,hes:.7,lag:.4,turn:2.6,le
   normal:{block:.22,dodge:.25,err:.11,react:.16,hes:.4,lag:.25,turn:4.2,lead:.6,save:.7},
   hard:{block:.5,dodge:.45,err:.05,react:.09,hes:.18,lag:.13,turn:8,lead:.9,save:.9}};
 const game={state:'idle',mode:'demo',bg:true,wins:[0,0],points:[0,0],target:5,map:null,mapIdx:-1,stT:0,endT:0,banner:'',bannerT:0,
-  slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
+  slowT:0,hitstop:0,shake:0,flash:0,pointT:0,overtime:false,mets:[],otRise:0,dropT:0,dropOff:0,paused:false,diff:'normal',token:0,lastWinner:-1};
 let players=[],bullets=[],parts=[],shields=[];   // shields: Bulwark walls, which stop the other fighter's bullets
 
 // four fighter colours, in two teams: teammates are shades of one colour (orange with a golden orange, blue with a light blue)
@@ -2540,7 +2560,7 @@ function newPoint(fresh){
   players.forEach((p,k)=>{if(p.tempCards&&p.tempCards.length){p.tempCards=[];recompute(p)}p.buffOver=p.buffRapid=0;resetPlayer(p,spawnFor(p,k));if(p.left){p.alive=false;p.x=-9999}});
   const finalRound=!game.bg&&game.target<99&&Math.max(...game.wins)===game.target-1;
   if(game.screen){if(!game.bsSurv)game.twist=typeof settings.bsTwist==='string'&&portal.plus?TWISTS.find(t=>t.id===settings.bsTwist)||null:settings.bsTwist===true&&Math.random()<.4?pick(TWISTS):null;for(const p of players)p.findT=p.ctrl==='pad'?1.5:0}   // every point starts by showing each phone where its fighter is
-  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
+  game.banner=(finalRound?'FINAL ROUND':(game.map.label||game.map.name).toUpperCase())+(game.screen&&!game.bsSurv&&game.twist?' · '+game.twist.n:'');game.bannerT=finalRound?1.6:1.2;game.pointT=0;game.overtime=false;game.otRise=0;game.mets=[];game.metT=0;game.dropT=RM?0:.6;game.dropOff=RM?0:-H*.85;
   if(!fresh){game.state='ready';game.stT=1.1}
 }
 function resolvePoint(){
@@ -4213,7 +4233,20 @@ function blinkFx(x0,y0,x1,y1,r,color,glow){fxRec('T',[x0,y0,x1,y1,r,color,glow])
 
 /* ---------- damage ---------- */
 // overtime escalates: +50% damage for every 10s past the overtime horn, so long stalemates always end
-const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-45)/10)*.5:1;
+const OT_SQUEEZE=30,OT_T=32,OT_MORE=9,OT_RISE=26,OT_DMG=12,OT_POP=560;   // overtime starts at 32 s for a duel (the median point is 14 s, the 90th percentile 28 s), 9 s later for each extra fighter in the arena; the lava climbs 26 px/s
+const otAt=()=>OT_T+OT_MORE*Math.max(0,players.filter(p=>!p.left&&!(game.coop&&p.team===1)).length-2);
+const otOn=()=>!game.bg&&game.mode!=='survival'&&game.mode!=='sandbox'&&!game.bsSurv;
+/* what overtime does to an arena depends on its world: embers, islands and lakes get the rising lava tide; canyons and ruins a
+   meteor storm (each shown as a ring on the ground first); fortresses and coasts walls of fire that close in from both sides */
+const OT_KIND={ember:'tide',islands:'tide',lake:'tide',canyon:'meteor',ruins:'meteor',spires:'squeeze',coast:'squeeze'};
+const otKind=()=>!otOn()||!game.map?null:game.map.rects.some(r=>r[4]===5)?'tide':OT_KIND[backdropOf(game.map)]||'tide';
+const OT_BANNER={tide:'OVERTIME · LAVA RISING',meteor:'OVERTIME · METEOR STORM',squeeze:'OVERTIME · THE WALLS CLOSE IN'};
+function meteorStep(h){const a=players.filter(p=>p.alive);game.metT=(game.metT||0)-h;
+  if(game.metT<=0&&a.length){const over=game.pointT-otAt();game.metT=Math.max(.4,1.2-over*.03);const p=pick(a);game.mets.push({x:clamp(p.x+rand(-150,150),60,W-60),y:p.y+p.r,t:1,max:1,R:100})}
+  for(const m of game.mets){m.t-=h;if(m.t<=0){m.dead=true;boomFx(m.x,m.y,m.R,'#ff8a2a',1.1);addShake(7);sfx('boom');
+    for(const p of players)if(p.alive){const d=Math.hypot(p.x-m.x,p.y-m.y);if(d<m.R+p.r){const an=Math.atan2(p.y-m.y,p.x-m.x);p.vx+=Math.cos(an)*620;p.vy=Math.min(p.vy,-420);p.grounded=false;p.ground=null;p.kT=.35;damage(p,30,null)}}}}
+  game.mets=game.mets.filter(m=>!m.dead)}
+const otMult=()=>game.overtime?1+Math.max(0,(game.pointT-otAt())/10)*.5:1;
 /* the first death decides the point: there are no trades. From that moment the survivor can't be hurt and can't die (a bullet
    already in the air, a shared explosion, a fall) while the point wraps up, so every point goes to Orange or Blue */
 const POINT_END=1.7;
@@ -4671,6 +4704,7 @@ function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(g
       if(roof&&dy<-110){const oL=roof.x>FRAME+2*p.r+8,oR=roof.x+roof.w<W-FRAME-2*p.r-8;if(oL!==oR)ai.side=oL?-1:1;else if(oL)ai.side=p.x-roof.x<roof.x+roof.w-p.x?-1:1}}/* both ends safe: drop on the rival's side, not off the far end over a gap and back up */dir=ai.side;if(wallAhead(p,dir)&&p.grounded)ai.side=-ai.side}else ai.side=0;
     if(game.overtime&&!ai.los){const m=safeSpawn(p,inp.aim,gunTip(p,inp.aim),5*p.s.bulletSize,p.s.phase);if(!m.blocked){ai.hes-=dt;if(ai.hes<=0)inp.fire=true}}
     if(p.grounded&&dy<-100&&onewayAbove(p)&&Math.random()<dt*5)jump=true;
+    if(game.otRise>0&&p.y+p.r>H-game.otRise-90&&Math.random()<dt*6)jump=true;   // the tide is close: keep hopping up
     if(p.grounded&&dy<-100&&!roof&&ai.roofT>0&&Math.abs(dx)<700)jump=true;   // just out from under a roof: climb toward the rival straight away
     if(p.grounded&&dy>110&&p.ground&&p.ground.oneway&&Math.random()<dt*3)down=true;
     if(wallAhead(p,dir)){if(roof&&dy>-60&&!p.grounded){if(p.wallDir)dir=0}   // in a low room under a roof: a wall here has its way through below (a crawl gap), so let go and walk under it rather than wall-jump into the ceiling
@@ -4739,8 +4773,12 @@ function simTick(h){const st=game.state;
     game.dropOff=-(1-eb)*H*.85;if(game.dropT<=0){game.dropOff=0;addShake(9);sfx('thud')}}
   if(st==='ready'){game.stT-=h;step(h);if(game.stT<=0){game.state='play';sfx('go')}return true}
   if(st==='play'){step(h);game.pointT+=h;if(game.mode==='survival'){bossPhaseCheck();game.pointT=0}
-    // overtime: a point that drags past 45s makes every bullet seek, so nobody can camp behind cover forever
-    if(!game.overtime&&game.pointT>45){game.overtime=true;game.banner='OVERTIME';game.bannerT=1.4;sfx('horn')}return true}
+    // overtime: a point that drags past OT_T makes every bullet seek, and a tide of lava starts rising from the floor, so nobody can camp forever
+    if(!game.overtime&&game.pointT>otAt()){game.overtime=true;game.banner=OT_BANNER[otKind()]||'OVERTIME';game.bannerT=1.8;sfx('horn')}
+    if(game.overtime){const k=otKind();if(k==='tide'||k==='squeeze'){game.otRise=Math.min(k==='tide'?H:W/2-120,game.otRise+(k==='tide'?OT_RISE:OT_SQUEEZE)*h);const sy=H-game.otRise,lx=game.otRise,rx=W-game.otRise;
+      for(const p of players)if(p.alive){const hit=k==='tide'?p.y+p.r>sy:p.x-p.r<lx||p.x+p.r>rx;if(hit){p.otT=(p.otT||0)-h;if(p.otT<=0){p.otT=.3;if(k==='tide')p.vy=Math.min(p.vy,-OT_POP);else{p.vx=(p.x<W/2?1:-1)*620;p.vy=Math.min(p.vy,-260)}p.grounded=false;p.ground=null;burst(p.x,k==='tide'?sy:p.x<W/2?lx:rx,'#ffb347',10,320,4,.4,0,true);addShake(4);sfx('zap');damage(p,OT_DMG,null)}}}}
+      else if(k==='meteor')meteorStep(h)}
+    return true}
   if(st==='pointEnd'){step(h);game.endT-=h;if(game.endT<=0)resolvePoint();return true}
   return false}
 function snapPrev(){for(const o of players){o.lx=o.x;o.ly=o.y}for(const b of bullets){b.lx=b.x;b.ly=b.y}for(const w of swings){w.lx=w.x;w.ly=w.y}for(const c of rides){c.lx=c.x;c.ly=c.y}for(const c of rigs){c.lx=c.x;c.ly=c.y;c.lphi=c.phi}}
@@ -5118,7 +5156,7 @@ function renderNow(){if(ctx.reset)ctx.reset();ctx.setTransform(1,0,0,1,0,0);ctx.
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
   ctx.drawImage(bgC,0,0,W,H);drawAmbient();
   for(const m of motes){ctx.globalAlpha=m.a;ctx.fillStyle='#ffd9c4';ctx.fillRect(m.x,m.y,m.s,m.s)}ctx.globalAlpha=1;
-  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);drawLava();
+  ctx.save();ctx.translate(0,game.dropOff);ctx.drawImage(platC,0,0,W,H);ctx.drawImage(decC,0,0,W,H);drawLava();drawTide();
   for(const s of swings){if(!s.mover){if(s.ay>0){chain(s.ax,0,s.ax,s.ay);ctx.fillStyle='#8f88a6';ctx.beginPath();ctx.arc(s.ax,s.ay,6,0,TAU);ctx.fill()}chain(s.ax,s.ay||0,s.x+s.w/2,s.y)}
     ctx.fillStyle='rgba(0,0,0,.3)';slabPath(ctx,s.x+8,s.y+10,s.w,s.h);ctx.fill();ctx.drawImage(s.art,s.x,s.y)}
   drawPadGlow();drawRides();drawRigs();
@@ -5384,7 +5422,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-menu';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-17-tide';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -5689,7 +5727,7 @@ function netLost(msg){if(!net.role)return;if(ctl.on){leaveOnline(true);padClose(
   if(wasPlaying){toMenu();showMenuMsg(msg)}else{setText('#joinMsg',msg);hostMsg(msg)}}
 function snapshot(){return{t:'s',ht:r1(game.stepAt??performance.now()),mn:game.map&&game.map.name,st:game.state,stT:r2(game.stT),endT:r2(game.endT),lw:game.lastWinner,w:game.wins,pt:game.points,tg:game.target,m:game.mapIdx,
   dr:drops.map(d=>[d.id,DROP_KINDS.indexOf(d.kind),r1(d.x),r1(d.y),d.state==='warn'?0:d.state==='fall'?1:2,r2(d.t),r1(d.ty)]),
-  sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
+  sh:shields.map(w=>[r1(w.x1),r1(w.y1),r1(w.x2),r1(w.y2),r2(w.t),w.owner.id]),bn:game.banner,bT:r2(game.bannerT),ot:game.overtime?1:0,oR:Math.round(game.otRise||0),mt:(game.mets||[]).map(m=>[r1(m.x),r1(m.y),r2(m.t),r2(m.max),m.R]),ok:otKind()||0,dO:Math.round(game.dropOff),rt:Math.round(net.rtt),
   p:players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.aim),Math.round(p.hp),p.alive?1:0,p.ammo,r2(p.sinceShot),r2(p.blockT),r2(p.blockCd),p.staticReady?1:0,
     r2(p.shotT),r2(p.hurtT),r2(p.squash),p.grounded?1:0,r2(p.slowAmt),p.cards.map(c=>c.id).join(','),p.ackSeq|0,p.aegis|0,p.frozenT>0?1:0,p.blockStock|0,p.airJumps|0,p.blinkN|0,p.buffOver>0?r2(p.buffOver):0,p.buffRapid>0?r2(p.buffRapid):0,(p.tempCards||[]).map(c=>c.id).join(','),p.burnT>0?r2(p.burnT):0,r2(p.burnA||0),p.jamT>0?r2(p.jamT):0,p.charges|0,p.ail|0,lanceSnap(p)]),
   b:bullets.map(b=>[b.id,r1(b.x),r1(b.y),r1(b.vx),r1(b.vy),r1(b.r),b.owner.id,(b.phase?1:0)|(b.poison?2:0)|(b.phasing?4:0)|(b.stuck?8:0)|(b.slow?16:0)|(b.explode?32:0)|(b.homing?64:0)|(b.grow?128:0)|(b.gunShot?256:0)|(b.lance?512:0),r2(b.grav),b.grow?r1(rangeMult(b)):1,b.sc!=null?b.sc*64+b.si:-1,r2(b.age||0),b.lance?r2(b.bw||1):1]),
@@ -5700,7 +5738,7 @@ function applySnap(s){if(net.snap&&s.ht!=null&&net.snap.ht!=null&&s.ht<=net.snap
   if(s.ht!=null){const o=net.snapAt-s.ht;net.clk=net.clk==null||o<net.clk?o:net.clk+(o-net.clk)*.002;
     // how late snapshots run beyond the fastest path: the other fighter is drawn far enough behind to always have one to glide to
     net.lateMax=Math.max(o-net.clk,(net.lateMax||0)*.985)}
-  Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,dropOff:s.dO});
+  Object.assign(game,{state:s.st,stT:s.stT,endT:s.endT,lastWinner:s.lw,wins:s.w,points:s.pt,target:s.tg,overtime:!!s.ot,otRise:s.oR||0,otK:s.ok||null,mets:(s.mt||[]).map(a=>({x:a[0],y:a[1],t:a[2],max:a[3],R:a[4]})),dropOff:s.dO});
   // arenas travel by name, so a reordered arena list can never show the guest a different map
   const mi=s.mn?MAPS.findIndex(m=>m.name===s.mn):s.m;
   if(mi>=0&&mi!==game.mapIdx){loadMap(mi);players.forEach(p=>{p.tx=null;p.buf=[]});net.bmap.clear();net.ghosts.length=0}

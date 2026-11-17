@@ -45,7 +45,7 @@ Press `Esc` to pause and `M` to mute. In the menus, use `↑` `↓` to choose, `
 **The draft (every versus mode):** everyone who picks gets their own hand of five and picks at the same time, CPUs included. You only ever see your own hand. Each picker gets a face-down card that ticks when they lock in. Once everyone has, the cards flip face up one by one, so you see what the others took but never what they passed on. Online, each screen is sent only its own player's hand. Players sharing one screen pick one after another before the flip. With anyone on another screen there is a 25 s limit, and a card is picked for anyone still choosing. Big Screen does the same on the phones.
 4. The first player to win the set number of rounds (3, 5 or 7) takes the match.
 
-If a point drags past 45 seconds, overtime starts. Bullets begin to seek their target, and damage climbs every 10 seconds until someone falls.
+If a point drags past 32 seconds (a duel; 9 s more for each extra fighter in the arena), overtime starts (`OT_T`, `OT_MORE`, `otAt`). The median point is 14 s and the 90th percentile 28 s, so only stalemates get there. Bullets begin to seek their target, damage climbs every 10 seconds, and a tide of lava rises from the floor at 26 px/s (`OT_RISE`, `drawTide`; it burns and bounces anyone it reaches, 12 damage every 0.3 s) so nobody can camp: get to higher ground. Survival and the Sandbox have no tide.
 
 ## What's in it
 
