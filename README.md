@@ -195,3 +195,10 @@ Smelter, Blowhole, Ziggurat, Gantry and Skylift (`climbMap`, flag `climb`, no ov
 
 ## Dressing the bigger arenas
 The 15% growth no longer adds loose floating planks. `dress()` drops architecture into empty patches instead: a ceiling lintel with a hanging wall, a stone pylon with a wide cap, a truss over the middle, a balcony off the side wall, a roof beam. Each piece tries several positions and goes only where nothing of the arena's own (rects, crates, ropes, swings, movers, rigs, spawns) is nearby; each arena takes the pieces in its own order (the lintel is the fallback), and a busy arena takes one at most.
+
+## Latest changes
+- **Seeker rounds** fly like normal bullets for half a second, then lock onto a rival they can see (range and cone limited) and curve in.
+- **Explosions** use a new painted blast sound (`sfx/blast_*.mp3`); the plain hit sound no longer stacks on explosive hits.
+- **Moving platforms** start mid-track so they sit centred in their arenas.
+- **Sandbox and Customize** share the menu look: a left rail of choices, cards or items on the right, big Play/Done button bottom-right.
+- **Sidearm** is now a simple grey cartoon pistol (`guns/sidearm.webp`, made on Higgsfield).

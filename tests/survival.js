@@ -13,7 +13,7 @@ const RUNS = +(process.argv[2] || 6);
   for (let r = 0; r < RUNS; r++) {
     A.startSurvival(); flushTimers(); A.players[0].ctrl = 'cpu'; A.players[0].skill = 'hard';   // a decent player
     let lastK = {}, round = 0;
-    for (let f = 0; f < 60 * 60 * 25 && A.game.state !== 'over'; f++) {
+    for (let f = 0; f < 60 * 60 * 60 && A.game.state !== 'over'; f++) {
       if (A.game.state === 'pick' && A.pickFor && !A.pickLock) A.choose(A.hand[0], null);
       if (A.game.state === 'shop') { shops++; const s0 = A.players[0].scrap; for (let i = 0; i < 5; i++) A.survBuy(i); spent += s0 - A.players[0].scrap; A.survNext(); }
       try { A.update(1 / 60) } catch (e) { if (errors++ < 2) console.error(e) }

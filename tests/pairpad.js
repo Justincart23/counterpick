@@ -56,7 +56,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
   check(P.ctl.on && P.ctl.cp, 'the phone becomes a paired controller');
   check(G.cpad.link && G.cpad.link.name === 'JPhone', 'the computer knows the phone');
   // offline: practice vs CPU on the computer, driven by the phone
-  G.startMatch('cpu'); frame(20);
+  G.startMatch('cpu'); G.loadMap(3); frame(20);   // a fixed arena: where the rival stands decides what 'follows the rival' means
   const me = () => G.players.find((p) => p.ctrl === 'mouse');
   for (let i = 0; i < 400 && G.game.state === 'pick'; i++) { if (P.ctl.hand && P.ctl.picked < 0) P.netSend({ t: 'ppick', i: 0 }); frame(5) }
   check(G.game.state !== 'pick', `the opening card is picked from the phone (${G.game.state})`);
@@ -73,7 +73,7 @@ const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg) }, DT = 1 / 60;
     P.ctl.mx = 0; check(worst < 1e-3, `aiming with the phone while running, the gun wandered ${worst.toFixed(3)} rad off the phone's angle`);
     P.ctl.aim = null; frame(30); G.mouse.x = me().x + 2; G.mouse.y = me().y; frame(400);   // put down for over 5 s
     const e = G.players.find((p) => p !== me()), toE = Math.atan2(e.y - me().y, e.x - me().x), toPtr = Math.atan2(G.mouse.y - me().y, G.mouse.x - me().x);
-    check(near(me().aim, toE, .7), `phone put down: the gun should follow the rival (${me().aim.toFixed(2)} vs ${toE.toFixed(2)}, pointer ${toPtr.toFixed(2)})`);
+    check(near(me().aim, toE, .7), `phone put down: the gun should follow the rival (${me().aim.toFixed(2)} vs ${toE.toFixed(2)}, pointer ${toPtr.toFixed(2)}, on ${G.game.map.name}, me ${Math.round(me().x)},${Math.round(me().y)} rival ${Math.round(e.x)},${Math.round(e.y)})`);
     G.mouse.realAt = performance.now() + 1; G.mouse.sx = null; G.mouse.x = me().x - 300; G.mouse.y = me().y; frame(3);
     check(near(me().aim, Math.PI, .2), `after moving the real mouse, it aims the gun again (${me().aim.toFixed(2)})`) }
   // online: a duel against a friend on their own computer; the phone still drives Justin's fighter

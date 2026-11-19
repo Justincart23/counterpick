@@ -40,6 +40,7 @@ const suite = [
   run('party.js', 90, 45),
   run('bigsolo.js'),
   run('bigmulti.js'),
+  run('homing.js'),   // seeker shots: straight for half a second, then lock on what they can see
   run('movers.js'),   // no moving platform passes through a wall
   run('climb.js'),   // climb arenas: rising lava, reachable planks, CPUs that climb
   run('overtime.js'),   // overtime: starts at 32 s (+9 s per extra fighter), a rising lava tide ends stalemates

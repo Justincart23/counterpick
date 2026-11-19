@@ -699,7 +699,6 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .sb-card:hover,.ward-item:hover,.sb-map:hover,.sb-card:focus-visible,.ward-item:focus-visible,.sb-map:focus-visible{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .sb-map.on{box-shadow:0 0 0 2px #ffd36b,0 0 22px rgba(255,211,107,.3)}
 #sandbox.maps .sb-filter,#sandbox.maps .sb-deck,#sandbox.maps #sbClear{display:none}
-#sandbox.maps .sb-panel{grid-template-rows:auto minmax(0,1fr) auto auto}
 .sb-foot{align-items:center}.sb-foot .sb-go{margin-left:auto}
 .sb-foot .btn,.ward-foot .btn{border-radius:12px}
 .sb-back{color:var(--muted)}
@@ -709,6 +708,34 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   .sb-tabs button,.sb-filter button,.ward-tabs button,.ward-side button{font-size:13px;padding:3px 9px;border-radius:9px}
   .sb-head{gap:6px}.sb-panel h2{font-size:20px}.sb-foot{gap:6px}
   .ward{grid-template-columns:minmax(120px,160px) minmax(0,1fr);border-radius:14px}.ward-stage canvas{aspect-ratio:4/3}.ward-msg{display:none}
+}
+/* ---- the redesign: a left rail of what to set up (the same tiles as the menus), the cards and arenas on the right, Back bottom-left and Play bottom-right ---- */
+.sb-panel{grid-template-rows:none;grid-template-columns:minmax(210px,250px) minmax(0,1fr);gap:20px;padding:20px}
+.sb-rail{display:flex;flex-direction:column;gap:14px;min-height:0;padding-right:18px;border-right:2px solid rgba(255,255,255,.07)}
+.sb-titlebar h2{font-size:38px}.sb-lede{margin:6px 0 0;font-size:14px;line-height:1.35;color:var(--muted)}
+.sb-rail .sb-tabs{display:grid;gap:8px}
+.sb-rail .sb-tabs button{display:block;width:100%;text-align:left;font-size:19px;padding:12px 16px;border-radius:14px;min-height:48px}
+.sb-rail .sb-tabs button.on::after{content:'●';float:right;font-size:12px;line-height:24px;opacity:.7}
+.sb-opts{display:grid;gap:8px;margin-top:2px}
+.sb-opts .btn,.sb-rail .sb-back{width:100%;text-align:left;font-family:var(--display);font-size:16px;padding:10px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--text)}
+.sb-opts .btn:hover,.sb-rail .sb-back:hover{border-color:var(--orange)}
+.sb-rail .sb-back{margin-top:auto;color:var(--muted)}
+.sb-main{display:flex;flex-direction:column;gap:10px;min-height:0}
+.sb-main .sb-grid,.sb-main .sb-maps{flex:1 1 auto;min-height:0}
+.sb-main .sb-foot{margin-top:auto;display:flex;justify-content:flex-end}.sb-main .sb-go{font-size:26px;padding:12px 32px;border-radius:14px}
+.ward-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.ward-tabs button{text-align:center;padding:9px 8px;border-radius:12px}
+.ward-head h2,.sb-titlebar h2{letter-spacing:.01em}
+.ward{padding:20px;gap:20px}.ward-head h2{font-size:38px}
+.ward-foot .ward-done{font-family:var(--display);font-size:26px;padding:12px 32px;border-radius:14px;border:0;box-shadow:0 4px 0 #a5520f}
+.ward-foot .ward-done:hover{background:#ff9a3d}
+.ward-stage canvas{border:2px solid rgba(255,255,255,.08)}
+.ward-item.on,.ward-item.sel{box-shadow:0 0 0 2px #ffd36b,0 0 18px rgba(255,211,107,.25)}
+@media (max-width:760px),(max-height:520px){
+  .sb-panel{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);padding:12px;gap:8px}
+  .sb-rail{flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;padding-right:0;gap:6px}.sb-titlebar{display:none}
+  .sb-rail .sb-tabs{display:flex;flex-wrap:wrap;gap:6px}.sb-rail .sb-tabs button{width:auto;font-size:13px;padding:5px 10px;min-height:0;border-radius:9px}
+  .sb-opts{display:flex;gap:6px}.sb-opts .btn,.sb-rail .sb-back{width:auto;font-size:13px;padding:5px 10px;border-radius:9px}.sb-rail .sb-back{margin-top:0}
+  .sb-main .sb-go{font-size:18px;padding:8px 20px}
 }
 /* ---- the online lobby (hosting, joining): the same buttons as everywhere else ---- */
 .lobby .mlist{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
@@ -1395,23 +1422,25 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 
 <div id="sandbox" class="overlay ward-wrap" hidden>
   <div class="sb-panel" role="dialog" aria-labelledby="sbTitle">
-    <div class="sb-head">
-      <h2 id="sbTitle">Sandbox</h2>
-      <div class="sb-tabs" role="tablist" aria-label="Whose cards">
+    <aside class="sb-rail">
+      <div class="sb-titlebar"><h2 id="sbTitle">Sandbox</h2><p class="sb-lede">Build any fight, then play it.</p></div>
+      <div class="sb-tabs" role="tablist" aria-label="What to set up">
         <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button><button type="button" role="tab" data-sbact="arena" id="sbArena" class="sb-arena">Arena: Random</button>
       </div>
-    </div>
-    <div class="sb-deck" id="sbDeck" aria-live="polite"></div>
-    <div class="sb-filter" role="group" aria-label="Card type"><button type="button" data-sbf="all">All</button><button type="button" data-sbf="gun">Gun</button><button type="button" data-sbf="shot">Bullets</button><button type="button" data-sbf="guard">Block</button><button type="button" data-sbf="body">Body</button></div>
-    <div class="sb-grid" id="sbGrid"></div>
-    <div class="sb-maps" id="sbMaps" hidden></div>
-    <p class="sb-info" id="sbInfo">Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.</p>
-    <div class="sb-foot">
+      <div class="sb-opts">
+        <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
+        <button type="button" class="btn" data-sbact="clear" id="sbClear">Clear these cards</button>
+      </div>
       <button type="button" class="btn sb-back" data-sbact="back" id="sbBack">‹ Main menu</button>
-      <button type="button" class="btn" data-sbact="clear" id="sbClear">Clear these cards</button>
-      <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
-      <button type="button" class="sb-go" data-sbact="go" id="sbGo">Play · Tab</button>
-    </div>
+    </aside>
+    <section class="sb-main">
+      <div class="sb-deck" id="sbDeck" aria-live="polite"></div>
+      <div class="sb-filter" role="group" aria-label="Card type"><button type="button" data-sbf="all">All</button><button type="button" data-sbf="gun">Gun</button><button type="button" data-sbf="shot">Bullets</button><button type="button" data-sbf="guard">Block</button><button type="button" data-sbf="body">Body</button></div>
+      <div class="sb-grid" id="sbGrid"></div>
+      <div class="sb-maps" id="sbMaps" hidden></div>
+      <p class="sb-info" id="sbInfo">Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.</p>
+      <div class="sb-foot"><button type="button" class="sb-go" data-sbact="go" id="sbGo">Play · Tab</button></div>
+    </section>
   </div>
 </div>
 
@@ -1657,7 +1686,7 @@ const CARDS=[
  {n:'Spring Heels',k:'body',r:0,d:'One more jump in the air.',st:[['+1','Air jump',1],['+10%','Jump height',1]],a:s=>{s.airJumps+=1;s.jumpPower*=1.1}},
  {n:'Venom Tips',k:'shot',r:1,d:'Hits poison instead of striking at once, for far more damage in total.',st:[['+50%','Total damage',1],['2s','Over time',0]],a:s=>{s.poison=true},u:1},
  {n:'Cryo Rounds',k:'shot',r:1,d:'Hits chill your rival. Three quick hits freeze them solid.',st:[['45%','Slow on hit',1],['3 hits','Freeze',1]],a:s=>{s.slow+=.45;s.freeze=true}},
- {n:'Seeker',k:'shot',r:2,d:'Bullets curve hard toward your rival.',st:[['Strong','Homing',1],['-15%','Bullet speed',0]],a:s=>{s.homing+=.55;s.bulletSpeed*=.85}},
+ {n:'Seeker',k:'shot',r:2,d:'Flies like a normal bullet for half a second, then locks onto a rival it can see and curves in.',st:[['Strong','Homing',1],['-15%','Bullet speed',0]],a:s=>{s.homing+=.55;s.bulletSpeed*=.85}},
  {n:'Blast Cap',k:'shot',r:1,d:'Bullets explode on impact.',st:[['+100px','Explosion',1]],a:s=>{s.explode+=100}},
  {n:'Rail Slug',k:'gun',r:2,d:'A fast, flat, devastating shot.',st:[['+100%','Bullet speed',1],['+40%','Damage',1],['+0.3s','Fire delay',0]],a:s=>{s.bulletSpeed*=2;s.bulletGravity*=.3;s.dmg*=1.4;s.fireDelay+=.3}},
  {n:'Lob Shell',k:'shot',r:1,d:'Heavy arcing shells that pop on landing.',st:[['+15%','Damage',1],['+85px','Explosion',1],['x1.35','Drop',0]],a:s=>{s.bulletGravity*=1.35;s.bulletSpeed*=.92;s.dmg*=1.15;s.explode+=85}},
@@ -2066,7 +2095,7 @@ const CHUNK={
  pads:y=>({r:[...sym([P(180,y-192,380),PAD(260,y-192),P(300,y-576,360)]),P(760,y-384,400),S(700,y-768,520),WL(716,y-712,120),WL(1168,y-712,120)]}),
  shaft:y=>({r:[...sym([P(200,y-192,320),P(100,y-384,320),P(220,y-576,320),P(380,y-768,360)]),WL(830,y-780,600,36),WL(986,y-780,600,36)]}),
  stone:y=>({r:[...sym([P(220,y-192,320),P(380,y-576,300),WL(740,y-328,130,36)]),S(700,y-384,520),P(780,y-768,360)],c:[[260,y-252,60],[1600,y-252,60]]}),
- lift:y=>({r:[...sym([P(100,y-192,340),P(360,y-384,320),P(560,y-576,300),S(0,y-520,70,520)]),S(780,y-768,360)],m:[{x:900,y:y-30,w:160,h:30,mx:0,my:-576,period:6}]}),
+ lift:y=>({r:[...sym([P(100,y-192,340),P(360,y-384,320),P(560,y-576,300),S(0,y-520,70,520)]),S(780,y-768,360)],m:[{x:880,y:y-30,w:160,h:30,mx:0,my:-576,period:6}]}),
  yard:y=>({r:[...sym([P(80,y-192,420),P(220,y-576,340)]),S(660,y-384,600),WL(700,y-328,140,36),WL(1184,y-328,140,36),P(760,y-768,400)],c:[[200,y-252,60],[1660,y-252,60],[900,y-444,60]]})};
 function climbMap(name,seq,lava,sky){const N=seq.length,H=N*960+420,F=H-80,rects=[[0,F,1920,80]],movers=[],crates=[];
   seq.forEach((k,c)=>{const y0=F-c*960,o=CHUNK[k](y0);rects.push(...o.r,...sym([P(260,y0-960,440)],[P(840,y0-960,240)]));movers.push(...(o.m||[]));crates.push(...(o.c||[]))});
@@ -2322,7 +2351,7 @@ function splat(x,y,color,n,spread,size){fxRec('s',[x,y,color,n,spread,size]);dec
 
 /* ---------- audio: synthesized effects, with a layer of recorded sci-fi shots, blasts and impacts on the gun and hit sounds
    (real .22 / .380 / .45 pistol, rifle and shotgun shots from the Free Firearm Sound Library on OpenGameArt, plus Kenney's Sci-Fi Sounds blasts and impacts, in sfx/, each levelled and trimmed). Until a sample has loaded, the synth plays alone ---------- */
-const SMP_GAIN=1,SMP_N={gun22:4,gun380:4,gun45:4,rifle:4,shotgun:4,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,slime:2},SAMPLES={};
+const SMP_GAIN=1,SMP_N={gun22:4,gun380:4,gun45:4,rifle:4,shotgun:4,blast:2,explosion_crunch:5,low_frequency_explosion:2,impact_metal:5,slime:2},SAMPLES={};
 function loadSamples(){if(typeof fetch!=='function')return;const q=[];for(const[g,n]of Object.entries(SMP_N))for(let i=0;i<n;i++)q.push([g,g+'_'+String(i).padStart(3,'0')]);
   const next=()=>{const it=q.shift();if(!it)return;const[g,k]=it;   // one at a time, a beat apart: decoding all of them at once froze the page for a few hundred ms
     try{fetch('sfx/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>{const p=actx.decodeAudioData(b,ok,no);if(p&&p.catch)p.catch(no)})).then(buf=>{(SAMPLES[g]=SAMPLES[g]||[]).push(buf)}).catch(()=>{}).then(()=>setTimeout(next,70))}catch(e){setTimeout(next,70)}};
@@ -2409,7 +2438,7 @@ function sfx(k,ui,local){if(!ui&&!local)fxRec('a',[k]);if(!actx||muted||(game.bg
   case'hit':smp('impact_metal',.7,.8,t);break;   // a recorded clang under the synth's meaty thud
   case'crush':smp('impact_metal',.7,.6,t);break;
   case'die':smp('low_frequency_explosion',.9,1,t);break;
-  case'boom':smp('explosion_crunch',1.1,.9,t);break;
+  case'boom':smp('blast',.85,1+(Math.random()-.5)*.1,t);smp('low_frequency_explosion',.3,1.15,t);break;   // a generated blast (crack, boom, short tail) with a little of the old sub thump under it, whether the shot hit a wall, a rival or a mine going off
   case'pop':if(smp('slime',.3,1.1,t)){noise(t,.1,.08,'highpass',3000);done=true}break;
   }
   if(!done)switch(k){
@@ -2611,7 +2640,7 @@ function loadMap(i){game.mapIdx=i;game.map=MAPS[i];W=game.map.w||VW;H=game.map.h
   swings=(game.map.swings||[]).map(d=>{const s={swing:true,ax:d.ax,ay:d.ay||0,len:d.len,w:d.w,h:d.h,ang:rand(-.04,.04),av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,4);edgeDecor(ag,0,0,d.w,d.h,4,false);s.x=s.ax+Math.sin(s.ang)*s.len-s.w/2;s.y=s.ay+Math.cos(s.ang)*s.len-s.h/2;s.px=s.x;s.py=s.y;return s});
   // moving platforms ride the same carry/push/sync path as hanging blocks; their 'ang' is the phase of a smooth back-and-forth
-  for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:d.phase||0,av:0,dx:0,dy:0,art:document.createElement('canvas')};
+  for(const d of game.map.movers||[]){const s={swing:true,mover:true,bx:d.x,by:d.y,mx:d.mx,my:d.my,period:d.period,w:d.w,h:d.h,ang:(d.phase||0)+(d.mx&&!d.my?.25:0),av:0,dx:0,dy:0,art:document.createElement('canvas')};
     s.art.width=d.w;s.art.height=d.h;const ag=s.art.getContext('2d');facets(ag,0,0,d.w,d.h,2);edgeDecor(ag,0,0,d.w,d.h,2,false);s.px=s.x=d.x;s.py=s.y=d.y;placeSwing(s);s.px=s.x;s.py=s.y;swings.push(s)}
   buildRides();
   solids=game.map.rects.map(([x,y,w,h,k])=>({x,y,w,h,kind:k||0,oneway:isOneway(h,k)})).concat(swings,rides,rigs,BOUNDS);
@@ -4428,7 +4457,7 @@ function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x
     if(b.owner&&b.owner.s.freeze&&p.alive){p.chill=(p.chillT>0?p.chill||0:0)+1;p.chillT=2;
       if(p.chill>=3){p.chill=0;p.frozenT=1;p.vx*=.2;ring(p.x,p.y,'#d8f4ff',60);burst(p.x,p.y,'#e6f8ff',18,320,4,.5,0,true);sfx('freeze')}}}
   if(p.alive&&p.s.spite>0&&!b.plainRing&&bullets.length<360){for(let i=0;i<p.s.spite;i++)ringShot(p,Math.random()*TAU,18,4,1,1000)}
-  burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;sfx('hit');
+  burst(b.x,b.y,p.color,14,500,6,.5);burst(b.x,b.y,b.glow,8,400,4,.25,0,true);splat(p.x,p.y,p.color,8,40,7);addShake(7+b.dmg*.06);game.hitstop=.035;if(!(b.explode>0))sfx('hit');   /* an explosive round is heard as its blast alone, the same on a rival as on a wall */
   b.dead=true;if(b.explode>0)explode(b,p)}
 // a ducking fighter is a flat ellipse hugging the ground, so a shot at head height sails over
 function bodyHit(p,x,y,rad){if(!p.duck)return Math.hypot(p.x-x,p.y-y)<p.r+rad;const cy=p.y+p.r*.42,ry=p.r*.58,dx=(x-p.x)/(p.r*1.15+rad),dy=(y-cy)/(ry+rad);return dx*dx+dy*dy<1}
@@ -4466,6 +4495,8 @@ function beamHit(p,b,sg){const dx=sg[2]-sg[0],dy=sg[3]-sg[1],L=Math.hypot(dx,dy)
   const f=Object.assign({},b,{x:sg[0]+ux*t,y:sg[1]+uy*t,vx:ux*4600,vy:uy*4600,owner:sg[4],gunShot:false,dead:false,trail:[],hz:null,grow:false,bomb:false});
   if(p.mirror||p.blockT>0){burst(f.x,f.y,'#ffffff',10,420,4,.3,0,true);sfx('tink');return}
   hitPlayer(p,f);flashFx(f.x,f.y,40,.08,'#ffcf5a')}
+const SEEK_DELAY=.5,SEEK_RANGE=720,SEEK_CONE=1.25,SEEK_LOSE=.45;
+function seekSight(b,t){const dx=t.x-b.x,dy=t.y-b.y,n=Math.ceil(Math.hypot(dx,dy)/22);for(let i=1;i<n;i++){const x=b.x+dx*i/n,y=b.y+dy*i/n;for(const r of solids)if(!r.bound&&circleRect(x,y,3,r))return false}return true}
 function updateBullets(dt){
   for(const w of shields)w.t-=dt;shields=shields.filter(w=>w.t>0&&w.owner.alive);
   for(const b of bullets){if(b.dead)continue;
@@ -4473,8 +4504,14 @@ function updateBullets(dt){
       if(b.fuse<=0){b.dead=true;explode(b,null);if(b.split>0){const n=b.mineN;splinter(b,n?Math.atan2(n.ny,n.nx):-Math.PI/2,Math.PI*.9/Math.max(1,b.split-1))}}continue}
     b.age+=dt;b.life-=dt;if(b.life<=0){killBullet(b,b.explode>0);continue}
     const hom=Math.max(b.homing,game.overtime&&!b.plainRing?.6:0);
-    if(hom>0){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx),des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,
-      na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
+    if(hom>0&&b.age>=SEEK_DELAY){const t=other(b.owner);if(t&&t.alive){const cur=Math.atan2(b.vy,b.vx);
+      /* a homing shot flies like any other for SEEK_DELAY, then looks about every tenth of a second: it locks onto a rival that is ahead of it
+         (inside the cone), in range and in plain sight, and curves in at its turn rate (never snapping, so the physics decide whether it
+         makes it); behind a wall it flies on as a plain bullet, and a lock lost for SEEK_LOSE seconds lets go */
+      b.seekT=(b.seekT||0)-dt;
+      if(b.seekT<=0){b.seekT=.1;const dx=t.x-b.x,dy=t.y-b.y,ok=Math.hypot(dx,dy)<SEEK_RANGE*(.8+.4*Math.min(hom,1.5))&&(b.lock||Math.abs(wrapA(Math.atan2(dy,dx)-cur))<SEEK_CONE)&&seekSight(b,t);
+        if(ok){if(!b.lock&&!RM)flashFx(b.x,b.y,22,.12,'#c9a0ff');b.lock=1;b.lostT=0}else if(b.lock){b.lostT=(b.lostT||0)+.1;if(b.lostT>SEEK_LOSE)b.lock=0}}
+      if(b.lock){const des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}}
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
     if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*gMul()*dt;
@@ -4914,7 +4951,7 @@ function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.
    so a draft that changes your gun type shows it in your hand. gx/gy: where the hand holds it, as a share of the picture;
    w: its width in the arena. Until a picture loads (or if it fails) the drawn gun below stands in */
 // hx/hy: the handle, where the fist closes (the gun hangs from it); gy: the barrel's line; sx/sy: where a two-handed gun's free hand holds it
-const GUNS={sidearm:{ar:0.5875,n:'Sidearm',w:46,hx:.128,hy:.62,gy:.356},rail:{ar:0.3125,n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{ar:0.384,n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
+const GUNS={sidearm:{ar:0.6684,n:'Sidearm',w:46,hx:.17,hy:.48,gy:.216},rail:{ar:0.3125,n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{ar:0.384,n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
   lob:{ar:0.447,n:'Lobber',w:60,hx:.123,hy:.65,gy:.39,sx:.5,sy:.74},heavy:{ar:0.506,n:'Hand Cannon',w:60,hx:.126,hy:.59,gy:.305},smg:{ar:0.659,n:'SMG',w:52,hx:.108,hy:.58,gy:.283},
   lance:{ar:0.290625,n:'Sun Lance',w:86,hx:.183,hy:.72,gy:.457,sx:.43,sy:.51}};
 const gunKind=s=>s.lance?'lance':s.bulletSpeed>2000?'rail':s.projectiles>2?'scatter':s.bulletGravity>1.3||s.explode>=85?'lob':s.dmg>=80?'heavy':s.fireDelay<.18?'smg':'sidearm';
@@ -5530,7 +5567,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-17-climb3';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-19-seek';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
