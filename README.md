@@ -201,4 +201,5 @@ The 15% growth no longer adds loose floating planks. `dress()` drops architectur
 - **Explosions** use a new painted blast sound (`sfx/blast_*.mp3`); the plain hit sound no longer stacks on explosive hits.
 - **Moving platforms** start mid-track so they sit centred in their arenas.
 - **Sandbox and Customize** share the menu look: a left rail of choices, cards or items on the right, big Play/Done button bottom-right.
-- **Sidearm** is now a simple grey cartoon pistol (`guns/sidearm.webp`, made on Higgsfield).
+- **Sidearm** is a chunky dark-gunmetal cartoon pistol with an orange slide stripe and trigger (`guns/sidearm.webp`, made on Higgsfield).
+- **Switchback** crates now sit as mirrored cover in the middle instead of boxing in the right spawn behind its jump pad.

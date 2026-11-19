@@ -1962,7 +1962,7 @@ MAPS.push(
  // Switchback (vertical chases): stone and wooden decks stacked in a zig-zag. Stone you walk round, wood you go straight through, so the
  // quick way up and the safe way up are different
  {name:'Switchback',...ROOM,rects:[FLOOR,S(400,860,800),P(720,720,800),S(400,580,800),P(720,440,800),P(860,300,200),...sym([P(60,780,220),P(80,560,200),PAD(300,1000)])],
-   crates:[[200,940,60],[1660,940,60]],sp:[[160,960],[1760,960],[500,820],[1420,680]]},
+   crates:symC([[620,940,60]]),sp:[[160,960],[1760,960],[500,820],[1420,680]]},
  // Hive (homing): two rows of half-open cells. The bottom cells have stone floors you can duck in; the top row is wood to pop up through
  {name:'Hive',...ROOM,rects:[FLOOR,S(260,820,280),S(820,820,280),S(1380,820,280),WL(260,690,130,24),WL(1636,690,130,24),WL(820,690,130,24),WL(1076,690,130,24),
    P(260,560,280),P(820,560,280),P(1380,560,280),WL(516,430,130,24),WL(1380,430,130,24),P(540,320,280),P(1100,320,280)],sp:[[130,960],[1790,960],[400,780],[1520,780]]},
@@ -4958,7 +4958,7 @@ function gunAccent(p){const s=p.s;return s.poison?C.poison:s.slow>0?'#bfe9ff':s.
    so a draft that changes your gun type shows it in your hand. gx/gy: where the hand holds it, as a share of the picture;
    w: its width in the arena. Until a picture loads (or if it fails) the drawn gun below stands in */
 // hx/hy: the handle, where the fist closes (the gun hangs from it); gy: the barrel's line; sx/sy: where a two-handed gun's free hand holds it
-const GUNS={sidearm:{ar:0.6684,n:'Sidearm',w:46,hx:.17,hy:.48,gy:.216},rail:{ar:0.3125,n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{ar:0.384,n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
+const GUNS={sidearm:{ar:0.74,n:'Sidearm',w:46,hx:.21,hy:.5,gy:.3},rail:{ar:0.3125,n:'Rail Rifle',w:80,hx:.23,hy:.72,gy:.49,sx:.53,sy:.56},scatter:{ar:0.384,n:'Scattergun',w:62,hx:.112,hy:.67,gy:.37,sx:.59,sy:.67},
   lob:{ar:0.447,n:'Lobber',w:60,hx:.123,hy:.65,gy:.39,sx:.5,sy:.74},heavy:{ar:0.506,n:'Hand Cannon',w:60,hx:.126,hy:.59,gy:.305},smg:{ar:0.659,n:'SMG',w:52,hx:.108,hy:.58,gy:.283},
   lance:{ar:0.290625,n:'Sun Lance',w:86,hx:.183,hy:.72,gy:.457,sx:.43,sy:.51}};
 const gunKind=s=>s.lance?'lance':s.bulletSpeed>2000?'rail':s.projectiles>2?'scatter':s.bulletGravity>1.3||s.explode>=85?'lob':s.dmg>=80?'heavy':s.fireDelay<.18?'smg':'sidearm';
@@ -5574,7 +5574,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-19-seek';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-19-pistol';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
