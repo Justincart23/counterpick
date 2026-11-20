@@ -44,6 +44,7 @@ const suite = [
   run('movers.js'),   // no moving platform passes through a wall
   run('dropthru.js'),   // dropping through wood never leaves you stuck inside a plank
   run('rank.js'),   // rating, match grades and titles
+  run('newcards.js'),   // Bullet Hose spray, Rubber Rounds, Chaos Rounds really work
   run('climb.js'),   // climb arenas: rising lava, reachable planks, CPUs that climb
   run('overtime.js'),   // overtime: starts at 32 s (+9 s per extra fighter), a rising lava tide ends stalemates
   run('padlance.js'),   // a Big Screen phone: hold to charge a Sun Lance, aim that stays put, a silent phone

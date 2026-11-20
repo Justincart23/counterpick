@@ -197,6 +197,10 @@ Smelter, Blowhole, Ziggurat, Gantry and Skylift (`climbMap`, flag `climb`, no ov
 The 15% growth no longer adds loose floating planks. `dress()` drops architecture into empty patches instead: a ceiling lintel with a hanging wall, a stone pylon with a wide cap, a truss over the middle, a balcony off the side wall, a roof beam. Each piece tries several positions and goes only where nothing of the arena's own (rects, crates, ropes, swings, movers, rigs, spawns) is nearby; each arena takes the pieces in its own order (the lintel is the fallback), and a busy arena takes one at most.
 
 ## Latest changes
+
+- **Sandbox and Customize now work like Settings.** The left side is a list of option rows: `‹ value ›` to cycle (Cards for You/CPU, Show, Arena, CPU behaviour, Customize's Preview side), the arrow keys work on a focused row, and a hint line explains each row. Cards or items sit to the right; Customize shows the preview on the far right. Phones get compact tiles.
+- **Bullet Hose sprays.** Each round leaves the barrel up to ~6° off line instead of tracing one straight laser. Online, the wobble comes from the shot number, so the guest's prediction matches the host.
+- `tests/newcards.js` fires all three new cards in a real match: the Hose's stream and spray, Rubber Rounds' four extra bounces in flight, and every Chaos power turning up and being applied.
 - **Seeker rounds** fly like normal bullets for half a second, then lock onto a rival they can see (range and cone limited) and curve in.
 - **Explosions** use a new painted blast sound (`sfx/blast_*.mp3`); the plain hit sound no longer stacks on explosive hits.
 - **Moving platforms** start mid-track so they sit centred in their arenas.

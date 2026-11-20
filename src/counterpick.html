@@ -720,10 +720,16 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   .ward{grid-template-columns:minmax(120px,160px) minmax(0,1fr);border-radius:14px}.ward-stage canvas{aspect-ratio:4/3}.ward-msg{display:none}
 }
 /* ---- the redesign: a left rail of what to set up (the same tiles as the menus), the cards and arenas on the right, Back bottom-left and Play bottom-right ---- */
-.sb-panel{grid-template-rows:none;grid-template-columns:minmax(210px,250px) minmax(0,1fr);gap:20px;padding:20px}
+.sb-panel{grid-template-rows:none;grid-template-columns:minmax(250px,270px) minmax(0,1fr);gap:20px;padding:20px}
 .sb-rail{display:flex;flex-direction:column;gap:14px;min-height:0;padding-right:18px;border-right:2px solid rgba(255,255,255,.07)}
 .sb-titlebar h2{font-size:38px}.sb-lede{margin:6px 0 0;font-size:14px;line-height:1.35;color:var(--muted)}
 .sb-rail .sb-tabs{display:grid;gap:8px}
+.sb-optwrap{display:grid;gap:4px;justify-items:stretch;min-height:0}.sb-optwrap>.lbl{margin:0 0 2px 2px}
+.sb-rows.mlist.opts{display:grid;grid-template-columns:1fr;gap:8px;width:100%}
+.sb-rows.mlist.opts button{font-size:17px;min-height:46px}.sb-rows .val{max-width:9.5em;overflow:hidden;text-overflow:ellipsis}
+.sb-rows button.on{border-color:var(--orange);background:rgba(255,122,26,.14)}
+.sb-rows .sb-backrow{justify-content:center;margin-top:6px;color:var(--muted)}
+.sb-optwrap .menu-hint{margin:8px 2px 0;height:auto;min-height:4.2em;font-size:14px}
 .sb-rail .sb-tabs button{display:block;width:100%;text-align:left;font-size:19px;padding:12px 16px;border-radius:14px;min-height:48px}
 .sb-rail .sb-tabs button.on::after{content:'●';float:right;font-size:12px;line-height:24px;opacity:.7}
 .sb-opts{display:grid;gap:8px;margin-top:2px}
@@ -735,7 +741,11 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 .sb-main .sb-foot{margin-top:auto;display:flex;justify-content:flex-end}.sb-main .sb-go{font-size:26px;padding:12px 32px;border-radius:14px}
 .ward-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.ward-tabs button{text-align:center;padding:9px 8px;border-radius:12px}
 .ward-head h2,.sb-titlebar h2{letter-spacing:.01em}
-.ward{padding:20px;gap:20px}.ward-head h2{font-size:38px}
+.ward{padding:20px;gap:20px}
+.ward.ward3{grid-template-columns:minmax(250px,270px) minmax(0,1fr) minmax(200px,260px);width:min(1180px,100%);height:min(680px,100%)}
+.ward3 .ward-main{grid-template-rows:minmax(0,1fr)}.ward3 .sb-titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px}.ward3 .sb-titlebar h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;line-height:1}
+.ward3 .ward-stage{align-content:start}
+.sb-rows [data-lockk].on{border-color:var(--orange);background:rgba(255,122,26,.14);color:#fff}.ward-head h2{font-size:38px}
 .ward-foot .ward-done{font-family:var(--display);font-size:26px;padding:12px 32px;border-radius:14px;border:0;box-shadow:0 4px 0 #a5520f}
 .ward-foot .ward-done:hover{background:#ff9a3d}
 .ward-stage canvas{border:2px solid rgba(255,255,255,.08)}
@@ -746,6 +756,13 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   .sb-rail .sb-tabs{display:flex;flex-wrap:wrap;gap:6px}.sb-rail .sb-tabs button{width:auto;font-size:13px;padding:5px 10px;min-height:0;border-radius:9px}
   .sb-opts{display:flex;gap:6px}.sb-opts .btn,.sb-rail .sb-back{width:auto;font-size:13px;padding:5px 10px;border-radius:9px}.sb-rail .sb-back{margin-top:0}
   .sb-main .sb-go{font-size:18px;padding:8px 20px}
+  .sb-optwrap .menu-hint,.sb-optwrap>.lbl,.sb-rail .sb-lede{display:none}.sb-rows.mlist.opts{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .sb-rows.mlist.opts button{min-height:32px;font-size:12px;padding:2px 8px;gap:4px;min-width:0}.sb-rows .sb-backrow{margin-top:0}
+  .sb-rows .ov i{display:none!important}.sb-rows .ov .val{min-width:0;max-width:none;font-size:12px}.sb-rows .ov{min-width:0;overflow:hidden}
+  .ward.ward3{grid-template-columns:minmax(0,1fr) 150px;grid-template-rows:auto minmax(0,1fr);overflow:hidden;width:100%}
+  .ward3 .lock-rail{grid-column:1 / -1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}.ward3 .lock-rail .sb-titlebar h2{font-size:22px}
+  .ward3 .lock-rail .sb-rows.mlist.opts{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .ward3 .ward-main{grid-column:1;grid-row:2;min-height:0;overflow:auto}.ward3 .ward-stage{grid-column:2;grid-row:2;display:grid;gap:6px;align-content:start}.ward3 .ward-stage canvas{width:100%}.ward3 .ward-msg{font-size:12px}
 }
 /* ---- the online lobby (hosting, joining): the same buttons as everywhere else ---- */
 .lobby .mlist{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
@@ -1434,19 +1451,20 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
   <div class="sb-panel" role="dialog" aria-labelledby="sbTitle">
     <aside class="sb-rail">
       <div class="sb-titlebar"><h2 id="sbTitle">Sandbox</h2><p class="sb-lede">Build any fight, then play it.</p></div>
-      <div class="sb-tabs" role="tablist" aria-label="What to set up">
-        <button type="button" role="tab" data-sbtab="0" class="who-o">Your cards</button><button type="button" role="tab" data-sbtab="1" class="who-b">CPU's cards</button><button type="button" role="tab" data-sbact="arena" id="sbArena" class="sb-arena">Arena: Random</button>
-      </div>
-      <div class="sb-opts">
-        <button type="button" class="btn" data-sbact="cpu" id="sbCpu">CPU: Fights back</button>
-        <button type="button" class="btn" data-sbact="clear" id="sbClear">Clear these cards</button>
-      </div>
-      <button type="button" class="btn sb-back" data-sbact="back" id="sbBack">‹ Main menu</button>
+      <div class="opts-wrap sb-optwrap"><div class="lbl">Set up the fight</div>
+      <nav class="mlist opts sb-rows" aria-label="Sandbox options">
+        <button type="button" data-sbact="who" data-hint="Whose cards you're picking: yours, or the CPU's. ‹ › or ← → to switch.">Cards for <span class="ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val" id="sbWhoV"></span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        <button type="button" data-sbact="show" data-hint="Which cards to show: all of them, or one kind.">Show <span class="ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val" id="sbShowV"></span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        <button type="button" data-sbact="arena" id="sbArena" data-hint="Where you fight. Click to see every arena, or ‹ › to flip through them.">Arena <span class="ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val" id="sbArenaV"></span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        <button type="button" data-sbact="cpu" id="sbCpu" data-hint="What the CPU does: fight back, only dodge, or stand still for target practice.">CPU <span class="ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val" id="sbCpuV"></span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        <button type="button" data-sbact="clear" id="sbClear" data-hint="Take every card off the side you're picking for.">Clear cards</button>
+        <button type="button" data-sbact="back" id="sbBack" class="sb-backrow" data-hint="Leave the sandbox.">Back</button>
+      </nav>
+      <p class="menu-hint" id="sbHint" aria-live="polite">Pick cards on the right, set the fight up here, then press Play.</p></div>
     </aside>
     <section class="sb-main">
       <div class="sb-deck" id="sbDeck" aria-live="polite"></div>
-      <div class="sb-filter" role="group" aria-label="Card type"><button type="button" data-sbf="all">All</button><button type="button" data-sbf="gun">Gun</button><button type="button" data-sbf="shot">Bullets</button><button type="button" data-sbf="guard">Block</button><button type="button" data-sbf="body">Body</button></div>
-      <div class="sb-grid" id="sbGrid"></div>
+            <div class="sb-grid" id="sbGrid"></div>
       <div class="sb-maps" id="sbMaps" hidden></div>
       <p class="sb-info" id="sbInfo">Click a card to add it. Right-click it (or click it in the deck above) to take one off. Copies of a card stack.</p>
       <div class="sb-foot"><button type="button" class="sb-go" data-sbact="go" id="sbGo">Play · Tab</button></div>
@@ -1455,19 +1473,28 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
 </div>
 
 <div id="locker" class="overlay ward-wrap" hidden>
-  <div class="ward" role="dialog" aria-labelledby="lockTitle">
+  <div class="ward ward3" role="dialog" aria-labelledby="lockTitle">
+    <aside class="sb-rail lock-rail">
+      <div class="sb-titlebar"><h2 id="lockTitle">Customize</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
+      <div class="opts-wrap sb-optwrap"><div class="lbl">Your look</div>
+      <nav class="mlist opts sb-rows" aria-label="What to change">
+        <button type="button" data-lockk="color" data-hint="Your shade of orange and of blue. Your friends see it online.">Colour</button>
+        <button type="button" data-lockk="hat" data-hint="Stack up to four: one on top, ears or horns, a headband and a halo.">Hats</button>
+        <button type="button" data-lockk="pattern" data-hint="A pattern painted over your body.">Patterns</button>
+        <button type="button" data-lockk="trail" data-hint="What your bullets leave behind them.">Trails</button>
+        <button type="button" data-lockact="side" data-hint="See your look on the orange side or the blue side.">Preview <span class="ov"><i data-dir="-1" aria-hidden="true">‹</i><span class="val" id="lockSideV">Orange</span><i data-dir="1" aria-hidden="true">›</i></span></button>
+        <button type="button" class="sb-backrow" data-lockact="close" data-hint="Back to the main menu. Esc works too.">Done</button>
+      </nav>
+      <p class="menu-hint" id="lockHint" aria-live="polite">Pick what to change, then tap an item to try it on.</p></div>
+    </aside>
+    <div class="ward-main">
+      <div class="ward-grid" id="lockGrid"></div>
+    </div>
     <div class="ward-stage"><canvas id="lockStage" width="360" height="300" aria-hidden="true"></canvas>
-      <div class="ward-side" role="group" aria-label="Preview side"><button type="button" data-side="0">As Orange</button><button type="button" data-side="1">As Blue</button></div>
       <div class="ward-name" id="lockPick" hidden></div>
       <button type="button" class="ward-go" id="lockGo" data-lockact="go" hidden>Buy</button>
       <form class="ward-code" id="lockCode" autocomplete="off" hidden><input id="lockCodeIn" class="text-in" inputmode="numeric" maxlength="8" placeholder="Code" aria-label="Secret code"><button type="submit" class="btn">Unlock</button></form>
       <p class="ward-msg" id="lockMsg" aria-live="polite"></p></div>
-    <div class="ward-main">
-      <div class="ward-head"><h2 id="lockTitle">Customize</h2><span class="coinchip big"><i class="coin" aria-hidden="true"></i><b data-coins>0</b></span></div>
-      <div class="ward-tabs" role="tablist" aria-label="What to change"><button type="button" role="tab" data-lockk="color">Colour</button><button type="button" role="tab" data-lockk="hat">Hats</button><button type="button" role="tab" data-lockk="pattern">Patterns</button><button type="button" role="tab" data-lockk="trail">Trails</button></div>
-      <div class="ward-grid" id="lockGrid"></div>
-      <div class="ward-foot"><button type="button" class="btn ward-done" data-lockact="close"><span class="desk-only-i">Done · Esc</span><span class="touch-only-i">Done</span></button></div>
-    </div>
   </div>
 </div>
 
@@ -1680,7 +1707,7 @@ const VS_HP=1.5;
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1180,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:0,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
-  split:0,grow:false,launch:0,juggle:0,combo:0,uppercut:false,burner:0,jam:0,pick:0,det:0,grudge:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,lance:0,chaos:0};
+  split:0,grow:false,launch:0,juggle:0,combo:0,uppercut:false,burner:0,jam:0,pick:0,det:0,grudge:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,lance:0,chaos:0,wild:0};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare','Legendary'];
 const CARDS=[
@@ -1741,7 +1768,7 @@ const CARDS=[
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
   {n:'Sun Lance',k:'gun',r:3,d:'Tap for a quick beam, or hold to charge a blazing one. It burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['Fat beam','1 per reload',0],['Hold','To charge',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
  /* the chaos pack: people love it loud. Each one tuned with scripts/balance.js to win a fair share held alone, never a lock */
- {n:'Bullet Hose',k:'gun',r:2,d:'Hold the trigger and hose the arena. Light rounds, but so many of them.',st:[['x3','Fire rate',1],['+9','Ammo',1],['-35%','Damage',0]],a:s=>{s.fireDelay*=.33;s.ammo+=9;s.dmg*=.65}},
+ {n:'Bullet Hose',k:'gun',r:2,d:'Hold the trigger and hose the arena: a wild spray of light rounds, and so many of them.',st:[['x3','Fire rate',1],['+9','Ammo',1],['Wild','Spray',0],['-35%','Damage',0]],a:s=>{s.fireDelay*=.33;s.ammo+=9;s.dmg*=.65;s.wild+=.11}},
  {n:'Rubber Rounds',k:'shot',r:1,d:'Bullets bounce off everything four more times and pick up speed. Pinball, but with bullets.',st:[['+4','Bounces',1],['+15%','Bullet speed',1],['-15%','Damage',0]],a:s=>{s.bounces+=4;s.bulletSpeed*=1.15;s.dmg*=.85}},
  {n:'Chaos Rounds',k:'shot',r:2,d:'Every bullet rolls a random power: blast, frost, venom, homing, bounce, shards or giant.',st:[['Random','Power every shot',1]],a:s=>{s.chaos+=1}},
 ];
@@ -2910,6 +2937,8 @@ let lockK='color',lockSide=0,lockSel=null;
 const COIN_HTML='<i class="coin" style="width:12px;height:12px;vertical-align:-1px"></i>';
 const bought=(k,id)=>!id||wallet.owned.includes(k+':'+id);
 const owns=(k,id)=>bought(k,id)||(portal.plus&&!!COS[k]&&COS[k].some(i=>i.id===id&&!i.secret));   // Flick Plus: every look but the secret one, worn while Plus is on
+{const L=$('#locker'),hint=e=>{const b=e.target.closest&&e.target.closest('[data-hint]'),h=$('#lockHint');if(b&&h&&L.contains(b))h.textContent=b.dataset.hint};L.addEventListener('mouseover',hint);L.addEventListener('focusin',hint);
+  L.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-lockact="side"]');if(b&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();b.click()}})}
 function openLocker(k,id){$('#locker').hidden=false;if(k){lockK=k;lockSel=id??null}renderLocker();lookLoop();const b=$('#locker [data-lockk].on');b&&b.focus({preventScroll:true})}
 function closeLocker(){$('#locker').hidden=true;focusFirst($('#menu'))}
 // the end screen's (and the phone's) rivalry line
@@ -2947,8 +2976,8 @@ const wearing=(k,id)=>k==='hat'?(id?hatList(wallet.eq.hat).includes(id):!wallet.
 function wearHat(id,on){const L=hatList(wallet.eq.hat);wallet.eq.hat=!id?'':on?hatWith(wallet.eq.hat,id):L.filter(h=>h!==id).join(',')}
 function renderLocker(msg){refreshWallet();const root=$('#locker'),grid=$('#lockGrid');if(!grid)return;
   root.querySelectorAll('[data-lockk]').forEach(b=>{const on=b.dataset.lockk===lockK;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-  root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));
-  grid.innerHTML='';const col=lockK==='color';root.querySelector('.ward-side').hidden=!col;
+  root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));{const v=$('#lockSideV');if(v){v.textContent=lockSide?'Blue':'Orange';v.style.color=lockSide?'var(--blue)':'var(--orange)'}}
+  grid.innerHTML='';const col=lockK==='color';
   if(col){for(const f of['o','b']){const F=SHADE[f],cur=wallet.eq[f==='o'?'co':'cb']||F.def,box=document.createElement('div');box.className='shade '+f;
       box.innerHTML=`<p class="lbl">${f==='o'?'Your orange':'Your blue'}</p><div class="sw">${F.sw.map(([h,l])=>`<button type="button" data-shade="${f}:${h}:${l}" style="background:${hslHex(h,F.s,l)}" class="${h===cur[0]&&l===cur[1]?'on':''}" aria-label="${f==='o'?'Orange':'Blue'} shade"></button>`).join('')}</div>
         <input type="range" min="${F.l[0]}" max="${F.l[1]}" value="${cur[1]}" data-light="${f}" aria-label="${f==='o'?'Orange':'Blue'}: lighter or deeper"><div class="ends"><span>Deeper</span><span>Lighter</span></div>`;grid.appendChild(box)}}
@@ -2989,10 +3018,10 @@ function devUnlockAll(){for(const k in COS)for(const it of COS[k]){const key=k+'
   if((b=t.closest('[data-side]'))){lockSide=+b.dataset.side;sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-shade]'))){const[f,h,l]=b.dataset.shade.split(':');wallet.eq[f==='o'?'co':'cb']=cleanShade([+h,+l],f);lockSide=f==='o'?0:1;saveWallet();sfx('tick',true);renderLocker();return}
   if((b=t.closest('[data-lock]'))){lockPick(b.dataset.lock);if(!$('#lockCode').hidden){const i=$('#lockCodeIn');i.value='';i.focus()}return}
-  if((b=t.closest('[data-lockact]'))){if(b.dataset.lockact==='go')lockGo();else closeLocker()}});
+  if((b=t.closest('[data-lockact]'))){const a=b.dataset.lockact;if(a==='side'){lockSide=lockSide?0:1;sfx('tick',true);renderLocker();return}if(a==='go')lockGo();else closeLocker()}});
   $('#lockCode').addEventListener('submit',e=>{e.preventDefault();initAudio();lockUnlock($('#lockCodeIn').value)});
   root.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-light]');if(!r)return;const f=r.dataset.light,k=f==='o'?'co':'cb',cur=wallet.eq[k]||SHADE[f].def;
-    wallet.eq[k]=cleanShade([cur[0],+r.value],f);lockSide=f==='o'?0:1;saveWallet();root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide))})}
+    wallet.eq[k]=cleanShade([cur[0],+r.value],f);lockSide=f==='o'?0:1;saveWallet();root.querySelectorAll('[data-side]').forEach(b=>b.classList.toggle('on',+b.dataset.side===lockSide));{const v=$('#lockSideV');if(v){v.textContent=lockSide?'Blue':'Orange';v.style.color=lockSide?'var(--blue)':'var(--orange)'}}})}
 /* the stage: your fighter on a ledge under the moon, bobbing gently, in your shade, with your hat and pattern, and a shot
    streaking past in your trail colour. The shop's stage shows what you're trying on */
 function drawLook(cvs,look,side,t){const g=cvs&&cvs.getContext('2d');if(!g)return;const W=cvs.width,H=cvs.height;
@@ -3071,10 +3100,11 @@ function drawCosPreview(g,k,id){const W2=220,H2=164;g.clearRect(0,0,W2,H2);g.sav
 
 /* ---------- sandbox: give yourself or the CPU any cards and try them out. No drafts and no score to reach ---------- */
 const sandbox={decks:[[],[]],tab:0,cpu:'fight',arena:-1,filter:'all',seen:false};
-const SB_CPU={fight:'Fights back',dodge:'Moves, never shoots',still:'Stands still'},SB_MAX=9;
+const SB_CPU={fight:'Fights back',dodge:'Only dodges',still:'Stands still'},SB_MAX=9,SB_SHOW={all:'All cards',gun:'Guns',shot:'Bullets',guard:'Blocks',body:'Body'};
+const cyc=(list,cur,d)=>list[(list.indexOf(cur)+d+list.length)%list.length];
 const sbOpen=()=>!$('#sandbox').hidden;
 function openSandbox(){if(game.mode!=='sandbox')return;game.paused=true;keys.clear();mouse.down=false;$('#pause').hidden=true;$('#sandbox').hidden=false;cv.style.cursor='default';
-  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();{const bk=$('#sbBack');if(bk)bk.textContent=sandbox.played?'‹ Main menu':'‹ Back'}const b=$('#sbGo');if(b)b.textContent=touch.on?'Play':'Play · Tab';b&&b.focus({preventScroll:true})}
+  sandbox.mapsOpen=false;renderSandbox(true);renderSbMaps();{const bk=$('#sbBack');if(bk)bk.textContent=sandbox.played?'Main menu':'Back'}const b=$('#sbGo');if(b)b.textContent=touch.on?'Play':'Play · Tab';b&&b.focus({preventScroll:true})}
 function closeSandbox(){if(!sbOpen())return;sandbox.played=true;$('#sandbox').hidden=true;applySandbox();game.paused=false;cv.style.cursor='none';cv.focus()}
 // new loadouts take effect on a fresh point, so health, ammo and block charges start from the new stats
 function applySandbox(){players.forEach((p,k)=>{p.cards=sandbox.decks[k].slice();recompute(p)});const c=players[1];c.ctrl=sandbox.cpu==='still'?'idle':'cpu';
@@ -3102,7 +3132,8 @@ function renderSandbox(full){const k=sandbox.tab,col=players[k]?players[k].color
       const g=b.querySelector('canvas').getContext('2d');if(g)drawIcon(g,c.n,48,48,56,'#ffffff',4);   // the icon shows until (or unless) the card's painting loads
       const im=b.querySelector('img');if(im){im.onerror=()=>im.remove();im.src=`cards/${cardSlug(c.n)}.webp`}grid.appendChild(b)}}
   for(const b of grid.children){const c=CARDS.find(x=>x.id==b.dataset.sbcard),n=c?sbCount(k,c):0,ct=b.querySelector('.ct');b.classList.toggle('has',n>0);if(ct){ct.hidden=!n;ct.textContent='×'+n}}
-  $('#sbCpu').textContent='CPU: '+SB_CPU[sandbox.cpu];$('#sbArena').textContent='Arena: '+(sandbox.arena<0?'Random':MAPS[sandbox.arena].name)}
+  const sv=(id,t)=>{const e=$(id);if(e)e.textContent=t};sv('#sbWhoV',k?'CPU':'You');{const w=$('#sbWhoV');if(w)w.style.color=col}sv('#sbShowV',SB_SHOW[sandbox.filter]||'All cards');
+  sv('#sbCpuV',SB_CPU[sandbox.cpu]);sv('#sbArenaV',sandbox.arena<0?'Random':MAPS[sandbox.arena].label||MAPS[sandbox.arena].name)}
 /* the sandbox's arena picker: a strip of map pictures (Random first); pick one and it's the arena from the next point */
 function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)return;const cw=cvs.width,ch=cvs.height;g.clearRect(0,0,cw,ch);
   try{const sky=g.createLinearGradient(0,0,0,ch);sky.addColorStop(0,'#24163a');sky.addColorStop(1,'#4a2d5e');g.fillStyle=sky}catch(e){g.fillStyle='#2d1c45'}g.fillRect(0,0,cw,ch);
@@ -3122,6 +3153,13 @@ function drawMapThumb(cvs,m){const g=cvs.getContext&&cvs.getContext('2d');if(!g)
     else if(d.t==='bridge'){R(d.dir>0?d.px:d.px-(d.th||30),d.py-d.L,d.th||30,d.L,D);ln(d.px,d.py-d.L,d.rx,d.ry)}
     else if(d.t==='lift')for(const q of[d.a,d.b]){ln(q.x+q.w/2,d.wy,q.x+q.w/2,q.y);R(q.x,q.y,q.w,q.h,D)}
     else if(d.t==='stack'){let y=d.y;for(const[w,h,key]of d.blocks){y-=h;R(d.x-w/2,y,w,h,key?N:D)}}}}
+// one step of a sandbox option row; returns true when it handled the row. The Arena row's body opens the arena pictures; its arrows flip through them
+function sbCycle(a,d,arrow){
+  if(a==='who'){const was=sandbox.mapsOpen;sandbox.tab=sandbox.tab?0:1;sandbox.mapsOpen=false;sfx('tick',true);renderSandbox(was);renderSbMaps();return true}
+  if(a==='show'){sandbox.filter=cyc(Object.keys(SB_SHOW),sandbox.filter,d);sandbox.mapsOpen=false;sfx('tick',true);renderSandbox(true);renderSbMaps();return true}
+  if(a==='cpu'){sandbox.cpu=cyc(Object.keys(SB_CPU),sandbox.cpu,d);sfx('tick',true);renderSandbox();return true}
+  if(a==='arena'&&arrow){sandbox.arena=cyc([-1,...arenaPool()],sandbox.arena,d);sfx('tick',true);renderSandbox();renderSbMaps();setSbArenaInfo();return true}
+  return false}
 function setSbArenaInfo(){const el=$('#sbInfo');if(el&&sandbox.mapsOpen)el.textContent=`Arena for the next point: ${sandbox.arena<0?'a random one each point':MAPS[sandbox.arena].label||MAPS[sandbox.arena].name}. Pick another, or go back to the cards.`}
 function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;const mo=!!sandbox.mapsOpen;box.hidden=!mo;grid.hidden=mo;$('#sbArena').classList.toggle('on',mo);$('#sandbox').classList.toggle('maps',mo);
   $('#sandbox').querySelectorAll('[data-sbtab]').forEach(b=>b.classList.toggle('on',!mo&&+b.dataset.sbtab===sandbox.tab));
@@ -3136,13 +3174,16 @@ function renderSbMaps(){const box=$('#sbMaps'),grid=$('#sbGrid');if(!box)return;
     if((b=t.closest('[data-sbchip]'))){const x=CARDS.find(q=>q.id==b.dataset.sbchip);x&&sbRemove(x);return}
     if((b=t.closest('[data-sbtab]'))){sandbox.tab=+b.dataset.sbtab;const was=sandbox.mapsOpen;sandbox.mapsOpen=false;sfx('tick',true);renderSandbox(was);renderSbMaps();return}
     if((b=t.closest('[data-sbf]'))){sandbox.filter=b.dataset.sbf;sfx('tick',true);renderSandbox(true);return}
-    if((b=t.closest('[data-sbact]'))){const a=b.dataset.sbact;
+    if((b=t.closest('[data-sbact]'))){const a=b.dataset.sbact,arrow=t.closest('[data-dir]'),d=arrow?+arrow.dataset.dir:1;
+      if(sbCycle(a,d,!!arrow))return;
       if(a==='go'){sfx('pick',true);closeSandbox();return}
       if(a==='back'){sfx('tick',true);toMenu();return}   // leave without playing
       if(a==='clear')sandbox.decks[sandbox.tab]=[];
-      if(a==='cpu'){const o=Object.keys(SB_CPU);sandbox.cpu=o[(o.indexOf(sandbox.cpu)+1)%o.length]}
-      if(a==='arena'){sandbox.mapsOpen=true;renderSbMaps();setSbArenaInfo();sfx('tick',true);return}
+      if(a==='arena'){sandbox.mapsOpen=!sandbox.mapsOpen;renderSbMaps();if(sandbox.mapsOpen)setSbArenaInfo();else setSbInfo(null);sfx('tick',true);return}
       sfx('tick',true);renderSandbox()}});
+  // the option rows work like Settings: ‹ › (or ← → on a focused row) step the value, and the hint line explains the row
+  root.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-sbact]');if(!b||!(e.key==='ArrowLeft'||e.key==='ArrowRight'))return;if(sbCycle(b.dataset.sbact,e.key==='ArrowLeft'?-1:1,true))e.preventDefault()});
+  const hint=e=>{const b=e.target.closest&&e.target.closest('[data-hint]');const h=$('#sbHint');if(b&&h&&root.contains(b))h.textContent=b.dataset.hint};root.addEventListener('mouseover',hint);root.addEventListener('focusin',hint);
   root.addEventListener('contextmenu',e=>{const c=card(e.target);if(c){e.preventDefault();sbRemove(c);setSbInfo(c)}});
   root.addEventListener('mouseover',e=>{const c=card(e.target);if(c)setSbInfo(c)});
   root.addEventListener('focusin',e=>{const c=card(e.target);if(c)setSbInfo(c)})}
@@ -4316,8 +4357,10 @@ function lanceStep(p,dt,held){if(!(p.lch>0))return;if(!p.s.lance){p.lch=0;return
   if(!held&&p.lch>=LANCE_TAP||p.lch>=LANCE_FULL+LANCE_KEEP)lanceFire(p,lanceK(p.lch))}
 // the local player's charge began from a held touch or a paired phone's thumb: letting go of that is the trigger, not a new shot
 function chargeMark(){if(touch.aim)touch.aim.charged=true;if(mouse.cpHold&&cpad.link)cpad.link.charged=true}
+// Bullet Hose sprays: each round leaves the barrel a little off line. For an online guest's shot the wobble comes from the shot number, so its own prediction flies the same way
+const wildJit=(seed,w)=>((Math.imul((seed|0)+7919,2246822519)>>>16)/65536-.5)*2*w;
 function spawnShot(p){const s=p.s,lk=s.lance?(p.lanceK??1):1,lp=s.lance?lancePow(lk):1,lw=s.lance?lanceW(lk):1,mult=(p.buffOver>0?2:1)*(p.staticReady?2:1)*(s.momentum?1+Math.min(.6,Math.hypot(p.vx,p.vy)/1100*.6):1)*(berserkOn(p)?1.2:1)*grudgeMult(p);p.staticReady=false;const n=s.projectiles,br=5*s.bulletSize*(mult>1?1.3:1);let fx=0,fy=0;
-  for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);
+  for(let i=0;i<n;i++){const jit=rand(-.015,.015),a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2+jit*3:0)+(s.wild>0?wildJit(p.ctrl==='net'&&p.curSc!=null?p.curSc*64+(p.si||0):Math.random()*1e9|0,s.wild):0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
@@ -5623,7 +5666,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-20-ranked';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-20-hose';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -6134,7 +6177,7 @@ function guestGhosts(dt,busy){const me=players[net.me],G=net.ghosts;
   for(let i=G.length-1;i>=0;i--)if(G[i].dead)G.splice(i,1)}
 function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,fy=p.y;
   const lw=s.lance?lanceW(p.gLk??1):1;
-  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
+  for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0)+(s.wild>0?wildJit((p.gSc||0)*64+(p.gSi||0),s.wild):0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br*lw,bw:lw,bounces:s.bounces,trail:[],
       color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,lance:s.lance>0,ox:m.x,oy:m.y,heat:1});
     if(s.chaos>0&&!s.lance){const gh=net.ghosts[net.ghosts.length-1],[k,c]=CHAOS[chaosK(gh.tag)];gh.glow=c;if(k==='giant')gh.r*=2;else if(k==='bounce')gh.bounces+=3;else if(k==='homing')gh.homing=true;else if(k==='explode')gh.explode=true;else if(k==='poison')gh.poison=true;else if(k==='slow')gh.slow=true}}   // the same power the host rolls for this shot number

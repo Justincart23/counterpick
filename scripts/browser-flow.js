@@ -79,7 +79,7 @@ async function tab(port, url) {
   await A.ev(`document.querySelector('[data-act="sandbox"]').click()`);
   ok(await A.until(shown('#sandbox'), 3000) && await A.ev(`document.querySelectorAll('#sbGrid .sb-card').length`) >= 40, 'Sandbox opens a panel with every card');
   await A.ev(`(()=>{const g=[...document.querySelectorAll('#sbGrid .sb-card')],f=n=>g.find(b=>b.querySelector('.nm').textContent===n);f('Ricochet').click();f('Ricochet').click();f('Blast Cap').click()})()`);
-  await A.ev(`document.querySelector('[data-sbtab="1"]').click()`);
+  await A.ev(`document.querySelector('[data-sbact="who"]').click()`);
   await A.ev(`[...document.querySelectorAll('#sbGrid .sb-card')].find(b=>b.querySelector('.nm').textContent==='Thick Skin').click()`);
   ok(await A.ev(`document.querySelector('#sbDeck').textContent.includes('Thick Skin')`), "the CPU's tab shows the CPU's cards");
   await A.ev(`document.querySelector('#sbGo').click()`);
