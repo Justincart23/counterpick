@@ -1751,7 +1751,7 @@ const CARDS=[
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
  {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+10%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.1}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
- {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
+ {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave sized to the bullet, even when they miss: the farther it flew, the bigger the blast.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Keeps growing','Size + blast',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
  {n:'Launcher',k:'shot',r:2,d:'The more hurt your rival is, the farther your hits launch them. Launched into a wall or the arena edge, they crash for extra damage.',st:[['Up to x3','Launch on a hurt rival',1],['+22','Crash damage',1],['+50%','Launch per copy',1],['+10%','Damage',1]],a:s=>{s.launch+=1;s.dmg*=1.1}},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
  {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 2 seconds off your block cooldown, and you fire a little faster.',st:[['-2s','Cooldown per hit',1],['+15%','Fire rate',1]],a:s=>{s.reflexGuard+=2;s.fireDelay/=1.15}},
@@ -4419,6 +4419,9 @@ function blockFx(p){const s=p.s;
 // the landing spot is judged against fixed walls only: each screen swings its own copy of a hanging block, so both screens
 // always pick the same spot (a teleport into a swinging block is pushed out like any other overlap)
 const staticBox=(x,y,hw,hh)=>solids.some(r=>!r.oneway&&!r.bound&&!r.swing&&!r.ride&&boxHit(x,y,hw,hh,r));
+// a fighter jammed inside solid ground with no way out: stand it on the nearest free spawn spot (only the CPU is ever left like this)
+function unwedge(p){const sp=(game.map&&game.map.sp||[]).filter(q=>!staticBox(q[0],q[1],p.r,p.r)).sort((u,v)=>Math.hypot(u[0]-p.x,u[1]-p.y)-Math.hypot(v[0]-p.x,v[1]-p.y))[0];if(!sp)return;
+  burst(p.x,p.y,p.glow,10,260,4,.35);p.x=p.lx=sp[0];p.y=p.ly=sp[1];p.vx=p.vy=0;p.ground=null;p.grounded=false;burst(p.x,p.y,p.glow,10,260,4,.35)}
 function blinkMove(p){for(const dist of[260,180,110]){const tx=p.x+Math.cos(p.aim)*dist,ty=p.y+Math.sin(p.aim)*dist;
     if(!staticBox(tx,ty,p.r,p.r)&&tx>FRAME+p.r&&tx<W-FRAME-p.r&&ty>FRAME+p.r&&ty<H-p.r-4){const ox=p.x,oy=p.y;p.x=tx;p.y=ty;p.lx=tx;p.ly=ty;p.vy=Math.min(p.vy,0);p.ground=null;p.grounded=false;p.squash=1.3;
       p.blinkN=(p.blinkN||0)+1;moveFx(p,()=>blinkFx(ox,oy,tx,ty,p.r,p.color,p.glow));return true}}return false}
@@ -4528,8 +4531,8 @@ function launchCrash(p){if(!(p.launchT>0)||game.mode==='online-guest'||!p.alive)
   ring(p.x,p.y,'#ffffff',90);burst(p.x,p.y,'#fff3c4',22,620,6,.45,0,true);burst(p.x,p.y,p.color,14,480,5,.4);addShake(14);game.hitstop=.06;sfx('crush');
   parts.push({text:'CRASH!',x:p.x,y:p.y-p.r-24,vx:0,vy:-70,grav:0,life:.8,max:.8,color:'#fff3c4'});damage(p,CRASH_DMG,by&&by!==p?by:null)}
 const rangeMult=b=>Math.min(3,1+b.dist*.002);
-function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=120+m*45;
-  ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);boomFx(b.x,b.y,R*.5,'#ffe6a0',m/2);sfx('boom');
+function longShock(b,p){const m=rangeMult(b);if(m<2)return;const R=Math.max(120+m*45,b.r*30);   // the blast is matched to the bullet's size: it keeps growing the farther the shot flew, with no cap
+  ring(b.x,b.y,'#fff3c4',R);ring(b.x,b.y,b.glow,R*.7);flashFx(b.x,b.y,R*.8,.2,'#ffe6a0');addShake(6+m*4);boomFx(b.x,b.y,R*.55,'#ffe6a0',Math.max(m/2,R/220));sfx('boom');
   for(const o of players){if(!o.alive)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<R){const a=Math.atan2(o.y-b.y,o.x-b.x),f=(1-d/R)*(o===p?.4:1);o.vx+=Math.cos(a)*700*f;o.vy+=Math.sin(a)*600*f-220*f;o.ground=null;o.kT=.35}}}
 function hitPlayer(p,b){if(b.bomb){b.dead=true;explode(b,null);return}sparks(b.x,b.y,'#ffffff',7,620,Math.atan2(b.vy,b.vx),.75);if(b.grow)longShock(b,p);const sp=Math.hypot(b.vx,b.vy)||1,kf=clamp(b.dmg/50,.4,3)*b.knock;
   if(p.aegis>0){p.aegis--;b.dead=true;ring(p.x,p.y,'#dff4ff',70);burst(p.x,p.y,'#dff4ff',16,420,4,.4,0,true);sfx('pop');return}
@@ -4610,7 +4613,7 @@ function updateBullets(dt){
         if(ok){if(!b.lock&&!RM)flashFx(b.x,b.y,22,.12,'#c9a0ff');b.lock=1;b.lostT=0}else if(b.lock){b.lostT=(b.lostT||0)+.1;if(b.lostT>SEEK_LOSE)b.lock=0}}
       if(b.lock){const des=Math.atan2(t.y-b.y,t.x-b.x),h=hom*3.2*dt,na=cur+clamp(wrapA(des-cur),-h,h),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}}
     if(b.accel){const sp=Math.hypot(b.vx,b.vy);if(sp<b.sp0*3.5){const f=1+1.3*dt;b.vx*=f;b.vy*=f;b.dmg*=f}}
-    if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(1.8,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
+    if(b.grow){if(b.base==null){b.base=b.dmg;b.r0=b.r}b.dist+=Math.hypot(b.vx,b.vy)*dt;b.dmg=b.base*rangeMult(b);b.r=b.r0*Math.min(10,1+b.dist*.0008)}   // Long Haul: bigger and harder the farther it flies
     b.vy+=BGRAV*b.grav*gMul()*dt;
     const steps=Math.min(40,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/(wallR(b)*.8)))),sdt=dt/steps;
     for(let k=0;k<steps&&!b.dead;k++){b.x+=b.vx*sdt;b.y+=b.vy*sdt;
@@ -4891,7 +4894,9 @@ function cpuFallPlan(p,ai,dir,e){
   // nothing lands from here: plan through one pop off the bottom instead, so it drifts to where it can climb back
   if(!best)for(const d of[-1,0,1]){const r=fallSim(p,d,'none',true,true);if(!r)continue;const sc=r.t+(r.popped===2?2:.5)+(r.hot?3:0)+(e?Math.abs(r.x-e.x)/4000:0);if(sc<bs){bs=sc;best={dir:d,jt:'none'}}}
   ai.fp=best;return best}
-function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(game.bg?'normal':game.diff)];inp.jumpP=false;inp.blockP=false;inp.fire=false;inp.down=false;
+function cpuInput(p,dt){const inp=p.input,ai=p.ai,e=other(p),sk=DIFF[p.skill||(game.bg?'normal':game.diff)];
+  if(p.alive&&game.state==='play'){ai.embT=staticBox(p.x,p.y,p.r*.7,p.r*.7)?(ai.embT||0)+dt:Math.max(0,(ai.embT||0)-dt*.5);if(ai.embT>2.5){ai.embT=0;unwedge(p)}}   // wedged into a slot a shove pushed it into (a gap under a platform): put it back on its feet
+ inp.jumpP=false;inp.blockP=false;inp.fire=false;inp.down=false;
   if(!e.alive){inp.move=0;inp.jumpH=false;return}
   ai.errT-=dt;if(ai.errT<=0){ai.errT=rand(.3,.7);ai.err=(Math.random()+Math.random()-1)*sk.err*(1+Math.hypot(e.x-p.x,e.y-p.y)/700)}
   // perception lag: the CPU reacts to where you were a moment ago, not where you are now
@@ -5605,18 +5610,25 @@ function applyTouch(){const R=56,m=touch.move,a=touch.aim;let mx=0,up=false,down
 // fire one shot: a queued trigger pull (mouse.tapN) that physics steps use, so every tap is exactly one shot. A tap while the
 // gun is still cycling waits up to TAP_BUF for it (spam-tapping never drops a shot); an empty gun clears the queue
 const TAP_BUF=.25;
-function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=auto?TAP_BUF:Math.max(TAP_BUF,1.2);touch.tapAuto=!!auto}   // an aimed shot waits through a short reload
+const HOSE_TAP=5;   // Bullet Hose has no trigger to hold on a phone: a tap (or a release) lets off a short spray, this many rounds after the first
+function touchShoot(auto){mouse.tapN=Math.min(3,(mouse.tapN||0)+1);mouse.tapT=auto?TAP_BUF:Math.max(TAP_BUF,1.2);touch.tapAuto=!!auto;const me=touchMe();if(me&&me.s&&me.s.wild>0)touch.hoseN=HOSE_TAP}   // an aimed shot waits through a short reload
 function tapStep(me,h,fired){if(!(mouse.tapN>0))return;
-  if(fired){mouse.tapN--;mouse.tapT=TAP_BUF;return}
+  if(fired){mouse.tapN--;mouse.tapT=TAP_BUF;if(touch.hoseN>0&&(me&&me.ammo>0)){touch.hoseN--;mouse.tapN=Math.max(mouse.tapN,1)}else touch.hoseN=0;return}   // a Bullet Hose spray: each round that leaves queues the next
   if(!me||!me.alive||me.ammo<=0&&!(me.burstLeft>0)&&touch.tapAuto||(mouse.tapT-=h)<=0)mouse.tapN=0}
 // the trigger held without a click: a thumb on the touch aim stick (not back in its cancel zone), or on a paired phone's aim side
 const trigHold=()=>!!(touch.on&&touch.aim&&!((touch.aim.maxD||0)>=AIM_DEAD&&Math.hypot(touch.aim.dx,touch.aim.dy)<AIM_DEAD))||!!mouse.cpHold;
 function touchRelease(a){const d=Math.hypot(a.dx,a.dy),quick=performance.now()-a.t0<TAP_MS&&(a.maxD||0)<TAP_MOVE;
   if(a.charged){if((a.maxD||0)>=AIM_DEAD&&d<AIM_DEAD)mouse.lanceX=true;else if((a.maxD||0)<TAP_MOVE){touch.lanceAuto=true;autoAim()}return}   // a Sun Lance charged by this touch: letting go fired it (back in the middle calls it off); a tap or an undragged hold fires at the rival
+  if(a.hosed){return}
   if(quick){autoAim();touchShoot(true);touch.lanceAuto=true}   // tap: auto-aim at the rival (lob, drop and lead included)
+  else if(a.hosed){}   // a held Bullet Hose already sprayed the whole time
   else if(d>=AIM_DEAD)touchShoot(false)}   // aimed: fire where it points; let go in the middle to cancel
 function autoAim(){const me=touchMe(),e=me&&(game.mode==='online-guest'&&!game.coop?players[0]:other(me));
-  if(!me||!Number.isFinite(me.x))return;const a=tapTarget(me,e);if(a!=null){touch.aimA=a;touchAim()}}
+  if(!me||!Number.isFinite(me.x))return;const a=tapTarget(me,e);if(a==null)return;
+  /* the virtual mouse goes through aimThrough, which turns the aim to put the BARREL (not the body) on the cursor: for a stick that is
+     right, but the solver's angle is already the barrel's, so a long gun (Rail Slug) would fire low. Pick the stick angle whose barrel angle is a */
+  let k=a;for(let i=0;i<4;i++){const r=aimThrough(me,me.x+Math.cos(k)*260,me.y+Math.sin(k)*260);k+=wrapA(a-r)}
+  touch.aimA=k;touchAim()}
 // where a tap auto-fires: the nearest rival (anything else, a health crate say, you aim at yourself). Behind a wall, the
 // straight shot would only hit the wall, so it looks for the nearest angle (a lob over it, say) whose arc reaches them;
 // with none, it aims straight at them. The search runs at most 10 times a second per fighter and only when blocked.
@@ -5656,6 +5668,9 @@ function touchFrame(){const live=touchLive();bodyCls('ingame',live);
   if(live){const me=game.mode==='online-guest'?players[net.me]:players.find(q=>q.ctrl==='mouse'),b=$('#tBlock');
     if(me&&b&&b.style){const cd=me.blockCd>0&&me.s?clamp(me.blockCd/me.s.blockCd,0,1):0;if(b._cd!==cd){b._cd=cd;b.style.setProperty('--cd',cd.toFixed(3))}if(b._pc!==me.glow){b._pc=me.glow;b.style.setProperty('--pc',me.glow)}}}
   if(!live&&(touch.move||touch.aim||touch.jumpBtn||mouse.tapN)){touch.move=touch.aim=null;touch.jumpBtn=false;mouse.tapN=0;stickHome($('#tsMove'));stickHome($('#tsAim'));if(touch.on){applyTouch()}}
+  if(live&&touch.aim){const me=touchMe(),a=touch.aim,d=Math.hypot(a.dx,a.dy);   // Bullet Hose: a held thumb keeps spraying (still = at the rival, dragged out = where it points)
+    if(me&&me.s&&me.s.wild>0&&!a.charged&&!(a.maxD>=AIM_DEAD&&d<AIM_DEAD)&&(a.maxD>=AIM_DEAD||performance.now()-a.t0>=TAP_MS&&a.maxD<TAP_MOVE)){
+      a.hosed=true;if(a.maxD<TAP_MOVE)autoAim();mouse.tapN=Math.max(mouse.tapN||0,1);mouse.tapT=TAP_BUF;touch.tapAuto=false;touch.hoseN=HOSE_TAP}}
   if(live&&touch.tapAuto&&mouse.tapN>0&&!touch.aim)autoAim();   // a queued tap shot re-aims at the rival right before it fires
   if(live&&touch.aim&&touch.aim.charged&&(touch.aim.maxD||0)<TAP_MOVE)autoAim();   // a Sun Lance held without dragging charges at the rival
   if(touch.lanceAuto){const me=touchMe();if(live&&!touch.aim&&me&&(lanceWind(me)>=0||mouse.tapN>0))autoAim();else touch.lanceAuto=false}   // a tapped Sun Lance keeps tracking the rival through its wind-up, until the beam leaves
@@ -5666,7 +5681,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-20-hose';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-20-haul';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,

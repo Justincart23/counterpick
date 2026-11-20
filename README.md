@@ -198,6 +198,9 @@ The 15% growth no longer adds loose floating planks. `dress()` drops architectur
 
 ## Latest changes
 
+- **Long Haul's blast keeps growing with the bullet.** The bullet's size is no longer capped at x1.8 (it grows to x10), and the shockwave radius is matched to it (about 30x the bullet's radius), so a shot from across the arena lands a huge boom. The card text says so.
+- **Phone tap auto-aim is exact.** It used to be turned a degree or two by the gun's barrel offset (a Rail Slug shot landed below the rival); it now fires exactly where the solver aimed.
+- **Bullet Hose works on a phone.** A tap lets off a short spray (5 extra rounds), and a held thumb (still = at the rival, dragged = where it points) keeps spraying. `tests/touchhaul.js` covers all of this.
 - **Sandbox and Customize now work like Settings.** The left side is a list of option rows: `‹ value ›` to cycle (Cards for You/CPU, Show, Arena, CPU behaviour, Customize's Preview side), the arrow keys work on a focused row, and a hint line explains each row. Cards or items sit to the right; Customize shows the preview on the far right. Phones get compact tiles.
 - **Bullet Hose sprays.** Each round leaves the barrel up to ~6° off line instead of tracing one straight laser. Online, the wobble comes from the shot number, so the guest's prediction matches the host.
 - `tests/newcards.js` fires all three new cards in a real match: the Hose's stream and spray, Rubber Rounds' four extra bounces in flight, and every Chaos power turning up and being applied.

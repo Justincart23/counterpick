@@ -9,6 +9,7 @@ const suite = [
   run('card-art.js'),
   run('lance.js'),   // Sun Lance, the Legendary: wind-up, beams, wood vs stone, burn, overrides, odds
   run('smash.js'),
+  run('touchhaul.js'),   // Long Haul's size-matched blast, phone tap auto-aim, Bullet Hose on a phone
   run('movement.js'),
   run('points.js'),
   run('combos.js'),
