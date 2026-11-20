@@ -351,6 +351,16 @@ body:not(.ingame) #hudbtns{display:none}
 .stats-empty{margin:0;padding:12px;border-radius:12px;background:rgba(255,255,255,.04);color:var(--muted);font-size:14px}
 .stats-note{margin:0;font-size:13px;color:var(--muted)}
 .statchip{margin-left:6px;color:var(--text)}.statchip svg{width:16px;height:16px}
+.end-rank{display:flex;align-items:center;gap:14px;margin:4px 0;padding:10px 16px;border-radius:16px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);text-align:left}
+.end-rank.up{border-color:#ffd36b;box-shadow:0 0 24px rgba(255,211,107,.35);animation:rkPop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes rkPop{from{transform:scale(.85)}to{transform:none}}
+.end-rank .grade{font:400 54px/1 var(--display);width:62px;text-align:center;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.grade.gS{color:#ffd36b}.grade.gA{color:#8fd06a}.grade.gB{color:#5aa8ff}.grade.gC{color:#c9b8d9}.grade.gD{color:#ff7a7a}
+.rk-body{display:grid;gap:3px;min-width:200px}.rk-title{font:400 22px/1.1 var(--display);color:var(--rc,#fff);letter-spacing:.02em}
+.rk-line{font:700 14px var(--body);color:var(--muted)}.rk-line b.up{color:var(--good,#8fd06a)}.rk-line b.down{color:var(--bad,#ff7a7a)}
+.rk-bar{display:block;height:6px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}.rk-bar i{display:block;height:100%;border-radius:4px}
+.rk-next{font:700 12px var(--body);color:var(--muted)}
+.rank-chip{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:999px;font:400 13px/1.5 var(--display);letter-spacing:.03em;color:#1a0e05;background:var(--rc,#b9a7c9)}
 .end-coins{margin:0;font:800 20px var(--body);color:#ffd36b}.end-coins.none{color:var(--muted);font-weight:700;font-size:16px}
 /* ---- phones & tablets: twin-stick touch controls, only on touch screens ---- */
 body:not(.touch) .touch-only{display:none!important}
@@ -1204,7 +1214,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <h1 class="logo" aria-label="CUUED"><img class="logo-img" src="logo.webp" alt="" width="720" height="340" onload="this.parentNode.classList.add('img')"><span class="a">CU</span><span class="b">UED</span></h1>
       <p class="tagline">Queue up. Duel a friend.</p>
     </div>
-    <p class="playing-as">Playing as <b data-myname>—</b>
+    <p class="playing-as">Playing as <b data-myname>—</b> <span class="rank-chip" data-myrank hidden></span>
       <button type="button" class="coinchip cp-chip" data-act="cpad" id="cpChip" hidden title="Your phone is your controller"><i class="cp-ic" aria-hidden="true"></i>Phone paired</button>
       <button type="button" class="coinchip" data-act="shop" title="Your CUUED coins: spend them in Customize"><i class="coin" aria-hidden="true"></i><b data-coins>0</b><span class="sr"> CUUED coins</span></button><button type="button" class="coinchip statchip" data-act="stats" title="Your wins, records and rivals"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2zm5 0h2V3H7zm5 0h2V6h-2z"/></svg>Stats</button></p>
     <p class="menu-msg" id="menuMsg" role="status" hidden></p>
@@ -1519,6 +1529,7 @@ body.touch .desk-only,body.touch .desk-only-i,body:not(.touch) .touch-only-i{dis
       <h2 id="endTitle" class="screen-title big">Orange wins</h2>
       <p id="endScore" class="end-score"></p>
       <div class="end-stats" id="endStats"></div>
+      <div id="endRank" class="end-rank" hidden aria-live="polite"></div>
       <p id="endCoins" class="end-coins" hidden></p>
       <p id="endRival" class="end-rivalry" hidden><span></span> <button type="button" class="linkish" data-act="stats">Your stats</button></p>
       <div class="end-build"><div class="lbl" id="deckName0">Your build</div><div class="ecards" id="deck0"></div></div>
@@ -1676,7 +1687,7 @@ const VS_HP=1.5;
 const BASE={maxHp:130,dmg:55,fireDelay:.3,ammo:3,reload:2,bulletSpeed:1180,bulletGravity:1,bounces:0,projectiles:1,spread:0,burst:1,
   lifesteal:0,size:1,moveSpeed:1,agility:1,airJumps:1,jumpPower:1,blockCd:4,blockHeal:0,poison:false,slow:0,homing:0,explode:0,bulletSize:1,knock:1,
   phase:0,regen:0,revive:0,reflect:false,blockWave:false,blockVolley:0,blink:false,staticGuard:false,blockBombs:0,blockFreeze:false,blockStock:0,wallBlock:false,accel:false,spite:0,
-  split:0,grow:false,launch:0,juggle:0,combo:0,uppercut:false,burner:0,jam:0,pick:0,det:0,grudge:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,lance:0};
+  split:0,grow:false,launch:0,juggle:0,combo:0,uppercut:false,burner:0,jam:0,pick:0,det:0,grudge:0,echo:0,charge:0,bounceDmg:0,freeze:false,mines:false,reflexGuard:0,quickdraw:false,aegis:0,momentum:false,berserk:false,lance:0,chaos:0};
 const CAT={gun:'#e2563a',shot:'#7c5cf0',guard:'#139c94',body:'#4c9a3c'};
 const RAR=['Common','Uncommon','Rare','Legendary'];
 const CARDS=[
@@ -1701,41 +1712,45 @@ const CARDS=[
  {n:'Shockwave Guard',k:'guard',r:1,d:'Blocking blasts nearby bullets and shoves your rival.',st:[['On','Shockwave',1],['+0.25s','Block cooldown',0]],a:s=>{s.blockWave=true;s.blockCd+=.25},u:1},
  {n:'Cluster Guard',k:'guard',r:1,d:'Blocking tosses three bombs around you that blow up on impact.',st:[['+3','Bombs',1],['30','Blast damage',1]],a:s=>{s.blockBombs+=3},u:1},
  {n:'Frost Guard',k:'guard',r:2,d:'Blocking freezes a nearby rival solid for a moment.',st:[['0.9s','Freeze',1],['240px','Range',1],['+0.4s','Block cooldown',0]],a:s=>{s.blockFreeze=true;s.blockCd+=.4},u:1},
- {n:'Double Guard',k:'guard',r:1,d:'Hold a second block in reserve. Both come back together.',st:[['+1','Block charge',1]],a:s=>{s.blockStock+=1},u:1},
- {n:'Counterfire',k:'guard',r:1,d:'Blocking sprays a ring of six bullets.',st:[['+6','Ring bullets',1]],a:s=>{s.blockVolley+=6}},
+ {n:'Double Guard',k:'guard',r:1,d:'Hold a second block in reserve. Both come back together.',st:[['+1','Block charge',1],['-0.5s','Block cooldown',1],['+10%','Health',1]],a:s=>{s.blockStock+=1;s.blockCd-=.5;s.maxHp*=1.1},u:1},
+ {n:'Counterfire',k:'guard',r:1,d:'Blocking sprays a ring of eight bullets, and your block comes back sooner.',st:[['+8','Ring bullets',1],['-0.6s','Block cooldown',1]],a:s=>{s.blockVolley+=8;s.blockCd-=.6}},
  {n:'Mending Guard',k:'guard',r:0,d:'Each block patches you up.',st:[['+22','Heal on block',1]],a:s=>{s.blockHeal+=22}},
  {n:'Echo Guard',k:'guard',r:1,d:'Every block fires a second free block a beat later. Stacks.',st:[['+1','Echo block',1],['+0.5s','Block cooldown',0]],a:s=>{s.echo+=1;s.blockCd+=.5}},
  {n:'Shield Charge',k:'guard',r:1,d:'Blocking launches you along your aim. Ram your rival to hurt and fling them.',st:[['On','Dash',1],['28','Ram damage',1],['+0.25s','Block cooldown',0]],a:s=>{s.charge+=1;s.blockCd+=.25}},
  {n:'Blink Guard',k:'guard',r:2,d:'Blocking teleports you toward your aim, and your block recharges faster.',st:[['On','Teleport',1],['-1s','Block cooldown',1]],a:s=>{s.blink=true;s.blockCd-=1},u:1},
  {n:'Mirror Guard',k:'guard',r:2,d:'Blocked bullets fly back at the shooter, 50% harder.',st:[['On','Reflect',1],['+50%','Reflected damage',1],['+0.5s','Block cooldown',0]],a:s=>{s.reflect=true;s.blockCd+=.5},u:1},
- {n:'Static Guard',k:'guard',r:1,d:'Your next shot after a block hits twice as hard.',st:[['x2','Next shot',1],['-0.5s','Block cooldown',1]],a:s=>{s.staticGuard=true;s.blockCd-=.5},u:1},
- {n:'Regrowth',k:'body',r:0,d:'Slowly knit back together.',st:[['+2.5%/s','Regen',1]],a:s=>{s.regen+=.025}},
+ {n:'Static Guard',k:'guard',r:1,d:'Your next shot after a block hits twice as hard.',st:[['x2','Next shot',1],['-1s','Block cooldown',1]],a:s=>{s.staticGuard=true;s.blockCd-=1},u:1},
+ {n:'Regrowth',k:'body',r:0,d:'Slowly knit back together.',st:[['+2%/s','Regen',1]],a:s=>{s.regen+=.02}},
  {n:'Second Wind',k:'body',r:2,d:'Survive one lethal hit per point with a third of your health.',st:[['+1','Revive',1],['-35%','Health',0]],a:s=>{s.revive+=1;s.maxHp*=.65}},
  {n:'Fat Rounds',k:'shot',r:0,d:'Bigger bullets are easier to land.',st:[['+80%','Bullet size',1],['+15%','Damage',1],['-10%','Bullet speed',0]],a:s=>{s.bulletSize*=1.8;s.dmg*=1.15;s.bulletSpeed*=.9}},
  {n:'Afterburner',k:'shot',r:0,d:'Hits stick a little rocket on your rival that keeps shoving them the way your shot flew. Deadly near pits and walls.',st:[['Rocket','Shoves for 0.6s',1],['+60%','Knockback',1],['+15%','Damage',1]],a:s=>{s.knock*=1.6;s.dmg*=1.15;s.burner+=1}},
  {n:'Ghost Rounds',k:'shot',r:2,d:'Bullets drill through walls, but each wall slows them, weakens them and bends them down. Blocks still stop them.',st:[['Drill','Walls',1],['-30%','Dmg per wall',0],['+0.25s','Reload',0]],a:s=>{s.phase=(s.phase||0)+DRILL;s.reload+=.25}},   /* like ROUNDS' Drill Ammo: through a wall or two, never unblockable */
  {n:'Glass Cannon',k:'body',r:2,d:'Hit like a truck, break like glass.',st:[['+90%','Damage',1],['-45%','Health',0]],a:s=>{s.dmg*=1.9;s.maxHp*=.55}},
- {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.4s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.4},u:1},
+ {n:'Bulwark',k:'guard',r:1,d:'Blocking raises a shield wall in front of you that stops enemy bullets for 2 seconds.',st:[['2s','Shield wall',1],['140px','Wall width',1],['+0.9s','Block cooldown',0]],a:s=>{s.wallBlock=true;s.blockCd+=.9},u:1},
  {n:'Accelerator',k:'shot',r:1,d:'Bullets speed up and hit harder the longer they fly.',st:[['Up to x3.5','Speed & damage',1]],a:s=>{s.accel=true},u:1},
  {n:'Spite',k:'body',r:1,d:'Getting hit throws a burst of shrapnel back out.',st:[['+8','Shrapnel',1]],a:s=>{s.spite+=8}},
- {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+15%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.15}},
+ {n:'Sprinter',k:'body',r:0,d:'Cover ground fast, change direction on a dime, and shrug off a stray hit.',st:[['+25%','Speed',1],['+40%','Turning',1],['+10%','Health',1]],a:s=>{s.moveSpeed*=1.25;s.agility*=1.4;s.maxHp*=1.1}},
  {n:'Splinter Rounds',k:'shot',r:1,d:'Bullets burst into four shards when they hit a wall.',st:[['+4','Shards',1]],a:s=>{s.split+=4}},
  {n:'Long Haul',k:'shot',r:2,d:'Bullets grow bigger and hit harder the farther they fly. Long shots land with a shockwave, even when they miss.',st:[['+20%','Damage per 100px',1],['Up to x3','At long range',1],['Up to x1.8','Size',1],['+0.4s','Reload',0]],a:s=>{s.grow=true;s.reload+=.4},u:1},
- {n:'Launcher',k:'shot',r:2,d:'The more hurt your rival is, the farther your hits launch them. Launched into a wall or the arena edge, they crash for extra damage.',st:[['Up to x3','Launch on a hurt rival',1],['+22','Crash damage',1],['+50%','Launch per copy',1]],a:s=>{s.launch+=1}},
+ {n:'Launcher',k:'shot',r:2,d:'The more hurt your rival is, the farther your hits launch them. Launched into a wall or the arena edge, they crash for extra damage.',st:[['Up to x3','Launch on a hurt rival',1],['+22','Crash damage',1],['+50%','Launch per copy',1],['+10%','Damage',1]],a:s=>{s.launch+=1;s.dmg*=1.1}},
  {n:'Limpet Mines',k:'shot',r:1,d:'Bullets stick to walls and blow up half a second later. Careful: the blast hurts you too.',st:[['+90px','Blast',1],['0.5s','Fuse',1]],a:s=>{s.mines=true;s.explode+=90},u:1},
- {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 1.5 seconds off your block cooldown.',st:[['-1.5s','Cooldown per hit',1]],a:s=>{s.reflexGuard+=1.5}},
+ {n:'Reflex Guard',k:'guard',r:1,d:'Every hit you land takes 2 seconds off your block cooldown, and you fire a little faster.',st:[['-2s','Cooldown per hit',1],['+15%','Fire rate',1]],a:s=>{s.reflexGuard+=2;s.fireDelay/=1.15}},
  {n:'Quickdraw Guard',k:'guard',r:0,d:'Blocking reloads your gun instantly.',st:[['Full','Reload on block',1]],a:s=>{s.quickdraw=true},u:1},
- {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-25%','Health',0],['-10%','Speed',0]],a:s=>{s.aegis+=1;s.maxHp*=.75;s.moveSpeed*=.9}},
+ {n:'Aegis',k:'body',r:2,d:'A bubble soaks the first hit you take each point.',st:[['+1','Shield per point',1],['-10%','Health',0]],a:s=>{s.aegis+=1;s.maxHp*=.9}},
  {n:'Momentum',k:'body',r:1,d:'Move faster, and the faster you move, the harder you hit.',st:[['+15%','Speed',1],['Up to +60%','Damage at speed',1]],a:s=>{s.momentum=true;s.moveSpeed*=1.15},u:1},
  {n:'Combo Chain',k:'shot',r:1,d:'Land hits back to back to build a combo: each hit within 1.2 seconds of the last deals 15% more, up to +90%. Getting hit breaks it.',st:[['+15%','Per hit in a row',1],['Up to +90%','Damage',1]],a:s=>{s.combo+=1},u:1},
  {n:'Uppercut Guard',k:'guard',r:1,d:'Blocking pops every rival in reach straight up into the air for 12 damage. Set up the juggle.',st:[['170px','Reach',1],['12','Damage',1],['+0.3s','Block cooldown',0]],a:s=>{s.uppercut=true;s.blockCd+=.3},u:1},
- {n:'Juggler',k:'shot',r:1,d:'Hits on an airborne rival deal 40% more and pop them back up, so they stay in the air.',st:[['+40%','Damage in the air',1],['Pop','Keeps them airborne',1]],a:s=>{s.juggle+=1}},
- {n:'Jammer Rounds',k:'shot',r:1,d:'Every hit scrambles your rival\'s shield: their block takes 0.4 seconds longer to come back.',st:[['+0.4s','Rival block cooldown per hit',1],['-10%','Damage',0]],a:s=>{s.jam+=.4;s.dmg*=.9}},
+ {n:'Juggler',k:'shot',r:1,d:'Hits on an airborne rival deal 40% more and pop them back up, so they stay in the air.',st:[['+40%','Damage in the air',1],['Pop','Keeps them airborne',1],['+10%','Damage',1]],a:s=>{s.juggle+=1;s.dmg*=1.1}},
+ {n:'Jammer Rounds',k:'shot',r:1,d:'Every hit scrambles your rival\'s shield: their block takes 0.6 seconds longer to come back.',st:[['+0.6s','Rival block cooldown per hit',1],['+20%','Damage',1]],a:s=>{s.jam+=.6;s.dmg*=1.2}},
  {n:'Pickpocket',k:'shot',r:1,d:'Your hits steal a bullet from your rival\'s magazine and load it into yours.',st:[['1','Bullet stolen per hit',1],['+2','Spare room in your magazine',1]],a:s=>{s.pick+=1}},
  {n:'Detonator',k:'shot',r:2,d:'Hits stick a charge on your rival, up to 5. Block to blow them all at once.',st:[['5','Charges at most',1],['9','Damage per charge',1],['+0.2s','Block cooldown',0]],a:s=>{s.det+=1;s.blockCd+=.2}},
  {n:'Grudge',k:'body',r:1,d:'For every round your rival leads you by, you hit 20% harder, up to 60%. Never count yourself out.',st:[['+20%','Damage per round behind',1],['60%','At most',1]],a:s=>{s.grudge+=1}},
  {n:'Berserk',k:'body',r:1,d:'Below half health you fire faster, move faster and hit harder.',st:[['+60%','Fire rate when hurt',1],['+25%','Speed when hurt',1],['+20%','Damage when hurt',1]],a:s=>{s.berserk=true},u:1},
   {n:'Sun Lance',k:'gun',r:3,d:'Tap for a quick beam, or hold to charge a blazing one. It burns through wood and sets your rival alight.',st:[['x2.7','Damage',1],['Burns','Rivals and wood',1],['Fat beam','1 per reload',0],['Hold','To charge',0]],a:s=>{s.lance+=1;s.dmg*=2.7;s.reload*=.8},u:1},   /* the one Legendary: rare and loud. Tuned in scripts/balance.js to about an even fight for CPUs (they read the wind-up); a human who aims it well gets more */
+ /* the chaos pack: people love it loud. Each one tuned with scripts/balance.js to win a fair share held alone, never a lock */
+ {n:'Bullet Hose',k:'gun',r:2,d:'Hold the trigger and hose the arena. Light rounds, but so many of them.',st:[['x3','Fire rate',1],['+9','Ammo',1],['-35%','Damage',0]],a:s=>{s.fireDelay*=.33;s.ammo+=9;s.dmg*=.65}},
+ {n:'Rubber Rounds',k:'shot',r:1,d:'Bullets bounce off everything four more times and pick up speed. Pinball, but with bullets.',st:[['+4','Bounces',1],['+15%','Bullet speed',1],['-15%','Damage',0]],a:s=>{s.bounces+=4;s.bulletSpeed*=1.15;s.dmg*=.85}},
+ {n:'Chaos Rounds',k:'shot',r:2,d:'Every bullet rolls a random power: blast, frost, venom, homing, bounce, shards or giant.',st:[['Random','Power every shot',1]],a:s=>{s.chaos+=1}},
 ];
 CARDS.forEach((c,i)=>{c.id=i;const w=c.n.split(' ');c.ab=(w.length>1?w[0][0]+w[1][0]:c.n.slice(0,2)).replace(/^./,m=>m.toUpperCase())});
 
@@ -1754,6 +1769,7 @@ const IC={
   dashed(g,dash,fn){g.setLineDash(dash);fn();g.setLineDash([])},
 };
 const ICONS={
+ 'Bullet Hose':g=>ICONS['Hair Trigger'](g),'Rubber Rounds':g=>ICONS['Ricochet'](g),'Chaos Rounds':g=>ICONS['Splinter Rounds'](g),
  'Overpressure':g=>{IC.bullet(g,.14,.66,.62,.2);IC.arc(g,.5,.62,.36,Math.PI*1.12,Math.PI*1.88);IC.line(g,.5,.6,.66,.34)},
  'Hair Trigger':g=>{IC.arc(g,.44,.5,.28,0,Math.PI);IC.line(g,.12,.5,.76,.5);IC.line(g,.44,.5,.38,.28,.48,.2);IC.bolt(g,.8,.26,.16)},
  'Deep Magazine':g=>{IC.line(g,.34,.1,.66,.1,.6,.9,.4,.9,.34,.1);IC.line(g,.4,.25,.6,.25);IC.line(g,.41,.37,.59,.37);IC.line(g,.42,.49,.58,.49)},
@@ -1961,8 +1977,8 @@ MAPS.push(
    crates:[[680,940,60],[1180,940,60]],sp:[[260,960],[1660,960],[335,720],[1585,720]]},
  // Switchback (vertical chases): stone and wooden decks stacked in a zig-zag. Stone you walk round, wood you go straight through, so the
  // quick way up and the safe way up are different
- {name:'Switchback',...ROOM,rects:[FLOOR,S(400,860,800),P(720,720,800),S(400,580,800),P(720,440,800),P(860,300,200),...sym([P(60,780,220),P(80,560,200),PAD(300,1000)])],
-   crates:symC([[620,940,60]]),sp:[[160,960],[1760,960],[500,820],[1420,680]]},
+ {name:'Switchback',...ROOM,rects:[FLOOR,S(380,860,640),P(900,720,640),S(380,580,640),P(900,440,640),P(620,300,220),...sym([P(60,780,220),P(80,560,200),PAD(300,1000)])],
+   crates:[[1100,940,60]],sp:[[160,960],[1760,960],[500,820],[1420,680]]},
  // Hive (homing): two rows of half-open cells. The bottom cells have stone floors you can duck in; the top row is wood to pop up through
  {name:'Hive',...ROOM,rects:[FLOOR,S(260,820,280),S(820,820,280),S(1380,820,280),WL(260,690,130,24),WL(1636,690,130,24),WL(820,690,130,24),WL(1076,690,130,24),
    P(260,560,280),P(820,560,280),P(1380,560,280),WL(516,430,130,24),WL(1380,430,130,24),P(540,320,280),P(1100,320,280)],sp:[[130,960],[1790,960],[400,780],[1520,780]]},
@@ -2606,7 +2622,7 @@ function partyPlayers(mode){const R=mode==='party'?[{n:myName||'You'},{cpu:1},{c
     if(game.screen||game.room){p.team=game.ffa?k:e.team??k%2;const c=bsSeatCol(e.seat??k,!game.ffa);p.color=c[0];p.glow=c[1];p.hpMul=net.role==='host'?settings.bsHp:net.roomHp||1;p.padTok=e.peer&&e.peer.tok||'';p.findT=0;if(e.cpu)p.skill=settings.bsCpu}   // Big Screen: four colours apart (or the teams' shades), the host's settings
     return p})}
 function startMatch(mode){if(mode!=='demo')portalSay('gameplayStart',{mode});
-  game.token++;game.awarded=false;game.endIds=null;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.legendAt=null;game.paused=false;game.lastWinner=-1;
+  game.token++;game.awarded=false;game.endIds=null;game.hitsBy=[0,0,0,0];game.shotsBy=[0,0,0,0];game.hits=0;game.mode=mode;game.capT=6;drops=[];game.bg=mode==='demo';game.wins=[0,0];game.points=[0,0];game.legendAt=null;game.paused=false;game.lastWinner=-1;
   game.screen=(mode==='online-host'||mode==='survival')&&!!net.screen&&net.role==='host';game.bsSurv=game.screen&&mode==='survival';game.room=!game.screen&&!!net.room&&!!net.party&&(mode==='online-host'||mode==='online-guest');game.ffa=game.screen&&!bsTeams()&&!game.bsSurv||game.room&&!!net.ffa;   // Big Screen: Free-for-all, Teams 2v2, or Co-op Survival
   game.target=game.bg||mode==='sandbox'||mode==='survival'?99:game.screen?settings.bsLen:game.room?(net.role==='host'?settings.bsLen:net.tg||5):settings.len;
   game.diff=mode==='survival'?'easy':settings.diff;game.lives=SURV_LIVES;game.round=0;game.cleared=0;game.twist=null;game.strikes=[];game.waitMsg='';
@@ -2801,6 +2817,32 @@ function matchIds(){if(net.role!=='host')return[];const me=game.screen?null:play
 function cleanIds(r){return Array.isArray(r)?r.slice(0,8).map(x=>Array.isArray(x)?[x[0]|0,cleanPid(x[1]),statName(x[2])||'Player']:null).filter(x=>x&&x[1]):[]}
 // who this match counts against: a win counts against every human on the other sides; a loss only against the winners
 const rivalsIn=(ids,myTeam,w,won)=>ids.filter(([t,id])=>id!==wallet.pid&&t!==myTeam&&(won||t===w)).map(([,id,n])=>({id,n}));
+/* ---------- rank: a rating you climb by winning (beating tougher rivals counts more), a grade for every match, and a title for
+   every band of rating to brag about. Played against the CPU and online 1v1; your best title ever is kept as your peak ---------- */
+const RANKS=[[0,'Rookie','#b9a7c9'],[1060,'Scrapper','#c8a27a'],[1120,'Brawler','#d9925a'],[1200,'Gunslinger','#e8b04a'],[1290,'Sharpshooter','#f0d060'],
+  [1390,'Duelist','#8fd06a'],[1500,'Veteran','#4fc7b0'],[1620,'Ace','#5aa8ff'],[1750,'Champion','#9b7bff'],[1900,'Legend','#ff7ad1'],[2100,'Mythic','#ff5a5a']];
+const rankIx=r=>{let i=0;while(i+1<RANKS.length&&r>=RANKS[i+1][0])i++;return i};
+const rk=()=>{const k=wallet.rk&&typeof wallet.rk==='object'?wallet.rk:(wallet.rk={});k.r=Number.isFinite(+k.r)?Math.round(+k.r):1000;k.peak=Math.max(k.r,+k.peak||0);k.n=Math.max(0,k.n|0);
+  const g=k.g&&typeof k.g==='object'?k.g:(k.g={});for(const L of 'SABCD')g[L]=Math.max(0,g[L]|0);return k};
+const CPU_RATING={easy:880,normal:1080,hard:1320};
+// the grade: did you win, by how much, how well you aimed, and how little you got hit (each 0..1)
+function matchGrade(won,me,opp){const W=game.wins,T=Math.max(1,game.target||5),margin=clamp((W[me]-W[opp])/T,-1,1),
+  sh=(game.shotsBy||[])[me]|0,hit=(game.hitsBy||[])[me]|0,acc=sh>=4?clamp(hit/sh/.45,0,1):.5,
+  took=(game.hitsBy||[])[opp]|0,dodge=clamp(1-took/Math.max(4,hit+took),0,1),
+  sc=(won?42:6)+22*(margin+1)/2+22*acc+14*dodge;
+  return{L:sc>=86?'S':sc>=72?'A':sc>=56?'B':sc>=40?'C':'D',acc:sh>=4?Math.round(100*hit/sh):null}}
+// one rated match: an Elo step (K 32) against the rival's rating, plus a little for a great grade; a great loss costs less
+function rateMatch(won,me,opp,oppR){const k=rk(),gr=matchGrade(won,me,opp),before=k.r,ix0=rankIx(k.r),peak0=rankIx(k.peak),
+  E=1/(1+Math.pow(10,(oppR-k.r)/400)),bonus=k.r>oppR+250?0:{S:5,A:3,B:1,C:0,D:0}[gr.L];   // no grade bonus once you're far above this rival: the top titles are earned against people
+  let d=Math.round(32*((won?1:0)-E))+(won?bonus:Math.ceil(bonus/2));if(k.n<10)d=Math.round(d*1.5);   // the first ten matches place you faster
+  k.r=Math.max(600,k.r+d);k.n++;k.g[gr.L]++;k.peak=Math.max(k.peak,k.r);
+  return{gr,d:k.r-before,r:k.r,ix:rankIx(k.r),up:rankIx(k.r)>ix0,down:rankIx(k.r)<ix0,newPeak:rankIx(k.peak)>peak0}}
+function rankHTML(res){const R=RANKS[res.ix],nx=RANKS[res.ix+1],lo=R[0]||1000-80,pc=nx?clamp((res.r-lo)/(nx[0]-lo),0,1):1;
+  const sign=res.d>0?'+':'',acc=res.gr.acc!=null?` · ${res.gr.acc}% aim`:'';
+  return`<span class="grade g${res.gr.L}">${res.gr.L}</span><span class="rk-body"><span class="rk-title" style="--rc:${R[2]}">${res.up?'NEW TITLE · ':res.down?'Dropped to ':''}${R[1]}</span>`+
+    `<span class="rk-line">${res.r} rating <b class="${res.d>=0?'up':'down'}">${sign}${res.d}</b>${acc}</span>`+
+    `<span class="rk-bar"><i style="width:${Math.round(pc*100)}%;background:${R[2]}"></i></span><span class="rk-next">${nx?`${nx[0]-res.r} to ${nx[1]}`:'The top title. Hold it.'}</span></span>`}
+function refreshRank(){const k=rk(),R=RANKS[rankIx(k.r)];document.querySelectorAll('[data-myrank]').forEach(el=>{el.textContent=k.n?`${R[1]} · ${k.r}`:'Unranked';el.style.setProperty('--rc',R[2]);el.hidden=false})}
 // one finished match: the mode's record, and each rival's. Returns what to say about the rivalry on the end screen
 function recordMatch(kind,won,rivals){if(!STAT_MODES.includes(kind))return'';wallet.md[kind][won?0:1]++;const now=Date.now(),lines=[];
   for(const{id,n}of rivals||[]){if(!PID_RE.test(id)||id===wallet.pid)continue;const r=wallet.vs[id]||(wallet.vs[id]={n,w:0,l:0,t:0,s:0});r.n=statName(n)||r.n;r.t=now;
@@ -2861,7 +2903,10 @@ function awardMatch(w){let me=game.mode==='online-guest'?net.me:game.mode==='onl
   if(me<0||game.awarded)return;game.awarded=true;
   {const kind=game.mode==='cpu'?'cpu':game.mode==='party'?'party':'online',
     ids=kind!=='online'?[]:net.role==='host'?matchIds():game.endIds||(net.remoteId?[[0,net.remoteId,net.remoteName]]:[]);
-    showRival('#endRival',recordMatch(kind,w===me,rivalsIn(ids,me,w,w===me)))}
+    showRival('#endRival',recordMatch(kind,w===me,rivalsIn(ids,me,w,w===me)));
+    const er=$('#endRank');if(er)er.hidden=true;
+    if((kind==='cpu'||kind==='online')&&!game.party&&!game.ffa&&!game.room&&game.target<99){const opp=me?0:1,res=rateMatch(w===me,me,opp,kind==='cpu'?CPU_RATING[game.diff]||1080:1150);
+      saveWallet();refreshRank();if(er){er.innerHTML=rankHTML(res);er.className='end-rank'+(res.up?' up':'');er.hidden=false}if(res.up)setTimeout(()=>sfx('round',true),450)}}
   if(w===me){const n=earn((game.mode==='cpu'||game.mode==='party')&&game.diff!=='hard'?1:2);wallet.wins++;wallet.streak++;wallet.best=Math.max(wallet.best,wallet.streak);saveWallet();refreshWallet();
     if(el){el.className='end-coins';el.innerHTML=`<i class="coin" aria-hidden="true"></i> +${n} CUUED coin${n>1?'s':''} · you have ${wallet.coins}${wallet.streak>1?` · ${wallet.streak} wins in a row`:''}`;el.hidden=false}sfx('round',true)}
   else{wallet.streak=0;saveWallet();if(el){el.className='end-coins none';el.textContent=`Win a match to earn CUUED coins (you have ${wallet.coins}).`;el.hidden=false}}}
@@ -2881,7 +2926,7 @@ const STAT_MODE_N={online:'Online',screen:'Big Screen (on your phone)',cpu:'Prac
 // Your stats: what you've won, your rivals (everyone you've played, newest first) and your record in each mode
 function renderStats(){const md=wallet.md,W=STAT_MODES.reduce((a,k)=>a+md[k][0],0),L=STAT_MODES.reduce((a,k)=>a+md[k][1],0),N=W+L;
   const kv=(k,v)=>`<span class="kv">${k}<b>${v}</b></span>`;
-  $('#statsTop').innerHTML=`<span class="hero-n">${wallet.wins}<small>${wallet.wins===1?'Win':'Wins'}</small></span>`+(N?kv('Win rate',Math.round(100*W/N)+'%'):'')+kv('Best streak',wallet.best)+kv('Survival best',wallet.survBest?'Round '+wallet.survBest:'—');
+  $('#statsTop').innerHTML=`<span class="hero-n">${wallet.wins}<small>${wallet.wins===1?'Win':'Wins'}</small></span>`+(N?kv('Win rate',Math.round(100*W/N)+'%'):'')+kv('Rank',(()=>{const k=rk();return k.n?`${RANKS[rankIx(k.r)][1]} · ${k.r}`:'Unranked'})())+kv('Peak',(()=>{const k=rk();return k.n?RANKS[rankIx(k.peak)][1]:'—'})())+kv('Best streak',wallet.best)+kv('Survival best',wallet.survBest?'Round '+wallet.survBest:'—');
   const rl=$('#statsRivals');rl.innerHTML='';const ids=Object.keys(wallet.vs).sort((a,b)=>wallet.vs[b].t-wallet.vs[a].t);
   if(!ids.length){const p=document.createElement('li');p.className='stats-empty';p.style.display='block';p.textContent='Play a friend online or on a Big Screen, and your record against them shows up here.';rl.appendChild(p)}
   for(const id of ids){const r=wallet.vs[id],li=document.createElement('li'),n=r.w+r.l;if(r.w>r.l)li.className='lead';
@@ -3460,7 +3505,7 @@ function starterHand(p){const cs=dealHand(p).slice(0,3),pool=UPGRADES.slice(),up
 /* prices follow what a card is worth, not just its rarity: measured card strength nudges a card up or down a step or two
    (CARD_VALUE), a power-up costs about a third of a common card, and both grow slowly with the round and your build */
 const SHOP_PRICE=[6,10,15,22],SHOP_N=5,UP_PRICE=4;
-const CARD_VALUE={'Deep Magazine':1,'Overpressure':1,'Hair Trigger':1,'Triple Tap':2,'Venom Tips':2,'Lob Shell':2,'Seeker':1,'Long Haul':1,'Accelerator':1,
+const CARD_VALUE={'Bullet Hose':2,'Chaos Rounds':2,'Rubber Rounds':1,'Deep Magazine':1,'Overpressure':1,'Hair Trigger':1,'Triple Tap':2,'Venom Tips':2,'Lob Shell':2,'Seeker':1,'Long Haul':1,'Accelerator':1,
   'Sprinter':-1,'Afterburner':-1,'Cryo Rounds':-1,'Static Guard':-2,'Blink Guard':-2,'Glass Cannon':-2,'Regrowth':-1,'Quick Guard':-1,'Mending Guard':-1};
 const cardPrice=(c,p)=>{const r=Math.floor((game.round||1)/4);
   if(c.up)return UP_PRICE+r+Math.floor(((p&&p.ups&&p.ups.length)||0)/4);   // every 4 power-ups you own add 1
@@ -3683,6 +3728,8 @@ const AH={
   bolt(g,x0,y0,x1,y1,seed){g.beginPath();g.moveTo(x0,y0);for(let i=1;i<6;i++){const k=i/6,j=Math.sin(seed*12.9898+i*78.233)*43758.5453;g.lineTo(x0+(x1-x0)*k+(j-Math.floor(j)-.5)*26,y0+(y1-y0)*k+(Math.sin(j)*10))}g.lineTo(x1,y1);g.stroke()}
 };
 const ART={
+ 'Bullet Hose':(g,t)=>ART['Hair Trigger'](g,t*2.2),'Rubber Rounds':(g,t)=>ART['Ricochet'](g,t*1.6),
+ 'Chaos Rounds':(g,t)=>{const L=['Blast Cap','Cryo Rounds','Venom Tips','Seeker','Splinter Rounds'];ART[L[Math.floor(t/1.4)%L.length]](g,t)},
  'Overpressure':(g,t)=>{const ph=t*.8%1;if(ph<.65){const k=ph/.65,j=k*k*3;AH.ring(g,-40,0,30+k*20,3,k*.8);AH.bullet(g,-40+rand(-j,j),rand(-j,j),0,1+k*.7)}
    else{const k=(ph-.65)/.35;AH.ring(g,-40,0,40+k*120,10*(1-k),1-k);const x=-40+k*300;AH.trail(g,x,0,0,190,12);AH.bullet(g,x,0,0,1.6)}},
  'Hair Trigger':(g,t)=>{for(let i=0;i<8;i++){const x=(t*620+i*62)%500-250;AH.trail(g,x,Math.sin(i*2.1)*5,0,40,4);AH.bullet(g,x,Math.sin(i*2.1)*5,0,.55)}
@@ -4281,7 +4328,7 @@ function spawnShot(p){const s=p.s,lk=s.lance?(p.lanceK??1):1,lp=s.lance?lancePow
     if(i===0){fx=m.x;fy=m.y}
     p.si=(p.si||0)+1;   // shot tag index (bursts and spreads), counted even for a fizzled pellet so both sides agree
     if(m.smothered){burst(m.x,m.y,'#cfd8e3',4,120,3,.2,0);continue}   // muzzle buried in a plank mid-jump: the shot fizzles
-    spawnBullet(p,m.x,m.y,a,{dmg:s.dmg*mult*lp,big:mult>1,r:s.lance?5*s.bulletSize*(mult>1?1.3:1)*lw:0});const nb=bullets[bullets.length-1];nb.gunShot=true;if(s.lance){nb.bw=lw;nb.hz={segs:[],hit:new Set()};beams.push({b:nb,t:LANCE_LIVE})}if(p.ctrl==='net'&&p.netView)nb.rew=clamp(performance.now()-p.netView,0,LAG_COMP_MS);game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}}   // a real trigger pull (the guest predicts these)
+    spawnBullet(p,m.x,m.y,a,{gun:1,dmg:s.dmg*mult*lp,big:mult>1,r:s.lance?5*s.bulletSize*(mult>1?1.3:1)*lw:0});const nb=bullets[bullets.length-1];nb.gunShot=true;{const sb=game.shotsBy||(game.shotsBy=[0,0,0,0]);sb[p.id]=(sb[p.id]||0)+1}if(s.lance){nb.bw=lw;nb.hz={segs:[],hit:new Set()};beams.push({b:nb,t:LANCE_LIVE})}if(p.ctrl==='net'&&p.netView)nb.rew=clamp(performance.now()-p.netView,0,LAG_COMP_MS);game.shots=(game.shots||0)+1;if(p.ctrl==='net'&&p.curSc!=null){nb.sc=p.curSc;nb.si=p.si-1}if(s.chaos>0&&!s.lance)chaosRoll(nb,nb.sc!=null?nb.sc*64+nb.si:Math.random()*1e9|0)}   // a real trigger pull (the guest predicts these)
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120*lw;p.vy-=Math.sin(p.aim)*90*lw;p.shotT=.16;addShake(9*lw)}moveFx(p,()=>{burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s))})}   // the visitor plays its own shot instantly (ghostShot)
 // heavy builds boom, fast builds tick, rails crack, scatter roars, lobs thunk
 /* Grudge: hit harder for every round your rival leads you by */
@@ -4293,7 +4340,14 @@ function spawnBullet(o,x,y,ang,opt={}){if(bullets.length>=600)bullets.shift();co
   bullets.push({id:++bulletSeq,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:opt.r||5*s.bulletSize*(opt.big?1.3:1),dmg:opt.dmg??s.dmg,owner:o,color:o.color,glow:o.glow,
    bounces:plain?0:s.bounces,life:opt.life||3,age:0,grav:plain?.6:s.bulletGravity*(1-Math.min(.85,s.homing*.7)),poison:!plain&&s.poison,slow:plain?0:s.slow,
    homing:plain?0:s.homing,explode:plain?0:s.explode,phase:!plain&&s.phase>0,drill:plain?0:s.phase,phasing:false,knock:s.knock,accel:!plain&&s.accel,sp0:sp,bounced:false,trail:[],seen:0,dead:false,
-   split:plain?0:s.split,grow:!plain&&s.grow,dist:0,launch:plain?0:s.launch,juggle:plain?0:s.juggle,burner:plain?0:s.burner,jam:plain?0:s.jam,pick:plain?0:s.pick,det:plain?0:s.det,mines:!plain&&s.mines,lance:!plain&&s.lance>0,ox:x,oy:y,stuck:false,fuse:0})}
+   split:plain?0:s.split,grow:!plain&&s.grow,dist:0,launch:plain?0:s.launch,juggle:plain?0:s.juggle,burner:plain?0:s.burner,jam:plain?0:s.jam,pick:plain?0:s.pick,det:plain?0:s.det,mines:!plain&&s.mines,lance:!plain&&s.lance>0,ox:x,oy:y,stuck:false,fuse:0});if(!plain&&s.chaos>0&&!opt.gun)chaosRoll(bullets[bullets.length-1],Math.random()*1e9|0)}
+// Chaos Rounds: every bullet gets one random power on top of the build, and wears its colour so you can read it in flight
+const CHAOS=[['explode','#ff8a3d'],['slow','#7fd8ff'],['poison','#7be34a'],['homing','#e070ff'],['bounce','#ffe066'],['split','#ffffff'],['giant','#ff5a7a']];
+// the roll comes from a seed: for an online guest's shot it is the shot's number, so the guest's own prediction rolls the same power
+const chaosK=seed=>(Math.imul(seed|0,2654435761)>>>16)%CHAOS.length;
+function chaosRoll(b,seed){const[k,c]=CHAOS[chaosK(seed)];b.chaosK=k;b.glow=c;
+  if(k==='explode')b.explode=Math.max(b.explode,90);else if(k==='slow')b.slow=Math.max(b.slow,.45);else if(k==='poison')b.poison=true;else if(k==='homing')b.homing=Math.max(b.homing,.5);
+  else if(k==='bounce')b.bounces+=3;else if(k==='split')b.split+=4;else{b.r*=2;b.dmg*=1.35}}
 const BLOCK_T=.3;
 function doBlock(p){if(!p.alive)return;const s=p.s;
   if(p.blockCd>0){if(!(p.blockStock>0)||p.blockT>0)return;p.blockStock--}else{p.blockCd=s.blockCd;p.blockStock=s.blockStock}
@@ -4576,6 +4630,8 @@ const berserkOn=p=>p.s.berserk&&p.hp<p.s.maxHp*.5;
 // how fast you reach your run speed or turn around: on the ground a reversal takes ~0.1 s (readable, still snappy); in the
 // air you steer less, so a jump is a committed arc a rival can lead
 const GROUND_ACC=10,AIR_ACC=4.5;
+// dropping through wood needs room underneath: over a post or a stone cap you would land inside the plank and be stuck there
+const canDrop=(p,g)=>!solidBoxP(p.x,g.y+g.h+p.r+2,p.r-1,p.r);
 function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.coyote-=dt;
   if(p.grounded&&p.ground&&(p.ground.swing||p.ground.ride)){p.x+=p.ground.dx;p.y+=p.ground.dy}
   if(p.grounded)p.coyote=.12;
@@ -4584,7 +4640,7 @@ function moveIntent(p,dt){const s=p.s,inp=p.input;p.dropT-=dt;p.jumpBuf-=dt;p.co
     if((p.emberT||0)<=0){p.emberT=.3;burst(gx,gy,'#ffb347',14,380,4,.4,0,true);burst(gx,gy,'#ff5a1f',8,260,3,.3,0,true);addShake(5);sfx('zap');damage(p,EMBER_DMG,null)}}
   p.emberT=(p.emberT||0)-dt;
   // drop through a one-way plank
-  if(inp.down&&p.grounded&&p.ground&&p.ground.oneway){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
+  if(inp.down&&p.grounded&&p.ground&&p.ground.oneway&&canDrop(p,p.ground)){p.dropT=.25;p.grounded=false;p.ground=null;p.coyote=0;p.y+=2}
   // duck: hold down on solid ground to squash flat, so shots fly over you (you shuffle at half speed)
   p.duck=!!(inp.down&&p.grounded&&!(p.ground&&p.ground.oneway));
   const spd=520*s.moveSpeed*(1-p.slowAmt)*(berserkOn(p)?1.25:1)*(p.frozenT>0||p.frozen?0:1)*(p.duck?.5:1);p.chargeT=(p.chargeT||0)-dt;p.vx+=(inp.move*spd-p.vx)*Math.min(1,(p.chargeT>0?1.2:p.grounded?GROUND_ACC:AIR_ACC)*s.agility*dt*(p.burnT>0?.25:1));   // a Shield Charge dash carries through
@@ -5574,7 +5630,7 @@ const frameErrs=new Set();function frameErr(e){const k=String(e&&e.message||e);i
 
 /* ---------- online: peer-to-peer via PeerJS. The host's browser runs the match for both players;
    the guest sends its inputs and draws the host's snapshots. A free public broker only introduces the two browsers. ---------- */
-const BUILD='2026-11-19-pistol';   // both players must run the same build: arena lists and rules have to match
+const BUILD='2026-11-20-ranked';   // both players must run the same build: arena lists and rules have to match
 const ROOM_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',ROOM_PREFIX='cuued-v1-';
 const net={role:null,peer:null,conn:null,connected:false,code:'',remoteName:'',remote:null,snap:null,snapAt:0,bmap:new Map(),
   out:{jc:0,bc:0,sc:0},sendT:0,pingT:0,rtt:0,fx:[],joinTimer:0,seq:0,ice:null,relay:false,iceAt:0,iceTried:false,icePromise:null,
@@ -6087,7 +6143,8 @@ function ghostShot(p){const s=p.s,n=s.projectiles,br=5*s.bulletSize;let fx=p.x,f
   const lw=s.lance?lanceW(p.gLk??1):1;
   for(let i=0;i<n;i++){const a=p.aim+(n>1?(i/(n-1)-.5)*s.spread*2:0),m=safeSpawn(p,a,gunTip(p),Math.min(br,WALL_R),s.phase);if(i===0){fx=m.x;fy=m.y}p.gSi=(p.gSi||0)+1;if(m.smothered)continue;
     net.ghosts.push({tag:(p.gSc||0)*64+p.gSi-1,ghost:true,born:performance.now(),x:m.x,y:m.y,vx:Math.cos(a)*s.bulletSpeed,vy:Math.sin(a)*s.bulletSpeed,g:bulletG(s)/BGRAV,r:br*lw,bw:lw,bounces:s.bounces,trail:[],
-      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,lance:s.lance>0,ox:m.x,oy:m.y,heat:1})}
+      color:p.color,glow:p.glow,cosT:p.cos&&p.cos.trail,phase:s.phase,poison:s.poison,slow:s.slow>0,explode:s.explode>0,homing:s.homing>0,grow:s.grow,lance:s.lance>0,ox:m.x,oy:m.y,heat:1});
+    if(s.chaos>0&&!s.lance){const gh=net.ghosts[net.ghosts.length-1],[k,c]=CHAOS[chaosK(gh.tag)];gh.glow=c;if(k==='giant')gh.r*=2;else if(k==='bounce')gh.bounces+=3;else if(k==='homing')gh.homing=true;else if(k==='explode')gh.explode=true;else if(k==='poison')gh.poison=true;else if(k==='slow')gh.slow=true}}   // the same power the host rolls for this shot number
   p.vx-=Math.cos(p.aim)*60*(s.dmg/50)**.5;p.shotT=.08;if(s.lance){p.vx-=Math.cos(p.aim)*120;p.vy-=Math.sin(p.aim)*90;p.shotT=.16;game.shake=Math.min(28,game.shake+9)}burst(fx,fy,p.glow,6,300,4,.18,0,true);flashFx(fx,fy,46,.07,p.glow);sfx(shotSound(s),false,true)}
 // a new bullet of the visitor's from the host: adopt the closest ghost (same direction, near where the ghost has flown to)
 function adoptGhost(b,tag){const G=net.ghosts;if(!G.length)return;const g0=BGRAV*b.g;let best=-1,bs=1e9,bt=0;
@@ -6689,7 +6746,7 @@ try{const n=cleanName(new URLSearchParams(location.search).get('name'));if(n){my
 let pendingJoin='',joinBack='multi',menuBack='main',mpKind='versus';   // joinBack: where Back on the join screen goes; mpKind: the multiplayer mode picked (duel, party, coop)
 // Single player's list of matches: on a computer it's the keyboard-and-mouse way (Back goes to the phone-or-keyboard choice)
 function setName(n){myName=cleanName(n);try{localStorage.setItem('cuued.name',myName)}catch(e){}refreshName()}
-function refreshName(){document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
+function refreshName(){try{refreshRank()}catch(e){}document.querySelectorAll('[data-myname]').forEach(el=>el.textContent=myName||'—')}
 // an invite link's room code: ?join=ABCD (or #ABCD from older links and some apps), read once and then cleared from the address
 function linkCode(){let c='';try{const q=new URLSearchParams(location.search).get('join');c=q||(/^#\/?([A-Za-z0-9]{4})\b/.exec(location.hash||'')||[])[1]||''}catch(e){}
   c=String(c).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(c.length!==4)return'';try{history.replaceState(null,'',location.pathname)}catch(e){}return c}

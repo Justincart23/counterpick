@@ -203,3 +203,9 @@ The 15% growth no longer adds loose floating planks. `dress()` drops architectur
 - **Sandbox and Customize** share the menu look: a left rail of choices, cards or items on the right, big Play/Done button bottom-right.
 - **Sidearm** is a chunky dark-gunmetal cartoon pistol with an orange slide stripe and trigger (`guns/sidearm.webp`, made on Higgsfield).
 - **Switchback** crates now sit as mirrored cover in the middle instead of boxing in the right spawn behind its jump pad.
+
+## Ranked, chaos and the playability pass (2026-11-20)
+- **Rank:** every rated match (vs CPU or online 1v1) gives a grade (S–D: result, margin, aim, hits taken) and moves your rating (Elo, K 32, placement x1.5 for the first ten; tougher rivals count more; the grade bonus stops once you're far above the CPU, so the top titles need people). Titles: Rookie → Scrapper → Brawler → Gunslinger → Sharpshooter → Duelist → Veteran → Ace → Champion → Legend → Mythic. Shown on the end screen (with a pop for a new title), beside your name on the menu and in Your stats (with your peak). `tests/rank.js`.
+- **Chaos cards:** Bullet Hose (rare gun: x3 fire rate, +9 ammo, lighter rounds), Rubber Rounds (four more bounces, faster), Chaos Rounds (rare: every bullet rolls a power: blast, frost, venom, homing, bounce, shards or giant; online the roll comes from the shot number so a guest's prediction matches). Painted art from Higgsfield.
+- **Balance:** probed with `scripts/balance.js`; lifted cards that lost when held (Counterfire, Jammer, Reflex Guard, Double Guard, Aegis, Static Guard, Launcher, Juggler) and trimmed Bulwark, Sprinter and Regrowth.
+- **Drop-through:** you can only drop through wood where there's room under it, so you can't sink into a plank sitting on a post or a stone cap and get stuck (`tests/dropthru.js`). Switchback's decks no longer stack low over its stone slabs, and its crate sits in the open.
